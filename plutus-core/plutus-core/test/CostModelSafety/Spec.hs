@@ -41,6 +41,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , NumBytesCostedAsNumWords
   , TextCostedByByteLength
   , ValueMaxDepth
+  , ValueOuterDepth
   , ValueOuterSize
   , ValueTotalSize
   )
@@ -163,6 +164,7 @@ smallConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @ValueTotalSize) = SomeConst Value.empty
   | Just HRefl <- eqTypeRep tr (typeRep @ValueMaxDepth) = SomeConst Value.empty
   | Just HRefl <- eqTypeRep tr (typeRep @ValueOuterSize) = SomeConst Value.empty
+  | Just HRefl <- eqTypeRep tr (typeRep @ValueOuterDepth) = SomeConst Value.empty
   | trPair `App` tr1 `App` tr2 <- tr
   , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
       case (smallConstant tr1, smallConstant tr2) of

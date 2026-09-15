@@ -162,6 +162,8 @@ arity <- function(name) {
         "MultiIndexArray" = 2,
         "AssetCount" = 1,
         "Policies" = 1,
+        "KeepPolicies" = 2,
+        "DropPolicies" = 2,
         -1  ## Default for missing values
         )
 }
@@ -414,6 +416,63 @@ modelFun <- function(path) {
         m <- lm(t ~ 1, filtered)
         return (mk.result(m, "constant_cost"))
     }
+
+   ## Round every coefficient up to a whole picosecond.  The ledger reads the coefficients
+   ## as whole picoseconds and truncates, so a model that dominates the data in R can be
+   ## undercut by the model the ledger actually runs.  Rounding here makes the two the same
+   ## function.
+   round.up <- function (m) {
+        m$coefficients <- ceiling (m$coefficients * 1e6) / 1e6
+        m
+   }
+
+   ## Raise the intercept to 1000 ps if it is below that.  `linear_in_x` and
+   ## `multiplied_sizes` charge nothing but their intercept when the first argument is
+   ## empty, and CostModelSafety requires every builtin to cost at least 1000 ps at its
+   ## smallest arguments.  `adjustModel` rescues only a negative coefficient, so a fitted
+   ## intercept of a few hundred picoseconds would pass here and fail there.
+   floor.intercept <- function (m) {
+        m$coefficients[["(Intercept)"]] <- max (m$coefficients[["(Intercept)"]], 1/1000)
+        m
+   }
+
+   ## Fit `I + s*x*y` with `fit.fan`, which wants one regressor: hand it the product under
+   ## the name it reads and put the coefficients back onto a model of the shape the Haskell
+   ## side reads, as equalsDataModel does below.
+   ##
+   ## Rows whose product is zero are dropped from the fit and kept in the model.  `fit.fan`
+   ## anchors the intercept on the smallest regressor value, and here that is the empty list,
+   ## where neither builtin descends at all; anchored there, the intercept would leave out the
+   ## fixed cost of a call that does work, which a product shape has nowhere else to put.  The
+   ## same rows are priced by the intercept alone, so they get no vote on the slope either.
+   ##
+   ## The slope is then raised to the smallest value that, with that intercept, covers every
+   ## row.  `fit.fan` leaves a tenth of the rows undercharged by design, but both builtins
+   ## refuse a `Value` beyond a fixed number of policies, so the grid is the whole domain the
+   ## model will ever be asked about, and the cost of a descent grows with the depth right up
+   ## to that bound as the outer map outgrows the cache.  The tenth `fit.fan` would leave out
+   ## is not noise but the deepest maps a script can present.
+   multipliedSizesFan <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            discard.overhead ()
+        product <- mutate (filtered, x_mem = x_mem * y_mem)
+        working <- product[product$x_mem > 0, ]
+        m <- fit.fan (working)
+        v <- coefficients (m)
+        envelope <- max ((working$t - v[["(Intercept)"]]) / working$x_mem)
+        if (envelope > v[["x_mem"]]) {
+            cat (sprintf ("# INFO [%s]: slope raised from %.0f to %.0f ps so that no row is underestimated; the figures above are for the slope before the raise.\n",
+                          fname, v[["x_mem"]] * 1e6, envelope * 1e6))
+            v[["x_mem"]] <- envelope
+        }
+        names (v) <- c("(Intercept)", "I(x_mem * y_mem)")
+        ## ^ The space after the comma is important.
+        m2 <- lm (t ~ I(x_mem * y_mem), filtered)
+        m2$coefficients <- v
+        ## ^ The rest of the data in the model now becomes nonsensical, but we don't use it.
+        return (mk.result (floor.intercept (round.up (m2)), "multiplied_sizes"))
+   }
 
    linearInX <- function (fname) {
         filtered <- data %>%
@@ -856,12 +915,18 @@ modelFun <- function(path) {
     ## X wrapped with `ValueOuterSize`
     policiesModel <- linearInX ("Policies")
 
+    ## X is the length of the policy list, Y is the depth of the outer map (`ValueOuterDepth`).
+    ## Both cost one outer-map descent per list element and nothing else, so both charge on
+    ## the product and take the same fit.  See Note [Benchmarking keepPolicies and dropPolicies].
+    keepPoliciesModel <- multipliedSizesFan ("KeepPolicies")
+    dropPoliciesModel <- multipliedSizesFan ("DropPolicies")
+
     ## Values
 
-    # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
-    lookupCoinModel           <- linearInZ ("LookupCoin")    
-    # U wrapped with `Logarithmic . ValueOuterOrMaxInner`
-    insertCoinModel           <- linearInU ("InsertCoin")    
+    # Z wrapped with `ValueMaxDepth`
+    lookupCoinModel           <- linearInZ ("LookupCoin")
+    # U wrapped with `ValueMaxDepth`
+    insertCoinModel           <- linearInU ("InsertCoin")
 
     # X and Y wrapped with `ValueTotalSize` (contained value size)
     unionValueModel         <- {
@@ -1014,7 +1079,9 @@ modelFun <- function(path) {
         scaleValueModel                      = scaleValueModel,
         multiIndexArrayModel                 = multiIndexArrayModel,
         assetCountModel                      = assetCountModel,
-        policiesModel                        = policiesModel
+        policiesModel                        = policiesModel,
+        keepPoliciesModel                    = keepPoliciesModel,
+        dropPoliciesModel                    = dropPoliciesModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

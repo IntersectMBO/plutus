@@ -309,6 +309,156 @@ function generateModelPredictions(benchmarkData, costModel, overhead) {
 }
 
 /**
+ * The model of a two-argument builtin as a translucent Plotly surface over the plane the
+ * benchmark points span, so that its shape can be read where the sample is thin. The x grid
+ * is log-spaced when the x axis is, and the y grid takes the distinct y values of the sample
+ * when there are few of them (a depth, say) and an even spread otherwise.
+ */
+function modelSurfaceTrace(model, points, overhead, options = {}) {
+  const { xLog = false, xSteps = 40, ySteps = 20, name = 'Model surface' } = options;
+  const xs = points.map(p => p.args[0]);
+  const ys = points.map(p => p.args[1]);
+  const spread = (lo, hi, n, log) => {
+    if (log) {
+      lo = Math.max(lo, 1);
+      const a = Math.log(lo), b = Math.log(hi);
+      return Array.from({ length: n }, (_, i) => Math.exp(a + (b - a) * i / (n - 1)));
+    }
+    return Array.from({ length: n }, (_, i) => lo + (hi - lo) * i / (n - 1));
+  };
+  const xGrid = spread(Math.min(...xs), Math.max(...xs), xSteps, xLog);
+  const distinctY = [...new Set(ys)].sort((a, b) => a - b);
+  const yGrid = distinctY.length <= ySteps
+    ? distinctY
+    : spread(Math.min(...ys), Math.max(...ys), ySteps, false);
+  return {
+    type: 'surface',
+    name,
+    x: xGrid,
+    y: yGrid,
+    z: yGrid.map(y => xGrid.map(x => modelCharge(model, [x, y], overhead))),
+    opacity: 0.35,
+    colorscale: [[0, '#E53E3E'], [1, '#E53E3E']],
+    showscale: false,
+    showlegend: true,
+    hovertemplate: '%{x:.3s}, %{y}<br>charged %{z:.3s} ns<extra></extra>'
+  };
+}
+
+/**
+ * How the pages draw a two-argument model: as a red cross at every benchmark point, the
+ * default, or as the translucent surface of `modelSurfaceTrace`. One checkbox, added by
+ * `setupModelDisplay`, switches every page that uses `modelTrace3d`.
+ */
+let modelAsSurface = false;
+
+/**
+ * Add the "draw the model as a surface" checkbox after the page's "show model" one and
+ * re-render on change. Pages call this from their `setupControls`.
+ */
+function setupModelDisplay(rerender) {
+  const showModel = document.getElementById('show-model');
+  if (!showModel || document.getElementById('model-surface')) return;
+  const group = document.createElement('div');
+  group.className = 'control-group';
+  group.innerHTML =
+    '<input type="checkbox" id="model-surface">' +
+    '<label for="model-surface">Draw the model as a surface</label>';
+  showModel.parentElement.insertAdjacentElement('afterend', group);
+  group.querySelector('input').addEventListener('change', e => {
+    modelAsSurface = e.target.checked;
+    rerender();
+  });
+}
+
+/**
+ * The model's trace for a two-argument page: the surface when the checkbox says so,
+ * otherwise a cross at each benchmark point. `hover` is the crosses' hover template.
+ */
+function modelTrace3d(model, points, overhead, options = {}) {
+  const { xLog = false, hover } = options;
+  if (modelAsSurface) return modelSurfaceTrace(model, points, overhead, { xLog });
+  const trace = {
+    x: points.map(d => d.args[0]),
+    y: points.map(d => d.args[1]),
+    z: points.map(d => modelCharge(model, d.args, overhead)),
+    mode: 'markers',
+    type: 'scatter3d',
+    name: 'Model Predictions',
+    marker: { size: 4, color: '#E53E3E', opacity: 0.6, symbol: 'x' }
+  };
+  if (hover) trace.hovertemplate = hover;
+  return trace;
+}
+
+/**
+ * A model's predicted total time in nanoseconds for one benchmark point, overhead
+ * included, or null when the model is missing or cannot be evaluated.
+ */
+function modelCharge(model, args, overhead) {
+  if (!model) return null;
+  const ps = evaluateCostModel(model.modelType, model.coefficients, args);
+  return ps === null ? null : ps / 1000 + overhead;
+}
+
+function median(values) {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+}
+
+/**
+ * One info-panel block per fit: coefficients, how many of the given points the model
+ * undercharges, and by how much. `points` should be the population the fit was built on,
+ * and `terms` names the two size variables in the charge line (e.g. ['p', 'n']).
+ */
+function fitSummary(name, model, points, overhead, terms) {
+  if (!model) return `<p>${name}: not available</p>`;
+  const c = model.coefficients;
+  const ratios = [];
+  let undercharged = 0;
+  let worstShortfall = 0;
+  let worstRatio = 1;
+  for (const d of points) {
+    const predicted = modelCharge(model, d.args, overhead);
+    if (predicted === null) return `<p>${name}: not evaluable (${model.modelType})</p>`;
+    ratios.push(predicted / d.time);
+    if (predicted < d.time) {
+      undercharged += 1;
+      worstShortfall = Math.max(worstShortfall, d.time - predicted);
+      worstRatio = Math.min(worstRatio, predicted / d.time);
+    }
+  }
+  const fmt = v => v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  // `terms` names the sizes the single slope multiplies, so a product model reads as the
+  // product. Both pages that call this ship a one-slope model.
+  const charge = `${fmt(c.intercept)} + ${fmt(c.slope)}&middot;${terms.join('&middot;')}`;
+  return `
+    <p><strong>${name}</strong></p>
+    <dl>
+      <dt>Charge (ps):</dt>
+      <dd>${charge}</dd>
+      <dt>Undercharged points:</dt>
+      <dd>${undercharged} of ${points.length}${undercharged
+        ? `, worst ${(worstShortfall / 1000).toFixed(1)} us (${worstRatio.toFixed(2)}x)`
+        : ''}</dd>
+      <dt>Median overcharge:</dt>
+      <dd>${median(ratios).toFixed(2)}x</dd>
+    </dl>`;
+}
+
+/* The shared loader replaces the contents of `#plot-container` with its own status message
+before it calls a page's render, so the plot div has to be the page's to create. */
+function ensurePlotPanel(id) {
+  if (document.getElementById(id)) return;
+  const container = document.getElementById('plot-container');
+  container.innerHTML = '';
+  const panel = document.createElement('div');
+  panel.id = id;
+  container.appendChild(panel);
+}
+
+/**
  * Format model formula as human-readable string
  */
 function formatModelFormula(modelType, coefficients) {
@@ -528,6 +678,14 @@ const PAGES = [
   ['policies', 'Policies',
    'Returns the currency symbols of a Plutus <code>Value</code>; linear in the number ' +
    'of policies. (2D visualization: Policy Count vs Time)'],
+  ['keeppolicies', 'KeepPolicies',
+   'Retains only the listed currencies of a Plutus <code>Value</code>; one outer-map ' +
+   'descent per element of the list. ' +
+   '(3D visualization: List Length \u00d7 Outer Map Depth \u00d7 Time)'],
+  ['droppolicies', 'DropPolicies',
+   'Removes the listed currencies from a Plutus <code>Value</code>; one outer-map ' +
+   'descent per element of the list. ' +
+   '(3D visualization: List Length \u00d7 Outer Map Depth \u00d7 Time)'],
   ['listtoarray', 'ListToArray',
    'Converts a Plutus list to an array representation. ' +
    '(2D visualization: List Size vs Time)'],

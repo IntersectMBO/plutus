@@ -14,6 +14,7 @@ import Data.Foldable qualified as F
 import Data.List.Extra (nubOrdOn, sortOn)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
+import Data.SatInt (fromSatInt)
 import Safe.Foldable (maximumMay)
 import Test.QuickCheck
 import Test.Tasty
@@ -22,6 +23,12 @@ import Test.Tasty.QuickCheck
 
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Data (Data (..))
+import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
+  ( ExMemoryUsage (..)
+  , ValueOuterDepth (..)
+  , flattenCostRose
+  )
 import PlutusCore.Flat qualified as Flat
 import PlutusCore.Generators.QuickCheck.Builtin (arbitraryBuiltin, genShortHex)
 import PlutusCore.Value (Value)
@@ -63,6 +70,13 @@ prop_unionCommutative v v' =
     (BuiltinSuccess r1, BuiltinSuccess r2) -> r1 === r2
     (BuiltinFailure {}, BuiltinFailure {}) -> property True
     _ -> property False
+
+-- | Verifies that @unionValue@ correctly updates the caches
+prop_unionBookkeeping :: Value -> Value -> Property
+prop_unionBookkeeping v v' =
+  case V.unionValue v v' of
+    BuiltinSuccess r -> checkBookkeeping r
+    _ -> property True
 
 prop_unionAssociative :: Value -> Value -> Value -> Property
 prop_unionAssociative v1 v2 v3 =
@@ -193,40 +207,53 @@ prop_policiesAfterDeletion v0 =
 
 Some are drawn from the `Value` itself, or the properties would hold vacuously on ids that
 match nothing. The rest are generated and almost never match, which is what exercises the
-absent-id path. -}
+absent-id path. Some are then repeated, because a repeated id finds what an earlier
+occurrence already recorded and neither builtin may count it twice. -}
 genPolicyIds :: Value -> Gen [ByteString]
 genPolicyIds v = do
   present <- sublistOf (V.policies v)
   absent <- listOf (V.unK <$> genShortHex (V.totalSize v))
-  shuffle (present <> absent)
+  let ids = present <> absent
+  repeats <- sublistOf ids
+  shuffle (ids <> repeats)
+
+{-| Run a policy filter on a `Value` the generators keep far below `policyFilterMaxSize`,
+so that a failure here is a bug and not the bound. -}
+filtered :: BuiltinResult Value -> (Value -> Property) -> Property
+filtered r prop = case r of
+  BuiltinSuccess v -> prop v
+  BuiltinSuccessWithLogs _ v -> prop v
+  BuiltinFailure {} -> counterexample "policy filter failed below policyFilterMaxSize" False
 
 prop_keepPoliciesBookkeeping :: Value -> Property
 prop_keepPoliciesBookkeeping v =
-  forAll (genPolicyIds v) $ checkBookkeeping . flip V.keepPolicies v
+  forAll (genPolicyIds v) $ \ps -> filtered (V.keepPolicies ps v) checkBookkeeping
 
 prop_keepPoliciesPreservesInvariants :: Value -> Property
 prop_keepPoliciesPreservesInvariants v =
-  forAll (genPolicyIds v) $ checkInvariants . flip V.keepPolicies v
+  forAll (genPolicyIds v) $ \ps -> filtered (V.keepPolicies ps v) checkInvariants
 
 -- | @keepPolicies@ retains exactly those requested policies the `Value` has.
 prop_keepPoliciesSelects :: Value -> Property
 prop_keepPoliciesSelects v =
   forAll (genPolicyIds v) $ \ps ->
-    V.policies (V.keepPolicies ps v) === filter (`elem` ps) (V.policies v)
+    filtered (V.keepPolicies ps v) $ \kept ->
+      V.policies kept === filter (`elem` ps) (V.policies v)
 
 prop_dropPoliciesBookkeeping :: Value -> Property
 prop_dropPoliciesBookkeeping v =
-  forAll (genPolicyIds v) $ checkBookkeeping . flip V.dropPolicies v
+  forAll (genPolicyIds v) $ \ps -> filtered (V.dropPolicies ps v) checkBookkeeping
 
 prop_dropPoliciesPreservesInvariants :: Value -> Property
 prop_dropPoliciesPreservesInvariants v =
-  forAll (genPolicyIds v) $ checkInvariants . flip V.dropPolicies v
+  forAll (genPolicyIds v) $ \ps -> filtered (V.dropPolicies ps v) checkInvariants
 
 -- | @dropPolicies@ removes exactly those requested policies the `Value` has.
 prop_dropPoliciesSelects :: Value -> Property
 prop_dropPoliciesSelects v =
   forAll (genPolicyIds v) $ \ps ->
-    V.policies (V.dropPolicies ps v) === filter (`notElem` ps) (V.policies v)
+    filtered (V.dropPolicies ps v) $ \rest ->
+      V.policies rest === filter (`notElem` ps) (V.policies v)
 
 {-| `dropPolicies` maintains the caches by subtraction instead of recomputing them, so it
 has to agree field for field with a `Value` repacked from the retained map.
@@ -238,16 +265,29 @@ prop_dropPoliciesAgreesWithRepack :: Value -> Property
 prop_dropPoliciesAgreesWithRepack v =
   forAll (genPolicyIds v) $ \ps ->
     let ks = mapMaybe V.k ps
-     in V.dropPolicies ps v === V.pack (Map.filterWithKey (\c _ -> c `notElem` ks) (V.unpack v))
+     in filtered (V.dropPolicies ps v) $
+          (=== V.pack (Map.filterWithKey (\c _ -> c `notElem` ks) (V.unpack v)))
+
+{-| `keepPolicies` builds the caches from the currencies it keeps rather than recomputing
+them over the map it returns, so it has to agree field for field with a `Value` repacked
+from that map, for the same reason `dropPolicies` does. -}
+prop_keepPoliciesAgreesWithRepack :: Value -> Property
+prop_keepPoliciesAgreesWithRepack v =
+  forAll (genPolicyIds v) $ \ps ->
+    let ks = mapMaybe V.k ps
+     in filtered (V.keepPolicies ps v) $
+          (=== V.pack (Map.filterWithKey (\c _ -> c `elem` ks) (V.unpack v)))
 
 {-| @keepPolicies@ and @dropPolicies@ partition a `Value`: reuniting the two halves
 recovers the original, caches included. -}
 prop_keepDropPartition :: Value -> Property
 prop_keepDropPartition v =
   forAll (genPolicyIds v) $ \ps ->
-    case V.unionValue (V.keepPolicies ps v) (V.dropPolicies ps v) of
-      BuiltinSuccess u -> u === v
-      _ -> property False
+    filtered (V.keepPolicies ps v) $ \kept ->
+      filtered (V.dropPolicies ps v) $ \dropped ->
+        case V.unionValue kept dropped of
+          BuiltinSuccess u -> u === v
+          _ -> property False
 
 toPositiveValue :: Value -> Value
 toPositiveValue =
@@ -386,11 +426,51 @@ prop_flatDecodeInvalidToken =
       let flat = Flat.flat $ Map.singleton c (Map.singleton t (100 :: Integer))
        in property . isLeft $ Flat.unflat @Value flat
 
+{-| The size `keepPolicies` and `dropPolicies` are charged on: the depth of the outer map,
+floored at 1. -}
+valueOuterDepth :: Value -> Integer
+valueOuterDepth = fromSatInt . sumCostStream . flattenCostRose . memoryUsage . ValueOuterDepth
+
+{-| The measure is the bit length of the outer map size, computed here by doubling rather
+than by the logarithm the measure itself uses. -}
+prop_valueOuterDepthIsBitLength :: Value -> Property
+prop_valueOuterDepthIsBitLength v =
+  valueOuterDepth v === max 1 (bitLength (Map.size (V.unpack v)))
+  where
+    bitLength n = toInteger . length $ takeWhile (<= n) (iterate (* 2) 1)
+
+-- | A `Value` holding one policy, whose inner map has @n@ tokens.
+oneWideValue :: Int -> Value
+oneWideValue n = V.pack (Map.singleton currency inner)
+  where
+    currency = fromJust (V.k "aaa")
+    inner = Map.fromList [(token i, one) | i <- [1 .. n]]
+    token i = fromJust . V.k . B.pack $ [fromIntegral (i `div` 256), fromIntegral (i `mod` 256)]
+    one = fromJust (V.quantity 1)
+
+-- | A `Value` holding @m@ policies of one token each.
+manyPoliciesValue :: Int -> Value
+manyPoliciesValue m = V.pack (Map.fromList [(policyId i, Map.singleton token one) | i <- [1 .. m]])
+  where
+    policyId i = fromJust . V.k . B.pack $ [fromIntegral (i `div` 256), fromIntegral (i `mod` 256)]
+    token = fromJust (V.k "t")
+    one = fromJust (V.quantity 1)
+
+-- | Whether a policy filter refused its `Value`.
+refused :: BuiltinResult Value -> Bool
+refused r = case r of
+  BuiltinFailure {} -> True
+  _ -> False
+
 checkBookkeeping :: Value -> Property
 checkBookkeeping v =
   (expectedMaxInnerSize === actualMaxInnerSize)
     .&&. (expectedSize === actualSize)
     .&&. (expectedNeg === actualNeg)
+    .&&. (expectedNegsByPolicy === actualNegsByPolicy)
+    .&&. counterexample
+      "negativesByPolicy stores a zero"
+      (all (/= 0) (Map.elems actualNegsByPolicy))
   where
     expectedMaxInnerSize = fromMaybe 0 . maximumMay $ Map.map Map.size (V.unpack v)
     actualMaxInnerSize = V.maxInnerSize v
@@ -399,6 +479,12 @@ checkBookkeeping v =
     expectedNeg =
       length [q | inner <- Map.elems (V.unpack v), q <- Map.elems inner, V.unQuantity q < 0]
     actualNeg = V.negativeAmounts v
+    -- The filter is what pins canonicity: an entry that reaches zero has to be gone, not
+    -- stored, or two equal `Value`s would compare unequal.
+    expectedNegsByPolicy =
+      Map.filter (/= 0) $
+        Map.map (length . filter ((< 0) . V.unQuantity) . Map.elems) (V.unpack v)
+    actualNegsByPolicy = V.negativesByPolicy v
 
 checkInvariants :: Value -> Property
 checkInvariants (V.unpack -> v) =
@@ -521,6 +607,17 @@ tests =
         "packUnpackRoundtrip"
         prop_packUnpackRoundtrip
     , testProperty
+        "valueOuterDepthIsBitLength"
+        prop_valueOuterDepthIsBitLength
+    , -- The floor at 1 is what stops a product-shaped cost model from charging nothing
+      -- but its intercept for a policy list applied to an empty `Value`.
+      testCase "valueOuterDepthOfEmptyIsOne" $
+        valueOuterDepth V.empty @?= 1
+    , -- The measure never descends an inner map, which is why the policy filters use it
+      -- rather than `ValueMaxDepth`.
+      testCase "valueOuterDepthIgnoresTokenCount" $
+        valueOuterDepth (oneWideValue 1000) @?= valueOuterDepth (oneWideValue 1)
+    , testProperty
         "packBookkeeping"
         prop_packBookkeeping
     , testProperty
@@ -535,6 +632,9 @@ tests =
     , testProperty
         "unionCommutative"
         prop_unionCommutative
+    , testProperty
+        "unionBookkeeping"
+        prop_unionBookkeeping
     , testProperty
         "unionAssociative"
         prop_unionAssociative
@@ -589,6 +689,9 @@ tests =
         "keepPoliciesSelects"
         (withNumTests 20 prop_keepPoliciesSelects)
     , testProperty
+        "keepPoliciesAgreesWithRepack"
+        (withNumTests 20 prop_keepPoliciesAgreesWithRepack)
+    , testProperty
         "dropPoliciesBookkeeping"
         (withNumTests 20 prop_dropPoliciesBookkeeping)
     , testProperty
@@ -603,6 +706,14 @@ tests =
     , testProperty
         "keepDropPartition"
         (withNumTests 20 prop_keepDropPartition)
+    , testCase "policyFiltersAcceptTheSizeBound" $ do
+        let v = manyPoliciesValue V.policyFilterMaxSize
+        refused (V.keepPolicies [] v) @?= False
+        refused (V.dropPolicies [] v) @?= False
+    , testCase "policyFiltersRefuseAboveTheSizeBound" $ do
+        let v = manyPoliciesValue (V.policyFilterMaxSize + 1)
+        refused (V.keepPolicies [] v) @?= True
+        refused (V.dropPolicies [] v) @?= True
     , testProperty
         "containsReflexive"
         prop_containsReflexive

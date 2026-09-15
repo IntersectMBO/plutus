@@ -1191,13 +1191,23 @@ assetCount (BuiltinValue v) = fromIntegral (Value.totalSize v)
 {-# OPAQUE assetCount #-}
 
 keepPolicies :: BuiltinList BuiltinByteString -> BuiltinValue -> BuiltinValue
-keepPolicies (BuiltinList ps) (BuiltinValue v) =
-  BuiltinValue (Value.keepPolicies (fmap (\(BuiltinByteString b) -> b) ps) v)
+keepPolicies (BuiltinList ps) (BuiltinValue v0) =
+  case Value.keepPolicies (fmap (\(BuiltinByteString b) -> b) ps) v0 of
+    BuiltinSuccess v -> BuiltinValue v
+    BuiltinSuccessWithLogs logs v -> traceAll logs (BuiltinValue v)
+    BuiltinFailure logs err ->
+      traceAll (logs <> pure (display err)) $
+        Haskell.error "keepPolicies errored."
 {-# OPAQUE keepPolicies #-}
 
 dropPolicies :: BuiltinList BuiltinByteString -> BuiltinValue -> BuiltinValue
-dropPolicies (BuiltinList ps) (BuiltinValue v) =
-  BuiltinValue (Value.dropPolicies (fmap (\(BuiltinByteString b) -> b) ps) v)
+dropPolicies (BuiltinList ps) (BuiltinValue v0) =
+  case Value.dropPolicies (fmap (\(BuiltinByteString b) -> b) ps) v0 of
+    BuiltinSuccess v -> BuiltinValue v
+    BuiltinSuccessWithLogs logs v -> traceAll logs (BuiltinValue v)
+    BuiltinFailure logs err ->
+      traceAll (logs <> pure (display err)) $
+        Haskell.error "dropPolicies errored."
 {-# OPAQUE dropPolicies #-}
 
 caseInteger :: Integer -> [a] -> a
