@@ -62,6 +62,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , NumBytesCostedAsNumWords (..)
   , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
+  , ValueOuterDepth (..)
   , ValueOuterSize (..)
   , ValueTotalSize (..)
   )
@@ -806,6 +807,21 @@ instance
 instance
   KnownBuiltinTypeIn DefaultUni term Value
   => ReadKnownIn DefaultUni term ValueOuterSize
+  where
+  readKnown = readKnownCoerce @Value
+  {-# INLINE readKnown #-}
+
+deriving newtype instance
+  KnownTypeAst tyname DefaultUni ValueOuterDepth
+instance
+  KnownBuiltinTypeIn DefaultUni term Value
+  => MakeKnownIn DefaultUni term ValueOuterDepth
+  where
+  makeKnown = makeKnownCoerce @Value
+  {-# INLINE makeKnown #-}
+instance
+  KnownBuiltinTypeIn DefaultUni term Value
+  => ReadKnownIn DefaultUni term ValueOuterDepth
   where
   readKnown = readKnownCoerce @Value
   {-# INLINE readKnown #-}
