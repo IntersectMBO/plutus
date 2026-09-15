@@ -2512,14 +2512,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           assetCountDenotation
           (runCostingFunOneArgument . paramAssetCount)
   toBuiltinMeaning _semvar KeepPolicies =
-    let keepPoliciesDenotation :: [ByteString] -> ValueOuterDepth -> Value
+    let keepPoliciesDenotation :: [ByteString] -> ValueOuterDepth -> BuiltinResult Value
         keepPoliciesDenotation ps (ValueOuterDepth v) = Value.keepPolicies ps v
         {-# INLINE keepPoliciesDenotation #-}
      in makeBuiltinMeaning
           keepPoliciesDenotation
           (runCostingFunTwoArguments . paramKeepPolicies)
   toBuiltinMeaning _semvar DropPolicies =
-    let dropPoliciesDenotation :: [ByteString] -> ValueOuterDepth -> Value
+    let dropPoliciesDenotation :: [ByteString] -> ValueOuterDepth -> BuiltinResult Value
         dropPoliciesDenotation ps (ValueOuterDepth v) = Value.dropPolicies ps v
         {-# INLINE dropPoliciesDenotation #-}
      in makeBuiltinMeaning
