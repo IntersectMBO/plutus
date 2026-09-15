@@ -200,12 +200,15 @@ prop_policiesAfterDeletion v0 =
 
 Some are drawn from the `Value` itself, or the properties would hold vacuously on ids that
 match nothing. The rest are generated and almost never match, which is what exercises the
-absent-id path. -}
+absent-id path. Some are then repeated, because a repeated id finds what an earlier
+occurrence already recorded and neither builtin may count it twice. -}
 genPolicyIds :: Value -> Gen [ByteString]
 genPolicyIds v = do
   present <- sublistOf (V.policies v)
   absent <- listOf (V.unK <$> genShortHex (V.totalSize v))
-  shuffle (present <> absent)
+  let ids = present <> absent
+  repeats <- sublistOf ids
+  shuffle (ids <> repeats)
 
 prop_keepPoliciesBookkeeping :: Value -> Property
 prop_keepPoliciesBookkeeping v =
@@ -246,6 +249,15 @@ prop_dropPoliciesAgreesWithRepack v =
   forAll (genPolicyIds v) $ \ps ->
     let ks = mapMaybe V.k ps
      in V.dropPolicies ps v === V.pack (Map.filterWithKey (\c _ -> c `notElem` ks) (V.unpack v))
+
+{-| `keepPolicies` builds the caches from the currencies it keeps rather than recomputing
+them over the map it returns, so it has to agree field for field with a `Value` repacked
+from that map, for the same reason `dropPolicies` does. -}
+prop_keepPoliciesAgreesWithRepack :: Value -> Property
+prop_keepPoliciesAgreesWithRepack v =
+  forAll (genPolicyIds v) $ \ps ->
+    let ks = mapMaybe V.k ps
+     in V.keepPolicies ps v === V.pack (Map.filterWithKey (\c _ -> c `elem` ks) (V.unpack v))
 
 {-| @keepPolicies@ and @dropPolicies@ partition a `Value`: reuniting the two halves
 recovers the original, caches included. -}
@@ -608,6 +620,9 @@ tests =
     , testProperty
         "keepPoliciesSelects"
         (withNumTests 20 prop_keepPoliciesSelects)
+    , testProperty
+        "keepPoliciesAgreesWithRepack"
+        (withNumTests 20 prop_keepPoliciesAgreesWithRepack)
     , testProperty
         "dropPoliciesBookkeeping"
         (withNumTests 20 prop_dropPoliciesBookkeeping)
