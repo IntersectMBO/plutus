@@ -1,1 +1,1 @@
-[ByteString] -> ValueOuterDepth -> Value
+[ByteString] -> ValueOuterDepth -> BuiltinResult Value

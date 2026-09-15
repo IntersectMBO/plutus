@@ -449,15 +449,8 @@ Every benchmark case becomes one row of `benching-conway.csv`, named after those
 the `Value` by depth, not by policy count. 5000 and 8000 policies are both depth 13, so they
 share a row name and the fit reads them as one point measured twice.
 
-The grid runs past the depth a script can reach, deliberately, and should not be trimmed to
-fit it. An arriving `Value` costs transaction bytes rather than execution units, so the
-depth it can reach is set by the size limit; a deeper outer map has to be built by repeated
-`insertCoin`, which charges on the depth it inserts into and so limits itself. The deepest
-rows are the margin between those two bounds.
-
-Raising the transaction size limit warrants refitting both models. It would let those
-deepest maps arrive rather than be built, and an arriving `Value` costs nothing to
-construct, so the charge that currently bounds the worst case would stop applying.
+The grid stops at `maxPolicies`, the most policies either builtin accepts. If that bound
+goes up, rerun the benchmarks and refit both models on the larger sizes.
 -}
 
 keepPoliciesBenchmark :: StdGen -> Benchmark
@@ -521,7 +514,7 @@ keepDropArgs g = do
 randomShapes :: StatefulGen g m => g -> m [Shape]
 randomShapes g = replicateM 100 do
   listLen <- logUniform g maxValueTotalSize
-  numPolicies <- logUniform g maxValueTotalSize
+  numPolicies <- logUniform g maxPolicies
   numTokens <- uniformRM (1, max 1 (maxValueTotalSize `div` numPolicies)) g
   pure (worstCase numPolicies numTokens listLen)
 
@@ -529,7 +522,7 @@ randomShapes g = replicateM 100 do
 linearGrid :: [Shape]
 linearGrid =
   [ worstCase numPolicies 1 listLen
-  | numPolicies <- takeWhile (<= maxValueTotalSize) [2 ^ l - 1 | l <- [1 :: Int ..]]
+  | numPolicies <- takeWhile (<= maxPolicies) [2 ^ l - 1 | l <- [1 :: Int ..]]
   , listLen <- [5000, 10_000 .. maxValueTotalSize]
   ]
 
@@ -538,7 +531,7 @@ depthSweep :: [Shape]
 depthSweep =
   [ worstCase numPolicies 1 listLen
   | listLen <- [1, 10, 100]
-  , numPolicies <- [1, 2, 8, 64, 512, 4096, maxValueTotalSize]
+  , numPolicies <- [1, 2, 8, 64, 512, 4096, maxPolicies]
   ]
 
 -- | Both visible sizes fixed, tokens per policy varying.
@@ -546,22 +539,22 @@ shapeSweep :: [Shape]
 shapeSweep =
   [ worstCase numPolicies numTokens listLen
   | (numPolicies, listLen, tokenCounts) <-
-      [(100, 100, [1, 10, 100, 400]), (10_000, 10_000, [1, 4])]
+      [(100, 100, [1, 10, 100, 400]), (maxPolicies, 10_000, [1, 4])]
   , numTokens <- tokenCounts
   ]
 
 -- | One point, with hits going from none to all.
 hitSweep :: [Shape]
 hitSweep =
-  [ (worstCase 10_000 1 10_000) {shapeHits = numHits}
-  | numHits <- [0, 2500, 5000, 7500, 10_000]
+  [ (worstCase maxPolicies 1 maxPolicies) {shapeHits = numHits}
+  | numHits <- [0, 2000, 4000, 6000, maxPolicies]
   ]
 
 -- | The same point, with the policies holding a negative amount going from none to all.
 signSweep :: [Shape]
 signSweep =
-  [ (worstCase 10_000 1 10_000) {shapeNegative = numNegative}
-  | numNegative <- [0, 2500, 5000, 10_000]
+  [ (worstCase maxPolicies 1 maxPolicies) {shapeNegative = numNegative}
+  | numNegative <- [0, 2000, 4000, maxPolicies]
   ]
 
 -- | The shortest and longest list against an empty `Value`.
@@ -598,6 +591,11 @@ buildSignedValue numNegative policyIds tokenNames =
 (roughly 14k `insertCoin` applications). -}
 maxValueTotalSize :: Int
 maxValueTotalSize = Value.valueDataMaxSize
+
+{-| The most policies `keepPolicies` and `dropPolicies` accept, and so the largest outer map
+worth timing for them: a row beyond it would fail instead of timing a descent. -}
+maxPolicies :: Int
+maxPolicies = Value.policyFilterMaxSize
 
 {-| A `Value` of @numPolicies@ policies holding @numTokens@ tokens each, together with its
 policy ids. -}
