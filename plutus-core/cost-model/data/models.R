@@ -880,17 +880,16 @@ modelFun <- function(path) {
     ## X is the length of the policy list, Y is the depth of the outer map (`ValueOuterDepth`).
     ## Both builtins do one outer-map descent per element of the list and touch nothing else,
     ## but they do not charge on the same shape: `keepPolicies` also builds a `Set` from the
-    ## list, which dominates, so its per-element cost barely moves with the depth.  Each block
-    ## below gives its own shape, its own fit and the reason for both.  See
+    ## list, and that build is the larger half of what it spends.  Each block below gives its
+    ## own shape, its own fit and the reason for both.  See
     ## Note [Benchmarking keepPolicies and dropPolicies] in Benchmarks.Values.
 
-    ## `keepPolicies` is linear in the list alone.  Building a `Set` from the list dominates
-    ## anything the `Value` contributes, so its per-element cost tracks the length of the list
-    ## and is nearly flat in the depth: for a list no longer than the outer map the two log
-    ## terms trade off, since log p + log (m/p) = log m, while the `Set` build keeps its own
-    ## log p either way.  Neither `p log p` nor a per-element cost that grows with p is
-    ## expressible here, so what `fit.fan` produces is a single per-element slope at the
-    ## envelope of the measurements, loose at short lists and tight at long ones.
+    ## `keepPolicies` is linear in the list alone.  Building a `Set` from the list costs
+    ## `p log p` whatever the `Value` is, and that is the larger half of what the builtin
+    ## spends, so the depth still moves the total but by less and less of it as the list
+    ## grows.  Neither `p log p` nor a per-element cost that grows with p is expressible
+    ## here, so what `fit.fan` produces is a single per-element slope at the envelope of the
+    ## measurements, loose at short lists and tight at long ones.
     keepPoliciesModel <- {
         fname <- "KeepPolicies"
         filtered <- data %>%

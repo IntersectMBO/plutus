@@ -448,11 +448,11 @@ and subtracts its cached contribution.
 The two do not have the same shape, and the reason is what they spend their time on.
 `dropPolicies` does one outer-map descent per element of the list, so its cost follows the
 product of the two visible sizes. `keepPolicies` builds a `Set` from the list first, and
-that build dominates: its per-element cost tracks the length of the list and is nearly flat
-in the depth, because for a list no longer than the outer map the two logarithms trade off
-(log p + log (m/p) = log m) while the `Set` build keeps its own log p either way. Neither
-`p log p` nor a per-element cost that grows with p is expressible in the model algebra, so
-`keepPolicies` gets a single per-element slope at the envelope of the measurements.
+that build costs `p log p` whatever the `Value` is. It is the larger half of what the
+builtin spends, so the depth still moves the total, but by less and less of it as the list
+grows. Neither `p log p` nor a per-element cost that grows with p is expressible in the
+model algebra, so `keepPolicies` gets a single per-element slope at the envelope of the
+measurements.
 
 Every family puts the misses of the list before its hits. `dropPolicies` folds from the
 left, so an id the `Value` does not have costs a descent of the outer map as it stands at
@@ -480,9 +480,16 @@ a sample.
 `hitSweep` and `signSweep` vary what the model cannot see: how much of the list names a
 policy the `Value` has, and how many policies hold a negative amount. Both look like
 repeated measurements of a single point, so whatever they measure appears as vertical
-spread there and nowhere else. A miss costs nearly as much as a hit because
-`Map.updateLookupWithKey` rebuilds the whole search path whether or not it finds anything,
-which is what licenses bounding the number of hits by the length of the list.
+spread there and nowhere else.
+
+The two builtins answer the hit sweep in opposite directions. For `dropPolicies` a miss
+costs nearly as much as a hit, because `Map.updateLookupWithKey` rebuilds the whole search
+path whether or not it finds anything, which is what licenses bounding the number of hits
+by the length of the list. For `keepPolicies` a miss costs more: `Map.restrictKeys` returns
+a subtree unchanged when it keeps all of it and glues two restricted subtrees together at
+every key it drops, so the drops are what it spends on. Its costliest list of a given
+length is therefore one that names nothing in the `Value`, which `worstCase` never builds,
+and at long lists the peak sits in the interior of the sweep rather than at either end.
 
 One thing the model cannot see and no family can remove: the cost of a descent step is not
 constant. An outer map of tens of thousands of 32-byte keys does not fit in cache, so a step
