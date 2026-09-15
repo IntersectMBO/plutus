@@ -1,0 +1,82 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    2 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>module UntypedPlutusCore.Contexts where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import PlutusCore.Arity
+<span class="lineno">    7 </span>import UntypedPlutusCore.Core (Term (..))
+<span class="lineno">    8 </span>import UntypedPlutusCore.Core.Instance.Eq ()
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>-- | A context for an iterated term/type application.
+<span class="lineno">   11 </span>data AppCtx name uni fun a
+<span class="lineno">   12 </span>  = AppCtxTerm a (Term name uni fun a) (AppCtx name uni fun a)
+<span class="lineno">   13 </span>  | AppCtxType a (AppCtx name uni fun a)
+<span class="lineno">   14 </span>  | AppCtxEnd
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>{-| Takes a term and views it as a head plus an 'AppCtx', e.g.
+<span class="lineno">   17 </span>@
+<span class="lineno">   18 </span>  [{ f t } u v]
+<span class="lineno">   19 </span>  --&gt;
+<span class="lineno">   20 </span>  (f, [{ _ t } u v])
+<span class="lineno">   21 </span>  ==
+<span class="lineno">   22 </span>  f (AppCtxType t (AppCtxTerm u (AppCtxTerm v AppCtxEnd)))
+<span class="lineno">   23 </span>@ -}
+<span class="lineno">   24 </span>splitAppCtx :: Term nam uni fun a -&gt; (Term nam uni fun a, AppCtx nam uni fun a)
+<span class="lineno">   25 </span><span class="decl"><span class="istickedoff">splitAppCtx = go AppCtxEnd</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="istickedoff">go appCtx = \case</span>
+<span class="lineno">   28 </span><span class="spaces">      </span><span class="istickedoff">Apply ann function arg -&gt; go (AppCtxTerm ann arg appCtx) function</span>
+<span class="lineno">   29 </span><span class="spaces">      </span><span class="istickedoff">Force ann forcedTerm -&gt; go (AppCtxType ann appCtx) forcedTerm</span>
+<span class="lineno">   30 </span><span class="spaces">      </span><span class="istickedoff">term -&gt; (term, appCtx)</span></span>
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>-- | Fills in the hole in an 'AppCtx', the inverse of 'splitAppCtx'.
+<span class="lineno">   33 </span>fillAppCtx
+<span class="lineno">   34 </span>  :: Term name uni fun ann
+<span class="lineno">   35 </span>  -&gt; AppCtx name uni fun ann
+<span class="lineno">   36 </span>  -&gt; Term name uni fun ann
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">fillAppCtx term = \case</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">AppCtxEnd -&gt; term</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">AppCtxTerm ann arg ctx -&gt; fillAppCtx (Apply ann term arg) ctx</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">AppCtxType ann ctx -&gt; fillAppCtx (Force ann term) ctx</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>data Saturation = Oversaturated | Undersaturated | Saturated
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>-- | Do the given arguments saturate the given arity?
+<span class="lineno">   45 </span>saturates :: AppCtx name uni fun a -&gt; Arity -&gt; Maybe Saturation
+<span class="lineno">   46 </span>-- Exactly right
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">saturates AppCtxEnd [] = Just Saturated</span>
+<span class="lineno">   48 </span><span class="spaces"></span><span class="nottickedoff">-- Parameters left - undersaturated</span>
+<span class="lineno">   49 </span><span class="spaces"></span><span class="nottickedoff">saturates AppCtxEnd _ = Just Undersaturated</span>
+<span class="lineno">   50 </span><span class="spaces"></span><span class="nottickedoff">-- Match a term parameter to a term arg</span>
+<span class="lineno">   51 </span><span class="spaces"></span><span class="nottickedoff">saturates (AppCtxTerm _ _ ctx) (TermParam : arities) = saturates ctx arities</span>
+<span class="lineno">   52 </span><span class="spaces"></span><span class="nottickedoff">-- Match a type parameter to a type arg</span>
+<span class="lineno">   53 </span><span class="spaces"></span><span class="nottickedoff">saturates (AppCtxType _ ctx) (TypeParam : arities) = saturates ctx arities</span>
+<span class="lineno">   54 </span><span class="spaces"></span><span class="nottickedoff">-- Param/arg mismatch</span>
+<span class="lineno">   55 </span><span class="spaces"></span><span class="nottickedoff">saturates (AppCtxTerm {}) (TypeParam : _) = Nothing</span>
+<span class="lineno">   56 </span><span class="spaces"></span><span class="nottickedoff">saturates (AppCtxType {}) (TermParam : _) = Nothing</span>
+<span class="lineno">   57 </span><span class="spaces"></span><span class="nottickedoff">-- Arguments left - undersaturated</span>
+<span class="lineno">   58 </span><span class="spaces"></span><span class="nottickedoff">saturates (AppCtxTerm {}) [] = Just Oversaturated</span>
+<span class="lineno">   59 </span><span class="spaces"></span><span class="nottickedoff">saturates (AppCtxType {}) [] = Just Oversaturated</span></span>
+
+</pre>
+</body>
+</html>

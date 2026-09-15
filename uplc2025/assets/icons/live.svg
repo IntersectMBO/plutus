@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  Original source of icon:
+    Font Awesome Free 5.15.1 by @fontawesome
+    https://fontawesome.com/license/free
+    CC BY 4.0 https://creativecommons.org/licenses/by/4.0/
+
+  Modified as following:
+    - Original path split from one into three separate paths (for each of the visual distinctive shapes)
+    - Animation of each path
+    - Removed attributes from SVG element to pass W3 validator
+-->
+<svg
+   focusable="false"
+   role="img"
+   viewBox="0 0 448 512"
+   xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @keyframes animation-dot {
+        6% { opacity: 0; }
+        8% { opacity: 1; }
+      100% { opacity: 1; }
+    }
+    @keyframes animation-arc-small {
+        8% { opacity: 0; }
+       10% { opacity: 1; }
+      100% { opacity: 1; }
+    }
+    @keyframes animation-arc-large {
+       10% { opacity: 0; }
+       12% { opacity: 1; }
+      100% { opacity: 1; }
+    }
+
+    #li-dot {
+      animation: animation-dot 8s ease infinite;
+    }
+    #li-arc-small {
+      animation: animation-arc-small 8s ease infinite;
+    }
+    #li-arc-large {
+      animation: animation-arc-large 8s ease infinite;
+    }
+  </style>
+  <path
+     id="li-dot"
+     fill="white"
+     d="M 128.081,415.959 C 128.081,451.328 99.409,480 64.04,480 28.671,480 0,451.328 0,415.959 0,380.59 28.672,351.918 64.041,351.918 c 35.369,0 64.04,28.673 64.04,64.041 z"></path>
+  <path
+     id="li-arc-small"
+     fill="white"
+     d="M 303.741,463.209 C 295.387,308.609 171.556,184.622 16.791,176.259 7.656,175.765 0,183.105 0,192.253 v 48.069 c 0,8.415 6.49,15.472 14.887,16.018 111.832,7.284 201.473,96.702 208.772,208.772 0.547,8.397 7.604,14.887 16.018,14.887 h 48.069 c 9.149,10e-4 16.489,-7.655 15.995,-16.79 z"></path>
+  <path
+     id="li-arc-large"
+     fill="white"
+     d="M 447.99,463.497 C 439.596,229.677 251.465,40.445 16.503,32.01 7.473,31.686 0,38.981 0,48.016 v 48.068 c 0,8.625 6.835,15.645 15.453,15.999 191.179,7.839 344.627,161.316 352.465,352.465 0.353,8.618 7.373,15.453 15.999,15.453 h 48.068 c 9.034,-10e-4 16.329,-7.474 16.005,-16.504 z"></path>
+</svg>
