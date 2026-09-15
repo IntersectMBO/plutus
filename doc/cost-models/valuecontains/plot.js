@@ -7,10 +7,9 @@ const ARITY = 2;
 
 // Global state
 let benchmarkData = [];
-let modelPredictions = [];
-let costModel = null;
+let shippedModel = null;
+let costModel = null; // the shipped model, or the coefficients typed into the info panel
 let overhead = 0;
-let showModel = true;
 let zAxisMode = 'zero';
 
 setupCostModelPage({
@@ -19,9 +18,15 @@ setupCostModelPage({
   costModelName: COST_MODEL_NAME,
   arity: ARITY,
   render(data) {
-    ({ benchmarkData, costModel, overhead, modelPredictions } = data);
+    ({ benchmarkData, costModel, overhead } = data);
+    shippedModel = costModel;
     updateInfoPanel();
     renderPlot();
+    renderCoefficientEditor(shippedModel, model => {
+      costModel = model;
+      updateInfoPanel();
+      renderPlot();
+    });
   },
   setupControls
 });
@@ -49,6 +54,8 @@ function updateInfoPanel() {
 
   document.getElementById('info-time-range').textContent = stats.timeRange;
 
+  renderFitSummary(costModel, shippedModel, benchmarkData, overhead);
+
   // Update model info
   if (costModel) {
     document.getElementById('info-model-type').textContent = costModel.modelType;
@@ -64,7 +71,7 @@ function updateInfoPanel() {
   // Update overhead
   if (overhead > 0) {
     document.getElementById('info-overhead').textContent =
-      `${overhead.toFixed(2)} ns (arity ${ARITY}) added to predictions`;
+      `${overhead.toFixed(2)} ns (arity ${ARITY})`;
   } else {
     document.getElementById('info-overhead').textContent = 'Not calculated';
   }
@@ -92,32 +99,13 @@ function renderPlot() {
 
   const traces = [benchmarkTrace];
 
-  // Prepare model trace if available
-  if (showModel && modelPredictions.length > 0) {
-    const modelX = modelPredictions.map(d => d.args[0]);
-    const modelY = modelPredictions.map(d => d.args[1]);
-    const modelZ = modelPredictions.map(d => d.predictedTime);
-
-    const modelTrace = {
-      x: modelX,
-      y: modelY,
-      z: modelZ,
-      mode: 'markers',
-      type: 'scatter3d',
-      name: 'Model Predictions',
-      marker: {
-        size: 4,
-        color: '#E53E3E',
-        opacity: 0.4,
-        symbol: 'x'
-      }
-    };
-
-    traces.push(modelTrace);
-  }
+  const modelTrace = modelTrace3d(costModel, benchmarkData, overhead);
+  if (modelTrace) traces.push(modelTrace);
 
   // Layout configuration
   const layout = {
+    // A constant `uirevision` keeps the camera the reader has rotated to across re-renders.
+    uirevision: FUNCTION_NAME,
     title: {
       text: `${FUNCTION_NAME} - Benchmark vs Model (3D)`,
       font: { size: 20 }
@@ -147,9 +135,10 @@ function renderPlot() {
     paper_bgcolor: 'rgba(0,0,0,0)'
   };
 
-  // Set Z-axis range based on mode
+  // Set Z-axis range based on mode, the model included.
+  const allZ = traces.flatMap(t => t.z.flat()).filter(z => z !== null);
   if (zAxisMode === 'zero') {
-    layout.scene.zaxis.range = [0, Math.max(...benchmarkZ) * 1.1];
+    layout.scene.zaxis.range = [0, Math.max(...allZ) * 1.1];
   } else {
     const minZ = Math.min(...benchmarkZ);
     const maxZ = Math.max(...benchmarkZ);
@@ -164,20 +153,14 @@ function renderPlot() {
     displaylogo: false
   };
 
-  // Render
-  // Clear loading message
+  // The first render replaces the loading message; later ones update the plot in place.
   const container = document.getElementById('plot-container');
-  container.innerHTML = '';
-  Plotly.newPlot('plot-container', traces, layout, config);
+  if (!container.data) container.innerHTML = '';
+  Plotly.react('plot-container', traces, layout, config);
 }
 
 function setupControls() {
-  // Show/hide model checkbox
-  const showModelCheckbox = document.getElementById('show-model');
-  showModelCheckbox.addEventListener('change', (e) => {
-    showModel = e.target.checked;
-    renderPlot();
-  });
+  setupModelDisplay(renderPlot);
 
   // Z-axis mode selector
   const zAxisModeSelect = document.getElementById('z-axis-mode');
