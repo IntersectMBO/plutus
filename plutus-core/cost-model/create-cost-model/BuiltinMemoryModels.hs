@@ -421,6 +421,12 @@ builtinMemoryModels =
       -- `Value`, so only the list spine is new, at three words per cons cell (as for
       -- `multiIndexArray`). The size measure is the number of policies (`ValueOuterSize`).
       paramPolicies = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 3
+    , -- Both builtins share the `Value`'s inner maps and policy ids by pointer, so what they
+      -- allocate is spine: each element of the list rebuilds at most one search path, of one
+      -- node per level, which is why both charge on the product of the list length and the
+      -- depth. The slopes are those words per level, worst at a depth of one, rounded up.
+      paramKeepPolicies = Id $ ModelTwoArgumentsMultipliedSizes $ OneVariableLinearFunction 32 32
+    , paramDropPolicies = Id $ ModelTwoArgumentsMultipliedSizes $ OneVariableLinearFunction 32 36
     }
   where
     identityFunction = OneVariableLinearFunction 0 1
