@@ -5,10 +5,10 @@ const COST_MODEL_NAME = 'keepPolicies'; // JSON uses camelCase
 const ARITY = 2;
 
 let benchmarkData = [];
-let costModel = null;
+let shippedModel = null;
+let costModel = null; // the shipped model, or the coefficients typed into the info panel
 let overhead = 0;
-let showModel = true;
-let axisScale = 'log';
+let axisScale = 'linear';
 
 setupCostModelPage({
   slug: 'keeppolicies',
@@ -17,8 +17,14 @@ setupCostModelPage({
   arity: ARITY,
   render(data) {
     ({ benchmarkData, costModel, overhead } = data);
+    shippedModel = costModel;
     updateInfoPanel();
     renderPlot();
+    renderCoefficientEditor(shippedModel, model => {
+      costModel = model;
+      updateInfoPanel();
+      renderPlot();
+    });
   },
   setupControls
 });
@@ -35,15 +41,13 @@ function updateInfoPanel() {
     `${Math.min(...ys)} - ${Math.max(...ys)}`;
   document.getElementById('info-time-range').textContent = stats.timeRange;
   document.getElementById('info-overhead').textContent = overhead > 0
-    ? `${overhead.toFixed(2)} ns (arity ${ARITY}) added to predictions`
+    ? `${overhead.toFixed(2)} ns (arity ${ARITY})`
     : 'Not calculated';
 
   // Every point is in the fit. The empty `Value` has an outer-map depth of 1 rather than
   // 0, so the points that measure the policy list on its own sit on the bottom edge of the
   // plane instead of off it, and they are what pins the term proportional to the list.
-  document.getElementById('fit-comparison').innerHTML =
-    fitSummary('The shipped model (from the cost-model JSON)',
-               costModel, benchmarkData, overhead, ['p', 'L']);
+  renderFitSummary(costModel, shippedModel, benchmarkData, overhead, ['p', 'L']);
 
   if (costModel) {
     document.getElementById('info-model-type').textContent = costModel.modelType;
@@ -59,10 +63,11 @@ function updateInfoPanel() {
 point is drawn twice at the same list length and depth, once as what it measured and once as
 what the model charges for it, so the model is safe exactly where the red crosses sit above
 the blue dots. The model can instead be drawn as a translucent surface over the whole plane,
-which shows its shape where the sample is thin. The list length is sampled log-uniformly, so
-a log axis is what spreads it out; the cost of that is the single point at p = 0, which a log
-axis cannot place. The depth axis is already logarithmic in the size of the `Value`, so a
-linear depth axis is the readable one. */
+which shows its shape where the sample is thin. Linear axes are the default: the bound on
+the number of policies makes the domain finite, and the linear grid in the benchmark fills it
+evenly, so the whole plane is visible at once and the point at p = 0 has a place. Log axes
+spread out the log-uniform part of the sample at the small end, at the cost of that point.
+The depth axis is already logarithmic in the size of the `Value`, so it stays linear. */
 function plotTraces() {
   const traces = [{
     x: benchmarkData.map(d => d.args[0]),
@@ -75,12 +80,11 @@ function plotTraces() {
     hovertemplate: 'p %{x}, L %{y}<br>measured %{z:.3s} ns<extra></extra>'
   }];
 
-  if (showModel && costModel) {
-    traces.push(modelTrace3d(costModel, benchmarkData, overhead, {
-      xLog: axisScale === 'log',
-      hover: 'p %{x}, L %{y}<br>charged %{z:.3s} ns<extra></extra>'
-    }));
-  }
+  const modelTrace = modelTrace3d(costModel, benchmarkData, overhead, {
+    xLog: axisScale === 'log',
+    hover: 'p %{x}, L %{y}<br>charged %{z:.3s} ns<extra></extra>'
+  });
+  if (modelTrace) traces.push(modelTrace);
   return traces;
 }
 
@@ -91,6 +95,10 @@ function renderPlot() {
   const scaled = axisScale;
   const suffix = axisScale === 'log' ? ', log' : '';
   Plotly.react('plot-3d', plotTraces(), {
+    // A constant `uirevision` keeps the camera the reader has rotated to across re-renders;
+    // without it every control change snaps the view back to the initial eye, which reads
+    // as the data having flipped.
+    uirevision: FUNCTION_NAME,
     title: { text: `${FUNCTION_NAME} - Benchmark vs Model (3D)`, font: { size: 20 } },
     scene: {
       xaxis: { title: `Policy list length (p${suffix})`, gridcolor: '#E0E0E0', type: scaled },
@@ -113,13 +121,10 @@ function renderPlot() {
 }
 
 function setupControls() {
-  document.getElementById('show-model').addEventListener('change', e => {
-    showModel = e.target.checked;
-    renderPlot();
-  });
   setupModelDisplay(renderPlot);
-  document.getElementById('axis-scale').addEventListener('change', e => {
-    axisScale = e.target.value;
-    renderPlot();
-  });
+  document.querySelectorAll('input[name="axis-scale"]').forEach(r =>
+    r.addEventListener('change', e => {
+      axisScale = e.target.value;
+      renderPlot();
+    }));
 }

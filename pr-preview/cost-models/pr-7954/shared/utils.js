@@ -346,38 +346,46 @@ function modelSurfaceTrace(model, points, overhead, options = {}) {
 }
 
 /**
- * How the pages draw a two-argument model: as a red cross at every benchmark point, the
- * default, or as the translucent surface of `modelSurfaceTrace`. One checkbox, added by
- * `setupModelDisplay`, switches every page that uses `modelTrace3d`.
+ * Markup for one row of radio buttons: a label, then one `<label><input></label>` per
+ * option, so a setting with a few values is one click rather than a dropdown.
  */
-let modelAsSurface = false;
-
-/**
- * Add the "draw the model as a surface" checkbox after the page's "show model" one and
- * re-render on change. Pages call this from their `setupControls`.
- */
-function setupModelDisplay(rerender) {
-  const showModel = document.getElementById('show-model');
-  if (!showModel || document.getElementById('model-surface')) return;
-  const group = document.createElement('div');
-  group.className = 'control-group';
-  group.innerHTML =
-    '<input type="checkbox" id="model-surface">' +
-    '<label for="model-surface">Draw the model as a surface</label>';
-  showModel.parentElement.insertAdjacentElement('afterend', group);
-  group.querySelector('input').addEventListener('change', e => {
-    modelAsSurface = e.target.checked;
-    rerender();
-  });
+function radioGroup(title, name, options, selected) {
+  return `<span class="radio-title">${title}</span>` + options.map(([value, text]) =>
+    `<label class="radio"><input type="radio" name="${name}" value="${value}"` +
+    `${value === selected ? ' checked' : ''}> ${text}</label>`).join('');
 }
 
 /**
- * The model's trace for a two-argument page: the surface when the checkbox says so,
- * otherwise a cross at each benchmark point. `hover` is the crosses' hover template.
+ * How the pages draw a two-argument model: not at all, as a red cross at every benchmark
+ * point (the default), or as the translucent surface of `modelSurfaceTrace`. One radio
+ * group, built by `setupModelDisplay`, switches every page that uses `modelTrace3d`.
+ */
+let modelDisplay = 'surface';
+
+/**
+ * Replace the page's "show model" checkbox with the Hidden / Points / Surface radio group
+ * and re-render on change. Pages call this from their `setupControls`.
+ */
+function setupModelDisplay(rerender) {
+  const showModel = document.getElementById('show-model');
+  if (!showModel) return;
+  const group = showModel.closest('.control-group');
+  group.classList.add('radio-group');
+  group.innerHTML = radioGroup('Cost model:', 'model-display',
+    [['hidden', 'Hidden'], ['points', 'Points'], ['surface', 'Surface']], modelDisplay);
+  group.querySelectorAll('input[name="model-display"]').forEach(r =>
+    r.addEventListener('change', e => { modelDisplay = e.target.value; rerender(); }));
+}
+
+/**
+ * The model's trace for a two-argument page, or null when the model is hidden or missing:
+ * the surface when the radio says so, otherwise a cross at each benchmark point. `hover`
+ * is the crosses' hover template.
  */
 function modelTrace3d(model, points, overhead, options = {}) {
   const { xLog = false, hover } = options;
-  if (modelAsSurface) return modelSurfaceTrace(model, points, overhead, { xLog });
+  if (!model || modelDisplay === 'hidden') return null;
+  if (modelDisplay === 'surface') return modelSurfaceTrace(model, points, overhead, { xLog });
   const trace = {
     x: points.map(d => d.args[0]),
     y: points.map(d => d.args[1]),
@@ -408,43 +416,139 @@ function median(values) {
 }
 
 /**
- * One info-panel block per fit: coefficients, how many of the given points the model
- * undercharges, and by how much. `points` should be the population the fit was built on,
- * and `terms` names the two size variables in the charge line (e.g. ['p', 'n']).
+ * One info-panel block per fit: the charge line, then a table with one column for the
+ * points the model overcharges and one for those it undercharges -- how many, the median
+ * factor and the worst factor on each side. Both factors are quoted as multiples of one or
+ * more: an overcharge is charged / measured, an undercharge is measured / charged, so the
+ * two "worst" cells read the same way. `points` should be the population the fit was built
+ * on, and `terms`, when given, names the size variables a one-slope model multiplies (e.g.
+ * ['p', 'L']); other models print their formula.
  */
 function fitSummary(name, model, points, overhead, terms) {
   if (!model) return `<p>${name}: not available</p>`;
   const c = model.coefficients;
-  const ratios = [];
-  let undercharged = 0;
-  let worstShortfall = 0;
-  let worstRatio = 1;
+  const over = [];   // charged / measured, for the points charged at least what they cost
+  const under = [];  // measured / charged, for the points charged less than they cost
   for (const d of points) {
     const predicted = modelCharge(model, d.args, overhead);
     if (predicted === null) return `<p>${name}: not evaluable (${model.modelType})</p>`;
-    ratios.push(predicted / d.time);
-    if (predicted < d.time) {
-      undercharged += 1;
-      worstShortfall = Math.max(worstShortfall, d.time - predicted);
-      worstRatio = Math.min(worstRatio, predicted / d.time);
-    }
+    if (predicted >= d.time) over.push(predicted / d.time);
+    else under.push(d.time / predicted);
   }
   const fmt = v => v.toLocaleString('en-US', { maximumFractionDigits: 0 });
-  // `terms` names the sizes the single slope multiplies, so a product model reads as the
-  // product. Both pages that call this ship a one-slope model.
-  const charge = `${fmt(c.intercept)} + ${fmt(c.slope)}&middot;${terms.join('&middot;')}`;
+  const oneSlope = terms && Object.keys(c).sort().join() === 'intercept,slope';
+  const charge = oneSlope
+    ? `${fmt(c.intercept)} + ${fmt(c.slope)}&middot;${terms.join('&middot;')}`
+    : formatModelFormula(model.modelType, c);
+  const total = points.length;
+  const count = xs => `${xs.length} &middot; ${total ? Math.round(100 * xs.length / total) : 0}%`;
+  const factor = (xs, pick) => xs.length ? `${pick(xs).toFixed(2)}x` : '&mdash;';
   return `
     <p><strong>${name}</strong></p>
     <dl>
       <dt>Charge (ps):</dt>
       <dd>${charge}</dd>
-      <dt>Undercharged points:</dt>
-      <dd>${undercharged} of ${points.length}${undercharged
-        ? `, worst ${(worstShortfall / 1000).toFixed(1)} us (${worstRatio.toFixed(2)}x)`
-        : ''}</dd>
-      <dt>Median overcharge:</dt>
-      <dd>${median(ratios).toFixed(2)}x</dd>
-    </dl>`;
+    </dl>
+    <table class="fit-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th title="Points charged at least what they measured; the factor is charged / measured.">Overcharged</th>
+          <th title="Points charged less than they measured; the factor is measured / charged.">Undercharged</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><th>Points</th><td>${count(over)}</td><td>${count(under)}</td></tr>
+        <tr><th>Median</th><td>${factor(over, median)}</td><td>${factor(under, median)}</td></tr>
+        <tr><th>Worst</th><td>${factor(over, xs => Math.max(...xs))}</td><td>${factor(under, xs => Math.max(...xs))}</td></tr>
+      </tbody>
+    </table>`;
+}
+
+/**
+ * The fit summary of `model` against `points`, written into `#fit-comparison` (created next
+ * to the model-type section when a page has none). `shipped` is the model from the JSON;
+ * when `model` differs from it the block says so, so a hand-edited candidate is never
+ * mistaken for what ships.
+ */
+function renderFitSummary(model, shipped, points, overhead, terms) {
+  let el = document.getElementById('fit-comparison');
+  if (!el) {
+    const type = document.getElementById('info-model-type');
+    if (!type) return;
+    const section = document.createElement('div');
+    section.className = 'info-section';
+    section.innerHTML = '<h3>Model against the benchmark</h3><div id="fit-comparison"></div>';
+    type.closest('.info-section').insertAdjacentElement('beforebegin', section);
+    el = document.getElementById('fit-comparison');
+  }
+  const same = shipped && model &&
+    JSON.stringify(model.coefficients) === JSON.stringify(shipped.coefficients);
+  const name = same ? 'Shipped model' : 'Edited coefficients';
+  el.innerHTML = fitSummary(name, model, points, overhead, terms);
+}
+
+/**
+ * One number input per coefficient of the shipped model, plus a button that puts the
+ * shipped values back, inserted after the model formula. Editing a value calls
+ * `onChange` with a copy of the model carrying the edited coefficients; nothing is written
+ * anywhere. The point is to try a candidate by hand and read its under- and overcharge off
+ * the page, with the surface or the crosses following.
+ */
+function renderCoefficientEditor(shipped, onChange) {
+  const formula = document.getElementById('info-model-formula');
+  if (!formula || !shipped) return;
+  let dd = document.getElementById('info-model-coefficients');
+  if (!dd) {
+    formula.insertAdjacentHTML('afterend',
+      '<dt>Coefficients (editable):</dt><dd id="info-model-coefficients"></dd>');
+    dd = document.getElementById('info-model-coefficients');
+  }
+  const keys = Object.keys(shipped.coefficients);
+  const stepTitle = 'by 1% of the current value; Shift: 10%, Alt: 0.1%';
+  dd.innerHTML = keys.map(k =>
+    `<div class="coefficient-row"><span class="coefficient-name">${k}</span>` +
+    `<span class="coefficient-controls">` +
+    `<button type="button" class="step" data-for="${k}" data-direction="-1" title="Lower ${stepTitle}">&minus;%</button>` +
+    `<input type="number" step="1" data-coefficient="${k}" value="${shipped.coefficients[k]}" aria-label="${k}">` +
+    `<button type="button" class="step" data-for="${k}" data-direction="1" title="Raise ${stepTitle}">+%</button>` +
+    `</span></div>`).join('') +
+    '<div class="coefficient-row"><span></span>' +
+    '<button type="button" class="secondary" id="reset-coefficients">Reset to shipped</button></div>';
+  const current = () => {
+    const c = {};
+    dd.querySelectorAll('input[data-coefficient]').forEach(i => {
+      const v = Number(i.value);
+      c[i.dataset.coefficient] = Number.isFinite(v) ? v : shipped.coefficients[i.dataset.coefficient];
+    });
+    return { ...shipped, coefficients: c };
+  };
+  // Coefficients are picoseconds in the tens of thousands, so a unit step is useless for
+  // fitting by hand; the buttons and the arrow keys move by a share of the current value,
+  // rounded to a whole picosecond and never below one.
+  const bump = (input, direction, event) => {
+    const share = event.shiftKey ? 0.1 : event.altKey ? 0.001 : 0.01;
+    const v = Number(input.value);
+    const base = Number.isFinite(v) ? v : shipped.coefficients[input.dataset.coefficient];
+    const delta = Math.max(1, Math.round(Math.abs(base) * share));
+    input.value = Math.max(0, base + direction * delta);
+    onChange(current());
+  };
+  dd.querySelectorAll('input').forEach(i => {
+    i.addEventListener('input', () => onChange(current()));
+    i.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      bump(i, e.key === 'ArrowUp' ? 1 : -1, e);
+    });
+  });
+  dd.querySelectorAll('button.step').forEach(b => b.addEventListener('click', e => {
+    bump(dd.querySelector(`input[data-coefficient="${b.dataset.for}"]`), Number(b.dataset.direction), e);
+  }));
+  dd.querySelector('#reset-coefficients').addEventListener('click', () => {
+    keys.forEach(k => { dd.querySelector(`input[data-coefficient="${k}"]`).value = shipped.coefficients[k]; });
+    onChange(current());
+  });
 }
 
 /* The shared loader replaces the contents of `#plot-container` with its own status message
@@ -728,10 +832,16 @@ function getFileUrls(baseUrl) {
 // Load settings from localStorage (URL param takes precedence)
 function loadSettings() {
   const urlBranch = getBranchFromUrl();
+  // `?csv=...&json=...` point the page at explicit files, e.g. a checkout served locally
+  // (`python3 -m http.server` at the repository root, then relative paths), and win over
+  // whatever the browser remembers.
+  const params = new URLSearchParams(window.location.search);
+  const urlCsv = params.get('csv');
+  const urlJson = params.get('json');
   return {
     branch: urlBranch || localStorage.getItem(STORAGE_KEYS.BRANCH) || DEFAULT_BRANCH,
-    csvUrl: localStorage.getItem(STORAGE_KEYS.CSV_URL) || '',
-    jsonUrl: localStorage.getItem(STORAGE_KEYS.JSON_URL) || '',
+    csvUrl: (urlCsv && urlJson ? urlCsv : localStorage.getItem(STORAGE_KEYS.CSV_URL)) || '',
+    jsonUrl: (urlCsv && urlJson ? urlJson : localStorage.getItem(STORAGE_KEYS.JSON_URL)) || '',
     collapsed: localStorage.getItem(STORAGE_KEYS.DATA_SOURCE_COLLAPSED) === 'true'
   };
 }

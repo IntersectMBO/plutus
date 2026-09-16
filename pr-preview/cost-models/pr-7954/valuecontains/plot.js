@@ -7,9 +7,9 @@ const ARITY = 2;
 
 // Global state
 let benchmarkData = [];
-let costModel = null;
+let shippedModel = null;
+let costModel = null; // the shipped model, or the coefficients typed into the info panel
 let overhead = 0;
-let showModel = true;
 let zAxisMode = 'zero';
 
 setupCostModelPage({
@@ -19,8 +19,14 @@ setupCostModelPage({
   arity: ARITY,
   render(data) {
     ({ benchmarkData, costModel, overhead } = data);
+    shippedModel = costModel;
     updateInfoPanel();
     renderPlot();
+    renderCoefficientEditor(shippedModel, model => {
+      costModel = model;
+      updateInfoPanel();
+      renderPlot();
+    });
   },
   setupControls
 });
@@ -48,6 +54,8 @@ function updateInfoPanel() {
 
   document.getElementById('info-time-range').textContent = stats.timeRange;
 
+  renderFitSummary(costModel, shippedModel, benchmarkData, overhead);
+
   // Update model info
   if (costModel) {
     document.getElementById('info-model-type').textContent = costModel.modelType;
@@ -63,7 +71,7 @@ function updateInfoPanel() {
   // Update overhead
   if (overhead > 0) {
     document.getElementById('info-overhead').textContent =
-      `${overhead.toFixed(2)} ns (arity ${ARITY}) added to predictions`;
+      `${overhead.toFixed(2)} ns (arity ${ARITY})`;
   } else {
     document.getElementById('info-overhead').textContent = 'Not calculated';
   }
@@ -91,12 +99,14 @@ function renderPlot() {
 
   const traces = [benchmarkTrace];
 
-  if (showModel && costModel) {
-    traces.push(modelTrace3d(costModel, benchmarkData, overhead));
-  }
+  const modelTrace = modelTrace3d(costModel, benchmarkData, overhead);
+  if (modelTrace) traces.push(modelTrace);
 
   // Layout configuration
   const layout = {
+    // A constant `uirevision` keeps the camera the reader has rotated to across re-renders;
+    // without it every control change snaps the view back, which reads as a flip.
+    uirevision: FUNCTION_NAME,
     title: {
       text: `${FUNCTION_NAME} - Benchmark vs Model (3D)`,
       font: { size: 20 }
@@ -145,20 +155,14 @@ function renderPlot() {
     displaylogo: false
   };
 
-  // Render
-  // Clear loading message
+  // Render. The first render replaces the loading message; later ones update the existing
+  // plot in place so the camera survives.
   const container = document.getElementById('plot-container');
-  container.innerHTML = '';
-  Plotly.newPlot('plot-container', traces, layout, config);
+  if (!container.data) container.innerHTML = '';
+  Plotly.react('plot-container', traces, layout, config);
 }
 
 function setupControls() {
-  // Show/hide model checkbox
-  const showModelCheckbox = document.getElementById('show-model');
-  showModelCheckbox.addEventListener('change', (e) => {
-    showModel = e.target.checked;
-    renderPlot();
-  });
   setupModelDisplay(renderPlot);
 
   // Z-axis mode selector

@@ -61,12 +61,10 @@
           <input type="checkbox" id="show-model" checked>
           <label for="show-model">Show model predictions</label>
         </div>
-        <div class="control-group">
-          <label for="axis-scale">Axes:</label>
-          <select id="axis-scale">
-            <option value="log">Logarithmic</option>
-            <option value="linear">Linear</option>
-          </select>
+        <div class="control-group radio-group">
+          <span class="radio-title">Axes:</span>
+          <label class="radio"><input type="radio" name="axis-scale" value="linear" checked> Linear</label>
+          <label class="radio"><input type="radio" name="axis-scale" value="log"> Logarithmic</label>
         </div>
       </div>
     </div>
@@ -99,7 +97,7 @@
         </div>
 
         <div class="info-section">
-          <h3>The shipped model</h3>
+          <h3>Model against the benchmark</h3>
           <div id="fit-comparison">-</div>
         </div>
 
