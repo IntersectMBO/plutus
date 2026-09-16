@@ -67,10 +67,7 @@ deriving stock instance
 instance HashableTermConstraints uni fun ann => Hashable (Term DeBruijn uni fun ann)
 
 deriving stock instance
-  ( GEq uni
-  , Closed uni
-  , uni `Everywhere` Eq
-  , Eq fun
+  ( uni `Everywhere` Eq
   , Eq ann
   , Eq (Term name uni fun ann)
   )

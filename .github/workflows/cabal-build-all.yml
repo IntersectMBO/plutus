@@ -23,7 +23,7 @@ jobs:
     runs-on: [self-hosted, plutus-runner]
     strategy:
       matrix:
-        ghc: [ghc912, ghc96]
+        ghc: [ghc914, ghc96]
       fail-fast: false
 
     steps:

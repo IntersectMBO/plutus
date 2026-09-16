@@ -2,31 +2,9 @@
 
 let
 
-  # Agda standard library pinned to v2.3.
+  # Agda standard library, v2.3 in the current nixpkgs.
   # Used in: `nix/metatheory.nix` (as a build input) and `nix/shell.nix` (via agda-with-stdlib).
-  agda-stdlib = agda-packages.standard-library.overrideAttrs (oldAtts: rec {
-
-    version = "2.3";
-
-    src = pkgs.fetchFromGitHub {
-      repo = "agda-stdlib";
-      owner = "agda";
-      rev = "v${version}";
-      sha256 = "sha256-JOeoek6OfyIk9vwTj5QUJU6LnRzwfiG0e0ysW6zbhZ8=";
-    };
-
-    # This is preConfigure is copied from more recent nixpkgs that also
-    # uses version 2.3 of standard-library. Old nixpkgs (that used 1.4)
-    # had a preConfigure step that worked with 1.7. Less old nixpkgs
-    # (that used 1.6) had a preConfigure step that attempts to `rm`
-    # files that are now in the .gitignore list for 1.
-    preConfigure = ''
-      runhaskell GenerateEverything.hs --include-deprecated
-      # We will only build/consider Everything.agda, in particular we don't want Everything*.agda
-      # do be copied to the store.
-      rm EverythingSafe.agda
-    '';
-  });
+  agda-stdlib = agda-packages.standard-library;
 
   # Compose a tailored Agda toolchain and expose it via agdaPackages.
   # Used in: `nix/metatheory.nix` (to build agda-with-stdlib-and-metatheory) and `nix/shell.nix`.

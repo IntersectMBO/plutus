@@ -78,8 +78,10 @@ let
   project-variants-hydra-jobs = {
     ghc96 = (project.flake { }).hydraJobs.ghc96;
     ghc912 = (project.flake { }).hydraJobs.ghc912;
+    ghc914 = (project.flake { }).hydraJobs.ghc914;
     ghc96-profiled = (project.flake { }).hydraJobs.ghc96-profiled;
     ghc912-profiled = (project.flake { }).hydraJobs.ghc912-profiled;
+    ghc914-profiled = (project.flake { }).hydraJobs.ghc914-profiled;
   };
 
   project-variants-roots-and-plan-nix = {
@@ -87,10 +89,14 @@ let
     ghc96.plan-nix = project-variants-hydra-jobs.ghc96.plan-nix;
     ghc912.roots = project-variants-hydra-jobs.ghc912.roots;
     ghc912.plan-nix = project-variants-hydra-jobs.ghc912.plan-nix;
+    ghc914.roots = project-variants-hydra-jobs.ghc914.roots;
+    ghc914.plan-nix = project-variants-hydra-jobs.ghc914.plan-nix;
     ghc96-profiled.roots = project-variants-hydra-jobs.ghc96-profiled.roots;
     ghc96-profiled.plan-nix = project-variants-hydra-jobs.ghc96-profiled.plan-nix;
     ghc912-profiled.roots = project-variants-hydra-jobs.ghc912-profiled.roots;
     ghc912-profiled.plan-nix = project-variants-hydra-jobs.ghc912-profiled.plan-nix;
+    ghc914-profiled.roots = project-variants-hydra-jobs.ghc914-profiled.roots;
+    ghc914-profiled.plan-nix = project-variants-hydra-jobs.ghc914-profiled.plan-nix;
   };
 
   packages =
@@ -112,9 +118,17 @@ let
     default = ghc96;
     ghc96 = mkShell "ghc96";
     ghc912 = mkShell "ghc912";
+    ghc914 = mkShell "ghc914";
     ghc96-profiled = mkShell "ghc96-profiled";
     ghc912-profiled = mkShell "ghc912-profiled";
     metatheory-jailbreak = metatheory-jailbreak-shell;
+  };
+
+  ci-devShells = {
+    devShells.ghc96 = devShells.ghc96;
+    devShells.ghc912 = devShells.ghc912;
+    devShells.ghc914 = devShells.ghc914;
+    devShells.metatheory-jailbreak = metatheory-jailbreak-shell;
   };
 
   nested-ci-jobs = {
@@ -122,12 +136,8 @@ let
       (windows-hydra-jobs) //
       (packages) //
       { ghc96 = project-variants-hydra-jobs.ghc96; } //
-      { ghc912 = project-variants-hydra-jobs.ghc912; } //
-      { devShells.ghc96 = devShells.ghc96; } //
-      { devShells.ghc912 = devShells.ghc912; } //
-      { devShells.ghc96-profiled = devShells.ghc96-profiled; } //
-      { devShells.ghc912-profiled = devShells.ghc912-profiled; } //
-      { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
+      { ghc914 = project-variants-hydra-jobs.ghc914; } //
+      (ci-devShells) //
       { required = hydra-required-job; };
     "x86_64-darwin" =
       { };
@@ -135,11 +145,7 @@ let
       { };
     "aarch64-darwin" =
       (project-variants-roots-and-plan-nix) //
-      { devShells.ghc96 = devShells.ghc96; } //
-      { devShells.ghc912 = devShells.ghc912; } //
-      { devShells.ghc96-profiled = devShells.ghc96-profiled; } //
-      { devShells.ghc912-profiled = devShells.ghc912-profiled; } //
-      { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
+      (ci-devShells) //
       { required = hydra-required-job; };
   };
 
