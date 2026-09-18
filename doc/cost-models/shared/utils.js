@@ -799,18 +799,26 @@ function getFileUrls(baseUrl) {
   };
 }
 
-// Load settings from localStorage (URL param takes precedence)
+// Load settings from localStorage (URL params take precedence)
 function loadSettings() {
   const urlBranch = getBranchFromUrl();
-  // `?csv=...&json=...` point the page at explicit files and win over what the browser
-  // remembers.
   const params = new URLSearchParams(window.location.search);
   const urlCsv = params.get('csv');
   const urlJson = params.get('json');
+  // `?csv=...&json=...` name the files outright, `?branch=...` names the branch holding
+  // them; either wins over the files the browser remembers.
+  const files = urlCsv && urlJson
+    ? { csv: urlCsv, json: urlJson }
+    : urlBranch
+      ? getFileUrls(generateUrlFromBranch(urlBranch))
+      : {
+          csv: localStorage.getItem(STORAGE_KEYS.CSV_URL) || '',
+          json: localStorage.getItem(STORAGE_KEYS.JSON_URL) || ''
+        };
   return {
     branch: urlBranch || localStorage.getItem(STORAGE_KEYS.BRANCH) || DEFAULT_BRANCH,
-    csvUrl: (urlCsv && urlJson ? urlCsv : localStorage.getItem(STORAGE_KEYS.CSV_URL)) || '',
-    jsonUrl: (urlCsv && urlJson ? urlJson : localStorage.getItem(STORAGE_KEYS.JSON_URL)) || '',
+    csvUrl: files.csv,
+    jsonUrl: files.json,
     collapsed: localStorage.getItem(STORAGE_KEYS.DATA_SOURCE_COLLAPSED) === 'true'
   };
 }
@@ -847,14 +855,27 @@ function showError(message) {
   container.querySelector('.error p').textContent = message;
 }
 
+// The data-source part of the current query string, to append to a link to another page.
+function dataSourceQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const kept = new URLSearchParams();
+  for (const key of ['branch', 'csv', 'json']) {
+    const value = params.get(key);
+    if (value) kept.set(key, value);
+  }
+  const query = kept.toString();
+  return query ? `?${query}` : '';
+}
+
 // Fill <nav> with the standard page list; `active` is the page's slug and
 // `prefix` the relative path to the site root ('..' from a page, '.' from
 // the home page).
 function renderNav(active, prefix = '..') {
   const nav = document.querySelector('nav');
   if (!nav) return;
-  const items = [[`${prefix}/index.html`, 'Home', active === null]].concat(
-    PAGES.map(([slug, name]) => [`${prefix}/${slug}/index.html`, name, slug === active]));
+  const query = dataSourceQuery();
+  const items = [[`${prefix}/index.html${query}`, 'Home', active === null]].concat(
+    PAGES.map(([slug, name]) => [`${prefix}/${slug}/index.html${query}`, name, slug === active]));
   nav.innerHTML = '<ul>' + items.map(([href, name, isActive]) =>
     `<li><a href="${href}"${isActive ? ' class="active"' : ''}>${name}</a></li>`).join('') + '</ul>';
 }
@@ -865,8 +886,9 @@ function renderNav(active, prefix = '..') {
 function renderFunctionList() {
   const list = document.querySelector('ul.function-list');
   if (!list) return;
+  const query = dataSourceQuery();
   list.innerHTML = PAGES.map(([slug, name, description]) =>
-    `<li><a href="${slug}/index.html">${name}</a>` +
+    `<li><a href="${slug}/index.html${query}">${name}</a>` +
     `<p class="description">${description}</p></li>`).join('');
 }
 
