@@ -104,8 +104,7 @@ function renderPlot() {
 
   // Layout configuration
   const layout = {
-    // A constant `uirevision` keeps the camera the reader has rotated to across re-renders;
-    // without it every control change snaps the view back, which reads as a flip.
+    // A constant `uirevision` keeps the camera the reader has rotated to across re-renders.
     uirevision: FUNCTION_NAME,
     title: {
       text: `${FUNCTION_NAME} - Benchmark vs Model (3D)`,
@@ -136,8 +135,7 @@ function renderPlot() {
     paper_bgcolor: 'rgba(0,0,0,0)'
   };
 
-  // Set Z-axis range based on mode. The model is in the range too, or a surface that
-  // overcharges the largest inputs would be cut off at the top.
+  // Set Z-axis range based on mode, the model included.
   const allZ = traces.flatMap(t => t.z.flat()).filter(z => z !== null);
   if (zAxisMode === 'zero') {
     layout.scene.zaxis.range = [0, Math.max(...allZ) * 1.1];
@@ -155,8 +153,7 @@ function renderPlot() {
     displaylogo: false
   };
 
-  // Render. The first render replaces the loading message; later ones update the existing
-  // plot in place so the camera survives.
+  // The first render replaces the loading message; later ones update the plot in place.
   const container = document.getElementById('plot-container');
   if (!container.data) container.innerHTML = '';
   Plotly.react('plot-container', traces, layout, config);

@@ -308,12 +308,8 @@ function generateModelPredictions(benchmarkData, costModel, overhead) {
   return predictions;
 }
 
-/**
- * The model of a two-argument builtin as a translucent Plotly surface over the plane the
- * benchmark points span, so that its shape can be read where the sample is thin. The x grid
- * is log-spaced when the x axis is, and the y grid takes the distinct y values of the sample
- * when there are few of them (a depth, say) and an even spread otherwise.
- */
+// The model of a two-argument builtin as a translucent surface over the plane the
+// benchmark points span.
 function modelSurfaceTrace(model, points, overhead, options = {}) {
   const { xLog = false, xSteps = 40, ySteps = 20, name = 'Model surface' } = options;
   const xs = points.map(p => p.args[0]);
@@ -345,27 +341,20 @@ function modelSurfaceTrace(model, points, overhead, options = {}) {
   };
 }
 
-/**
- * Markup for one row of radio buttons: a label, then one `<label><input></label>` per
- * option, so a setting with a few values is one click rather than a dropdown.
- */
+// Markup for one row of radio buttons: a label, then one `<label><input></label>` per
+// option.
 function radioGroup(title, name, options, selected) {
   return `<span class="radio-title">${title}</span>` + options.map(([value, text]) =>
     `<label class="radio"><input type="radio" name="${name}" value="${value}"` +
     `${value === selected ? ' checked' : ''}> ${text}</label>`).join('');
 }
 
-/**
- * How the pages draw a two-argument model: not at all, as a red cross at every benchmark
- * point (the default), or as the translucent surface of `modelSurfaceTrace`. One radio
- * group, built by `setupModelDisplay`, switches every page that uses `modelTrace3d`.
- */
+// How the pages draw a two-argument model: not at all, as a red cross at every benchmark
+// point, or as the surface of `modelSurfaceTrace`.
 let modelDisplay = 'surface';
 
-/**
- * Replace the page's "show model" checkbox with the Hidden / Points / Surface radio group
- * and re-render on change. Pages call this from their `setupControls`.
- */
+// Replace the page's "show model" checkbox with the Hidden / Points / Surface radio group
+// and re-render on change.
 function setupModelDisplay(rerender) {
   const showModel = document.getElementById('show-model');
   if (!showModel) return;
@@ -377,11 +366,7 @@ function setupModelDisplay(rerender) {
     r.addEventListener('change', e => { modelDisplay = e.target.value; rerender(); }));
 }
 
-/**
- * The model's trace for a two-argument page, or null when the model is hidden or missing:
- * the surface when the radio says so, otherwise a cross at each benchmark point. `hover`
- * is the crosses' hover template.
- */
+// The model's trace for a two-argument page, or null when the model is hidden or missing.
 function modelTrace3d(model, points, overhead, options = {}) {
   const { xLog = false, hover } = options;
   if (!model || modelDisplay === 'hidden') return null;
@@ -399,10 +384,8 @@ function modelTrace3d(model, points, overhead, options = {}) {
   return trace;
 }
 
-/**
- * A model's predicted total time in nanoseconds for one benchmark point, overhead
- * included, or null when the model is missing or cannot be evaluated.
- */
+// A model's predicted total time in nanoseconds for one benchmark point, overhead
+// included, or null when it cannot be evaluated.
 function modelCharge(model, args, overhead) {
   if (!model) return null;
   const ps = evaluateCostModel(model.modelType, model.coefficients, args);
@@ -416,13 +399,9 @@ function median(values) {
 }
 
 /**
- * One info-panel block per fit: the charge line, then a table with one column for the
- * points the model overcharges and one for those it undercharges -- how many, the median
- * factor and the worst factor on each side. Both factors are quoted as multiples of one or
- * more: an overcharge is charged / measured, an undercharge is measured / charged, so the
- * two "worst" cells read the same way. `points` should be the population the fit was built
- * on, and `terms`, when given, names the size variables a one-slope model multiplies (e.g.
- * ['p', 'L']); other models print their formula.
+ * One info-panel block per fit: the charge line, then how many points the model over- and
+ * undercharges, with the median and worst factor on each side. An overcharge is charged /
+ * measured, an undercharge measured / charged.
  */
 function fitSummary(name, model, points, overhead, terms) {
   if (!model) return `<p>${name}: not available</p>`;
@@ -465,12 +444,7 @@ function fitSummary(name, model, points, overhead, terms) {
     </table>`;
 }
 
-/**
- * The fit summary of `model` against `points`, written into `#fit-comparison` (created next
- * to the model-type section when a page has none). `shipped` is the model from the JSON;
- * when `model` differs from it the block says so, so a hand-edited candidate is never
- * mistaken for what ships.
- */
+// The fit summary of `model` against `points`, written into `#fit-comparison`.
 function renderFitSummary(model, shipped, points, overhead, terms) {
   let el = document.getElementById('fit-comparison');
   if (!el) {
@@ -490,10 +464,8 @@ function renderFitSummary(model, shipped, points, overhead, terms) {
 
 /**
  * One number input per coefficient of the shipped model, plus a button that puts the
- * shipped values back, inserted after the model formula. Editing a value calls
- * `onChange` with a copy of the model carrying the edited coefficients; nothing is written
- * anywhere. The point is to try a candidate by hand and read its under- and overcharge off
- * the page, with the surface or the crosses following.
+ * shipped values back. Editing a value calls `onChange` with a copy of the model carrying
+ * the edited coefficients; nothing is written anywhere.
  */
 function renderCoefficientEditor(shipped, onChange) {
   const formula = document.getElementById('info-model-formula');
@@ -523,9 +495,8 @@ function renderCoefficientEditor(shipped, onChange) {
     });
     return { ...shipped, coefficients: c };
   };
-  // Coefficients are picoseconds in the tens of thousands, so a unit step is useless for
-  // fitting by hand; the buttons and the arrow keys move by a share of the current value,
-  // rounded to a whole picosecond and never below one.
+  // The buttons and the arrow keys move by a share of the current value, rounded to a
+  // whole picosecond and never below one.
   const bump = (input, direction, event) => {
     const share = event.shiftKey ? 0.1 : event.altKey ? 0.001 : 0.01;
     const v = Number(input.value);
@@ -551,8 +522,7 @@ function renderCoefficientEditor(shipped, onChange) {
   });
 }
 
-/* The shared loader replaces the contents of `#plot-container` with its own status message
-before it calls a page's render, so the plot div has to be the page's to create. */
+// The shared loader overwrites `#plot-container`, so the plot div is the page's to create.
 function ensurePlotPanel(id) {
   if (document.getElementById(id)) return;
   const container = document.getElementById('plot-container');
@@ -832,9 +802,8 @@ function getFileUrls(baseUrl) {
 // Load settings from localStorage (URL param takes precedence)
 function loadSettings() {
   const urlBranch = getBranchFromUrl();
-  // `?csv=...&json=...` point the page at explicit files, e.g. a checkout served locally
-  // (`python3 -m http.server` at the repository root, then relative paths), and win over
-  // whatever the browser remembers.
+  // `?csv=...&json=...` point the page at explicit files and win over what the browser
+  // remembers.
   const params = new URLSearchParams(window.location.search);
   const urlCsv = params.get('csv');
   const urlJson = params.get('json');

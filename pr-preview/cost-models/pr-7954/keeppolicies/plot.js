@@ -44,9 +44,7 @@ function updateInfoPanel() {
     ? `${overhead.toFixed(2)} ns (arity ${ARITY})`
     : 'Not calculated';
 
-  // Every point is in the fit. The empty `Value` has an outer-map depth of 1 rather than
-  // 0, so the points that measure the policy list on its own sit on the bottom edge of the
-  // plane instead of off it, and they are what pins the term proportional to the list.
+  // Every point is in the fit.
   renderFitSummary(costModel, shippedModel, benchmarkData, overhead, ['p', 'L']);
 
   if (costModel) {
@@ -59,15 +57,8 @@ function updateInfoPanel() {
   }
 }
 
-/* The two argument sizes are the horizontal axes and time the vertical one. Every benchmark
-point is drawn twice at the same list length and depth, once as what it measured and once as
-what the model charges for it, so the model is safe exactly where the red crosses sit above
-the blue dots. The model can instead be drawn as a translucent surface over the whole plane,
-which shows its shape where the sample is thin. Linear axes are the default: the bound on
-the number of policies makes the domain finite, and the linear grid in the benchmark fills it
-evenly, so the whole plane is visible at once and the point at p = 0 has a place. Log axes
-spread out the log-uniform part of the sample at the small end, at the cost of that point.
-The depth axis is already logarithmic in the size of the `Value`, so it stays linear. */
+/* Sizes on the horizontal axes, time on the vertical one; measured and charged at each
+point. */
 function plotTraces() {
   const traces = [{
     x: benchmarkData.map(d => d.args[0]),
@@ -95,9 +86,7 @@ function renderPlot() {
   const scaled = axisScale;
   const suffix = axisScale === 'log' ? ', log' : '';
   Plotly.react('plot-3d', plotTraces(), {
-    // A constant `uirevision` keeps the camera the reader has rotated to across re-renders;
-    // without it every control change snaps the view back to the initial eye, which reads
-    // as the data having flipped.
+    // A constant `uirevision` keeps the camera the reader has rotated to across re-renders.
     uirevision: FUNCTION_NAME,
     title: { text: `${FUNCTION_NAME} - Benchmark vs Model (3D)`, font: { size: 20 } },
     scene: {
