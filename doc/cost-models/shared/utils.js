@@ -308,6 +308,230 @@ function generateModelPredictions(benchmarkData, costModel, overhead) {
   return predictions;
 }
 
+// The model of a two-argument builtin as a translucent surface over the plane the
+// benchmark points span.
+function modelSurfaceTrace(model, points, overhead, options = {}) {
+  const { xLog = false, xSteps = 40, ySteps = 20, name = 'Model surface' } = options;
+  const xs = points.map(p => p.args[0]);
+  const ys = points.map(p => p.args[1]);
+  const spread = (lo, hi, n, log) => {
+    if (log) {
+      lo = Math.max(lo, 1);
+      const a = Math.log(lo), b = Math.log(hi);
+      return Array.from({ length: n }, (_, i) => Math.exp(a + (b - a) * i / (n - 1)));
+    }
+    return Array.from({ length: n }, (_, i) => lo + (hi - lo) * i / (n - 1));
+  };
+  const xGrid = spread(Math.min(...xs), Math.max(...xs), xSteps, xLog);
+  const distinctY = [...new Set(ys)].sort((a, b) => a - b);
+  const yGrid = distinctY.length <= ySteps
+    ? distinctY
+    : spread(Math.min(...ys), Math.max(...ys), ySteps, false);
+  return {
+    type: 'surface',
+    name,
+    x: xGrid,
+    y: yGrid,
+    z: yGrid.map(y => xGrid.map(x => modelCharge(model, [x, y], overhead))),
+    opacity: 0.35,
+    colorscale: [[0, '#E53E3E'], [1, '#E53E3E']],
+    showscale: false,
+    showlegend: true,
+    hovertemplate: '%{x:.3s}, %{y}<br>charged %{z:.3s} ns<extra></extra>'
+  };
+}
+
+// Markup for one row of radio buttons: a label, then one `<label><input></label>` per
+// option.
+function radioGroup(title, name, options, selected) {
+  return `<span class="radio-title">${title}</span>` + options.map(([value, text]) =>
+    `<label class="radio"><input type="radio" name="${name}" value="${value}"` +
+    `${value === selected ? ' checked' : ''}> ${text}</label>`).join('');
+}
+
+// How the pages draw a two-argument model: not at all, as a red cross at every benchmark
+// point, or as the surface of `modelSurfaceTrace`.
+let modelDisplay = 'surface';
+
+// Replace the page's "show model" checkbox with the Hidden / Points / Surface radio group
+// and re-render on change.
+function setupModelDisplay(rerender) {
+  const showModel = document.getElementById('show-model');
+  if (!showModel) return;
+  const group = showModel.closest('.control-group');
+  group.classList.add('radio-group');
+  group.innerHTML = radioGroup('Cost model:', 'model-display',
+    [['hidden', 'Hidden'], ['points', 'Points'], ['surface', 'Surface']], modelDisplay);
+  group.querySelectorAll('input[name="model-display"]').forEach(r =>
+    r.addEventListener('change', e => { modelDisplay = e.target.value; rerender(); }));
+}
+
+// The model's trace for a two-argument page, or null when the model is hidden or missing.
+function modelTrace3d(model, points, overhead, options = {}) {
+  const { xLog = false, hover } = options;
+  if (!model || modelDisplay === 'hidden') return null;
+  if (modelDisplay === 'surface') return modelSurfaceTrace(model, points, overhead, { xLog });
+  const trace = {
+    x: points.map(d => d.args[0]),
+    y: points.map(d => d.args[1]),
+    z: points.map(d => modelCharge(model, d.args, overhead)),
+    mode: 'markers',
+    type: 'scatter3d',
+    name: 'Model Predictions',
+    marker: { size: 4, color: '#E53E3E', opacity: 0.6, symbol: 'x' }
+  };
+  if (hover) trace.hovertemplate = hover;
+  return trace;
+}
+
+// A model's predicted total time in nanoseconds for one benchmark point, overhead
+// included, or null when it cannot be evaluated.
+function modelCharge(model, args, overhead) {
+  if (!model) return null;
+  const ps = evaluateCostModel(model.modelType, model.coefficients, args);
+  return ps === null ? null : ps / 1000 + overhead;
+}
+
+function median(values) {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+}
+
+/**
+ * One info-panel block per fit: the charge line, then how many points the model over- and
+ * undercharges, with the median and worst factor on each side. An overcharge is charged /
+ * measured, an undercharge measured / charged.
+ */
+function fitSummary(name, model, points, overhead, terms) {
+  if (!model) return `<p>${name}: not available</p>`;
+  const c = model.coefficients;
+  const over = [];   // charged / measured, for the points charged at least what they cost
+  const under = [];  // measured / charged, for the points charged less than they cost
+  for (const d of points) {
+    const predicted = modelCharge(model, d.args, overhead);
+    if (predicted === null) return `<p>${name}: not evaluable (${model.modelType})</p>`;
+    if (predicted >= d.time) over.push(predicted / d.time);
+    else under.push(d.time / predicted);
+  }
+  const fmt = v => v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  const oneSlope = terms && Object.keys(c).sort().join() === 'intercept,slope';
+  const charge = oneSlope
+    ? `${fmt(c.intercept)} + ${fmt(c.slope)}&middot;${terms.join('&middot;')}`
+    : formatModelFormula(model.modelType, c);
+  const total = points.length;
+  const count = xs => `${xs.length} &middot; ${total ? Math.round(100 * xs.length / total) : 0}%`;
+  const factor = (xs, pick) => xs.length ? `${pick(xs).toFixed(2)}x` : '&mdash;';
+  return `
+    <p><strong>${name}</strong></p>
+    <dl>
+      <dt>Charge (ps):</dt>
+      <dd>${charge}</dd>
+    </dl>
+    <table class="fit-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th title="Points charged at least what they measured; the factor is charged / measured.">Overcharged</th>
+          <th title="Points charged less than they measured; the factor is measured / charged.">Undercharged</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><th>Points</th><td>${count(over)}</td><td>${count(under)}</td></tr>
+        <tr><th>Median</th><td>${factor(over, median)}</td><td>${factor(under, median)}</td></tr>
+        <tr><th>Worst</th><td>${factor(over, xs => Math.max(...xs))}</td><td>${factor(under, xs => Math.max(...xs))}</td></tr>
+      </tbody>
+    </table>`;
+}
+
+// The fit summary of `model` against `points`, written into `#fit-comparison`.
+function renderFitSummary(model, shipped, points, overhead, terms) {
+  let el = document.getElementById('fit-comparison');
+  if (!el) {
+    const type = document.getElementById('info-model-type');
+    if (!type) return;
+    const section = document.createElement('div');
+    section.className = 'info-section';
+    section.innerHTML = '<h3>Model against the benchmark</h3><div id="fit-comparison"></div>';
+    type.closest('.info-section').insertAdjacentElement('beforebegin', section);
+    el = document.getElementById('fit-comparison');
+  }
+  const same = shipped && model &&
+    JSON.stringify(model.coefficients) === JSON.stringify(shipped.coefficients);
+  const name = same ? 'Shipped model' : 'Edited coefficients';
+  el.innerHTML = fitSummary(name, model, points, overhead, terms);
+}
+
+/**
+ * One number input per coefficient of the shipped model, plus a button that puts the
+ * shipped values back. Editing a value calls `onChange` with a copy of the model carrying
+ * the edited coefficients; nothing is written anywhere.
+ */
+function renderCoefficientEditor(shipped, onChange) {
+  const formula = document.getElementById('info-model-formula');
+  if (!formula || !shipped) return;
+  let dd = document.getElementById('info-model-coefficients');
+  if (!dd) {
+    formula.insertAdjacentHTML('afterend',
+      '<dt>Coefficients (editable):</dt><dd id="info-model-coefficients"></dd>');
+    dd = document.getElementById('info-model-coefficients');
+  }
+  const keys = Object.keys(shipped.coefficients);
+  const stepTitle = 'by 1% of the current value; Shift: 10%, Alt: 0.1%';
+  dd.innerHTML = keys.map(k =>
+    `<div class="coefficient-row"><span class="coefficient-name">${k}</span>` +
+    `<span class="coefficient-controls">` +
+    `<button type="button" class="step" data-for="${k}" data-direction="-1" title="Lower ${stepTitle}">&minus;%</button>` +
+    `<input type="number" step="1" data-coefficient="${k}" value="${shipped.coefficients[k]}" aria-label="${k}">` +
+    `<button type="button" class="step" data-for="${k}" data-direction="1" title="Raise ${stepTitle}">+%</button>` +
+    `</span></div>`).join('') +
+    '<div class="coefficient-row"><span></span>' +
+    '<button type="button" class="secondary" id="reset-coefficients">Reset to shipped</button></div>';
+  const current = () => {
+    const c = {};
+    dd.querySelectorAll('input[data-coefficient]').forEach(i => {
+      const v = Number(i.value);
+      c[i.dataset.coefficient] = Number.isFinite(v) ? v : shipped.coefficients[i.dataset.coefficient];
+    });
+    return { ...shipped, coefficients: c };
+  };
+  // The buttons and the arrow keys move by a share of the current value, rounded to a
+  // whole picosecond and never below one.
+  const bump = (input, direction, event) => {
+    const share = event.shiftKey ? 0.1 : event.altKey ? 0.001 : 0.01;
+    const v = Number(input.value);
+    const base = Number.isFinite(v) ? v : shipped.coefficients[input.dataset.coefficient];
+    const delta = Math.max(1, Math.round(Math.abs(base) * share));
+    input.value = Math.max(0, base + direction * delta);
+    onChange(current());
+  };
+  dd.querySelectorAll('input').forEach(i => {
+    i.addEventListener('input', () => onChange(current()));
+    i.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      bump(i, e.key === 'ArrowUp' ? 1 : -1, e);
+    });
+  });
+  dd.querySelectorAll('button.step').forEach(b => b.addEventListener('click', e => {
+    bump(dd.querySelector(`input[data-coefficient="${b.dataset.for}"]`), Number(b.dataset.direction), e);
+  }));
+  dd.querySelector('#reset-coefficients').addEventListener('click', () => {
+    keys.forEach(k => { dd.querySelector(`input[data-coefficient="${k}"]`).value = shipped.coefficients[k]; });
+    onChange(current());
+  });
+}
+
+// The shared loader overwrites `#plot-container`, so the plot div is the page's to create.
+function ensurePlotPanel(id) {
+  if (document.getElementById(id)) return;
+  const container = document.getElementById('plot-container');
+  container.innerHTML = '';
+  const panel = document.createElement('div');
+  panel.id = id;
+  container.appendChild(panel);
+}
+
 /**
  * Format model formula as human-readable string
  */
@@ -528,6 +752,14 @@ const PAGES = [
   ['policies', 'Policies',
    'Returns the currency symbols of a Plutus <code>Value</code>; linear in the number ' +
    'of policies. (2D visualization: Policy Count vs Time)'],
+  ['keeppolicies', 'KeepPolicies',
+   'Retains only the listed currencies of a Plutus <code>Value</code>; one outer-map ' +
+   'descent per element of the list. ' +
+   '(3D visualization: List Length \u00d7 Outer Map Depth \u00d7 Time)'],
+  ['droppolicies', 'DropPolicies',
+   'Removes the listed currencies from a Plutus <code>Value</code>; one outer-map ' +
+   'descent per element of the list. ' +
+   '(3D visualization: List Length \u00d7 Outer Map Depth \u00d7 Time)'],
   ['listtoarray', 'ListToArray',
    'Converts a Plutus list to an array representation. ' +
    '(2D visualization: List Size vs Time)'],
@@ -567,13 +799,26 @@ function getFileUrls(baseUrl) {
   };
 }
 
-// Load settings from localStorage (URL param takes precedence)
+// Load settings from localStorage (URL params take precedence)
 function loadSettings() {
   const urlBranch = getBranchFromUrl();
+  const params = new URLSearchParams(window.location.search);
+  const urlCsv = params.get('csv');
+  const urlJson = params.get('json');
+  // `?csv=...&json=...` name the files outright, `?branch=...` names the branch holding
+  // them; either wins over the files the browser remembers.
+  const files = urlCsv && urlJson
+    ? { csv: urlCsv, json: urlJson }
+    : urlBranch
+      ? getFileUrls(generateUrlFromBranch(urlBranch))
+      : {
+          csv: localStorage.getItem(STORAGE_KEYS.CSV_URL) || '',
+          json: localStorage.getItem(STORAGE_KEYS.JSON_URL) || ''
+        };
   return {
     branch: urlBranch || localStorage.getItem(STORAGE_KEYS.BRANCH) || DEFAULT_BRANCH,
-    csvUrl: localStorage.getItem(STORAGE_KEYS.CSV_URL) || '',
-    jsonUrl: localStorage.getItem(STORAGE_KEYS.JSON_URL) || '',
+    csvUrl: files.csv,
+    jsonUrl: files.json,
     collapsed: localStorage.getItem(STORAGE_KEYS.DATA_SOURCE_COLLAPSED) === 'true'
   };
 }
@@ -610,14 +855,27 @@ function showError(message) {
   container.querySelector('.error p').textContent = message;
 }
 
+// The data-source part of the current query string, to append to a link to another page.
+function dataSourceQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const kept = new URLSearchParams();
+  for (const key of ['branch', 'csv', 'json']) {
+    const value = params.get(key);
+    if (value) kept.set(key, value);
+  }
+  const query = kept.toString();
+  return query ? `?${query}` : '';
+}
+
 // Fill <nav> with the standard page list; `active` is the page's slug and
 // `prefix` the relative path to the site root ('..' from a page, '.' from
 // the home page).
 function renderNav(active, prefix = '..') {
   const nav = document.querySelector('nav');
   if (!nav) return;
-  const items = [[`${prefix}/index.html`, 'Home', active === null]].concat(
-    PAGES.map(([slug, name]) => [`${prefix}/${slug}/index.html`, name, slug === active]));
+  const query = dataSourceQuery();
+  const items = [[`${prefix}/index.html${query}`, 'Home', active === null]].concat(
+    PAGES.map(([slug, name]) => [`${prefix}/${slug}/index.html${query}`, name, slug === active]));
   nav.innerHTML = '<ul>' + items.map(([href, name, isActive]) =>
     `<li><a href="${href}"${isActive ? ' class="active"' : ''}>${name}</a></li>`).join('') + '</ul>';
 }
@@ -628,8 +886,9 @@ function renderNav(active, prefix = '..') {
 function renderFunctionList() {
   const list = document.querySelector('ul.function-list');
   if (!list) return;
+  const query = dataSourceQuery();
   list.innerHTML = PAGES.map(([slug, name, description]) =>
-    `<li><a href="${slug}/index.html">${name}</a>` +
+    `<li><a href="${slug}/index.html${query}">${name}</a>` +
     `<p class="description">${description}</p></li>`).join('');
 }
 

@@ -23,7 +23,9 @@ import GHC.Stack (HasCallStack)
 import PlutusCore
   ( DefaultFun
       ( AssetCount
+      , DropPolicies
       , InsertCoin
+      , KeepPolicies
       , LookupCoin
       , Policies
       , ScaleValue
@@ -38,6 +40,7 @@ import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, Builti
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , ValueMaxDepth (..)
+  , ValueOuterDepth (..)
   , ValueOuterSize (..)
   , ValueTotalSize (..)
   )
@@ -70,6 +73,8 @@ makeBenchmarks gen =
   , scaleValueBenchmark gen
   , assetCountBenchmark gen
   , policiesBenchmark gen
+  , keepPoliciesBenchmark gen
+  , dropPoliciesBenchmark gen
   ]
 
 ----------------------------------------------------------------------------------------------------
@@ -294,7 +299,8 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    (unsafeFromBuiltinResult . Value.valueData <$> generateTestValues gen)
+    -- Every amount is negative: decoding them is what builds the per-currency negative counts.
+    (unsafeFromBuiltinResult . Value.valueData . negated <$> generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- InsertCoin --------------------------------------------------------------------------------------
@@ -307,6 +313,8 @@ insertCoinBenchmark gen =
     []
     (runBenchGen gen insertCoinArgs)
 
+{-| The `lookupCoin` arguments with every amount of the `Value` negated, so that each row
+rebuilds a search path in the per-currency negative counts. -}
 insertCoinArgs :: StatefulGen g m => g -> m [(ByteString, ByteString, Integer, Value)]
 insertCoinArgs gen = do
   lookupArgs <- lookupCoinArgs gen
@@ -314,7 +322,7 @@ insertCoinArgs gen = do
   amounts <- genZeroOrMaxAmount gen noOfBenches
   pure $ reorderArgs <$> zip lookupArgs amounts
   where
-    reorderArgs ((b1, b2, val), am) = (b1, b2, am, val)
+    reorderArgs ((b1, b2, val), am) = (b1, b2, am, negated val)
 
 ----------------------------------------------------------------------------------------------------
 -- UnionValue --------------------------------------------------------------------------------------
@@ -337,13 +345,14 @@ The worst case is when both Values share as many keys as possible,
 therefore we consider two Values where the first is a sub-value of the second.
 Experiments have also shown that the worst case execution time for UnionValue
 occurs for flat maps with a single token name per policy ID.
-Therefore, we fix the number of token names to 1 for both Values. -}
+Therefore, we fix the number of token names to 1 for both Values.
+Every amount is negative, so the result holds a negative amount under every currency. -}
 unionValueArgs :: StatefulGen g m => g -> m [(Value, Value)]
 unionValueArgs gen = replicateM 200 $ do
   numPolicyIdsV2 <- uniformRM (1, maxUnionValueEntries) gen
   policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
   tokenName <- generateKey gen
-  let amt = unQuantity (maxBound :: Quantity) `div` 2
+  let amt = negate (unQuantity (maxBound :: Quantity) `div` 2)
       value2 = buildValue policyIdsV2 [tokenName] (mkQuantity amt)
   numPolicyIdsToKeep <- uniformRM (1, numPolicyIdsV2) gen
   let policyIdsV1 = take numPolicyIdsToKeep policyIdsV2
@@ -369,14 +378,13 @@ maxScaleValueEntries = 90_000
 {-| Generate argument pairs for ScaleValue benchmarking.
 Since 'scaleValue' needs to traverse the entire Value, we may fix the structure
 of the Value to be a flattened map with a single token name per policy ID.
-To ensure worst-case performance, we fix the resulting scaled quantities to
-be 'maxBound'. -}
+The scalar is negative, so every scaled quantity is negative. -}
 scaleValueArgs :: StatefulGen g m => g -> m [(Integer, Value)]
 scaleValueArgs gen = replicateM 200 $ do
   numPolicyIds <- uniformRM (1, maxScaleValueEntries) gen
   policyIds <- replicateM numPolicyIds (generateKey gen)
   tokenName <- generateKey gen
-  let scalar = unQuantity (maxBound :: Quantity) `div` 2
+  let scalar = negate (unQuantity (maxBound :: Quantity) `div` 2)
       amt = mkQuantity 2
       value = buildValue policyIds [tokenName] amt
   pure (scalar, value)
@@ -414,17 +422,11 @@ policiesBenchmark :: StdGen -> Benchmark
 policiesBenchmark gen =
   createOneTermBuiltinBenchWithWrapper_NF ValueOuterSize Policies [] (runBenchGen gen policiesArgs)
   where
-    -- 40k pairs: safely above the largest `Value` a script can build within the
-    -- CPU budget (roughly 14k `insertCoin` applications).
-    maxTotalSize :: Int
-    maxTotalSize = Value.valueDataMaxSize
-
     policiesArgs :: StatefulGen g m => g -> m [Value]
     policiesArgs g = do
       randoms <- replicateM 100 do
-        u <- uniformRM (0 :: Double, log (fromIntegral maxTotalSize)) g
-        let numPolicies = min maxTotalSize (max 1 (round (exp u)))
-        numTokens <- uniformRM (1, maxTotalSize `div` numPolicies) g
+        numPolicies <- logUniform g maxValueTotalSize
+        numTokens <- uniformRM (1, maxValueTotalSize `div` numPolicies) g
         generate g numPolicies numTokens
       stacks <-
         sequence
@@ -435,13 +437,174 @@ policiesBenchmark gen =
       pure $ Value.empty : randoms <> stacks
 
     generate :: StatefulGen g m => g -> Int -> Int -> m Value
-    generate g numPolicies numTokens = do
-      policyIds <- replicateM numPolicies (generateKey g)
-      tokenNames <- replicateM numTokens (generateKey g)
-      pure $ buildValue policyIds tokenNames (mkQuantity 1)
+    generate g numPolicies numTokens = snd <$> generateValueWithPolicyIds g numPolicies numTokens
+
+-- KeepPolicies and DropPolicies -------------------------------------------------------------------
+
+{- Note [Benchmarking keepPolicies and dropPolicies]
+Both builtins take a policy list and a `Value`, and the cost model sees the length of the
+list and the depth of the `Value`'s outer map. Neither descends an inner map or reads an
+amount, so both take the same product-shaped fit.
+
+A row is named after the sizes the model sees, so the `Value` enters the name as its depth,
+not its number of policies: 5000 and 8000 policies are both depth 13 and share a row name,
+which the fit reads as two measurements of one point.
+
+The grid stops at `maxPolicies`, the most policies either builtin accepts, and raising the
+bound warrants refitting both models against what it opens.
+-}
+
+keepPoliciesBenchmark :: StdGen -> Benchmark
+keepPoliciesBenchmark gen =
+  createTwoTermBuiltinBenchElementwiseWithWrappers
+    (id, ValueOuterDepth)
+    KeepPolicies
+    []
+    (runBenchGen gen keepDropArgs)
+
+dropPoliciesBenchmark :: StdGen -> Benchmark
+dropPoliciesBenchmark gen =
+  createTwoTermBuiltinBenchElementwiseWithWrappers
+    (id, ValueOuterDepth)
+    DropPolicies
+    []
+    (runBenchGen gen keepDropArgs)
+
+{-| One benchmark point for `keepPolicies` and `dropPolicies`, as the sizes it is built
+from rather than the arguments themselves. -}
+data Shape
+  = Shape
+  { shapePolicies :: Int
+  -- ^ Size of the outer map. What the model sees of it is its depth.
+  , shapeTokens :: Int
+  -- ^ Tokens per policy. Neither builtin descends an inner map, so this must not show.
+  , shapeListLen :: Int
+  -- ^ Length of the policy list.
+  , shapeHits :: Int
+  -- ^ How many list elements name a policy the `Value` has. Invisible to the model.
+  , shapeNegative :: Int
+  -- ^ How many policies hold a negative amount. Invisible to the model.
+  }
+
+{-| The costliest shape of its two visible sizes: every list element that can name a
+policy of the `Value` does, and every policy holds a negative amount. -}
+worstCase :: Int -> Int -> Int -> Shape
+worstCase numPolicies numTokens listLen =
+  Shape
+    { shapePolicies = numPolicies
+    , shapeTokens = numTokens
+    , shapeListLen = listLen
+    , shapeHits = min numPolicies listLen
+    , shapeNegative = numPolicies
+    }
+
+-- | See Note [Benchmarking keepPolicies and dropPolicies]
+keepDropArgs :: forall g m. StatefulGen g m => g -> m [([ByteString], Value)]
+keepDropArgs g = do
+  randoms <- randomShapes g
+  shaped <-
+    traverse (buildShape g) $
+      randoms <> linearGrid <> depthSweep <> shapeSweep <> hitSweep <> signSweep <> listOnly
+  -- Lovelace: the empty bytestring is a valid policy id, and both builtins keep it.
+  lovelace <- do
+    tokenName <- generateKey g
+    pure ([BS.empty], buildSignedValue 1 [emptyKey] [tokenName])
+  pure $ shaped <> [lovelace]
+
+-- | List length and policy count drawn independently on a log scale.
+randomShapes :: StatefulGen g m => g -> m [Shape]
+randomShapes g = replicateM 100 do
+  listLen <- logUniform g maxValueTotalSize
+  numPolicies <- logUniform g maxPolicies
+  numTokens <- uniformRM (1, max 1 (maxValueTotalSize `div` numPolicies)) g
+  pure (worstCase numPolicies numTokens listLen)
+
+-- | Evenly spaced list lengths against the largest outer map of every depth.
+linearGrid :: [Shape]
+linearGrid =
+  [ worstCase numPolicies 1 listLen
+  | numPolicies <- takeWhile (<= maxPolicies) [2 ^ l - 1 | l <- [1 :: Int ..]]
+  , listLen <- [5000, 10_000 .. maxValueTotalSize]
+  ]
+
+-- | Short lists against outer maps across the powers of two.
+depthSweep :: [Shape]
+depthSweep =
+  [ worstCase numPolicies 1 listLen
+  | listLen <- [1, 10, 100]
+  , numPolicies <- [1, 2, 8, 64, 512, 4096, maxPolicies]
+  ]
+
+-- | Both visible sizes fixed, tokens per policy varying.
+shapeSweep :: [Shape]
+shapeSweep =
+  [ worstCase numPolicies numTokens listLen
+  | (numPolicies, listLen, tokenCounts) <-
+      [(100, 100, [1, 10, 100, 400]), (maxPolicies, 10_000, [1, 4])]
+  , numTokens <- tokenCounts
+  ]
+
+-- | One point, with hits going from none to all.
+hitSweep :: [Shape]
+hitSweep =
+  [ (worstCase maxPolicies 1 maxPolicies) {shapeHits = numHits}
+  | numHits <- [0, 2000, 4000, 6000, maxPolicies]
+  ]
+
+-- | The same point, with the policies holding a negative amount going from none to all.
+signSweep :: [Shape]
+signSweep =
+  [ (worstCase maxPolicies 1 maxPolicies) {shapeNegative = numNegative}
+  | numNegative <- [0, 2000, 4000, maxPolicies]
+  ]
+
+-- | The shortest and longest list against an empty `Value`.
+listOnly :: [Shape]
+listOnly = [worstCase 0 0 listLen | listLen <- [0, maxValueTotalSize]]
+
+{-| Build the arguments a `Shape` describes. Misses come first: `dropPolicies` empties the
+map as it goes. -}
+buildShape :: StatefulGen g m => g -> Shape -> m ([ByteString], Value)
+buildShape g shape = do
+  policyIds <- replicateM (shapePolicies shape) (generateKey g)
+  tokenNames <- replicateM (shapeTokens shape) (generateKey g)
+  let numHits = min (shapeHits shape) (min (shapePolicies shape) (shapeListLen shape))
+  misses <- replicateM (shapeListLen shape - numHits) (generateKey g)
+  let ps = Value.unK <$> (misses <> take numHits policyIds)
+  pure (ps, buildSignedValue (shapeNegative shape) policyIds tokenNames)
+
+-- | A `Value` whose first @numNegative@ policies hold negative amounts.
+buildSignedValue :: Int -> [K] -> [K] -> Value
+buildSignedValue numNegative policyIds tokenNames =
+  unsafeFromList
+    [ (pId, [(tName, if isNegative then negative else positive) | tName <- tokenNames])
+    | (i, pId) <- zip [0 :: Int ..] policyIds
+    , let isNegative = i < numNegative
+    ]
+  where
+    positive = mkQuantity 1
+    negative = mkQuantity (-1)
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
+
+{-| 40k pairs: safely above the largest `Value` a script can build within the CPU budget
+(roughly 14k `insertCoin` applications). -}
+maxValueTotalSize :: Int
+maxValueTotalSize = Value.valueDataMaxSize
+
+{-| The most policies `keepPolicies` and `dropPolicies` accept, and so the largest outer map
+worth timing for them: a row beyond it would fail instead of timing a descent. -}
+maxPolicies :: Int
+maxPolicies = Value.policyFilterMaxSize
+
+{-| A `Value` of @numPolicies@ policies holding @numTokens@ tokens each, together with its
+policy ids. -}
+generateValueWithPolicyIds :: StatefulGen g m => g -> Int -> Int -> m ([K], Value)
+generateValueWithPolicyIds g numPolicies numTokens = do
+  policyIds <- replicateM numPolicies (generateKey g)
+  tokenNames <- replicateM numTokens (generateKey g)
+  pure (policyIds, buildValue policyIds tokenNames (mkQuantity 1))
 
 {-| Build Value from given policy IDs, token names and and a single quantity
 for each (policy ID, token name) pair.
@@ -545,6 +708,20 @@ generateConstrainedValue numPolicies tokensPerPolicy g = do
 ----------------------------------------------------------------------------------------------------
 -- Other Generators --------------------------------------------------------------------------------
 
+{-| Sample @[1, hi]@ uniformly on a log scale, so that every decade gets a similar number of
+points. Sampling the count itself would put almost every point above 1000, leaving the sizes
+that occur on chain unmeasured. -}
+logUniform :: StatefulGen g m => g -> Int -> m Int
+logUniform g hi = do
+  u <- uniformRM (0 :: Double, log (fromIntegral hi)) g
+  pure $ min hi (max 1 (round (exp u)))
+
+-- | The policy id of lovelace.
+emptyKey :: K
+emptyKey = case Value.k BS.empty of
+  Just key -> key
+  Nothing -> error "Internal error: the empty bytestring should always be a valid key"
+
 {-| Generate a worst-case key for benchmarking ByteString comparisons.
 
 ByteString comparison is lexicographic and short-circuits on the first differing byte.
@@ -603,6 +780,11 @@ unsafeFromBuiltinResult = \case
   BuiltinSuccess x -> x
   BuiltinSuccessWithLogs _ x -> x
   BuiltinFailure _ err -> error $ "BuiltinResult failed: " <> show err
+
+{-| The `Value` with every amount negated, so that every currency holds negative amounts and
+the per-currency negative counts are as large as they get. -}
+negated :: Value -> Value
+negated = unsafeFromBuiltinResult . Value.scaleValue (-1)
 
 -- | Abstracted runner for computations using stateful random generator 'StdGen'
 runBenchGen :: StdGen -> (StateGenM StdGen -> State StdGen a) -> a

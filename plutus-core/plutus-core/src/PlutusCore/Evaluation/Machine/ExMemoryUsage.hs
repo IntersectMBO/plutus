@@ -15,6 +15,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , TextCostedByByteLength (..)
   , ValueTotalSize (..)
   , ValueOuterSize (..)
+  , ValueOuterDepth (..)
   , ValueMaxDepth (..)
   , DataNodeCount (..)
   ) where
@@ -428,6 +429,25 @@ newtype ValueOuterSize = ValueOuterSize {unValueOuterSize :: Value}
 
 instance ExMemoryUsage ValueOuterSize where
   memoryUsage = singletonRose . fromIntegral . Map.size . Value.unpack . unValueOuterSize
+  {-# INLINE memoryUsage #-}
+
+{- Note [ValueOuterDepth]
+This measures the depth of the outer map of a `Value`, and nothing else.
+
+`keepPolicies` and `dropPolicies` locate each element of their policy list in the outer map
+and never descend an inner one.
+
+The empty `Value` measures 1, not 0, so that a model multiplying the two argument sizes
+still charges for the list.
+-}
+newtype ValueOuterDepth
+  = ValueOuterDepth {unValueOuterDepth :: Value}
+
+instance ExMemoryUsage ValueOuterDepth where
+  memoryUsage (ValueOuterDepth v) =
+    let outerSize = Map.size (Value.unpack v)
+     in singletonRose . fromIntegral $
+          if outerSize > 0 then integerLog2 (toInteger outerSize) + 1 else 1
   {-# INLINE memoryUsage #-}
 
 {- Note [ValueMaxDepth]
