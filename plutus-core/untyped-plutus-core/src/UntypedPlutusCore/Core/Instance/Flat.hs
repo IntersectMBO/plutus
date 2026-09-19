@@ -1,9 +1,11 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -18,6 +20,7 @@ import UntypedPlutusCore.Core.Type
 
 import Control.Lens
 import Control.Monad
+import Data.Proxy
 import Data.Vector qualified as V
 import PlutusCore.Flat
 import PlutusCore.Flat.Decoder
@@ -135,7 +138,8 @@ decodeTerm
      , Flat (Binder name)
      )
   => Version
-  -> (Some (ValueOf uni) -> Maybe String)
+  -> (SomeTypeIn uni -> Maybe String)
+  -- ^ Check the constant's type before decoding its value.
   -> (fun -> Maybe String)
   -> (Int -> Maybe String)
   -> Get (Term name uni fun ann)
@@ -147,13 +151,14 @@ decodeTerm version constantPred builtinPred constrPred = go
     handleTerm 2 = LamAbs <$> decode <*> (unBinder <$> decode) <*> go
     handleTerm 3 = Apply <$> decode <*> go <*> go
     handleTerm 4 = do
-      ann <- decode
-      val <- decode
-      let c :: Term name uni fun ann
-          c = Constant ann val
-      case constantPred val of
-        Nothing -> pure c
-        Just e -> fail e
+      ann <- decode :: Get ann
+      SomeTypeIn (Kinded uni) <- decodeKindedUniFlat @uni
+      case checkStar uni of
+        Nothing -> fail "A non-star type can't have a value to decode"
+        Just Refl ->
+          case constantPred (SomeTypeIn uni) of
+            Nothing -> Constant ann . Some . ValueOf uni <$> bring (Proxy @Flat) uni decode
+            Just e -> fail e
     handleTerm 5 = Force <$> decode <*> go
     handleTerm 6 = Error <$> decode
     handleTerm 7 = do
@@ -239,7 +244,8 @@ decodeProgram
      , Flat name
      , Flat (Binder name)
      )
-  => (Some (ValueOf uni) -> Maybe String)
+  => (SomeTypeIn uni -> Maybe String)
+  -- ^ Check each constant's type before decoding its value.
   -> (fun -> Maybe String)
   -> (Int -> Maybe String)
   -> Get (Program name uni fun ann)

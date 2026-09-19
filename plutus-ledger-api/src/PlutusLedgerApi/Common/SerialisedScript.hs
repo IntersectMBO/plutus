@@ -204,7 +204,7 @@ scriptCBORDecoder ll pv =
       maxBoundConstr = mbConstr maxBounds
       flatDecoder = UPLC.decodeProgram checkConstant checkBuiltin checkConstr
 
-      checkConstant (Some (ValueOf uni _))
+      checkConstant (SomeTypeIn uni)
         | defaultUniSize uni <= maxBoundHeader = Nothing
         | otherwise =
             Just $
