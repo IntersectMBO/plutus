@@ -178,12 +178,15 @@ module PlutusLedgerApi.V4.Data.Contexts
   , findContinuingOutputs
   , getContinuingOutputs
   , txSignedBy
+  , txGuardedBy
   , pubKeyOutputsAt
   , valuePaidTo
   , valueSpent
   , valueProduced
   , ownCurrencySymbol
   , spendsOutput
+  , isTopLevelTx
+  , guardingTopTxInfo
   ) where
 
 import GHC.Generics (Generic)
@@ -658,13 +661,12 @@ getContinuingOutputs _ = PlutusTx.traceError "Lf"
 
 {-# INLINEABLE txSignedBy #-}
 txSignedBy :: TxInfo -> V2.PubKeyHash -> Haskell.Bool
-txSignedBy TxInfo {txInfoGuards} keyHash =
-  case Data.List.find isSigner txInfoGuards of
-    Haskell.Just _ -> Haskell.True
-    Haskell.Nothing -> Haskell.False
-  where
-    isSigner (V2.PubKeyCredential guardKeyHash) = guardKeyHash PlutusTx.== keyHash
-    isSigner _ = Haskell.False
+txSignedBy txInfo keyHash = txGuardedBy txInfo (V2.PubKeyCredential keyHash)
+
+{-# INLINEABLE txGuardedBy #-}
+txGuardedBy :: TxInfo -> V2.Credential -> Haskell.Bool
+txGuardedBy TxInfo {txInfoGuards} credential =
+  Data.List.any ((PlutusTx.==) credential) txInfoGuards
 
 {-# INLINEABLE pubKeyOutputsAt #-}
 pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> List V2.Value
@@ -701,6 +703,15 @@ spendsOutput txInfo txId i =
               PlutusTx.&& i
               PlutusTx.== V4.txOutRefIdx outRef
    in Data.List.any spendsOutRef (txInfoInputs txInfo)
+
+{-# INLINEABLE isTopLevelTx #-}
+isTopLevelTx :: TxInfo -> Haskell.Bool
+isTopLevelTx TxInfo {txInfoSubTxIx} = PlutusTx.isNothing txInfoSubTxIx
+
+{-# INLINEABLE guardingTopTxInfo #-}
+guardingTopTxInfo :: ScriptContext -> Haskell.Maybe TopTxInfo
+guardingTopTxInfo ScriptContext {scriptContextScriptInfo = GuardingScript _ topTxInfo} = topTxInfo
+guardingTopTxInfo _ = Haskell.Nothing
 
 instance Pretty TxInfo where
   pretty TxInfo {..} =
