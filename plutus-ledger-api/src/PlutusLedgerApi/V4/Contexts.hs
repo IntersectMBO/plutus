@@ -53,12 +53,15 @@ module PlutusLedgerApi.V4.Contexts
   , findContinuingOutputs
   , getContinuingOutputs
   , txSignedBy
+  , txGuardedBy
   , pubKeyOutputsAt
   , valuePaidTo
   , valueSpent
   , valueProduced
   , ownCurrencySymbol
   , spendsOutput
+  , isTopLevelTx
+  , guardingTopTxInfo
   ) where
 
 import Data.Function ((&))
@@ -561,9 +564,13 @@ getContinuingOutputs _ = PlutusTx.traceError "Lf"
 {-# INLINEABLE getContinuingOutputs #-}
 
 txSignedBy :: TxInfo -> V2.PubKeyHash -> Haskell.Bool
-txSignedBy TxInfo {txInfoGuards} keyHash =
-  List.any ((PlutusTx.==) (V2.PubKeyCredential keyHash)) txInfoGuards
+txSignedBy txInfo keyHash = txGuardedBy txInfo (V2.PubKeyCredential keyHash)
 {-# INLINEABLE txSignedBy #-}
+
+txGuardedBy :: TxInfo -> V2.Credential -> Haskell.Bool
+txGuardedBy TxInfo {txInfoGuards} credential =
+  List.any ((PlutusTx.==) credential) txInfoGuards
+{-# INLINEABLE txGuardedBy #-}
 
 pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> [V2.Value]
 pubKeyOutputsAt pk txInfo =
@@ -598,6 +605,15 @@ spendsOutput txInfo txId outputIndex =
     )
     (txInfoInputs txInfo)
 {-# INLINEABLE spendsOutput #-}
+
+isTopLevelTx :: TxInfo -> Haskell.Bool
+isTopLevelTx TxInfo {txInfoSubTxIx} = PlutusTx.isNothing txInfoSubTxIx
+{-# INLINEABLE isTopLevelTx #-}
+
+guardingTopTxInfo :: ScriptContext -> Haskell.Maybe TopTxInfo
+guardingTopTxInfo ScriptContext {scriptContextScriptInfo = GuardingScript _ topTxInfo} = topTxInfo
+guardingTopTxInfo _ = Haskell.Nothing
+{-# INLINEABLE guardingTopTxInfo #-}
 
 $(makeLift ''AccountBalanceIntervals)
 
