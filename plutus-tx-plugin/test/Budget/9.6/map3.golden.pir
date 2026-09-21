@@ -1,46 +1,3 @@
-letrec
-  !safeAppend :
-     list (pair data data) -> list (pair data data) -> list (pair data data)
-    = \(xs : list (pair data data)) (xs : list (pair data data)) ->
-        case
-          (list (pair data data))
-          xs
-          [ (\(hd : pair data data) (tl : list (pair data data)) ->
-               let
-                 !v : data = case data hd [(\(l : data) (r : data) -> r)]
-                 !k : data = case data hd [(\(l : data) (r : data) -> l)]
-                 !eta : list (pair data data) = safeAppend tl xs
-                 !nilCase : list (pair data data)
-                   = mkCons {pair data data} (mkPairData k v) []
-               in
-               letrec
-                 !go : list (pair data data) -> list (pair data data)
-                   = \(xs : list (pair data data)) ->
-                       case
-                         (list (pair data data))
-                         xs
-                         [ (\(hd : pair data data) ->
-                              case
-                                (all dead.
-                                   list (pair data data) ->
-                                   list (pair data data))
-                                (equalsData
-                                   k
-                                   (case
-                                      data
-                                      hd
-                                      [(\(l : data) (r : data) -> l)]))
-                                [ (/\dead ->
-                                     \(eta : list (pair data data)) ->
-                                       mkCons {pair data data} hd (go eta))
-                                , (/\dead ->
-                                     mkCons {pair data data} (mkPairData k v)) ]
-                                {all dead. dead})
-                         , nilCase ]
-               in
-               go eta)
-          , xs ]
-in
 let
   !`$dToData` : (\a -> a -> data) integer = \(i : integer) -> iData i
   !`$dToData` : (\a -> a -> data) integer = \(i : integer) -> iData i
@@ -71,33 +28,6 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  !lookup' : data -> list (pair data data) -> Maybe data
-    = \(k : data) ->
-        letrec
-          !go : list (pair data data) -> Maybe data
-            = \(xs : list (pair data data)) ->
-                case
-                  (Maybe data)
-                  xs
-                  [ (\(hd : pair data data) ->
-                       case
-                         (all dead. list (pair data data) -> Maybe data)
-                         (equalsData
-                            k
-                            (case data hd [(\(l : data) (r : data) -> l)]))
-                         [ (/\dead -> go)
-                         , (/\dead ->
-                              \(ds : list (pair data data)) ->
-                                Just
-                                  {data}
-                                  (case
-                                     data
-                                     hd
-                                     [(\(l : data) (r : data) -> r)])) ]
-                         {all dead. dead})
-                  , (Nothing {data}) ]
-        in
-        \(m : list (pair data data)) -> go m
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
 in
@@ -187,55 +117,6 @@ in
                           (c
                              (Tuple2 {integer} {integer} (addInteger 7 n) 70)
                              n)))))
-  in
-  letrec
-    !goLeft : list (pair data data) -> list (pair data data)
-      = \(xs : list (pair data data)) ->
-          case
-            (list (pair data data))
-            xs
-            [ (\(hd : pair data data) (tl : list (pair data data)) ->
-                 let
-                   !v : data = case data hd [(\(l : data) (r : data) -> r)]
-                   !k : data = case data hd [(\(l : data) (r : data) -> l)]
-                 in
-                 Maybe_match
-                   {data}
-                   (lookup' k nt)
-                   {all dead. list (pair data data)}
-                   (\(r : data) ->
-                      /\dead ->
-                        mkCons
-                          {pair data data}
-                          (mkPairData
-                             k
-                             (`$fToDataThese_$ctoBuiltinData`
-                                {integer}
-                                {integer}
-                                `$dToData`
-                                `$dToData`
-                                (These
-                                   {integer}
-                                   {integer}
-                                   (unIData v)
-                                   (unIData r))))
-                          (goLeft tl))
-                   (/\dead ->
-                      mkCons
-                        {pair data data}
-                        (mkPairData
-                           k
-                           (`$fToDataThese_$ctoBuiltinData`
-                              {integer}
-                              {integer}
-                              `$dToData`
-                              `$dToData`
-                              (This {integer} {integer} (unIData v))))
-                        (goLeft tl))
-                   {all dead. dead})
-            , [] ]
-  in
-  let
     !nt : list (pair data data)
       = unsafeFromSOPList
           {integer}
@@ -269,15 +150,34 @@ in
             xs
             [ (\(hd : pair data data) (tl : list (pair data data)) ->
                  let
-                   !v : data = case data hd [(\(l : data) (r : data) -> r)]
+                   !tl' : list (pair data data) = goRight tl
                    !k : data = case data hd [(\(l : data) (r : data) -> l)]
                  in
-                 Maybe_match
-                   {data}
-                   (lookup' k nt)
-                   {all dead. list (pair data data)}
-                   (\(r : data) ->
-                      /\dead ->
+                 letrec
+                   !go : list (pair data data) -> bool
+                     = \(xs : list (pair data data)) ->
+                         case
+                           bool
+                           xs
+                           [ (\(hd : pair data data) ->
+                                case
+                                  (all dead. list (pair data data) -> bool)
+                                  (equalsData
+                                     k
+                                     (case
+                                        data
+                                        hd
+                                        [(\(l : data) (r : data) -> l)]))
+                                  [ (/\dead -> go)
+                                  , (/\dead ->
+                                       \(ds : list (pair data data)) -> True) ]
+                                  {all dead. dead})
+                           , False ]
+                 in
+                 case
+                   (all dead. list (pair data data))
+                   (go nt)
+                   [ (/\dead ->
                         mkCons
                           {pair data data}
                           (mkPairData
@@ -287,29 +187,101 @@ in
                                 {integer}
                                 `$dToData`
                                 `$dToData`
-                                (These
+                                (That
                                    {integer}
                                    {integer}
-                                   (unIData v)
-                                   (unIData r))))
-                          (goRight tl))
-                   (/\dead ->
-                      mkCons
-                        {pair data data}
-                        (mkPairData
-                           k
-                           (`$fToDataThese_$ctoBuiltinData`
-                              {integer}
-                              {integer}
-                              `$dToData`
-                              `$dToData`
-                              (That {integer} {integer} (unIData v))))
-                        (goRight tl))
+                                   (unIData
+                                      (case
+                                         data
+                                         hd
+                                         [(\(l : data) (r : data) -> r)])))))
+                          tl')
+                   , (/\dead -> tl') ]
                    {all dead. dead})
             , [] ]
   in
   let
-    !nt : list (pair data data) = safeAppend (goLeft nt) (goRight nt)
+    !nt : list (pair data data)
+      = let
+        !rightOnly : list (pair data data) = goRight nt
+      in
+      letrec
+        !goLeft : list (pair data data) -> list (pair data data)
+          = \(xs : list (pair data data)) ->
+              case
+                (list (pair data data))
+                xs
+                [ (\(hd : pair data data) (tl : list (pair data data)) ->
+                     let
+                       !v : data = case data hd [(\(l : data) (r : data) -> r)]
+                       !k : data = case data hd [(\(l : data) (r : data) -> l)]
+                     in
+                     letrec
+                       !go : list (pair data data) -> Maybe data
+                         = \(xs : list (pair data data)) ->
+                             case
+                               (Maybe data)
+                               xs
+                               [ (\(hd : pair data data) ->
+                                    case
+                                      (all dead.
+                                         list (pair data data) -> Maybe data)
+                                      (equalsData
+                                         k
+                                         (case
+                                            data
+                                            hd
+                                            [(\(l : data) (r : data) -> l)]))
+                                      [ (/\dead -> go)
+                                      , (/\dead ->
+                                           \(ds : list (pair data data)) ->
+                                             Just
+                                               {data}
+                                               (case
+                                                  data
+                                                  hd
+                                                  [ (\(l : data) (r : data) ->
+                                                       r) ])) ]
+                                      {all dead. dead})
+                               , (Nothing {data}) ]
+                     in
+                     Maybe_match
+                       {data}
+                       (go nt)
+                       {all dead. list (pair data data)}
+                       (\(r : data) ->
+                          /\dead ->
+                            mkCons
+                              {pair data data}
+                              (mkPairData
+                                 k
+                                 (`$fToDataThese_$ctoBuiltinData`
+                                    {integer}
+                                    {integer}
+                                    `$dToData`
+                                    `$dToData`
+                                    (These
+                                       {integer}
+                                       {integer}
+                                       (unIData v)
+                                       (unIData r))))
+                              (goLeft tl))
+                       (/\dead ->
+                          mkCons
+                            {pair data data}
+                            (mkPairData
+                               k
+                               (`$fToDataThese_$ctoBuiltinData`
+                                  {integer}
+                                  {integer}
+                                  `$dToData`
+                                  `$dToData`
+                                  (This {integer} {integer} (unIData v))))
+                            (goLeft tl))
+                       {all dead. dead})
+                , rightOnly ]
+      in
+      goLeft nt
   in
   (let
       a = Tuple2 integer (These integer integer)

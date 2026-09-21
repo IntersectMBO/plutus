@@ -339,11 +339,11 @@ union
   => Map k a
   -> Map k b
   -> Map k (These a b)
-union (Map ls) (Map rs) = Map res
+union (Map ls) (Map rs) = Map (goLeft ls)
   where
     goLeft =
       P.caseList'
-        nil
+        (goRight rs)
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
@@ -365,30 +365,16 @@ union (Map ls) (Map rs) = Map res
         nil
         ( \hd tl ->
             let k = BI.fst hd
-                v = BI.snd hd
-                v' = case lookup' k ls of
-                  Just r ->
-                    P.toBuiltinData
-                      ( These
-                          (P.unsafeFromBuiltinData v)
-                          (P.unsafeFromBuiltinData r)
-                          :: These a b
+                tl' = goRight tl
+             in if member' k ls
+                  then tl'
+                  else
+                    BI.mkCons
+                      ( BI.mkPairData
+                          k
+                          (P.toBuiltinData (That (P.unsafeFromBuiltinData (BI.snd hd)) :: These a b))
                       )
-                  Nothing ->
-                    P.toBuiltinData (That (P.unsafeFromBuiltinData v) :: These a b)
-             in BI.mkCons (BI.mkPairData k v') (goRight tl)
-        )
-
-    res = goLeft ls `safeAppend` goRight rs
-
-    safeAppend xs1 xs2 =
-      P.matchList'
-        xs1
-        xs2
-        ( \hd tl ->
-            let k = BI.fst hd
-                v = BI.snd hd
-             in insert' k v (safeAppend tl xs2)
+                      tl'
         )
 {-# INLINEABLE union #-}
 
@@ -401,14 +387,14 @@ unionWith
   -> Map k a
   -> Map k a
 unionWith f (Map ls) (Map rs) =
-  Map res
+  Map ls'
   where
     ls' :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
     ls' = go ls
       where
         go =
           P.caseList'
-            nil
+            rs'
             ( \hd tl ->
                 let k' = BI.fst hd
                     v' = BI.snd hd
@@ -433,14 +419,6 @@ unionWith f (Map ls) (Map rs) =
                       then tl'
                       else BI.mkCons hd tl'
             )
-
-    res :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
-    res = go rs' ls'
-      where
-        go acc =
-          P.caseList'
-            acc
-            (\hd -> go (BI.mkCons hd acc))
 {-# INLINEABLE unionWith #-}
 
 -- | An empty `P.BuiltinList` of key-value pairs.
