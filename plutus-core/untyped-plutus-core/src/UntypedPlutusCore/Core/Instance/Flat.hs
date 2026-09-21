@@ -4,6 +4,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -130,20 +131,14 @@ encodeTerm = \case
 
 decodeTerm
   :: forall name uni fun ann
-   . ( Closed uni
-     , uni `Everywhere` Flat
-     , Flat fun
-     , Flat ann
-     , Flat name
-     , Flat (Binder name)
-     )
-  => Version
+   . (Closed uni, Flat fun, Flat ann, Flat name, Flat (Binder name))
+  => (forall a. uni (Esc a) -> Get a)
+  -> Version
   -> (SomeTypeIn uni -> Maybe String)
-  -- ^ Check the constant's type before decoding its value.
   -> (fun -> Maybe String)
   -> (Int -> Maybe String)
   -> Get (Term name uni fun ann)
-decodeTerm version constantPred builtinPred constrPred = go
+decodeTerm decodeValue version constantPred builtinPred constrPred = go
   where
     go = handleTerm =<< decodeTermTag
     handleTerm 0 = Var <$> decode <*> decode
@@ -157,7 +152,7 @@ decodeTerm version constantPred builtinPred constrPred = go
         Nothing -> fail "A non-star type can't have a value to decode"
         Just Refl ->
           case constantPred (SomeTypeIn uni) of
-            Nothing -> Constant ann . Some . ValueOf uni <$> bring (Proxy @Flat) uni decode
+            Nothing -> Constant ann . Some . ValueOf uni <$> decodeValue uni
             Just e -> fail e
     handleTerm 5 = Force <$> decode <*> go
     handleTerm 6 = Error <$> decode
@@ -237,22 +232,16 @@ encodeProgram (Program ann v t) = encode ann <> encode v <> encodeTerm t
 
 decodeProgram
   :: forall name uni fun ann
-   . ( Closed uni
-     , uni `Everywhere` Flat
-     , Flat fun
-     , Flat ann
-     , Flat name
-     , Flat (Binder name)
-     )
-  => (SomeTypeIn uni -> Maybe String)
-  -- ^ Check each constant's type before decoding its value.
+   . (Closed uni, Flat fun, Flat ann, Flat name, Flat (Binder name))
+  => (forall a. uni (Esc a) -> Get a)
+  -> (SomeTypeIn uni -> Maybe String)
   -> (fun -> Maybe String)
   -> (Int -> Maybe String)
   -> Get (Program name uni fun ann)
-decodeProgram constantPred builtinPred constrPred = do
+decodeProgram decodeValue constantPred builtinPred constrPred = do
   ann <- decode
   v <- decode
-  Program ann v <$> decodeTerm v constantPred builtinPred constrPred
+  Program ann v <$> decodeTerm decodeValue v constantPred builtinPred constrPred
 
 sizeProgram
   :: forall name uni fun ann
@@ -307,6 +296,12 @@ instance
   => Flat (UnrestrictedProgram name uni fun ann)
   where
   encode (UnrestrictedProgram p) = encodeProgram p
-  decode = UnrestrictedProgram <$> decodeProgram (const Nothing) (const Nothing) (const Nothing)
+  decode =
+    UnrestrictedProgram
+      <$> decodeProgram
+        (\uni -> bring (Proxy @Flat) uni decode)
+        (const Nothing)
+        (const Nothing)
+        (const Nothing)
 
   size (UnrestrictedProgram p) = sizeProgram p

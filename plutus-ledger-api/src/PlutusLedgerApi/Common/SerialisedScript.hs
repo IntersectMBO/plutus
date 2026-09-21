@@ -23,7 +23,7 @@ module PlutusLedgerApi.Common.SerialisedScript
   ) where
 
 import PlutusCore
-import PlutusCore.Default (defaultUniSize)
+import PlutusCore.Default (decodeDefaultUniValue, defaultUniSize)
 import PlutusLedgerApi.Common.Versions
 import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
@@ -202,7 +202,7 @@ scriptCBORDecoder ll pv =
       maxBounds = maxBoundsByPV pv
       maxBoundHeader = mbHeader maxBounds
       maxBoundConstr = mbConstr maxBounds
-      flatDecoder = UPLC.decodeProgram checkConstant checkBuiltin checkConstr
+      flatDecoder = UPLC.decodeProgram decodeDefaultUniValue checkConstant checkBuiltin checkConstr
 
       checkConstant (SomeTypeIn uni)
         | defaultUniSize uni <= maxBoundHeader = Nothing
