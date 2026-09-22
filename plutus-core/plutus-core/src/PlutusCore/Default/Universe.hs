@@ -171,6 +171,8 @@ decodeDefaultUniValue uni = unLift (compile uni)
     compile DefaultUniUnit = pure ()
     compile (DefaultUniPair a b) =
       case (compile a, compile b) of
+        -- Deserialiser behave identically without this pattern; however, having this pattern
+        -- makes it run about 40%~60% faster in some cases.
         (Other dx, Pure y) -> Other ((\x -> (x, y)) <$> dx)
         (da, db) -> (,) <$> da <*> db
     compile (DefaultUniList a) =
