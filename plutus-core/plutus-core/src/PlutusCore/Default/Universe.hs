@@ -39,6 +39,7 @@ module PlutusCore.Default.Universe
   , pattern DefaultUniArray
   , pattern DefaultUniPair
   , defaultUniSize
+  , decodeDefaultUniValue
   , noMoreTypeFunctions
   , caseBuiltinDefault
   , caseBuiltinNoData
@@ -64,9 +65,13 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , ValueOuterSize (..)
   , ValueTotalSize (..)
   )
+import PlutusCore.Flat (Flat (decode))
+import PlutusCore.Flat.Decoder (Get, decodeListWith)
+import PlutusCore.FlatInstances ()
 import PlutusCore.Pretty.Extra (juxtRenderContext)
 import PlutusCore.Value (Value)
 
+import Control.Applicative.Lift (Lift (..), unLift)
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
@@ -81,7 +86,8 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Typeable (typeRep)
 import Data.Vector qualified as Vector
-import Data.Vector.Strict qualified as Strict (Vector)
+import Data.Vector.Orphans ()
+import Data.Vector.Strict qualified as Strict (Vector, fromList)
 import Data.Word (Word16, Word32)
 import GHC.Exts (inline, oneShot)
 import Text.PrettyBy.Fixity
@@ -156,6 +162,28 @@ defaultUniSize :: forall k (a :: k). DefaultUni (Esc a) -> Int
 defaultUniSize = \case
   DefaultUniApply uniF uniA -> defaultUniSize uniF + defaultUniSize uniA + 1
   _ -> 1
+
+-- | Build a Flat decoder from the parsed type, sharing all-unit subtrees across values.
+decodeDefaultUniValue :: DefaultUni (Esc a) -> Get a
+decodeDefaultUniValue uni = unLift (compile uni)
+  where
+    compile :: DefaultUni (Esc a) -> Lift Get a
+    compile DefaultUniUnit = pure ()
+    compile (DefaultUniPair a b) =
+      case (compile a, compile b) of
+        -- Deserialiser behave identically without this pattern; however, having this pattern
+        -- makes it run about 40%~60% faster in some cases.
+        (Other dx, Pure y) -> Other ((\x -> (x, y)) <$> dx)
+        (da, db) -> (,) <$> da <*> db
+    compile (DefaultUniList a) =
+      case compile a of
+        Pure value -> Other (decodeListWith (pure value))
+        Other decoder -> Other (decodeListWith decoder)
+    compile (DefaultUniArray a) =
+      case compile a of
+        Pure value -> Other (Strict.fromList <$> decodeListWith (pure value))
+        Other decoder -> Other (Strict.fromList <$> decodeListWith decoder)
+    compile other = Other (bring (Proxy @Flat) other decode)
 
 -- Removing 'LoopBreaker' didn't change anything at the time this comment was written, but we kept
 -- it, because it hopefully provides some additional assurance that 'geqL' will not get elaborated
