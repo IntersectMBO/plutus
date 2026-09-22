@@ -204,7 +204,7 @@ let
           in
           \(ds : (\k a -> list (pair data data)) k b) ->
             let
-              !rightOnly : list (pair data data) = goRight ds
+              !right : list (pair data data) = goRight ds
             in
             letrec
               !goLeft : list (pair data data) -> list (pair data data)
@@ -286,7 +286,7 @@ let
                                         (This {a} {b} (`$dUnsafeFromData` v))))
                                   (goLeft tl))
                              {all dead. dead})
-                      , rightOnly ]
+                      , right ]
             in
             goLeft ds
 in

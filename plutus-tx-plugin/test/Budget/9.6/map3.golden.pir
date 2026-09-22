@@ -203,7 +203,7 @@ in
   let
     !nt : list (pair data data)
       = let
-        !rightOnly : list (pair data data) = goRight nt
+        !right : list (pair data data) = goRight nt
       in
       letrec
         !goLeft : list (pair data data) -> list (pair data data)
@@ -279,7 +279,7 @@ in
                                   (This {integer} {integer} (unIData v))))
                             (goLeft tl))
                        {all dead. dead})
-                , rightOnly ]
+                , right ]
       in
       goLeft nt
   in

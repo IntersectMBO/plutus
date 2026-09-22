@@ -76,7 +76,7 @@
                                                               , (\a ->
                                                                    a) ]) ]) ])
                                              , (s s xs) ]) ]))
-                              ((\rightOnly ->
+                              ((\right ->
                                   (\s ->
                                      s s nt)
                                     (\s
@@ -142,7 +142,7 @@
                                                            , (constr 1 []) ]))
                                                    (case hd [(\l r -> l)]))
                                                 (case hd [(\l r -> r)]))
-                                         , rightOnly ]))
+                                         , right ]))
                                  ((\s ->
                                      s s nt)
                                     (\s
