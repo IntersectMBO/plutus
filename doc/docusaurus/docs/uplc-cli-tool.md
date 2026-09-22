@@ -5,9 +5,34 @@ sidebar_position: 28
 # UPLC CLI Tool
 
 `uplc` is a command-line tool for working with Untyped Plutus Core (UPLC).
-It ships with every [Plutus release](https://github.com/IntersectMBO/plutus/releases) and is useful for developers who build, test, or ship Plutus scripts.
+It is useful for developers who build, test, or ship Plutus scripts, whatever language those scripts are written in: everything that compiles to UPLC — including Plinth, Plutarch, and [Aiken](https://aiken-lang.org) — produces programs that `uplc` can process (see [Hex-encoded and blueprint inputs](#hex-encoded-and-blueprint-inputs)).
 
-You can also build `uplc` from source by cloning the Plutus repository, running `nix develop`, and then running `cabal build uplc`.
+## Installation
+
+**Prebuilt binary (Linux x86_64).**
+Every [Plutus release](https://github.com/IntersectMBO/plutus/releases) ships a statically-linked `uplc` binary for x86_64 Linux, which runs on any distribution without further dependencies:
+
+```bash
+curl -L -o uplc https://github.com/IntersectMBO/plutus/releases/latest/download/uplc-x86_64-linux-ghc96
+chmod +x uplc
+./uplc --help
+```
+
+**Nix (Linux and macOS).**
+With [Nix](https://nixos.org/download/) installed, you can run `uplc` straight from the repository — this also works on platforms without a prebuilt binary, such as Apple Silicon Macs:
+
+```bash
+nix run github:IntersectMBO/plutus#uplc -- --help
+```
+
+Replace `plutus` with `plutus/<version>` (e.g. `plutus/1.68.0.0`) to pin a released version.
+The first invocation may take a while, since Nix may need to download or build the toolchain.
+
+**From source.**
+Clone the [Plutus repository](https://github.com/IntersectMBO/plutus), run `nix develop`, and then run `cabal build uplc`.
+
+**Windows.**
+There is no native Windows build; use one of the options above under [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 `uplc` supports a variety of subcommands.
 Run `uplc --help` to see the available subcommands, and `uplc <subcommand> --help` to see the options of a particular subcommand.
@@ -222,6 +247,21 @@ You can feed a blueprint straight into `uplc` and get an optimized blueprint bac
 uplc optimize --if blueprint --of blueprint -i MyBlueprint.json -o MyBlueprint.opt.json
 ```
 
+This makes `uplc` a drop-in post-build step for any toolchain that emits blueprints.
+For example, `aiken build` writes a `plutus.json` blueprint at the root of an Aiken project, which can then be optimized as a whole:
+
+```bash
+aiken build
+uplc optimize --if blueprint --of blueprint -i plutus.json -o plutus-optimized.json
+```
+
+Everything other than the validators (schemas, metadata, and so on) is passed through unchanged.
+
+> :pushpin: **NOTE**
+>
+> Optimization changes a validator's code, and therefore its script hash — which is why the hash fields are recomputed.
+> Since on-chain addresses and script references are derived from script hashes, the optimized validator is deployed at a different address than the unoptimized one, so make sure the rest of your project uses the *optimized* blueprint.
+
 ### Configuring the optimization pipeline
 
 The `opt-*` flags let you configure the optimization pipeline.
@@ -265,6 +305,8 @@ The certifier has three output modes:
   The report summarizes the optimization passes that ran, and includes the AST size at each stage.
   It can also include the execution cost at each stage when evaluation is enabled (explained below).
 - `--certifier-basic` — emit minimal output.
+
+In every output mode, `uplc` prints whether certification succeeded and exits with a non-zero exit code if it did not, so a failed certification fails the surrounding script or CI job.
 
 For blueprints, the certifier runs once per validator.
 Report filenames and project directories have the validator's title appended automatically.

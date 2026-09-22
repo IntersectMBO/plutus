@@ -31,6 +31,17 @@ AsData.asData
       deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]
 
+AsData.asDataAsList
+  [d|
+    data IntsAsList = IntsAsList
+      { int1AsList :: Integer
+      , int2AsList :: Integer
+      , int3AsList :: Integer
+      , int4AsList :: Integer
+      }
+      deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]
+
 newtype IntsManual = IntsManualDataCon PlutusTx.BuiltinData
   deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
 
@@ -89,6 +100,29 @@ AsData.asData
       , ri14 :: Integer
       , ri15 :: Integer
       , ri16 :: Integer
+      }
+      deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]
+
+AsData.asDataAsList
+  [d|
+    data RichIntsAsList = RichIntsAsList
+      { ri1AsList :: Integer
+      , ri2AsList :: Integer
+      , ri3AsList :: Integer
+      , ri4AsList :: Integer
+      , ri5AsList :: Integer
+      , ri6AsList :: Integer
+      , ri7AsList :: Integer
+      , ri8AsList :: Integer
+      , ri9AsList :: Integer
+      , ri10AsList :: Integer
+      , ri11AsList :: Integer
+      , ri12AsList :: Integer
+      , ri13AsList :: Integer
+      , ri14AsList :: Integer
+      , ri15AsList :: Integer
+      , ri16AsList :: Integer
       }
       deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]

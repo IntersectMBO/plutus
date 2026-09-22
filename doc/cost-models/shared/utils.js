@@ -525,6 +525,9 @@ const PAGES = [
    'Returns the number of <code>(currency symbol, token name)</code> pairs in a Plutus ' +
    '<code>Value</code> in O(1) time. ' +
    '(2D visualization: Value Size vs Time - constant cost)'],
+  ['policies', 'Policies',
+   'Returns the currency symbols of a Plutus <code>Value</code>; linear in the number ' +
+   'of policies. (2D visualization: Policy Count vs Time)'],
   ['listtoarray', 'ListToArray',
    'Converts a Plutus list to an array representation. ' +
    '(2D visualization: List Size vs Time)'],

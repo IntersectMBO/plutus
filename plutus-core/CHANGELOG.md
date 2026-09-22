@@ -1,4 +1,34 @@
 
+<a id='changelog-1.69.0.0'></a>
+# 1.69.0.0 — 2026-09-11
+
+## Added
+
+- A new `with-crypto` Cabal flag (enabled by default) for `plutus-core`. When
+  disabled (`-with-crypto`), `plutus-core` links no system cryptography C library
+  (libsodium / libblst / libsecp256k1): the hash builtins are computed by
+  `crypton` (byte-identical — see the `crypto-hash-parity-test`), the BLS12-381
+  constants stay as their real hardcoded values, and the signature-verification
+  and BLS12-381 group/pairing operations become compile-only stubs. This lets
+  Plinth/Plutus scripts *compile* in environments where those C libraries are not
+  installed (Cabal otherwise cannot even solve, because `cardano-crypto-class`
+  declares them as `pkgconfig-depends`). Those builtins can still be compiled and
+  serialised but not *evaluated*; the default build is unaffected.
+
+- Cost model for the `policies` builtin ([CIP-0168](https://cips.cardano.org/cip/CIP-0168)), with four new cost model parameters. Linear in the number of policies in the `Value`.
+
+- Cost model for the `assetCount` builtin ([CIP-0168](https://cips.cardano.org/cip/CIP-0168)), with two new cost model parameters. Costed as a constant, since the denotation reads a field the `Value` already maintains.
+
+- Casing on builtin `Data` values: the `Constr` tag selects the branch, which is applied to the list of fields. Casing on any other `Data` value fails.
+
+- The `keepPolicies` and `dropPolicies` builtins ([CIP-0168](https://cips.cardano.org/cip/CIP-0168)): retain, respectively remove, the listed currency symbols of a `Value`. Expected to be enabled at PV12.
+
+## Changed
+
+- Use transitive closure in UPLC inliner certifier to avoid exponential blowups.
+  The inliner is updated to perform multiple rounds of inlining, with a checkpoint
+  emitted in between two rounds.
+
 <a id='changelog-1.68.0.0'></a>
 # 1.68.0.0 — 2026-08-21
 

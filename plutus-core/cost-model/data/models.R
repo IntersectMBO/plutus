@@ -161,6 +161,7 @@ arity <- function(name) {
         "ScaleValue" = 2,
         "MultiIndexArray" = 2,
         "AssetCount" = 1,
+        "Policies" = 1,
         -1  ## Default for missing values
         )
 }
@@ -852,6 +853,8 @@ modelFun <- function(path) {
     }
 
     assetCountModel           <- constantModel ("AssetCount")
+    ## X wrapped with `ValueOuterSize`
+    policiesModel <- linearInX ("Policies")
 
     ## Values
 
@@ -1010,7 +1013,8 @@ modelFun <- function(path) {
         unionValueModel                      = unionValueModel,
         scaleValueModel                      = scaleValueModel,
         multiIndexArrayModel                 = multiIndexArrayModel,
-        assetCountModel                      = assetCountModel
+        assetCountModel                      = assetCountModel,
+        policiesModel                        = policiesModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

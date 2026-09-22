@@ -184,10 +184,10 @@ module PlutusLedgerApi.Data.V4
   , V2.adaSymbol
   , V2.adaToken
   , V2.Lovelace (..)
-  , V2.AssetClass (..)
-  , V2.assetClass
-  , V2.assetClassValue
-  , V2.assetClassValueOf
+  , Value.AssetClass (..)
+  , Value.assetClass
+  , Value.assetClassValue
+  , Value.assetClassValueOf
   , V2.currencySymbol
   , V2.currencySymbolValueOf
   , V2.flattenValue
@@ -321,6 +321,7 @@ import PlutusLedgerApi.V4.Data.Address qualified as Address
 import PlutusLedgerApi.V4.Data.Contexts qualified as Contexts
 import PlutusLedgerApi.V4.Data.Time qualified as Time
 import PlutusLedgerApi.V4.Data.Tx qualified as Tx
+import PlutusLedgerApi.V4.Data.Value qualified as Value
 import PlutusLedgerApi.V4.EvaluationContext qualified as EvaluationContext
 import PlutusLedgerApi.V4.ParamName qualified as ParamName
-import PlutusTx.Ratio qualified as Ratio
+import PlutusLedgerApi.V4.Ratio qualified as Ratio

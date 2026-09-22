@@ -130,52 +130,18 @@
                                                                                                  ds)
                                                                                               (unListData
                                                                                                  ds)
-                                                                                              (let
-                                                                                                !d :
-                                                                                                   data
-                                                                                                  = headList
-                                                                                                      {data}
-                                                                                                      ds
-                                                                                              in
-                                                                                              (let
-                                                                                                  b
-                                                                                                    = list
-                                                                                                        data
-                                                                                                in
-                                                                                                /\r ->
-                                                                                                  \(p :
-                                                                                                      pair
-                                                                                                        integer
-                                                                                                        b)
-                                                                                                   (f :
-                                                                                                      integer ->
-                                                                                                      b ->
-                                                                                                      r) ->
-                                                                                                    case
-                                                                                                      r
-                                                                                                      p
-                                                                                                      [ f ])
-                                                                                                {bytestring}
-                                                                                                (unConstrData
-                                                                                                   d)
-                                                                                                (\(index :
-                                                                                                     integer)
-                                                                                                  (args :
-                                                                                                     list
-                                                                                                       data) ->
-                                                                                                   case
-                                                                                                     (list
-                                                                                                        data ->
-                                                                                                      bytestring)
-                                                                                                     index
-                                                                                                     [ (\(ds :
-                                                                                                            list
-                                                                                                              data) ->
-                                                                                                          unBData
-                                                                                                            (headList
-                                                                                                               {data}
-                                                                                                               ds)) ]
-                                                                                                     args))) ]) ]) ]) ]) ]) ]) ]) ]) ])
+                                                                                              (case
+                                                                                                 bytestring
+                                                                                                 (headList
+                                                                                                    {data}
+                                                                                                    ds)
+                                                                                                 [ (\(ds :
+                                                                                                        list
+                                                                                                          data) ->
+                                                                                                      unBData
+                                                                                                        (headList
+                                                                                                           {data}
+                                                                                                           ds)) ])) ]) ]) ]) ]) ]) ]) ]) ]) ])
                            ds
                            (\(ds : (\a -> list data) data)
                              (ds : (\a -> list data) data)

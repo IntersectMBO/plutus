@@ -1,4 +1,16 @@
 
+<a id='changelog-1.69.0.0'></a>
+# 1.69.0.0 — 2026-09-11
+
+## Added
+
+- `caseData` which compiles to newly added casing on builtin `Data`.
+
+- `PlutusTx.Builtins.keepPolicies` and `PlutusTx.Builtins.dropPolicies`, exposing the builtins of the same name ([CIP-0168](https://cips.cardano.org/cip/CIP-0168)). Expected to be enabled at PV12.
+
+- `PlutusTx.AsData.asDataAsList` for data-backed product types with list encoding.
+- `PlutusTx.makeIsDataSchemaAsList` and `SchemaListTuple` for deriving list-encoded product types and their blueprint schemas.
+
 <a id='changelog-1.68.0.0'></a>
 # 1.68.0.0 — 2026-08-21
 

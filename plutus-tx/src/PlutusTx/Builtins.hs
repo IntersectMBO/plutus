@@ -50,6 +50,7 @@ module PlutusTx.Builtins
 
     -- * Data
   , BuiltinData
+  , BI.caseData
   , chooseData
   , matchData
   , matchData'
@@ -169,6 +170,8 @@ module PlutusTx.Builtins
   , BI.scaleValue
   , BI.policies
   , BI.assetCount
+  , BI.keepPolicies
+  , BI.dropPolicies
   ) where
 
 import Data.Maybe

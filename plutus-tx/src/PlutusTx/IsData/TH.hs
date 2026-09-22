@@ -8,11 +8,13 @@ module PlutusTx.IsData.TH
   , unstableMakeIsData
   , makeIsDataIndexed
   , makeIsDataAsList
+  , mkListCreateExpr
   , mkConstrCreateExpr
   , mkUnsafeConstrMatchPattern
   , mkConstrPartsMatchPattern
   , mkUnsafeConstrPartsMatchPattern
   , mkDestructor
+  , mkListDestructor
   , AsDataProdType (..)
   , fromDataClause
   ) where
@@ -284,9 +286,7 @@ unsafeFromDataClause indexedCons = do
               <$> indexedConsSorted
         body =
           [|
-            BI.casePair (BI.unsafeDataAsConstr $(TH.varE dName)) $
-              \($(TH.varP indexName)) ($(TH.varP argsName)) ->
-                caseInteger $(TH.varE indexName) $kases $(TH.varE argsName)
+            caseData $(TH.varE dName) $kases
             |]
 
       TH.clause [TH.varP dName] (TH.normalB body) []
@@ -495,12 +495,26 @@ mkDestructor
   -> TH.Name
   -> [TH.ConstructorInfo]
   -> TH.Q [TH.Dec]
-mkDestructor _ _ [] = pure []
-mkDestructor di cname cons = do
+mkDestructor = mkDestructorWith False
+
+mkListDestructor
+  :: TH.DatatypeInfo
+  -> TH.Name
+  -> [TH.ConstructorInfo]
+  -> TH.Q [TH.Dec]
+mkListDestructor = mkDestructorWith True
+
+mkDestructorWith
+  :: Bool
+  -> TH.DatatypeInfo
+  -> TH.Name
+  -> [TH.ConstructorInfo]
+  -> TH.Q [TH.Dec]
+mkDestructorWith _ _ _ [] = pure []
+mkDestructorWith encodeAsList di cname cons = do
   destructorName <- TH.newName ("match" ++ TH.nameBase (TH.datatypeName di))
 
   dName <- TH.newName "d"
-  idxName <- TH.newName "idx"
   argsName <- TH.newName "args"
   rName <- TH.newName "r"
 
@@ -538,27 +552,38 @@ mkDestructor di cname cons = do
     [con] -> do
       -- product type
       kName <- TH.newName "k"
+      let branch = mkDestructorBranch kName argsName (length (TH.constructorFields con))
       (,)
-        <$> [|
-          BI.casePair (AI.wrapUnsafeDataAsConstr $(TH.varE dName)) $
-            \ $TH.wildP $argsPat ->
-              $(mkDestructorBranch kName argsName (length (TH.constructorFields con)))
-          |]
+        <$> ( if encodeAsList
+                then
+                  [|
+                    let $(TH.bangP argsPat) = AI.wrapUnsafeDataAsList $(TH.varE dName)
+                     in $branch
+                    |]
+                else
+                  [|
+                    BI.casePair (AI.wrapUnsafeDataAsConstr $(TH.varE dName)) $
+                      \ $TH.wildP $argsPat -> $branch
+                    |]
+            )
         <*> pure [kName]
     _ -> do
       kNames <- for (cons `zip` [0 ..]) $ \(_, i) ->
         TH.newName ("k" ++ show (i :: Int))
       let branches =
             TH.listE
-              [ mkDestructorBranch kN argsName (length (TH.constructorFields con))
+              [ TH.lamE
+                  [ if Li.null (TH.constructorFields con)
+                      then TH.wildP
+                      else TH.varP argsName
+                  ]
+                  (mkDestructorBranch kN argsName (length (TH.constructorFields con)))
               | (kN, con) <- zip kNames cons
               ]
 
       (,)
         <$> [|
-          BI.casePair (AI.wrapUnsafeDataAsConstr $(TH.varE dName)) $
-            \ $(TH.varP idxName) $argsPat ->
-              caseInteger $(TH.varE idxName) $branches
+          AI.wrapCaseData $(TH.varE dName) $branches
           |]
         <*> pure kNames
 

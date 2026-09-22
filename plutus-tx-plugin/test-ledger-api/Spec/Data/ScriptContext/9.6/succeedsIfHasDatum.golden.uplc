@@ -13,13 +13,9 @@
                         [ (\ds ds ->
                              case
                                (case
-                                  (unConstrData (forced ds))
-                                  [ (\index args ->
-                                       case
-                                         index
-                                         [ (\ds -> constr 0 [(forced ds)])
-                                         , (\ds -> constr 1 []) ]
-                                         args) ])
+                                  (forced ds)
+                                  [ (\ds -> constr 0 [(forced ds)])
+                                  , (\ds -> constr 1 []) ])
                                [(\ds -> True), False]) ]) ])
                 [((\x -> error) (forced "PT5" ())), ()])
              (unConstrData

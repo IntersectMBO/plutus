@@ -126,5 +126,5 @@ stakingAccountId (Address _ a) = a
 
 $(PlutusTx.makeLift ''AccountId)
 
-$(PlutusTx.makeIsDataSchemaIndexed ''Address [('Address, 0)])
+$(PlutusTx.makeIsDataSchemaAsList ''Address)
 $(PlutusTx.makeLift ''Address)

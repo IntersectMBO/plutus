@@ -20,7 +20,7 @@ import PlutusTx.Prelude
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Time (POSIXTime (..))
-import PlutusTx (makeIsDataSchemaIndexed)
+import PlutusTx (makeIsDataSchemaAsList)
 import PlutusTx.Blueprint (HasBlueprintDefinition)
 import PlutusTx.Blueprint.Definition.Derive (definitionRef)
 import PlutusTx.Lift (makeLift)
@@ -47,5 +47,5 @@ instance Pretty POSIXTimeRange where
         Just t -> pretty t <+> ")"
 
 deriveEq ''POSIXTimeRange
-$(makeIsDataSchemaIndexed ''POSIXTimeRange [('POSIXTimeRange, 0)])
+$(makeIsDataSchemaAsList ''POSIXTimeRange)
 $(makeLift ''POSIXTimeRange)

@@ -179,6 +179,56 @@ callsiteInline = lam "f" $ lam "g" $ app fun arg
       lam "x" . lam "y" $
         mkIterAppNoAnn (var "g") [var "y", var "x"]
 
+{-| @(\f -> [(\x -> f x) [(\u -> u) (\y -> y)]])@
+
+@x@ is unconditionally inlined. It has one occurrence, so there should be no checkpoint. -}
+inlineCheckpointUncondOnce :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineCheckpointUncondOnce = lam "f" $ app fun rhs
+  where
+    fun = lam "x" $ var "f" `app` var "x"
+    rhs = lam "u" (var "u") `app` lam "y" (var "y")
+
+{-| @(\f -> [(\x -> f x x) [(\u -> u) (\y -> y)]])@
+
+@x@ is unconditionally inlined. It has two occurrences, so there should be a checkpoint. -}
+inlineCheckpointUncondMany :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineCheckpointUncondMany = lam "f" $ app fun rhs
+  where
+    fun = lam "x" $ mkIterAppNoAnn (var "f") [var "x", var "x"]
+    rhs = lam "u" (var "u") `app` lam "y" (var "y")
+
+{-| @(\f -> [(\a -> f (a 0 1) a) (\p q -> [(\u -> u) p])])@
+
+@a@ is inlined by callsite inlining. Only one callsite is inlined, so there
+should be no checkpoint. -}
+inlineCheckpointCallsiteOnce :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineCheckpointCallsiteOnce = lam "f" $ app fun rhs
+  where
+    fun =
+      lam "a" $
+        mkIterAppNoAnn
+          (var "f")
+          [ mkIterAppNoAnn (var "a") [con 0, con 1]
+          , var "a"
+          ]
+    rhs = lam "p" . lam "q" $ lam "u" (var "u") `app` var "p"
+
+{-| @(\f -> [(\a -> f (a 0 1) (a 2 3)) (\p q -> [(\u -> u) p])])@
+
+@a@ is inlined by callsite inlining. Two callsites are inlined, so there
+should be a checkpoint. -}
+inlineCheckpointCallsiteMany :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineCheckpointCallsiteMany = lam "f" $ app fun rhs
+  where
+    fun =
+      lam "a" $
+        mkIterAppNoAnn
+          (var "f")
+          [ mkIterAppNoAnn (var "a") [con 0, con 1]
+          , mkIterAppNoAnn (var "a") [con 2, con 3]
+          ]
+    rhs = lam "p" . lam "q" $ lam "u" (var "u") `app` var "p"
+
 multiApp :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 multiApp = mkIterAppNoAnn applyLam [con 1, con 2, con 3]
   where
@@ -406,6 +456,10 @@ testSimplifyInputs =
   , ("interveningLambda", interveningLambda)
   , ("basicInline", basicInline)
   , ("callsiteInline", callsiteInline)
+  , ("inlineCheckpointUncondOnce", inlineCheckpointUncondOnce)
+  , ("inlineCheckpointUncondMany", inlineCheckpointUncondMany)
+  , ("inlineCheckpointCallsiteOnce", inlineCheckpointCallsiteOnce)
+  , ("inlineCheckpointCallsiteMany", inlineCheckpointCallsiteMany)
   , ("inlinePure1", inlinePure1)
   , ("inlinePure2", inlinePure2)
   , ("inlinePure3", inlinePure3)

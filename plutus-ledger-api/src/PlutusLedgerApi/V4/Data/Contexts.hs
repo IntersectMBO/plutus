@@ -178,12 +178,15 @@ module PlutusLedgerApi.V4.Data.Contexts
   , findContinuingOutputs
   , getContinuingOutputs
   , txSignedBy
+  , txGuardedBy
   , pubKeyOutputsAt
   , valuePaidTo
   , valueSpent
   , valueProduced
   , ownCurrencySymbol
   , spendsOutput
+  , isTopLevelTx
+  , guardingTopTxInfo
   ) where
 
 import GHC.Generics (Generic)
@@ -194,38 +197,17 @@ import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.V3.Data.Contexts
   ( ChangedParameters (..)
   , ColdCommitteeCredential (..)
-  , Committee
-  , Constitution (..)
   , DRep
   , DRepCredential (..)
   , Delegatee
-  , GovernanceAction
-  , GovernanceActionId
   , HotCommitteeCredential (..)
-  , ProposalProcedure
-  , ProtocolVersion
   , Vote
   , Voter
-  , committeeMembers
-  , committeeQuorum
-  , gaidGovActionIx
-  , gaidTxId
-  , matchCommittee
   , matchDRep
   , matchDelegatee
-  , matchGovernanceAction
-  , matchGovernanceActionId
-  , matchProposalProcedure
-  , matchProtocolVersion
   , matchVote
   , matchVoter
-  , ppDeposit
-  , ppGovernanceAction
-  , ppReturnAddr
-  , pvMajor
-  , pvMinor
   , pattern Abstain
-  , pattern Committee
   , pattern CommitteeVoter
   , pattern DRep
   , pattern DRepAlwaysAbstain
@@ -234,17 +216,7 @@ import PlutusLedgerApi.V3.Data.Contexts
   , pattern DelegStake
   , pattern DelegStakeVote
   , pattern DelegVote
-  , pattern GovernanceActionId
-  , pattern HardForkInitiation
-  , pattern InfoAction
-  , pattern NewConstitution
-  , pattern NoConfidence
-  , pattern ParameterChange
-  , pattern ProposalProcedure
-  , pattern ProtocolVersion
   , pattern StakePoolVoter
-  , pattern TreasuryWithdrawals
-  , pattern UpdateCommittee
   , pattern VoteNo
   , pattern VoteYes
   )
@@ -253,6 +225,8 @@ import PlutusLedgerApi.V3.Data.Tx qualified as V3
 import PlutusLedgerApi.V4.Data.Address (AccountId (..), pattern Address)
 import PlutusLedgerApi.V4.Data.Time (POSIXTimeRange)
 import PlutusLedgerApi.V4.Data.Tx (TxOut, txOutAddress, txOutValue, pattern TxOut)
+import PlutusLedgerApi.V4.Data.Tx qualified as V4
+import PlutusLedgerApi.V4.Ratio (Rational)
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.BuiltinList qualified as BuiltinList
@@ -260,9 +234,129 @@ import PlutusTx.Builtins.Internal qualified as Builtins
 import PlutusTx.Data.AssocMap
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List qualified as Data.List
+import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 
 import Prelude qualified as Haskell
+
+PlutusTx.asDataAsList
+  [d|
+    data GovernanceActionId = GovernanceActionId
+      { gaidTxId :: V3.TxId
+      , gaidGovActionIx :: Haskell.Integer
+      }
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]
+
+PlutusTx.deriveEq ''GovernanceActionId
+PlutusTx.makeLift ''GovernanceActionId
+
+instance Pretty GovernanceActionId where
+  pretty GovernanceActionId {..} =
+    vsep
+      [ "gaidTxId:" <+> pretty gaidTxId
+      , "gaidGovActionIx:" <+> pretty gaidGovActionIx
+      ]
+
+PlutusTx.asDataAsList
+  [d|
+    data Committee = Committee
+      { committeeMembers :: Map ColdCommitteeCredential Haskell.Integer
+      , committeeQuorum :: Rational
+      }
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]
+
+PlutusTx.makeLift ''Committee
+
+instance Pretty Committee where
+  pretty Committee {..} =
+    vsep
+      [ "committeeMembers:" <+> pretty committeeMembers
+      , "committeeQuorum:" <+> pretty committeeQuorum
+      ]
+
+newtype Constitution = Constitution
+  { constitutionScript :: Haskell.Maybe V2.ScriptHash
+  }
+  deriving stock (Generic)
+  deriving newtype (Haskell.Show, Haskell.Eq)
+
+PlutusTx.deriveEq ''Constitution
+PlutusTx.makeLift ''Constitution
+PlutusTx.makeIsDataAsList ''Constitution
+
+instance Pretty Constitution where
+  pretty (Constitution script) = "constitutionScript:" <+> pretty script
+
+PlutusTx.asDataAsList
+  [d|
+    data ProtocolVersion = ProtocolVersion
+      { pvMajor :: Haskell.Integer
+      , pvMinor :: Haskell.Integer
+      }
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]
+
+PlutusTx.deriveEq ''ProtocolVersion
+PlutusTx.makeLift ''ProtocolVersion
+
+instance Pretty ProtocolVersion where
+  pretty ProtocolVersion {..} =
+    vsep
+      [ "pvMajor:" <+> pretty pvMajor
+      , "pvMinor:" <+> pretty pvMinor
+      ]
+
+PlutusTx.asData
+  [d|
+    data GovernanceAction
+      = ParameterChange
+          (Haskell.Maybe GovernanceActionId)
+          ChangedParameters
+          (Haskell.Maybe V2.ScriptHash)
+      | HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
+      | TreasuryWithdrawals
+          (Map V2.Credential V2.Lovelace)
+          (Haskell.Maybe V2.ScriptHash)
+      | NoConfidence (Haskell.Maybe GovernanceActionId)
+      | UpdateCommittee
+          (Haskell.Maybe GovernanceActionId)
+          (List ColdCommitteeCredential)
+          (Map ColdCommitteeCredential Haskell.Integer)
+          Rational
+      | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
+      | InfoAction
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving (Pretty) via (PrettyShow GovernanceAction)
+    |]
+
+PlutusTx.makeLift ''GovernanceAction
+
+PlutusTx.asDataAsList
+  [d|
+    data ProposalProcedure = ProposalProcedure
+      { ppDeposit :: V2.Lovelace
+      , ppReturnAddr :: V2.Credential
+      , ppGovernanceAction :: GovernanceAction
+      }
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]
+
+PlutusTx.makeLift ''ProposalProcedure
+
+instance Pretty ProposalProcedure where
+  pretty ProposalProcedure {..} =
+    vsep
+      [ "ppDeposit:" <+> pretty ppDeposit
+      , "ppReturnAddr:" <+> pretty ppReturnAddr
+      , "ppGovernanceAction:" <+> pretty ppGovernanceAction
+      ]
 
 PlutusTx.asData
   [d|
@@ -318,7 +412,7 @@ PlutusTx.asData
   [d|
     data ScriptPurpose
       = Minting V2.ScriptHash V2.CurrencySymbol
-      | Spending V2.ScriptHash V3.TxOutRef
+      | Spending V2.ScriptHash V4.TxOutRef
       | Withdrawing V2.ScriptHash V2.Credential
       | Certifying V2.ScriptHash Haskell.Integer TxCert
       | Voting V2.ScriptHash Voter
@@ -331,10 +425,10 @@ PlutusTx.asData
 
 PlutusTx.makeLift ''ScriptPurpose
 
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data TxInInfo = TxInInfo
-      { txInInfoOutRef :: V3.TxOutRef
+      { txInInfoOutRef :: V4.TxOutRef
       , txInInfoResolved :: TxOut
       }
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
@@ -348,7 +442,7 @@ instance Pretty TxInInfo where
   pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =
     pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
 
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data TxInfo = TxInfo
       { txInfoId :: V3.TxId
@@ -377,7 +471,7 @@ PlutusTx.asData
 
 PlutusTx.makeLift ''TxInfo
 
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data TopTxInfoSimplified = TopTxInfoSimplified
       { ttisIds :: List V3.TxId
@@ -433,7 +527,7 @@ PlutusTx.asData
 
 PlutusTx.makeLift ''TopTxInfoSimplified
 
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data TopTxInfo = TopTxInfo
       { topTxInfoSubTransactions :: List TxInfo
@@ -462,7 +556,7 @@ PlutusTx.asData
   [d|
     data ScriptInfo
       = MintingScript V2.CurrencySymbol
-      | SpendingScript V3.TxOutRef (Haskell.Maybe V2.Datum)
+      | SpendingScript V4.TxOutRef (Haskell.Maybe V2.Datum)
       | WithdrawingScript AccountId
       | CertifyingScript
           Haskell.Integer
@@ -487,7 +581,7 @@ PlutusTx.asData
 
 PlutusTx.makeLift ''ScriptInfo
 
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data ScriptContext = ScriptContext
       { scriptContextTxInfo :: TxInfo
@@ -531,7 +625,7 @@ findDatumHash ds TxInfo {txInfoData} =
     matchDatum pair = Builtins.snd pair PlutusTx.== V2.getDatum ds
 
 {-# INLINEABLE findTxInByTxOutRef #-}
-findTxInByTxOutRef :: V3.TxOutRef -> TxInfo -> Haskell.Maybe TxInInfo
+findTxInByTxOutRef :: V4.TxOutRef -> TxInfo -> Haskell.Maybe TxInInfo
 findTxInByTxOutRef outRef TxInfo {txInfoInputs} =
   Data.List.find
     (\TxInInfo {txInInfoOutRef} -> txInInfoOutRef PlutusTx.== outRef)
@@ -567,13 +661,12 @@ getContinuingOutputs _ = PlutusTx.traceError "Lf"
 
 {-# INLINEABLE txSignedBy #-}
 txSignedBy :: TxInfo -> V2.PubKeyHash -> Haskell.Bool
-txSignedBy TxInfo {txInfoGuards} keyHash =
-  case Data.List.find isSigner txInfoGuards of
-    Haskell.Just _ -> Haskell.True
-    Haskell.Nothing -> Haskell.False
-  where
-    isSigner (V2.PubKeyCredential guardKeyHash) = guardKeyHash PlutusTx.== keyHash
-    isSigner _ = Haskell.False
+txSignedBy txInfo keyHash = txGuardedBy txInfo (V2.PubKeyCredential keyHash)
+
+{-# INLINEABLE txGuardedBy #-}
+txGuardedBy :: TxInfo -> V2.Credential -> Haskell.Bool
+txGuardedBy TxInfo {txInfoGuards} credential =
+  Data.List.any ((PlutusTx.==) credential) txInfoGuards
 
 {-# INLINEABLE pubKeyOutputsAt #-}
 pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> List V2.Value
@@ -606,10 +699,19 @@ spendsOutput txInfo txId i =
   let spendsOutRef inp =
         let outRef = txInInfoOutRef inp
          in txId
-              PlutusTx.== V3.txOutRefId outRef
+              PlutusTx.== V4.txOutRefId outRef
               PlutusTx.&& i
-              PlutusTx.== V3.txOutRefIdx outRef
+              PlutusTx.== V4.txOutRefIdx outRef
    in Data.List.any spendsOutRef (txInfoInputs txInfo)
+
+{-# INLINEABLE isTopLevelTx #-}
+isTopLevelTx :: TxInfo -> Haskell.Bool
+isTopLevelTx TxInfo {txInfoSubTxIx} = PlutusTx.isNothing txInfoSubTxIx
+
+{-# INLINEABLE guardingTopTxInfo #-}
+guardingTopTxInfo :: ScriptContext -> Haskell.Maybe TopTxInfo
+guardingTopTxInfo ScriptContext {scriptContextScriptInfo = GuardingScript _ topTxInfo} = topTxInfo
+guardingTopTxInfo _ = Haskell.Nothing
 
 instance Pretty TxInfo where
   pretty TxInfo {..} =

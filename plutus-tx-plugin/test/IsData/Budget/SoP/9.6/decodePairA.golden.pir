@@ -5,19 +5,11 @@ let
 in
 \(d : data) ->
   Pair_match
-    ((let
-         b = list data
-       in
-       /\r -> \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
-       {Pair}
-       (unConstrData d)
-       (\(index : integer) (args : list data) ->
-          case
-            (list data -> Pair)
-            index
-            [ (\(ds : list data) -> PairA (unIData (headList {data} ds)))
-            , (\(ds : list data) -> PairB (unIData (headList {data} ds))) ]
-            args))
+    (case
+       Pair
+       d
+       [ (\(ds : list data) -> PairA (unIData (headList {data} ds)))
+       , (\(ds : list data) -> PairB (unIData (headList {data} ds))) ])
     {integer}
     (\(x : integer) -> x)
     (\(x : integer) -> addInteger 1 x)

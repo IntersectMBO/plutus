@@ -63,7 +63,7 @@ PlutusTx.makeLift ''AccountId
 
 {-| An address may contain two things: the payment credential, and optionally
 the 'AccountId' of the account the funds are staked to. -}
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data Address = Address
       { addressCredential :: Credential

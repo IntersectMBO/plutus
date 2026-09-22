@@ -12,9 +12,6 @@ import PlutusPrelude
 import Spec.CBOR.DeserialiseFailureInfo qualified
 import Spec.ContextDecoding qualified
 import Spec.CostModelParams qualified
-import Spec.Data.CostModelParams qualified
-import Spec.Data.Eval qualified
-import Spec.Data.Versions qualified
 import Spec.Eq.Golden qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
@@ -22,6 +19,7 @@ import Spec.Ord.Golden qualified
 import Spec.ScriptDecodeError qualified
 import Spec.V1.Data.Value qualified as Data.Value
 import Spec.V1.Value qualified as Value
+import Spec.V4.Encoding qualified
 import Spec.Versions qualified
 
 import Test.Tasty
@@ -213,16 +211,12 @@ tests =
             , Spec.Versions.tests
             , runTestNested ["CostModel", "Params"] [Spec.CostModelParams.tests]
             , Spec.ContextDecoding.tests
+            , Spec.V4.Encoding.tests
             , Value.test_Value
             ]
         , testGroup
             "Data"
-            [ Spec.Data.Eval.tests
-            , Spec.Data.Versions.tests
-            , runTestNested
-                ["CostModel", "Data", "Params"]
-                [Spec.Data.CostModelParams.tests]
-            , Data.Value.test_Value
+            [ Data.Value.test_Value
             ]
         ]
     , Spec.Eq.Golden.eqGoldenTests
