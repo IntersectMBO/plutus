@@ -1,4 +1,15 @@
 
+<a id='changelog-1.70.0.0'></a>
+# 1.70.0.0 — 2026-09-22
+
+## Removed
+
+- `plc optimise` no longer accepts the `--certify` and `--certifier-*` options. It never ran the certifier (or any optimisation), so accepting the flags and silently producing no certificate was misleading.
+
+## Added
+
+- Added some helper functions for dealing with V4 script context.
+
 <a id='changelog-1.69.0.0'></a>
 # 1.69.0.0 — 2026-09-11
 
