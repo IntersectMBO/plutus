@@ -204,55 +204,71 @@ in
   in
   let
     !nt : list (pair data data)
-      = letrec
+      = let
+        !right : list (pair data data) = goRight nt
+      in
+      letrec
         !goLeft : list (pair data data) -> list (pair data data)
-          = let
-            !z : list (pair data data) = goRight nt
-          in
-          \(xs : list (pair data data)) ->
-            case
-              (list (pair data data))
-              xs
-              [ (\(hd : pair data data) (tl : list (pair data data)) ->
-                   let
-                     !v : data = case data hd [(\(l : data) (r : data) -> r)]
-                     !k : data = case data hd [(\(l : data) (r : data) -> l)]
-                   in
-                   letrec
-                     !go : list (pair data data) -> Maybe data
-                       = \(xs : list (pair data data)) ->
-                           case
-                             (Maybe data)
-                             xs
-                             [ (\(hd : pair data data) ->
-                                  case
-                                    (all dead.
-                                       list (pair data data) -> Maybe data)
-                                    (equalsData
-                                       k
-                                       (case
-                                          data
-                                          hd
-                                          [(\(l : data) (r : data) -> l)]))
-                                    [ (/\dead -> go)
-                                    , (/\dead ->
-                                         \(ds : list (pair data data)) ->
-                                           Just
-                                             {data}
-                                             (case
-                                                data
-                                                hd
-                                                [ (\(l : data) (r : data) ->
-                                                     r) ])) ]
-                                    {all dead. dead})
-                             , (Nothing {data}) ]
-                   in
-                   Maybe_match
-                     {data}
-                     (go nt)
-                     {all dead. list (pair data data)}
-                     (\(r : data) ->
-                        /\dead ->
+          = \(xs : list (pair data data)) ->
+              case
+                (list (pair data data))
+                xs
+                [ (\(hd : pair data data) (tl : list (pair data data)) ->
+                     let
+                       !v : data = case data hd [(\(l : data) (r : data) -> r)]
+                       !k : data = case data hd [(\(l : data) (r : data) -> l)]
+                     in
+                     letrec
+                       !go : list (pair data data) -> Maybe data
+                         = \(xs : list (pair data data)) ->
+                             case
+                               (Maybe data)
+                               xs
+                               [ (\(hd : pair data data) ->
+                                    case
+                                      (all dead.
+                                         list (pair data data) -> Maybe data)
+                                      (equalsData
+                                         k
+                                         (case
+                                            data
+                                            hd
+                                            [(\(l : data) (r : data) -> l)]))
+                                      [ (/\dead -> go)
+                                      , (/\dead ->
+                                           \(ds : list (pair data data)) ->
+                                             Just
+                                               {data}
+                                               (case
+                                                  data
+                                                  hd
+                                                  [ (\(l : data) (r : data) ->
+                                                       r) ])) ]
+                                      {all dead. dead})
+                               , (Nothing {data}) ]
+                     in
+                     Maybe_match
+                       {data}
+                       (go nt)
+                       {all dead. list (pair data data)}
+                       (\(r : data) ->
+                          /\dead ->
+                            mkCons
+                              {pair data data}
+                              (mkPairData
+                                 k
+                                 (`$fToDataThese_$ctoBuiltinData`
+                                    {integer}
+                                    {integer}
+                                    `$dToData`
+                                    `$dToData`
+                                    (These
+                                       {integer}
+                                       {integer}
+                                       (unIData v)
+                                       (unIData r))))
+                              (goLeft tl))
+                       (/\dead ->
                           mkCons
                             {pair data data}
                             (mkPairData
@@ -262,26 +278,10 @@ in
                                   {integer}
                                   `$dToData`
                                   `$dToData`
-                                  (These
-                                     {integer}
-                                     {integer}
-                                     (unIData v)
-                                     (unIData r))))
+                                  (This {integer} {integer} (unIData v))))
                             (goLeft tl))
-                     (/\dead ->
-                        mkCons
-                          {pair data data}
-                          (mkPairData
-                             k
-                             (`$fToDataThese_$ctoBuiltinData`
-                                {integer}
-                                {integer}
-                                `$dToData`
-                                `$dToData`
-                                (This {integer} {integer} (unIData v))))
-                          (goLeft tl))
-                     {all dead. dead})
-              , z ]
+                       {all dead. dead})
+                , right ]
       in
       goLeft nt
   in

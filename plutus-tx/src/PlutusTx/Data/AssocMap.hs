@@ -343,7 +343,7 @@ union (Map ls) (Map rs) = Map (goLeft ls)
   where
     goLeft =
       P.caseList'
-        (goRight rs)
+        right
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
@@ -376,6 +376,8 @@ union (Map ls) (Map rs) = Map (goLeft ls)
                       )
                       tl'
         )
+
+    right = goRight rs
 {-# INLINEABLE union #-}
 
 -- | Combine two 'Map's with the given combination function.
