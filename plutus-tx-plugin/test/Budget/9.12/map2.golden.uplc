@@ -2,165 +2,149 @@
    1.1.0
    ((\forced ->
        (\go ->
-          (\go ->
-             (\goList
-               n ->
-                (\unsafeFromSOPList ->
+          (\goList
+            n ->
+             (\unsafeFromSOPList ->
+                (\nt ->
                    (\nt ->
-                      (\go ->
-                         (\nt ->
-                            go
-                              ((\rs' ->
-                                  (\ls' -> go rs' ls') (go nt))
-                                 ((\s ->
-                                     s s nt)
-                                    (\s
-                                      xs ->
-                                       case
-                                         xs
-                                         [ (\hd
-                                             tl ->
-                                              (\tl' ->
-                                                 (\k ->
-                                                    (\s ->
-                                                       case
-                                                         (s s nt)
-                                                         [(forced hd tl'), tl'])
-                                                      (\s
-                                                        xs ->
-                                                         case
-                                                           xs
-                                                           [ (\hd ->
-                                                                case
-                                                                  (equalsData
-                                                                     k
-                                                                     (case
+                      go
+                        ((\rs' ->
+                            (\s ->
+                               s s nt)
+                              (\s
+                                xs ->
+                                 case
+                                   xs
+                                   [ (\hd
+                                       tl ->
+                                        (\v' ->
+                                           (\k' ->
+                                              (\s ->
+                                                 case
+                                                   (s s nt)
+                                                   [ (\r ->
+                                                        forced
+                                                          (mkPairData
+                                                             k'
+                                                             (iData
+                                                                (addInteger
+                                                                   (unIData v')
+                                                                   (unIData
+                                                                      r))))
+                                                          (s s tl))
+                                                   , (forced
+                                                        (mkPairData k' v')
+                                                        (s s tl)) ])
+                                                (\s
+                                                  xs ->
+                                                   case
+                                                     xs
+                                                     [ (\hd ->
+                                                          case
+                                                            (equalsData
+                                                               k'
+                                                               (case
+                                                                  hd
+                                                                  [ (\l r ->
+                                                                       l) ]))
+                                                            [ (\x -> s s x)
+                                                            , (\ds ->
+                                                                 constr 0
+                                                                   [ (case
                                                                         hd
                                                                         [ (\l
                                                                             r ->
-                                                                             l) ]))
-                                                                  [ (\x ->
-                                                                       s s x)
-                                                                  , (\ds ->
-                                                                       True) ])
-                                                           , False ]))
-                                                   (case hd [(\l r -> l)]))
-                                                (s s tl))
-                                         , [] ]))))
-                           (case
-                              (constr 0
-                                 [ (\i -> iData i)
-                                 , (\i -> iData i)
-                                 , (constr 1
-                                      [ (constr 0 [(addInteger 1 n), 1])
-                                      , (constr 1
-                                           [ (constr 0 [(addInteger 2 n), 2])
-                                           , (constr 1
-                                                [ (constr 0
-                                                     [(addInteger 3 n), 3])
-                                                , (constr 1
-                                                     [ (constr 0
-                                                          [(addInteger 4 n), 4])
-                                                     , (constr 1
-                                                          [ (constr 0
-                                                               [ (addInteger
-                                                                    5
-                                                                    n)
-                                                               , 5 ])
-                                                          , (constr 0
-                                                               [  ]) ]) ]) ]) ]) ]) ])
-                              [unsafeFromSOPList]))
-                        ((\s ->
-                            s s)
-                           (\s
-                             xs ->
-                              case
-                                xs
-                                [ (\hd
-                                    tl ->
-                                     (\v' ->
-                                        (\k' ->
-                                           (\s ->
-                                              case
-                                                (s s nt)
-                                                [ (\r ->
-                                                     forced
-                                                       (mkPairData
-                                                          k'
-                                                          (iData
-                                                             (addInteger
-                                                                (unIData v')
-                                                                (unIData r))))
-                                                       (s s tl))
-                                                , (forced
-                                                     (mkPairData k' v')
-                                                     (s s tl)) ])
-                                             (\s
-                                               xs ->
-                                                case
-                                                  xs
-                                                  [ (\hd ->
-                                                       case
-                                                         (equalsData
-                                                            k'
-                                                            (case
-                                                               hd
-                                                               [(\l r -> l)]))
-                                                         [ (\x -> s s x)
-                                                         , (\ds ->
-                                                              constr 0
-                                                                [ (case
-                                                                     hd
-                                                                     [ (\l
-                                                                         r ->
-                                                                          r) ]) ]) ])
-                                                  , (constr 1 []) ]))
-                                          (case hd [(\l r -> l)]))
-                                       (case hd [(\l r -> r)]))
-                                , [] ])))
+                                                                             r) ]) ]) ])
+                                                     , (constr 1 []) ]))
+                                             (case hd [(\l r -> l)]))
+                                          (case hd [(\l r -> r)]))
+                                   , rs' ]))
+                           ((\s -> s s nt)
+                              (\s xs ->
+                                 case
+                                   xs
+                                   [ (\hd tl ->
+                                        (\tl' ->
+                                           (\k ->
+                                              (\s ->
+                                                 case
+                                                   (s s nt)
+                                                   [(forced hd tl'), tl'])
+                                                (\s xs ->
+                                                   case
+                                                     xs
+                                                     [ (\hd ->
+                                                          case
+                                                            (equalsData
+                                                               k
+                                                               (case
+                                                                  hd
+                                                                  [ (\l r ->
+                                                                       l) ]))
+                                                            [ (\x -> s s x)
+                                                            , (\ds -> True) ])
+                                                     , False ]))
+                                             (case hd [(\l r -> l)]))
+                                          (s s tl))
+                                   , [] ]))))
                      (case
                         (constr 0
                            [ (\i -> iData i)
                            , (\i -> iData i)
                            , (constr 1
-                                [ (constr 0 [(addInteger 3 n), 33])
+                                [ (constr 0 [(addInteger 1 n), 1])
                                 , (constr 1
-                                     [ (constr 0 [(addInteger 4 n), 44])
+                                     [ (constr 0 [(addInteger 2 n), 2])
                                      , (constr 1
-                                          [ (constr 0 [(addInteger 6 n), 66])
+                                          [ (constr 0 [(addInteger 3 n), 3])
                                           , (constr 1
                                                [ (constr 0
-                                                    [(addInteger 7 n), 77])
-                                               , (constr 0 []) ]) ]) ]) ]) ])
+                                                    [(addInteger 4 n), 4])
+                                               , (constr 1
+                                                    [ (constr 0
+                                                         [(addInteger 5 n), 5])
+                                                    , (constr 0
+                                                         []) ]) ]) ]) ]) ]) ])
                         [unsafeFromSOPList]))
-                  (\`$dToData` `$dToData` ->
-                     (\go eta -> goList (go eta))
-                       ((\s -> s s)
-                          (\s ds ->
-                             case
-                               ds
-                               [ (constr 0 [])
-                               , (\x xs ->
-                                    constr 1
-                                      [ (case
-                                           x
-                                           [ (\k a ->
-                                                constr 0
-                                                  [ (`$dToData` k)
-                                                  , (`$dToData` a) ]) ])
-                                      , (s s xs) ]) ]))))
-               ((\s -> s s)
-                  (\s ds ->
-                     case
-                       ds
-                       [ []
-                       , (\d ds ->
-                            forced
-                              (case d [(\d d -> mkPairData d d)])
-                              (s s ds)) ])))
+                  (case
+                     (constr 0
+                        [ (\i -> iData i)
+                        , (\i -> iData i)
+                        , (constr 1
+                             [ (constr 0 [(addInteger 3 n), 33])
+                             , (constr 1
+                                  [ (constr 0 [(addInteger 4 n), 44])
+                                  , (constr 1
+                                       [ (constr 0 [(addInteger 6 n), 66])
+                                       , (constr 1
+                                            [ (constr 0 [(addInteger 7 n), 77])
+                                            , (constr 0 []) ]) ]) ]) ]) ])
+                     [unsafeFromSOPList]))
+               (\`$dToData` `$dToData` ->
+                  (\go eta -> goList (go eta))
+                    ((\s -> s s)
+                       (\s ds ->
+                          case
+                            ds
+                            [ (constr 0 [])
+                            , (\x xs ->
+                                 constr 1
+                                   [ (case
+                                        x
+                                        [ (\k a ->
+                                             constr 0
+                                               [ (`$dToData` k)
+                                               , (`$dToData` a) ]) ])
+                                   , (s s xs) ]) ]))))
             ((\s -> s s)
-               (\s acc xs ->
-                  case xs [(\hd -> (\x -> s s x) (forced hd acc)), acc])))
+               (\s ds ->
+                  case
+                    ds
+                    [ []
+                    , (\d ds ->
+                         forced
+                           (case d [(\d d -> mkPairData d d)])
+                           (s s ds)) ])))
          ((\s -> s s)
             (\s xs ->
                case
