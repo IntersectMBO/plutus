@@ -11,9 +11,7 @@
                            (lessThanInteger n 0)
                            [ (constr 0 [fib, fac, tot])
                            , ((\x -> error)
-                                (forced
-                                   "triple: negative input"
-                                   (constr 0 []))) ])
+                                (forced "triple: negative input" ())) ])
                         (fibonacci n))
                      (factorial n))
                   (total n))
@@ -28,7 +26,7 @@
                                  ((\x -> s s x) (subtractInteger n 1)))
                             , 0 ])
                        , ((\x -> error)
-                            (forced "total: negative input" (constr 0 []))) ])))
+                            (forced "total: negative input" ())) ])))
             ((\s -> s s)
                (\s ->
                   (\fibonacci n ->
@@ -44,9 +42,7 @@
                                  , 1 ])
                             , 0 ])
                        , ((\x -> error)
-                            (forced
-                               "fibonacci: negative input"
-                               (constr 0 []))) ])
+                            (forced "fibonacci: negative input" ())) ])
                     (\x -> s s x))))
          ((\s -> s s)
             (\s n ->
@@ -58,6 +54,5 @@
                            n
                            ((\x -> s s x) (subtractInteger n 1)))
                       , 1 ])
-                 , ((\x -> error)
-                      (forced "factorial: negative input" (constr 0 []))) ])))
+                 , ((\x -> error) (forced "factorial: negative input" ())) ])))
       (force trace)))

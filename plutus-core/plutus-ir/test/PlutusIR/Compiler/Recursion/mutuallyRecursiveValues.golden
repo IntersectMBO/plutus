@@ -1,77 +1,18 @@
 program
   1.1.0
-  ((\(tup :
-        all r.
-          (((all a. a -> a) -> (all a. a -> a)) ->
-           ((all a. a -> a) -> (all a. a -> a)) ->
-           r) ->
-          r) ->
-      (\(x : (all a. a -> a) -> (all a. a -> a)) ->
-         (\(y : (all a. a -> a) -> (all a. a -> a)) ->
-            (\(x : all a. a -> a) ->
-               (\(y : all a. a -> a) -> x) (y (/\a -> \(x : a) -> x)))
-              (x (/\a -> \(x : a) -> x)))
-           (tup
-              {(all a. a -> a) -> (all a. a -> a)}
-              (\(arg_0 : (all a. a -> a) -> (all a. a -> a))
-                (arg_1 : (all a. a -> a) -> (all a. a -> a)) ->
-                 arg_1)))
-        (tup
-           {(all a. a -> a) -> (all a. a -> a)}
-           (\(arg_0 : (all a. a -> a) -> (all a. a -> a))
-             (arg_1 : (all a. a -> a) -> (all a. a -> a)) ->
-              arg_0)))
-     ((/\a b a b ->
-         \(f :
-             all Q. ((a -> b) -> (a -> b) -> Q) -> (a -> b) -> (a -> b) -> Q) ->
-           (/\(F :: * -> *) ->
-              \(by : (all Q. F Q -> Q) -> (all Q. F Q -> Q)) ->
-                (/\a b ->
-                   \(f : (a -> b) -> a -> b) ->
-                     (\(s :
-                          (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
-                            (a -> b)) ->
-                        unwrap s s)
-                       (iwrap
-                          (\(self :: * -> *) a -> self a -> a)
-                          (a -> b)
-                          (\(s :
-                               (\a ->
-                                  ifix (\(self :: * -> *) a -> self a -> a) a)
-                                 (a -> b)) ->
-                             f (\(x : a) -> unwrap s s x))))
-                  {all Q. F Q -> F Q}
-                  {all Q. F Q -> Q}
-                  (\(rec : (all Q. F Q -> F Q) -> (all Q. F Q -> Q))
-                    (h : all Q. F Q -> F Q) ->
-                     /\R ->
-                       \(fr : F R) ->
-                         by
-                           (/\Q -> \(fq : F Q) -> rec h {Q} (h {Q} fq))
-                           {R}
-                           fr))
-             {\X -> (a -> b) -> (a -> b) -> X}
-             (\(k : all Q. ((a -> b) -> (a -> b) -> Q) -> Q) ->
-                /\S ->
-                  \(h : (a -> b) -> (a -> b) -> S) ->
-                    h
-                      (\(x : a) ->
-                         k {b} (\(f_0 : a -> b) (f_1 : a -> b) -> f_0 x))
-                      (\(x : a) ->
-                         k {b} (\(f_0 : a -> b) (f_1 : a -> b) -> f_1 x)))
-             f)
-        {all a. a -> a}
-        {all a. a -> a}
-        {all a. a -> a}
-        {all a. a -> a}
-        (/\Q ->
-           \(choose :
-               ((all a. a -> a) -> (all a. a -> a)) ->
-               ((all a. a -> a) -> (all a. a -> a)) ->
-               Q)
-            (x : (all a. a -> a) -> (all a. a -> a))
-            (y : (all a. a -> a) -> (all a. a -> a)) ->
-             choose
-               (\(arg : all a. a -> a) -> y (/\a -> \(x : a) -> x))
-               (\(arg : all a. a -> a) ->
-                  /\a -> \(z : a) -> x (/\a -> \(x : a) -> x) {a} z))))
+  ((/\a b ->
+      \(f : (a -> b) -> a -> b) ->
+        (\(s : (\a -> ifix (\(self :: * -> *) a -> self a -> a) a) (a -> b)) ->
+           unwrap s s)
+          (iwrap
+             (\(self :: * -> *) a -> self a -> a)
+             (a -> b)
+             (\(s :
+                  (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+                    (a -> b)) ->
+                f (\(x : a) -> unwrap s s x))))
+     {all a. a -> a}
+     {all a. a -> a}
+     (\(x : (all a. a -> a) -> (all a. a -> a)) (arg : all a. a -> a) ->
+        /\a -> \(z : a) -> x (/\a -> \(x : a) -> x) {a} z)
+     (/\a -> \(x : a) -> x))

@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module AsData.Budget.Spec where
 
@@ -14,7 +13,7 @@ import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test (goldenBundle)
+import PlutusTx.Test
 
 tests :: TestNested
 tests =
@@ -22,9 +21,32 @@ tests =
     testNestedGhc
       [ goldenBundle "onlyUseFirstField" onlyUseFirstField (onlyUseFirstField `unsafeApplyCode` inp)
       , goldenBundle
+          "onlyUseFirstFieldAsList"
+          onlyUseFirstFieldAsList
+          (onlyUseFirstFieldAsList `unsafeApplyCode` inpAsList)
+      , goldenBundle
+          "onlyUseFirstFieldAsListMatch"
+          onlyUseFirstFieldAsListMatch
+          (onlyUseFirstFieldAsListMatch `unsafeApplyCode` inpAsList)
+      , goldenBundle
           "onlyUseFirstField-manual"
           onlyUseFirstFieldManual
           (onlyUseFirstFieldManual `unsafeApplyCode` inp)
+      , goldenBundle "richInts1" richInts1 (richInts1 `unsafeApplyCode` inpRich)
+      , goldenBundle
+          "richInts1AsList"
+          richInts1AsList
+          (richInts1AsList `unsafeApplyCode` inpRichAsList)
+      , goldenBundle
+          "richInts1AsListMatch"
+          richInts1AsListMatch
+          (richInts1AsListMatch `unsafeApplyCode` inpRichAsList)
+      , goldenBundle "richInts2" richInts2 (richInts2 `unsafeApplyCode` inpRich)
+      , goldenBundle "richInts3" richInts3 (richInts3 `unsafeApplyCode` inpRich)
+      , goldenBundle
+          "richInts3AsListMatch"
+          richInts3AsListMatch
+          (richInts3AsListMatch `unsafeApplyCode` inpRichAsList)
       , goldenBundle "patternMatching" patternMatching (patternMatching `unsafeApplyCode` inp)
       , goldenBundle "recordFields" recordFields (recordFields `unsafeApplyCode` inp)
       , goldenBundle "destructSum" destructSum (destructSum `unsafeApplyCode` inpSum)
@@ -33,9 +55,15 @@ tests =
           destructSumManual
           (destructSumManual `unsafeApplyCode` inpSumM)
       , goldenBundle
-          "richSumSingleField"
-          richSumSingleField
-          (richSumSingleField `unsafeApplyCode` inpRichSum)
+          "richSumA"
+          richSum
+          (richSum `unsafeApplyCode` inpRichSumA)
+      , goldenEvalCekCatchBudget
+          "richSumB"
+          (richSum `unsafeApplyCode` inpRichSumB)
+      , goldenEvalCekCatchBudget
+          "richSumC"
+          (richSum `unsafeApplyCode` inpRichSumC)
       ]
 
 -- A function that only accesses the first field of `Ints`.
@@ -46,11 +74,73 @@ onlyUseFirstField =
         Ints {int1 = x} -> x
     )
 
+onlyUseFirstFieldAsList :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+onlyUseFirstFieldAsList =
+  plinthc
+    ( \input -> case PlutusTx.unsafeFromBuiltinData input of
+        IntsAsList {int1AsList = selected} -> selected
+    )
+
+onlyUseFirstFieldAsListMatch :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+onlyUseFirstFieldAsListMatch =
+  plinthc
+    ( \input ->
+        matchIntsAsList (PlutusTx.unsafeFromBuiltinData input) (\selected _ _ _ -> selected)
+    )
+
 onlyUseFirstFieldManual :: CompiledCode (PlutusTx.BuiltinData -> Integer)
 onlyUseFirstFieldManual =
   plinthc
     ( \d -> case PlutusTx.unsafeFromBuiltinData d of
         IntsManual {int1Manual = x} -> x
+    )
+
+richInts1 :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richInts1 =
+  plinthc
+    ( \d -> case PlutusTx.unsafeFromBuiltinData d of
+        RichInts {ri16 = x} -> x
+    )
+
+richInts1AsList :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richInts1AsList =
+  plinthc
+    ( \input -> case PlutusTx.unsafeFromBuiltinData input of
+        RichIntsAsList {ri16AsList = selected} -> selected
+    )
+
+richInts1AsListMatch :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richInts1AsListMatch =
+  plinthc
+    ( \input ->
+        matchRichIntsAsList
+          (PlutusTx.unsafeFromBuiltinData input)
+          (\_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ selected -> selected)
+    )
+
+richInts2 :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richInts2 =
+  plinthc
+    ( \d -> case PlutusTx.unsafeFromBuiltinData d of
+        RichInts {ri9 = x, ri14 = y} -> PlutusTx.addInteger x y
+    )
+
+richInts3 :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richInts3 =
+  plinthc
+    ( \d -> case PlutusTx.unsafeFromBuiltinData d of
+        RichInts {ri4 = x, ri8 = y, ri15 = z} -> PlutusTx.addInteger x (PlutusTx.addInteger y z)
+    )
+
+richInts3AsListMatch :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richInts3AsListMatch =
+  plinthc
+    ( \input ->
+        matchRichIntsAsList
+          (PlutusTx.unsafeFromBuiltinData input)
+          ( \_ _ _ fourth _ _ _ eighth _ _ _ _ _ _ fifteenth _ ->
+              PlutusTx.addInteger fourth (PlutusTx.addInteger eighth fifteenth)
+          )
     )
 
 patternMatching :: CompiledCode (PlutusTx.BuiltinData -> Integer)
@@ -140,19 +230,28 @@ destructSumManual =
     )
 
 -- Only a small number of fields of a sum type are accessed.
-richSumSingleField :: CompiledCode (PlutusTx.BuiltinData -> Integer)
-richSumSingleField =
+richSum :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richSum =
   plinthc
-    ( \d ->
+    ( \d0 ->
         matchRichSum
-          (PlutusTx.unsafeFromBuiltinData d)
-          (\a _ _ _ _ _ -> a)
-          (\_ b _ _ _ _ _ -> b)
-          (\_ _ c _ _ _ _ _ -> c)
+          (PlutusTx.unsafeFromBuiltinData d0)
+          (\_ b _ _ _ _ -> b)
+          (\_ _ c _ _ _ g -> PlutusTx.addInteger c g)
+          (\_ _ _ d _ _ _ _ i _ _ _ _ n _ _ -> PlutusTx.addInteger d (PlutusTx.addInteger i n))
     )
 
 inp :: CompiledCode PlutusTx.BuiltinData
 inp = liftCodeDef (PlutusTx.toBuiltinData (Ints 10 20 30 40))
+
+inpRich :: CompiledCode PlutusTx.BuiltinData
+inpRich = liftCodeDef (PlutusTx.toBuiltinData (RichInts 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16))
+
+inpAsList :: CompiledCode PlutusTx.BuiltinData
+inpAsList = liftCodeDef (PlutusTx.toBuiltinData (IntsAsList 10 20 30 40))
+
+inpRichAsList :: CompiledCode PlutusTx.BuiltinData
+inpRichAsList = liftCodeDef (PlutusTx.toBuiltinData (RichIntsAsList 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16))
 
 inpSum :: CompiledCode PlutusTx.BuiltinData
 inpSum = liftCodeDef (PlutusTx.toBuiltinData (TheseD (Ints 10 20 30 40) (Ints 10 20 30 40)))
@@ -160,5 +259,23 @@ inpSum = liftCodeDef (PlutusTx.toBuiltinData (TheseD (Ints 10 20 30 40) (Ints 10
 inpSumM :: CompiledCode PlutusTx.BuiltinData
 inpSumM = liftCodeDef (PlutusTx.toBuiltinData (TheseDManual (Ints 10 20 30 40) (Ints 10 20 30 40)))
 
-inpRichSum :: CompiledCode PlutusTx.BuiltinData
-inpRichSum = liftCodeDef (PlutusTx.toBuiltinData (RichC 10 20 30 40 50 60 70 80))
+inpRichSumA :: CompiledCode PlutusTx.BuiltinData
+inpRichSumA =
+  liftCodeDef
+    ( PlutusTx.toBuiltinData
+        (RichA 10 20 30 40 50 60)
+    )
+
+inpRichSumB :: CompiledCode PlutusTx.BuiltinData
+inpRichSumB =
+  liftCodeDef
+    ( PlutusTx.toBuiltinData
+        (RichB 10 20 30 40 50 60 70)
+    )
+
+inpRichSumC :: CompiledCode PlutusTx.BuiltinData
+inpRichSumC =
+  liftCodeDef
+    ( PlutusTx.toBuiltinData
+        (RichC 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160)
+    )

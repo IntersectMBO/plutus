@@ -30,6 +30,7 @@ import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text.Encoding qualified as Text
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V3 qualified as V3
+import PlutusLedgerApi.V4 qualified as V4
 import Prettyprinter
 
 data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
@@ -198,6 +199,23 @@ checkEvaluationEvent ctx params ev = case ev of
               V3.evaluateScriptRestricting
                 dataProtocolVersion
                 V3.Quiet
+                ctx
+                dataBudget
+                script
+                dataInput
+        verify expected actual
+      Left err -> Just (DecodeError err)
+  PlutusEvent PlutusV4 ScriptEvaluationData {..} expected ->
+    case deserialiseScript PlutusV4 dataProtocolVersion dataScript of
+      Right script -> do
+        dataInput <-
+          case dataInputs of
+            [input] -> Just input
+            _ -> Nothing
+        let (_, actual) =
+              V4.evaluateScriptRestricting
+                dataProtocolVersion
+                V4.Quiet
                 ctx
                 dataBudget
                 script

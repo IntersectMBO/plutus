@@ -10,7 +10,8 @@ import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.Inline.Inline
 import PlutusPrelude
-import Test.QuickCheck.Property (Property, withMaxSuccess)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
+import Test.QuickCheck.Property (Property)
 import Test.Tasty (TestTree)
 
 -- | Tests of the inliner, include global uniqueness test.
@@ -73,7 +74,7 @@ test_inline =
 prop_inline
   :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_inline biVariant =
-  withMaxSuccess numTestsForPassProp
+  BaseQC.withNumTests numTestsForPassProp
     $ testPassProp
       runQuote
     $ \tc -> inlinePassSC 0 0 True tc def (def {_biSemanticsVariant = biVariant})

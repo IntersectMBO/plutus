@@ -9,7 +9,8 @@ import PlutusIR.Test
 import PlutusIR.Transform.Unwrap
 
 import Data.Functor.Identity
-import Test.QuickCheck.Property (Property, withMaxSuccess)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
+import Test.QuickCheck.Property (Property)
 
 test_unwrap :: TestTree
 test_unwrap =
@@ -21,4 +22,4 @@ test_unwrap =
 
 prop_unwrap :: Property
 prop_unwrap =
-  withMaxSuccess numTestsForPassProp $ testPassProp runIdentity unwrapCancelPass
+  BaseQC.withNumTests numTestsForPassProp $ testPassProp runIdentity unwrapCancelPass

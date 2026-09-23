@@ -5,7 +5,8 @@ import PlutusIR.Parser
 import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.Beta
-import Test.QuickCheck.Property (Property, withMaxSuccess)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
+import Test.QuickCheck.Property (Property)
 import Test.Tasty
 import Test.Tasty.Extras
 
@@ -22,4 +23,4 @@ test_beta =
       ]
 
 prop_beta :: Property
-prop_beta = withMaxSuccess numTestsForPassProp $ testPassProp runQuote betaPassSC
+prop_beta = BaseQC.withNumTests numTestsForPassProp $ testPassProp runQuote betaPassSC

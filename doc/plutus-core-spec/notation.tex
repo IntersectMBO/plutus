@@ -5,7 +5,7 @@ We begin with some notation which will be used throughout the document.
 \subsection{Sets}
 \label{sec:notation-sets}
 \begin{itemize}
-    
+
   \item $\N = \{0,1,2,3,\ldots\}$.%
     \nomenclature[Aaa1]{$\N$}{$\{0,1,2,3,\ldots\}$}
 
@@ -16,6 +16,21 @@ We begin with some notation which will be used throughout the document.
     to denote the union of sets which we know to be disjoint.%
     \nomenclature[Aa1]{$\disj$}{Disjoint union of sets}%
 
+  \item Given sets $X$ and $Y$ with $Y$ containing a distinguished element 0, we let
+    $$ \textsf{FinSup}(X,Y) = \{f:X \rightarrow Y: f(x) = 0 \text{ for all but finitely many $x$}\}$$
+    be the set of \textit{finitely supported functions} from $X$ to $Y$.%
+    \nomenclature[Aa2]{$\textsf{FinSup}(X,Y)$}{Finitely supported functions from $X$ to $Y$}
+
+  \item Given a function $f: X \rightarrow Y$ and $a \in X$, $b \in Y$, $f[a \mapsto b](x)$
+    denotes $f$ updated to map $a$ to $b$:
+    $$ f[a \mapsto b](x) = \left\{
+    \begin{array}{ll}
+      b & \text{if $x=a$}\\
+      f(x) & \text{otherwise}\\
+    \end{array}\right.
+    $$
+
+  \nomenclature[Aa3]{$f[a \mapsto b]$}{$f$ updated to map $a$ to $b$}
   \item Given a set $X$, $X^*$ denotes the set of finite sequences of elements of $X$:
     $$
     X^* = \bigdisj{\{X^n: n \in \N\}}
@@ -25,10 +40,10 @@ We begin with some notation which will be used throughout the document.
     X^+ = \bigdisj{\{X^n: n \in \Nplus\}}.
     $$
     We will sometimes write elements of $X^+$ in the form $(x|x_1,\ldots,x_n)$ with $n \geq 0$.
-    \nomenclature[Aa2]{$X^*$}{The set of all finite sequences of elements of a set $X$}%
-    \nomenclature[Aa3]{$X^+$}{The set of all nonempty finite sequences of elements of a set $X$}%
-    \nomenclature[Aa4]{$(x \vert x_1,\ldots,x_n)$}{A member of $X^+$}% nomencl doesn't like |
- 
+    \nomenclature[Aa4]{$X^*$}{The set of all finite sequences of elements of a set $X$}%
+    \nomenclature[Aa5]{$X^+$}{The set of all nonempty finite sequences of elements of a set $X$}%
+    \nomenclature[Aa6]{$(x \vert x_1,\ldots,x_n)$}{A member of $X^+$}% nomencl doesn't like |
+
  \item $\Nab{a}{b} = \{n \in \N: a \leq n \leq b\}$.%
     \nomenclature[Aaa3]{$\Nab{a}{b}$}{$\{n \in \N: a \leq n \leq b\}$}
 

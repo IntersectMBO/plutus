@@ -13,6 +13,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
 import PlutusCore.Executable.Common hiding (runPrint)
+import PlutusCore.Executable.Help qualified as Help
 import PlutusCore.Executable.Parsers
 import PlutusCore.Quote (runQuote, runQuoteT)
 import PlutusIR as PIR
@@ -88,13 +89,24 @@ data Command
 ---------------- Option parsers ----------------
 
 pPirOptimiseOptions :: Parser PirOptimiseOptions
-pPirOptimiseOptions = PirOptimiseOptions <$> input <*> pPirInputFormat <*> output <*> pPirOutputFormat <*> printmode
+pPirOptimiseOptions =
+  (\(inp, ifmt) (outp, ofmt) mode -> PirOptimiseOptions inp ifmt outp ofmt mode)
+    <$> pPirInputWithFormat
+    <*> pPirOutputWithFormat
+    <*> printmode
 
 pPirConvertOptions :: Parser PirConvertOptions
-pPirConvertOptions = PirConvertOptions <$> input <*> pPirInputFormat <*> output <*> pPirOutputFormat <*> printmode
+pPirConvertOptions =
+  (\(inp, ifmt) (outp, ofmt) mode -> PirConvertOptions inp ifmt outp ofmt mode)
+    <$> pPirInputWithFormat
+    <*> pPirOutputWithFormat
+    <*> printmode
 
 pAnalyseOptions :: Parser AnalyseOptions
-pAnalyseOptions = AnalyseOptions <$> input <*> pPirInputFormat <*> output
+pAnalyseOptions =
+  (\(inp, ifmt) outp -> AnalyseOptions inp ifmt outp)
+    <$> pPirInputWithFormat
+    <*> output
 
 {-| Whether to perform optimisations or not.  The default here is True,
 ie *do* optimise; specifying --dont-optimise returns False. -}
@@ -117,12 +129,13 @@ pJustTest =
 
 pCompileOptions :: Parser CompileOptions
 pCompileOptions =
-  CompileOptions
+  ( \lang opt test (inp, ifmt) outp ofmt mode ->
+      CompileOptions lang opt test inp ifmt outp ofmt mode
+  )
     <$> pLanguage
     <*> pOptimise
     <*> pJustTest
-    <*> input
-    <*> pPirInputFormat
+    <*> pPirInputWithFormat
     <*> output
     <*> outputformat
     <*> printmode
@@ -346,4 +359,18 @@ main = do
               ( "This program provides a number of utilities for dealing with "
                   <> "PIR programs, including printing, analysis, optimisation, and compilation to UPLC and PLC."
               )
+            <> Help.examplesFooter
+              [ Help.eg
+                  "Compile a PIR program to UPLC"
+                  "pir compile --language uplc -i program.pir -o program.uplc"
+              , Help.eg
+                  "Pretty-print a PIR program"
+                  "pir print -i program.pir"
+              , Help.eg
+                  "Optimise a PIR program"
+                  "pir optimize -i program.pir -o program-opt.pir"
+              , Help.eg
+                  "Enable bash completion for the current shell"
+                  "source <(pir --bash-completion-script $(command -v pir))"
+              ]
         )

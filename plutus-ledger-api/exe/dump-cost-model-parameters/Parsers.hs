@@ -16,6 +16,7 @@ parseVersion = eitherReader $ \case
   "1" -> Right $ One PlutusV1
   "2" -> Right $ One PlutusV2
   "3" -> Right $ One PlutusV3
+  "4" -> Right $ One PlutusV4
   s -> Left $ "Unknown ledger language version: " ++ s
 
 whichll :: Parser WhichLL

@@ -44,14 +44,14 @@ decision procedures.
 ```
 
 Pred : Set₁
-Pred = {X : ℕ} → (X ⊢) → Set
+Pred = {n : ℕ} → (n ⊢) → Set
 
 ListPred : Set₁
-ListPred = {X : ℕ} → List (X ⊢) → Set
+ListPred = {n : ℕ} → List (n ⊢) → Set
 
-data isVar { X : ℕ } : (X ⊢) → Set where
-  isvar : (v : Fin X) → isVar (` v)
-isVar? : {X : ℕ} → Decidable (isVar {X})
+data isVar { n : ℕ } : (n ⊢) → Set where
+  isvar : (v : Fin n) → isVar (` v)
+isVar? : {n : ℕ} → Decidable (isVar {n})
 isVar? (` x) = yes (isvar x)
 isVar? (ƛ x) = no λ ()
 isVar? (x · x₁) = no (λ ())
@@ -63,9 +63,9 @@ isVar? (case x ts) = no (λ ())
 isVar? (builtin b) = no (λ ())
 isVar? error = no (λ ())
 
-data isLambda (P : Pred) { X : ℕ } : (X ⊢) → Set where
-  islambda : {t : (suc X ⊢)} → P t → isLambda P (ƛ t)
-isLambda? : {X : ℕ} {P : Pred} → ({X : ℕ} → Decidable (P {X})) → Decidable (isLambda P {X})
+data isLambda (P : Pred) { n : ℕ } : (n ⊢) → Set where
+  islambda : {t : (suc n ⊢)} → P t → isLambda P (ƛ t)
+isLambda? : {n : ℕ} {P : Pred} → ({n : ℕ} → Decidable (P {n})) → Decidable (isLambda P {n})
 isLambda? isP? (` x) = no λ ()
 isLambda? isP? (ƛ t) with isP? t
 ...                                | no ¬p = no λ { (islambda x) → ¬p x}
@@ -79,9 +79,9 @@ isLambda? isP? (case t ts) = no (λ ())
 isLambda? isP? (_⊢.builtin b) = no (λ ())
 isLambda? isP? _⊢.error = no (λ ())
 
-data isApp (P Q : Pred) {X : ℕ}  : (X ⊢) → Set where
-  isapp : {l r : (X ⊢)} → P l → Q r → isApp P Q (l · r)
-isApp? : {X : ℕ} → {P Q : Pred} → ({X : ℕ} → Decidable (P {X})) → ({X : ℕ} → Decidable (Q {X})) → Decidable (isApp P Q {X})
+data isApp (P Q : Pred) {n : ℕ}  : (n ⊢) → Set where
+  isapp : {l r : (n ⊢)} → P l → Q r → isApp P Q (l · r)
+isApp? : {n : ℕ} → {P Q : Pred} → ({n : ℕ} → Decidable (P {n})) → ({n : ℕ} → Decidable (Q {n})) → Decidable (isApp P Q {n})
 isApp? isP? isQ? (` x) = no (λ ())
 isApp? isP? isQ? (ƛ t) = no (λ ())
 isApp? isP? isQ? (t · t₁) with (isP? t) ×-dec (isQ? t₁)
@@ -95,9 +95,9 @@ isApp? isP? isQ? (case t ts) = no (λ ())
 isApp? isP? isQ? (builtin b) = no (λ ())
 isApp? isP? isQ? error = no (λ ())
 
-data isForce (P : Pred) {X : ℕ} : (X ⊢) → Set where
-  isforce : {t : (X ⊢)} → P t → isForce P (force t)
-isForce? : {X : ℕ} → {P : Pred} → ({X : ℕ} → Decidable (P {X})) → Decidable (isForce P {X})
+data isForce (P : Pred) {n : ℕ} : (n ⊢) → Set where
+  isforce : {t : (n ⊢)} → P t → isForce P (force t)
+isForce? : {n : ℕ} → {P : Pred} → ({n : ℕ} → Decidable (P {n})) → Decidable (isForce P {n})
 isForce? isP? (` x) = no (λ ())
 isForce? isP? (ƛ t) = no (λ ())
 isForce? isP? (t · t₁) = no (λ ())
@@ -112,9 +112,9 @@ isForce? isP? (builtin b) = no (λ ())
 isForce? isP? error = no (λ ())
 
 
-data isDelay (P : Pred) {X : ℕ} : (X ⊢) → Set where
-  isdelay : {t : (X ⊢)} → P t → isDelay P (delay t)
-isDelay? : {X : ℕ} → {P : Pred} → ({X : ℕ} → Decidable (P {X})) → Decidable (isDelay P {X})
+data isDelay (P : Pred) {n : ℕ} : (n ⊢) → Set where
+  isdelay : {t : (n ⊢)} → P t → isDelay P (delay t)
+isDelay? : {n : ℕ} → {P : Pred} → ({n : ℕ} → Decidable (P {n})) → Decidable (isDelay P {n})
 isDelay? isP? (` x) = no (λ ())
 isDelay? isP? (ƛ t) = no (λ ())
 isDelay? isP? (t · t₁) = no (λ ())
@@ -128,9 +128,9 @@ isDelay? isP? (case t ts) = no (λ ())
 isDelay? isP? (builtin b) = no (λ ())
 isDelay? isP? error = no (λ ())
 
-data isCon {X : ℕ} : (X ⊢) → Set where
-  iscon : (t : TmCon)  → isCon {X} (con t)
-isCon? : {X : ℕ} → Decidable (isCon {X})
+data isCon {n : ℕ} : (n ⊢) → Set where
+  iscon : (t : TmCon)  → isCon {n} (con t)
+isCon? : {n : ℕ} → Decidable (isCon {n})
 isCon? (` x) = no (λ ())
 isCon? (ƛ t) = no (λ ())
 isCon? (t · t₁) = no (λ ())
@@ -142,9 +142,9 @@ isCon? (case t ts) = no (λ ())
 isCon? (builtin b) = no (λ ())
 isCon? error = no (λ ())
 
-data isConstr (Qs : ListPred) {X : ℕ} : (X ⊢) → Set where
-  isconstr : (i : ℕ) → {xs : List (X ⊢)} → Qs xs → isConstr Qs (constr i xs)
-isConstr? : {X : ℕ} → {Qs : ListPred} → ({X : ℕ} → Decidable (Qs {X})) → Decidable (isConstr Qs {X})
+data isConstr (Qs : ListPred) {n : ℕ} : (n ⊢) → Set where
+  isconstr : (i : ℕ) → {xs : List (n ⊢)} → Qs xs → isConstr Qs (constr i xs)
+isConstr? : {n : ℕ} → {Qs : ListPred} → ({n : ℕ} → Decidable (Qs {n})) → Decidable (isConstr Qs {n})
 isConstr? isQs? (` x) = no (λ())
 isConstr? isQs? (ƛ t) = no (λ())
 isConstr? isQs? (t · t₁) = no (λ())
@@ -158,9 +158,9 @@ isConstr? isQs? (case t ts) = no (λ())
 isConstr? isQs? (builtin b) = no (λ())
 isConstr? isQs? error = no (λ())
 
-data isCase (P : Pred) (Qs : ListPred) { X : ℕ } : (X ⊢) → Set where
-  iscase : {t : (X ⊢)} → {ts : List (X ⊢)} → P t → Qs ts → isCase P Qs (case t ts)
-isCase? : {X : ℕ} → {P : Pred} → {Qs : ListPred} → ({X : ℕ} → Decidable (P {X})) → ({X : ℕ} → Decidable (Qs {X})) → Decidable (isCase P Qs {X})
+data isCase (P : Pred) (Qs : ListPred) { n : ℕ } : (n ⊢) → Set where
+  iscase : {t : (n ⊢)} → {ts : List (n ⊢)} → P t → Qs ts → isCase P Qs (case t ts)
+isCase? : {n : ℕ} → {P : Pred} → {Qs : ListPred} → ({n : ℕ} → Decidable (P {n})) → ({n : ℕ} → Decidable (Qs {n})) → Decidable (isCase P Qs {n})
 isCase? isP? isQs? (` x) = no (λ ())
 isCase? isP? isQs? (ƛ t) = no (λ ())
 isCase? isP? isQs? (t · t₁) = no (λ ())
@@ -174,9 +174,9 @@ isCase? isP? isQs? (case t ts) with (isP? t) ×-dec (isQs? ts)
 isCase? isP? isQs? (builtin b) = no (λ ())
 isCase? isP? isQs? error = no (λ ())
 
-data isBuiltin {X : ℕ} : (X ⊢) → Set where
-  isbuiltin : (b : Builtin) → isBuiltin {X} (builtin b)
-isBuiltin? : {X : ℕ} → Decidable (isBuiltin {X})
+data isBuiltin {n : ℕ} : (n ⊢) → Set where
+  isbuiltin : (b : Builtin) → isBuiltin {n} (builtin b)
+isBuiltin? : {n : ℕ} → Decidable (isBuiltin {n})
 isBuiltin? (` x) = no (λ ())
 isBuiltin? (ƛ t) = no (λ ())
 isBuiltin? (t · t₁) = no (λ ())
@@ -188,9 +188,9 @@ isBuiltin? (case t ts) = no (λ ())
 isBuiltin? (builtin b) = yes (isbuiltin b)
 isBuiltin? error = no (λ ())
 
-data isError {X : ℕ} : (X ⊢) → Set where
-  iserror : isError {X} error
-isError? : {X : ℕ} → Decidable (isError {X})
+data isError {n : ℕ} : (n ⊢) → Set where
+  iserror : isError {n} error
+isError? : {n : ℕ} → Decidable (isError {n})
 isError? (` x) = no (λ ())
 isError? (ƛ t) = no (λ ())
 isError? (t · t₁) = no (λ ())
@@ -204,21 +204,21 @@ isError? error = yes iserror
 ```
 Some basic views that will match any Term, to be used for "wildcard" parts of the pattern.
 ```
-data isTerm { X : ℕ } : (X ⊢) → Set where
-  isterm : (t : X ⊢) → isTerm t
-isTerm? : {X : ℕ} → Decidable (isTerm {X})
+data isTerm { n : ℕ } : (n ⊢) → Set where
+  isterm : (t : n ⊢) → isTerm t
+isTerm? : {n : ℕ} → Decidable (isTerm {n})
 isTerm? t = yes (isterm t)
 
-data allTerms { X : ℕ } : List (X ⊢) → Set where
-  allterms : (ts : List (X ⊢)) → allTerms ts
-allTerms? : {X : ℕ} → Decidable (allTerms {X})
+data allTerms { n : ℕ } : List (n ⊢) → Set where
+  allterms : (ts : List (n ⊢)) → allTerms ts
+allTerms? : {n : ℕ} → Decidable (allTerms {n})
 allTerms? ts = yes (allterms ts)
 ```
 ## An Example
 ```
-data TestPat {X : ℕ} : (X ⊢) → Set where
-  tp : (t : X ⊢) (ts ts₂ : List (X ⊢)) → TestPat {X} (case (case t ts) ts₂)
-isTestPat? : {X : ℕ} → Decidable (TestPat {X})
+data TestPat {n : ℕ} : (n ⊢) → Set where
+  tp : (t : n ⊢) (ts ts₂ : List (n ⊢)) → TestPat {n} (case (case t ts) ts₂)
+isTestPat? : {n : ℕ} → Decidable (TestPat {n})
 isTestPat? v with isCase? (isCase? isTerm? allTerms?) allTerms? v
 ... | yes (iscase (iscase (isterm t) (allterms ts)) (allterms ts₁)) = yes (tp t ts ts₁)
 ... | no ¬tp = no λ { (tp t ts ts₂) → ¬tp (iscase (iscase (isterm t) (allterms ts)) (allterms ts₂)) }
@@ -250,40 +250,40 @@ procedure (see below).
 ```
 
 private variable
-  X : ℕ
+  n : ℕ
 
-data `ᵖ (P : Pr (Fin X)) : Pr (X ⊢ ) where
-  `! : ∀ {n} → P n → `ᵖ P (` n)
+data `ᵖ (P : Pr (Fin n)) : Pr (n ⊢ ) where
+  `! : ∀ {x} → P x → `ᵖ P (` x)
 
-data ƛᵖ (P : Pr (suc X ⊢)) : Pr (X ⊢) where
+data ƛᵖ (P : Pr (suc n ⊢)) : Pr (n ⊢) where
   ƛ! : ∀ {M} → P M → ƛᵖ P (ƛ M)
 
 infixl 7 _·ᵖ_
 infixl 7 _·!_
 
-data _·ᵖ_ (P Q : Pr (X ⊢)) : Pr (X ⊢) where
+data _·ᵖ_ (P Q : Pr (n ⊢)) : Pr (n ⊢) where
   _·!_ : ∀ {M N} → P M → Q N → (P ·ᵖ Q) (M · N)
 
-data forceᵖ (P : Pr (X ⊢)) : Pr (X ⊢) where
+data forceᵖ (P : Pr (n ⊢)) : Pr (n ⊢) where
   force! : ∀ {M} → P M → forceᵖ P (force M)
 
-data delayᵖ (P : Pr (X ⊢)) : Pr (X ⊢) where
+data delayᵖ (P : Pr (n ⊢)) : Pr (n ⊢) where
   delay! : ∀ {M} → P M → delayᵖ P (delay M)
 
-data caseᵖ (P : Pr (X ⊢)) (Ps : Pr (List (X ⊢))) : Pr (X ⊢) where
+data caseᵖ (P : Pr (n ⊢)) (Ps : Pr (List (n ⊢))) : Pr (n ⊢) where
   case! : ∀ {M Ms} → P M → Ps Ms → caseᵖ P Ps (case M Ms)
 
-data constrᵖ (P : Pr ℕ) (Ps : Pr (List (X ⊢))) : Pr (X ⊢) where
+data constrᵖ (P : Pr ℕ) (Ps : Pr (List (n ⊢))) : Pr (n ⊢) where
   constr! : ∀ {i Ms} → P i → Ps Ms → constrᵖ P Ps (constr i Ms)
 
-data conᵖ (P : Pr TmCon) : Pr (X ⊢) where
-  con! : ∀ {k} → P k → conᵖ P (con {X} k)
+data conᵖ (P : Pr TmCon) : Pr (n ⊢) where
+  con! : ∀ {k} → P k → conᵖ P (con {n} k)
 
-data builtinᵖ (P : Pr Builtin) : Pr (X ⊢) where
-  builtin! : ∀ {b} → P b → builtinᵖ P (builtin {X} b)
+data builtinᵖ (P : Pr Builtin) : Pr (n ⊢) where
+  builtin! : ∀ {b} → P b → builtinᵖ P (builtin {n} b)
 
-data errorᵖ : Pr (X ⊢) where
-  error! : errorᵖ {X} error
+data errorᵖ : Pr (n ⊢) where
+  error! : errorᵖ {n} error
 
 data tmConᵖ (t : TyTag) (P : Pr (⟦ t ⟧tag) ) : TmCon → Set where
   tmCon! : ∀ {x} → P x → tmConᵖ t P (tmCon t x)
@@ -294,13 +294,13 @@ data tmCon-listᵖ (P : ∀ t → Pr (⟦ list t ⟧tag)) : TmCon → Set where
 data tmCon-pairᵖ (P : ∀ A B → Pr (⟦ pair A B ⟧tag)) : TmCon → Set where
   tmCon-pair! : ∀ {A B x} → P A B x → tmCon-pairᵖ P (tmCon (pair A B) x)
 
-data Letᵖ_Inᵖ_ (P : Pr (X ⊢)) (Q : Pr (suc X ⊢)) : Pr (X ⊢) where
+data Letᵖ_Inᵖ_ (P : Pr (n ⊢)) (Q : Pr (suc n ⊢)) : Pr (n ⊢) where
   Let!_In!_ : ∀ {M N} → P M → Q N → (Letᵖ P Inᵖ Q) (Let M In N)
 
 infix 0 Letᵖ_Inᵖ_
 infix 0 Let!_In!_
 
-let'ᵖ : (P : Pr (X ⊢)) (Q : Pr (suc X ⊢)) → Pr (X ⊢)
+let'ᵖ : (P : Pr (n ⊢)) (Q : Pr (suc n ⊢)) → Pr (n ⊢)
 let'ᵖ = Letᵖ_Inᵖ_
 
 pattern let'! P Q = Let! P In! Q
@@ -309,7 +309,7 @@ pattern let'! P Q = Let! P In! Q
 Each predicate is decidable if the predicates on sub-terms are decidable.
 
 ```
-`? : ∀ {P : Pr (Fin X)} → Decidable P →  Decidable (`ᵖ P)
+`? : ∀ {P : Pr (Fin n)} → Decidable P →  Decidable (`ᵖ P)
 `? P? M with M
 ... | ƛ x         = no λ ()
 ... | x · x₁      = no λ ()
@@ -325,7 +325,7 @@ Each predicate is decidable if the predicates on sub-terms are decidable.
 ... | yes Px = yes (`! Px)
 ... | no ¬Px = no (λ {(`! Px) → ¬Px Px})
 
-ƛ? : ∀ {P : Pr (suc X ⊢)} → Decidable P → Decidable (ƛᵖ P)
+ƛ? : ∀ {P : Pr (suc n ⊢)} → Decidable P → Decidable (ƛᵖ P)
 ƛ? P? M with M
 ... | ` x         = no λ ()
 ... | t · t₁      = no λ ()
@@ -343,7 +343,7 @@ Each predicate is decidable if the predicates on sub-terms are decidable.
 
 infixl 7 _·?_
 
-_·?_  : ∀ {P Q : Pr (X ⊢)} → Decidable P → Decidable Q → Decidable (P ·ᵖ Q)
+_·?_  : ∀ {P Q : Pr (n ⊢)} → Decidable P → Decidable Q → Decidable (P ·ᵖ Q)
 (P? ·? Q?) M with M
 ... | ` _        = no λ ()
 ... | ƛ _        = no λ ()
@@ -360,7 +360,7 @@ _·?_  : ∀ {P Q : Pr (X ⊢)} → Decidable P → Decidable Q → Decidable (P
 ... | no ¬PM×QN = no λ { (PM ·! QN) → ¬PM×QN (PM , QN)}
 
 
-force? : ∀ {P : Pr (X ⊢)} → Decidable P → Decidable (forceᵖ P)
+force? : ∀ {P : Pr (n ⊢)} → Decidable P → Decidable (forceᵖ P)
 force? P? M with M
 ... | ` _        = no λ ()
 ... | ƛ _        = no λ ()
@@ -376,7 +376,7 @@ force? P? M with M
 ...   | yes PM = yes (force! PM)
 ...   | no ¬PM = no λ { (force! PM) → ¬PM PM}
 
-delay? : {P : Pr (X ⊢)} → Decidable P → Decidable (delayᵖ P)
+delay? : {P : Pr (n ⊢)} → Decidable P → Decidable (delayᵖ P)
 delay? P? M with M
 ... | ` _        = no λ ()
 ... | ƛ _        = no λ ()
@@ -391,7 +391,7 @@ delay? P? M with M
 ...   | yes PN = yes (delay! PN)
 ...   | no ¬PN = no λ { (delay! PN) → ¬PN PN}
 
-case? : {P : Pr (X ⊢)} {Q : Pr (List (X ⊢))} → Decidable P → Decidable Q → Decidable (caseᵖ P Q)
+case? : {P : Pr (n ⊢)} {Q : Pr (List (n ⊢))} → Decidable P → Decidable Q → Decidable (caseᵖ P Q)
 case? P? Q? M with M
 ... | ` _        = no λ ()
 ... | ƛ _        = no λ ()
@@ -406,7 +406,7 @@ case? P? Q? M with M
 ...   | yes (Pn , QMs) = yes (case! Pn QMs)
 ...   | no ¬PQ = no λ {(case! Pn QMs) → ¬PQ (Pn , QMs)}
 
-constr? : {P : Pr ℕ} {Q : Pr (List (X ⊢))} → Decidable P → Decidable Q → Decidable (constrᵖ P Q)
+constr? : {P : Pr ℕ} {Q : Pr (List (n ⊢))} → Decidable P → Decidable Q → Decidable (constrᵖ P Q)
 constr? P? Q? M with M
 ... | ` _        = no λ ()
 ... | ƛ _        = no λ ()
@@ -421,7 +421,7 @@ constr? P? Q? M with M
 ...   | yes (Pi , QMs) = yes (constr! Pi QMs)
 ...   | no ¬PQ = no λ {(constr! Pi QMs) → ¬PQ (Pi , QMs)}
 
-con? : ∀ {P} → Decidable P → Decidable {A = X ⊢} (conᵖ P)
+con? : ∀ {P} → Decidable P → Decidable {A = n ⊢} (conᵖ P)
 con? P? M with M
 ... | ` _        = no λ ()
 ... | ƛ _        = no λ ()
@@ -436,7 +436,7 @@ con? P? M with M
 ...   | yes Pb = yes (con! Pb)
 ...   | no ¬Pb = no λ {(con! Pb) → ¬Pb Pb}
 
-builtin? : ∀ {P} → Decidable P → Decidable {A = X ⊢} (builtinᵖ P)
+builtin? : ∀ {P} → Decidable P → Decidable {A = n ⊢} (builtinᵖ P)
 builtin? P? M with M
 ... | ` _        = no λ ()
 ... | ƛ _        = no λ ()
@@ -452,7 +452,7 @@ builtin? P? M with M
 ...   | no ¬Pb = no λ {(builtin! Pb) → ¬Pb Pb}
 
 
-error? : Decidable {A = X ⊢} (errorᵖ)
+error? : Decidable {A = n ⊢} (errorᵖ)
 error? M with M
 ... | ` _        = no λ ()
 ... | ƛ _        = no λ ()
@@ -506,7 +506,7 @@ tmCon-pair? P? (tmCon t x)
 ... | yes P = yes (tmCon-pair! P)
 
 infix 0 Let?_In?_
-Let?_In?_ :  {P : Pr (X ⊢)} {Q : Pr (suc X ⊢)} → Decidable P → Decidable Q → Decidable (Letᵖ P Inᵖ Q) 
+Let?_In?_ :  {P : Pr (n ⊢)} {Q : Pr (suc n ⊢)} → Decidable P → Decidable Q → Decidable (Letᵖ P Inᵖ Q) 
 (Let? P? In? Q?) M with M
 ... | ` _             = no λ ()
 ... | ƛ _             = no λ ()
@@ -530,7 +530,7 @@ Let?_In?_ :  {P : Pr (X ⊢)} {Q : Pr (suc X ⊢)} → Decidable P → Decidable
 ... | yes (PN , QM) = yes (Let! PN In! QM)
 ... | no ¬PN×QM = no λ { (Let! PN In! QM) → ¬PN×QM (PN , QM)}
 
-let'? :  {P : Pr (X ⊢)} {Q : Pr (suc X ⊢)} → Decidable P → Decidable Q → Decidable (let'ᵖ P Q) 
+let'? :  {P : Pr (n ⊢)} {Q : Pr (suc n ⊢)} → Decidable P → Decidable Q → Decidable (let'ᵖ P Q) 
 let'? = Let?_In?_
 ```
 
@@ -611,7 +611,7 @@ identity function to any term:
 
 ```
 private
-  app-id : Pr (X ⊢)
+  app-id : Pr (n ⊢)
   app-id = ƛᵖ (`ᵖ (_≡_ zero)) ·ᵖ match
 ```
 
@@ -642,49 +642,49 @@ Each of the term predicates has an instance:
 
 ```
 instance
-  inh-var : ∀ {n : Fin X} {P} → {{Inhabited (P n)}} → Inhabited (`ᵖ P (` n))
-  inh-var {X} {n} = inh (`! inhabitant)
+  inh-var : ∀ {x : Fin n} {P} → {{Inhabited (P x)}} → Inhabited (`ᵖ P (` x))
+  inh-var {n} {x} = inh (`! inhabitant)
 
-  inh-lam : ∀ {X} {M : suc X ⊢} {P} → {{Inhabited (P M)}} → Inhabited (ƛᵖ P (ƛ M))
+  inh-lam : ∀ {n} {M : suc n ⊢} {P} → {{Inhabited (P M)}} → Inhabited (ƛᵖ P (ƛ M))
   inh-lam = inh (ƛ! inhabitant)
 
-  inh-app : ∀ {X} {P Q} {M N : X ⊢} → {{Inhabited (P M)}} → {{Inhabited (Q N)}} →  Inhabited ((P ·ᵖ Q) (M · N))
+  inh-app : ∀ {n} {P Q} {M N : n ⊢} → {{Inhabited (P M)}} → {{Inhabited (Q N)}} →  Inhabited ((P ·ᵖ Q) (M · N))
   inh-app = inh (inhabitant ·! inhabitant)
 
-  inh-force : ∀ {X} {P} {M : X ⊢} → {{Inhabited (P M)}} → Inhabited (forceᵖ P (force M))
+  inh-force : ∀ {n} {P} {M : n ⊢} → {{Inhabited (P M)}} → Inhabited (forceᵖ P (force M))
   inh-force = inh (force! inhabitant)
 
-  inh-delay : ∀ {X} {P} {M : X ⊢} → {{Inhabited (P M)}} → Inhabited (delayᵖ P (delay M))
+  inh-delay : ∀ {n} {P} {M : n ⊢} → {{Inhabited (P M)}} → Inhabited (delayᵖ P (delay M))
   inh-delay = inh (delay! inhabitant)
 
-  inh-case : ∀ {X} {P Q} {M : X ⊢} {Ms : List (X ⊢)} →
+  inh-case : ∀ {n} {P Q} {M : n ⊢} {Ms : List (n ⊢)} →
     {{Inhabited (P M)}} →
     {{Inhabited (Q Ms)}} →
     Inhabited (caseᵖ P Q (case M Ms))
   inh-case = inh (case! inhabitant inhabitant)
 
-  inh-constr : ∀ {X} {P Q} {i} {Ms : List (X ⊢)} →
+  inh-constr : ∀ {n} {P Q} {i} {Ms : List (n ⊢)} →
     {{Inhabited (P i)}} →
     {{Inhabited (Q Ms)}} →
     Inhabited (constrᵖ P Q (constr i Ms))
   inh-constr = inh (constr! inhabitant inhabitant)
 
-  inh-builtin : ∀ {X P b} →
+  inh-builtin : ∀ {n P b} →
     {{Inhabited (P b) }} →
-    Inhabited (builtinᵖ P (builtin {X} b))
+    Inhabited (builtinᵖ P (builtin {n} b))
   inh-builtin = inh (builtin! inhabitant)
 
-  inh-con : ∀ {X P b} →
+  inh-con : ∀ {n P b} →
     {{Inhabited (P b) }} →
-    Inhabited (conᵖ P (con {X} b))
+    Inhabited (conᵖ P (con {n} b))
   inh-con = inh (con! inhabitant)
 
-  inh-error : ∀ {X} →
-    Inhabited (errorᵖ (error {X}))
+  inh-error : ∀ {n} →
+    Inhabited (errorᵖ (error {n}))
   inh-error = inh error!
   
   inh-let
-    : ∀ {X} {P Q} {M : X ⊢} {N : suc X ⊢}
+    : ∀ {n} {P Q} {M : n ⊢} {N : suc n ⊢}
     → {{Inhabited (P M)}}
     → {{Inhabited (Q N)}}
     →  Inhabited ((Letᵖ P Inᵖ Q) (Let M In N))
@@ -705,7 +705,7 @@ instance
     Inhabited (tmCon-pairᵖ P (tmCon (pair A B) x))
   inh-tmCon-pair = inh (tmCon-pair! inhabitant)
 
-  inh-match : ∀ {A : Set} {X : A} → Inhabited (match X)
+  inh-match : ∀ {A : Set} {x : A} → Inhabited (match x)
   inh-match = record {inhabitant = match! _}
 
   inh-× : ∀ {A B} → {{ Inhabited A }} → {{ Inhabited B }} → Inhabited (A × B)
@@ -743,12 +743,12 @@ instance
 `AddCom` relates term `M + N` to `N + M`.
 
 ```
-data AddComm : X ⊢ → X ⊢ → Set where
+data AddComm : n ⊢ → n ⊢ → Set where
   addComm :
-    ∀ {M N : X ⊢} →
+    ∀ {M N : n ⊢} →
     AddComm (builtin addInteger · M · N) (builtin addInteger · N · M)
 
-addComm? : (M N : X ⊢) → Dec (AddComm M N)
+addComm? : (M N : n ⊢) → Dec (AddComm M N)
 addComm? M N
   with (builtin? (_≟_ addInteger) ·? ⋯ ·? ⋯) M
 ... | no ¬P = no λ {addComm → ¬P inhabitant}

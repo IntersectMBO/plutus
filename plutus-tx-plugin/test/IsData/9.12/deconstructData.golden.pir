@@ -1,6 +1,4 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
   !casePair : all a b r. pair a b -> (a -> b -> r) -> r
     = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
   !chooseData : all a. data -> a -> a -> a -> a -> a -> a = chooseData
@@ -18,32 +16,32 @@ let
           !d : data = d
         in
         chooseData
-          {Unit -> Maybe integer}
+          {unit -> Maybe integer}
           d
-          (\(ds : Unit) ->
+          (\(ds : unit) ->
              casePair
                {integer}
                {list data}
                {Maybe integer}
                (unsafeDataAsConstr d)
                (\(l : integer) (r : list data) -> Nothing {integer}))
-          (\(ds : Unit) ->
+          (\(ds : unit) ->
              let
                !ds : list (pair data data) = unsafeDataAsMap d
              in
              Nothing {integer})
-          (\(ds : Unit) ->
+          (\(ds : unit) ->
              let
                !ds : list data = unsafeDataAsList d
              in
              Nothing {integer})
-          (\(ds : Unit) -> Just {integer} (unsafeDataAsI d))
-          (\(ds : Unit) ->
+          (\(ds : unit) -> Just {integer} (unsafeDataAsI d))
+          (\(ds : unit) ->
              let
                !ds : bytestring = unsafeDataAsB d
              in
              Nothing {integer})
-          Unit
+          ()
   ~`$fFromDataInteger` : (\a -> data -> Maybe a) integer
     = `$fFromDataInteger_$cfromBuiltinData`
   data (Tuple :: * -> * -> *) a b | Tuple_match where
@@ -65,9 +63,9 @@ let
             !d : data = d
           in
           chooseData
-            {Unit -> Maybe (Tuple a b)}
+            {unit -> Maybe (Tuple a b)}
             d
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                casePair
                  {integer}
                  {list data}
@@ -160,11 +158,11 @@ let
                                (/\dead -> Nothing {Tuple a b})
                                {all dead. dead}) ]
                         {all dead. dead}))
-            (\(ds : Unit) -> Nothing {Tuple a b})
-            (\(ds : Unit) -> Nothing {Tuple a b})
-            (\(ds : Unit) -> Nothing {Tuple a b})
-            (\(ds : Unit) -> Nothing {Tuple a b})
-            Unit
+            (\(ds : unit) -> Nothing {Tuple a b})
+            (\(ds : unit) -> Nothing {Tuple a b})
+            (\(ds : unit) -> Nothing {Tuple a b})
+            (\(ds : unit) -> Nothing {Tuple a b})
+            ()
   ~`$fFromDataTuple` :
      all a b.
        (\a -> data -> Maybe a) a ->

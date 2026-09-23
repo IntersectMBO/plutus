@@ -2,9 +2,9 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
 
 module Spec.Data.Value where
@@ -27,6 +27,7 @@ import PlutusTx.Numeric
 import PlutusTx.Prelude hiding (integerToByteString)
 import PlutusTx.Show (toDigits)
 import PlutusTx.TH (compile)
+import PlutusTx.Test (goldenUPlcReadable)
 import PlutusTx.Test.Run.Code (evalResult, evaluateCompiledCode)
 import PlutusTx.Traversable qualified as Tx
 
@@ -43,7 +44,7 @@ import Data.List qualified as Haskell
 import Data.Map qualified as Map
 import PlutusLedgerApi.Test.V1.Data.Value qualified as ListToValue
 import Prettyprinter qualified as Pretty
-import Test.QuickCheck (Arbitrary (arbitrary), forAll, (===))
+import Test.QuickCheck (Arbitrary (arbitrary), Gen, forAll, sublistOf, (===))
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.QuickCheck (testProperty)
@@ -318,3 +319,206 @@ test_valueOf =
                   `unsafeApplyCode` liftCodeDef (unCurrencySymbol cs)
                   `unsafeApplyCode` liftCodeDef (unTokenName tn)
            in nonBuiltin === builtin
+
+{-| The 'unionWith' @(+)@ under test. Signature matches 'compiledBuiltinUnion' so the property
+can pit them against each other. -}
+compiledUnionWith :: CompiledCode (BI.BuiltinData -> BI.BuiltinData -> BI.BuiltinData)
+compiledUnionWith = plinthc \bd1 bd2 ->
+  Tx.toBuiltinData (unionWith (+) (Tx.unsafeFromBuiltinData bd1) (Tx.unsafeFromBuiltinData bd2))
+
+{-| Independent oracle: the builtin union path. Shares no source with 'compiledUnionWith', so a
+bug in one cannot hide behind the same bug in the other. -}
+compiledBuiltinUnion :: CompiledCode (BI.BuiltinData -> BI.BuiltinData -> BI.BuiltinData)
+compiledBuiltinUnion = plinthc \bd1 bd2 ->
+  B.mkValue (B.unionValue (B.unsafeDataAsValue bd1) (B.unsafeDataAsValue bd2))
+
+-- | Evaluate a compiled union on CEK and decode its result.
+runUnionCode
+  :: CompiledCode (BI.BuiltinData -> BI.BuiltinData -> BI.BuiltinData)
+  -> Value
+  -> Value
+  -> Value
+runUnionCode code value1 value2 =
+  Tx.unsafeFromBuiltinData
+    . BI.dataToBuiltinData
+    . either Haskell.throw id
+    $ errOrRes
+    >>= PLC.readKnownSelf
+  where
+    prog =
+      code
+        `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value1)
+        `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value2)
+    (errOrRes, _cost) =
+      PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
+        . PLC.runQuote
+        . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
+        . PLC._progTerm
+        $ getPlc prog
+
+-- | 'unionWith' @(+)@ must agree with the builtin union path on CEK.
+test_unionWith :: TestTree
+test_unionWith =
+  testProperty "non-builtin unionWith matches builtin unionValue on CEK" \rawValue1 rawValue2 ->
+    let v1 = normalise rawValue1
+        v2 = normalise rawValue2
+        -- Compare semantically: key order and zero-sum entries differ between the paths but
+        -- carry no meaning, so canonicalise before '==='.
+        canon code = normaliseLists . valueToLists $ runUnionCode code v1 v2
+     in canon compiledUnionWith === canon compiledBuiltinUnion
+
+{-| Restrict an arbitrary 'Value' to the well-formed domain 'unsafeDataAsValue' accepts: the
+builtin errors on unsorted keys, zero quantities, or empty token maps. -}
+normaliseLists
+  :: [(CurrencySymbol, [(TokenName, Integer)])] -> [(CurrencySymbol, [(TokenName, Integer)])]
+normaliseLists =
+  Haskell.sortOn fst
+    . Haskell.filter (Haskell.not . Haskell.null . snd)
+    . Haskell.map (Haskell.fmap (Haskell.sortOn fst . Haskell.filter ((Haskell./= 0) . snd)))
+
+normalise :: Value -> Value
+normalise = listsToValue . normaliseLists . valueToLists
+
+-- | Compiled builtin path: @\\bd -> policies (unsafeDataAsValue bd)@.
+compiledPolicies :: CompiledCode (BI.BuiltinData -> BI.BuiltinList BI.BuiltinByteString)
+compiledPolicies = plinthc (\bd -> B.policies (B.unsafeDataAsValue bd))
+
+-- | The builtin @policies@ must return the Value's currency symbols in ascending order.
+test_policies :: TestTree
+test_policies =
+  testProperty "builtin policies matches the Value's currency symbols on CEK" \(normalise -> val) ->
+    let expected = B.fromBuiltin . unCurrencySymbol . fst Haskell.<$> valueToLists val
+     in runPoliciesCode val === expected
+  where
+    -- \| Evaluate the compiled builtin @policies@ on CEK and decode the resulting list.
+    runPoliciesCode :: Value -> [BS.ByteString]
+    runPoliciesCode value = either Haskell.throw id $ errOrRes >>= PLC.readKnownSelf
+      where
+        prog = compiledPolicies `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value)
+        (errOrRes, _cost) =
+          PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
+            . PLC.runQuote
+            . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
+            . PLC._progTerm
+            $ getPlc prog
+
+test_policiesUplc :: TestTree
+test_policiesUplc =
+  runTestNested ["test-ledger-api", "Spec", "Data", "Value"]
+    . pure
+    $ testNestedGhc [goldenUPlcReadable "policies" compiledPolicies]
+
+-- | Compiled builtin path: @\\bd -> assetCount (unsafeDataAsValue bd)@.
+compiledAssetCount :: CompiledCode (BI.BuiltinData -> Integer)
+compiledAssetCount = plinthc (\bd -> B.assetCount (B.unsafeDataAsValue bd))
+
+{-| The builtin @assetCount@ must equal the number of distinct (currency, token) pairs,
+which is what flattening the `Value` yields. -}
+test_assetCount :: TestTree
+test_assetCount =
+  testProperty "builtin assetCount matches the Value's flattened length on CEK" \(normalise -> val) ->
+    let expected =
+          Haskell.fromIntegral (Haskell.length (Haskell.concatMap snd (valueToLists val)))
+     in runAssetCountCode val === expected
+  where
+    -- \| Evaluate the compiled builtin @assetCount@ on CEK and decode the resulting integer.
+    runAssetCountCode :: Value -> Integer
+    runAssetCountCode value = either Haskell.throw id $ errOrRes >>= PLC.readKnownSelf
+      where
+        prog = compiledAssetCount `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value)
+        (errOrRes, _cost) =
+          PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
+            . PLC.runQuote
+            . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
+            . PLC._progTerm
+            $ getPlc prog
+
+test_assetCountUplc :: TestTree
+test_assetCountUplc =
+  runTestNested ["test-ledger-api", "Spec", "Data", "Value"]
+    . pure
+    $ testNestedGhc [goldenUPlcReadable "assetCount" compiledAssetCount]
+
+{-| Compiled builtin path: @\\ps bd -> policies (keepPolicies ps (unsafeDataAsValue bd))@.
+The result is projected through @policies@ so that it decodes to a comparable list. -}
+compiledKeepPolicies
+  :: CompiledCode
+       ( BI.BuiltinList BI.BuiltinByteString
+         -> BI.BuiltinData
+         -> BI.BuiltinList BI.BuiltinByteString
+       )
+compiledKeepPolicies = plinthc (\ps bd -> B.policies (B.keepPolicies ps (B.unsafeDataAsValue bd)))
+
+{-| The builtin @keepPolicies@ must retain exactly the requested currency symbols the
+`Value` actually has, in ascending order. -}
+test_keepPolicies :: TestTree
+test_keepPolicies =
+  testProperty
+    "builtin keepPolicies retains the requested currency symbols on CEK"
+    \(normalise -> val) ->
+      let allPolicies = B.fromBuiltin . unCurrencySymbol . fst Haskell.<$> valueToLists val
+       in forAll (genPolicyFilterIds allPolicies) \kept ->
+            runPolicyFilterCode compiledKeepPolicies kept val
+              === Haskell.filter (`Haskell.elem` kept) allPolicies
+
+{-| Evaluate a compiled policy-filtering builtin on CEK: apply it to the policy id list
+and the data-encoded `Value`, and decode the resulting list. -}
+runPolicyFilterCode
+  :: CompiledCode
+       ( BI.BuiltinList BI.BuiltinByteString
+         -> BI.BuiltinData
+         -> BI.BuiltinList BI.BuiltinByteString
+       )
+  -> [BS.ByteString]
+  -> Value
+  -> [BS.ByteString]
+runPolicyFilterCode code ps value =
+  either Haskell.throw id $ evalResult (evaluateCompiledCode prog) >>= PLC.readKnownSelf
+  where
+    prog =
+      code
+        `unsafeApplyCode` liftCodeDef (B.toBuiltin ps)
+        `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value)
+
+{-| Policy ids to filter by: a sublist of the given policies plus ids certainly absent
+from them (one ordinary, one longer than the 32-byte key limit), so that the absent-id
+path is exercised on the compiled/CEK route as well. -}
+genPolicyFilterIds :: [BS.ByteString] -> Gen [BS.ByteString]
+genPolicyFilterIds allPolicies = (<> absent) Haskell.<$> sublistOf allPolicies
+  where
+    absent =
+      Haskell.filter (Haskell.not . (`Haskell.elem` allPolicies)) ["#absent", BS.replicate 33 0x78]
+
+test_keepPoliciesUplc :: TestTree
+test_keepPoliciesUplc =
+  runTestNested ["test-ledger-api", "Spec", "Data", "Value"]
+    . pure
+    $ testNestedGhc [goldenUPlcReadable "keepPolicies" compiledKeepPolicies]
+
+{-| Compiled builtin path: @\\ps bd -> policies (dropPolicies ps (unsafeDataAsValue bd))@.
+The result is projected through @policies@ so that it decodes to a comparable list. -}
+compiledDropPolicies
+  :: CompiledCode
+       ( BI.BuiltinList BI.BuiltinByteString
+         -> BI.BuiltinData
+         -> BI.BuiltinList BI.BuiltinByteString
+       )
+compiledDropPolicies = plinthc (\ps bd -> B.policies (B.dropPolicies ps (B.unsafeDataAsValue bd)))
+
+{-| The builtin @dropPolicies@ must remove exactly the requested currency symbols, leaving
+the rest in ascending order. -}
+test_dropPolicies :: TestTree
+test_dropPolicies =
+  testProperty
+    "builtin dropPolicies removes the requested currency symbols on CEK"
+    \(normalise -> val) ->
+      let allPolicies = B.fromBuiltin . unCurrencySymbol . fst Haskell.<$> valueToLists val
+       in forAll (genPolicyFilterIds allPolicies) \dropped ->
+            runPolicyFilterCode compiledDropPolicies dropped val
+              === Haskell.filter (Haskell.not . (`Haskell.elem` dropped)) allPolicies
+
+test_dropPoliciesUplc :: TestTree
+test_dropPoliciesUplc =
+  runTestNested ["test-ledger-api", "Spec", "Data", "Value"]
+    . pure
+    $ testNestedGhc [goldenUPlcReadable "dropPolicies" compiledDropPolicies]

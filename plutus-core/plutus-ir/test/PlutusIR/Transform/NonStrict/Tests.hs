@@ -9,6 +9,7 @@ import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.NonStrict qualified as NonStrict
 import PlutusIR.Transform.Rename ()
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck
 
 test_nonStrict :: TestTree
@@ -26,6 +27,6 @@ test_nonStrict =
       ]
 
 prop_nonStrict :: Bool -> Property
-prop_nonStrict useUnit = withMaxSuccess numTestsForPassProp $
+prop_nonStrict useUnit = BaseQC.withNumTests numTestsForPassProp $
   testPassProp runQuote $
     \tc -> NonStrict.compileNonStrictBindingsPassSC tc useUnit

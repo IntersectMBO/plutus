@@ -3,7 +3,6 @@ module PlutusCore.Default.Universe.Cardano where
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Pretty
 
-import Data.Bits (shiftL)
 import Data.ByteString (ByteString)
 
 maxBoundByteString :: Int

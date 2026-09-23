@@ -14,7 +14,8 @@ import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
-import Test.QuickCheck.Property (Property, withMaxSuccess)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
+import Test.QuickCheck.Property (Property)
 
 test_letFloatInConservative :: TestTree
 test_letFloatInConservative =
@@ -59,7 +60,7 @@ test_letFloatInRelaxed =
 prop_floatIn
   :: BuiltinSemanticsVariant PLC.DefaultFun -> Bool -> Property
 prop_floatIn biVariant conservative =
-  withMaxSuccess numTestsForPassProp $ testPassProp runQuote testPass
+  BaseQC.withNumTests numTestsForPassProp $ testPassProp runQuote testPass
   where
     testPass tcconfig =
       LetFloatIn.floatTermPassSC

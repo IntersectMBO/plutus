@@ -78,27 +78,42 @@ tests =
   testGroup
     "NEAT"
     -- the `adjustOption (min ...)` allows to make these big tests easier at runtime
-    [ adjustOption (min $ GenDepth 10) $
-        bigTest
-          "normalization commutes with conversion from generated types"
-          (Type ())
-          (packAssertion prop_normalizeConvertCommuteTypes)
-    , adjustOption (min $ GenDepth 12) $
-        bigTest
-          "normal types cannot reduce"
-          (Type ())
-          (packAssertion prop_normalTypesCannotReduce)
-    , adjustOption (min $ GenDepth 15) $
-        bigTest
-          "type preservation - CK"
-          (TyBuiltinG TyUnitG)
-          (packAssertion prop_typePreservation)
-    , adjustOption (min $ GenDepth 15) $
-        bigTest
-          "typed CK vs untyped CEK produce the same output"
-          (TyBuiltinG TyUnitG)
-          (packAssertion prop_agree_termEval)
-    ]
+    ( [ adjustOption (min $ GenDepth 10) $
+          bigTest
+            "normalization commutes with conversion from generated types"
+            (Type ())
+            (packAssertion prop_normalizeConvertCommuteTypes)
+      , adjustOption (min $ GenDepth 12) $
+          bigTest
+            "normal types cannot reduce"
+            (Type ())
+            (packAssertion prop_normalTypesCannotReduce)
+      ]
+        -- 'Unit' has a single value, so at that result type these two
+        -- properties never see a real computed value: an evaluation failure
+        -- is silently accepted as type-preserving, and the CK/CEK outputs
+        -- trivially agree on '()' regardless of what any builtin call inside
+        -- actually returned. Running them at 'Integer' and 'ByteString' too
+        -- forces the search to produce terms whose outermost result is an
+        -- actual builtin-computed value, so a genuine CK/CEK value mismatch
+        -- would be visible.
+        ++ concatMap
+          resultTypeTests
+          [ (TyBuiltinG TyUnitG, "")
+          , (TyBuiltinG TyIntegerG, " (Integer)")
+          , (TyBuiltinG TyByteStringG, " (ByteString)")
+          ]
+    )
+  where
+    resultTypeTests (targetTy, suffix) =
+      [ adjustOption (min $ GenDepth 18) $
+          bigTest ("type preservation - CK" <> suffix) targetTy (packAssertion prop_typePreservation)
+      , adjustOption (min $ GenDepth 18) $
+          bigTest
+            ("typed CK vs untyped CEK produce the same output" <> suffix)
+            targetTy
+            (packAssertion prop_agree_termEval)
+      ]
 
 {- NOTE:
 

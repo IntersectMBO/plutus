@@ -9,6 +9,7 @@ where
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common
 
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty (TestName, TestTree, testGroup)
 import Test.Tasty.QuickCheck
 
@@ -16,7 +17,7 @@ numberOfTests :: Int
 numberOfTests = 200
 
 testProp :: Testable prop => TestName -> prop -> TestTree
-testProp s p = testProperty s $ withMaxSuccess numberOfTests p
+testProp s p = testProperty s $ BaseQC.withNumTests numberOfTests p
 
 -- `divideInteger _ 0` always fails.
 prop_div_0_fails :: BigInteger -> Property
@@ -35,7 +36,7 @@ prop_div_mod_compatible (biginteger -> a) (NonZero (biginteger -> b)) =
   let t = addInteger (multiplyInteger b (divideInteger a b)) (modInteger a b)
    in evalOkEq t a
 
--- (k*b) `div` b = b and (k*b) `mod` b = 0 for all k
+-- (k*b) `div` b = k and (k*b) `mod` b = 0 for all k
 prop_div_mod_multiple :: BigInteger -> NonZero BigInteger -> Property
 prop_div_mod_multiple (biginteger -> k) (NonZero (biginteger -> b)) =
   let t1 = divideInteger (multiplyInteger k b) b

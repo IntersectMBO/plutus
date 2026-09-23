@@ -29,4 +29,5 @@ plutusVersionTag = \case
   PlutusV1 -> 0x1
   PlutusV2 -> 0x2
   PlutusV3 -> 0x3
+  PlutusV4 -> 0x4
 {-# INLINEABLE plutusVersionTag #-}

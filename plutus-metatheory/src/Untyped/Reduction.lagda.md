@@ -45,7 +45,7 @@ want-injective₁ refl = refl
 postulate
   interleave-error : ∀ {A : Set} → A
 
-sat : {X : ℕ} → X ⊢ → Arity
+sat : {n : ℕ} → n ⊢ → Arity
 sat (` x) = no-builtin
 sat (ƛ t) = no-builtin
 sat (t · t₁) with sat t
@@ -65,11 +65,11 @@ sat (case t ts) = no-builtin
 sat (builtin b) = want (arity₀ b) (arity b)
 sat error = no-builtin
 
-sat-app-step : {X : ℕ} {a₁ : ℕ} {t t₁ : X ⊢} → sat t ≡ want zero (suc a₁) → sat (t · t₁) ≡ want zero a₁
+sat-app-step : {n : ℕ} {a₁ : ℕ} {t t₁ : n ⊢} → sat t ≡ want zero (suc a₁) → sat (t · t₁) ≡ want zero a₁
 sat-app-step {t = t} sat-t with sat t
 sat-app-step {t = t} sat-t | want zero (suc x₁) = cong (want zero) (suc-injective (want-injective₁ sat-t))
 
-sat-force-step : {X : ℕ} {a₀ a₁ : ℕ} {t : X ⊢} → sat t ≡ want (suc a₀) a₁ → sat (force t) ≡ want a₀ a₁
+sat-force-step : {n : ℕ} {a₀ a₁ : ℕ} {t : n ⊢} → sat t ≡ want (suc a₀) a₁ → sat (force t) ≡ want a₀ a₁
 sat-force-step {t = t} sat-t with sat t
 sat-force-step {t = t} refl | want (suc a₀) a₁ = refl
 
@@ -82,7 +82,7 @@ nat-threshold {suc a} {suc b} (Data.Nat.s≤s a<b) (Data.Nat.s≤s b≤sa) = con
 ## Values
 ```
 variable
-  X Y : ℕ
+  n m : ℕ
 
 data Value : 0 ⊢ → Set where
   delay : {a : 0 ⊢} → Value (delay a)
@@ -123,14 +123,14 @@ value-constr-recurse (constr (px All.∷ x)) = px All.∷ x
 ## Reduction Steps
 ```
 
-iterApp : {X : ℕ} → X ⊢ → List (X ⊢) → X ⊢
+iterApp : {n : ℕ} → n ⊢ → List (n ⊢) → n ⊢
 iterApp x [] = x
 iterApp x (v ∷ vs) = iterApp (x · v) vs
 
 -- FIXME: This can use the function from CEK but
 -- it will require building the correct BApp type...
 postulate
-  reduceBuiltin : X ⊢ → X ⊢
+  reduceBuiltin : n ⊢ → n ⊢
 
 infix 5 _⟶_
 data _⟶_ : 0 ⊢ → 0 ⊢ → Set where
@@ -309,7 +309,7 @@ postulate
   value-Value : ∀ {M : 0 ⊢} → value M → Value M
 
 {-
-value-¬⟶ : ∀ {X : ℕ}{M : X ⊢} → Value M → ¬ (∃[ N ] ( M ⟶ N ))
+value-¬⟶ : ∀ {n : ℕ}{M : n ⊢} → Value M → ¬ (∃[ N ] ( M ⟶ N ))
 value-¬⟶ {M = M} delay = λ ()
 value-¬⟶ {M = M} ƛ = λ ()
 value-¬⟶ {M = M} con = λ ()
@@ -320,10 +320,10 @@ value-¬⟶ {M = M} (unsat₁ x v₁ v₂) = {!!}
 value-¬⟶ {M = M} (constr x) = {!!}
 value-¬⟶ {M = M} error = λ ()
 
-⟶-¬value : ∀ {X : ℕ}{M N : X ⊢} → M ⟶ N → ¬ (Value M)
+⟶-¬value : ∀ {n : ℕ}{M N : n ⊢} → M ⟶ N → ¬ (Value M)
 ⟶-¬value {N = N} M⟶N VM = value-¬⟶ VM (N , M⟶N)
 
-⟶-det : ∀ {X : ℕ}{M N P : X ⊢} → M ⟶ N → M ⟶ P → N ≡ P
+⟶-det : ∀ {n : ℕ}{M N P : n ⊢} → M ⟶ N → M ⟶ P → N ≡ P
 ⟶-det n p = {!!}
 -}
 
@@ -436,10 +436,10 @@ data _≅_ : 0 ⊢ → 0 ⊢ → Set where
 refl-≅ : ∀{a : 0 ⊢} → a ≅ a
 refl-≅ = reduce refl refl
 
---tran-≅ : ∀{X : ℕ}{a b c : X ⊢} → a ≅ b → b ≅ c → a ≅ c
+--tran-≅ : ∀{n : ℕ}{a b c : n ⊢} → a ≅ b → b ≅ c → a ≅ c
 --tran-≅ (reduce p₁ p₂) (reduce p₃ p₄) = reduce {!!} {!!}
 
---reduce-≅ : ∀{X : ℕ} {M N : X ⊢} → M ⟶* N → M ≅ N
+--reduce-≅ : ∀{n : ℕ} {M N : n ⊢} → M ⟶* N → M ≅ N
 --reduce-≅ = {!!}
 
 ```
@@ -452,7 +452,7 @@ open import Agda.Builtin.Int using (Int)
 integer : RawU.TyTag
 integer = tag2TyTag RawU.integer
 
-con-integer : {X : ℕ} → ℕ → X ⊢
+con-integer : {n : ℕ} → ℕ → n ⊢
 con-integer n = (con (tmCon integer (Int.pos n)))
 
 _ : ƛ (` zero) · (con-integer {0} 42) ⟶ (con-integer 42)

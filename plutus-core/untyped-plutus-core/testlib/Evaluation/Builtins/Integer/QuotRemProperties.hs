@@ -11,6 +11,7 @@ import Prelude hiding (abs)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common
 
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty (TestName, TestTree, testGroup)
 import Test.Tasty.QuickCheck
 
@@ -18,7 +19,7 @@ numberOfTests :: Int
 numberOfTests = 200
 
 testProp :: Testable prop => TestName -> prop -> TestTree
-testProp s p = testProperty s $ withMaxSuccess numberOfTests p
+testProp s p = testProperty s $ BaseQC.withNumTests numberOfTests p
 
 -- `quotientInteger _ 0` always fails.
 prop_quot_0_fails :: BigInteger -> Property
@@ -37,7 +38,7 @@ prop_quot_rem_compatible (biginteger -> a) (NonZero (biginteger -> b)) =
   let t = addInteger (multiplyInteger b (quotientInteger a b)) (remainderInteger a b)
    in evalOkEq t a
 
--- (k*b) `quot` b = b and (k*b) `rem` b = 0 for all k
+-- (k*b) `quot` b = k and (k*b) `rem` b = 0 for all k
 prop_quot_rem_multiple :: BigInteger -> NonZero BigInteger -> Property
 prop_quot_rem_multiple (biginteger -> k) (NonZero (biginteger -> b)) =
   let t1 = quotientInteger (multiplyInteger k b) b

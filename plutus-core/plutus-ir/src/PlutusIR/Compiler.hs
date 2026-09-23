@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -70,6 +71,7 @@ import PlutusIR.Error
 import PlutusIR.Pass qualified as P
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.CaseReduce qualified as CaseReduce
+import PlutusIR.Transform.CollapseCase qualified as CollapseCase
 import PlutusIR.Transform.DeadCase qualified as DeadCase
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
@@ -79,6 +81,7 @@ import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.NonStrict qualified as NonStrict
+import PlutusIR.Transform.RecInline qualified as RecInline
 import PlutusIR.Transform.RecSplit qualified as RecSplit
 import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.RewriteRules qualified as RewriteRules
@@ -86,6 +89,8 @@ import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusPrelude
+
+import Data.Typeable
 
 isVerbose :: Compiling m uni fun a => m Bool
 isVerbose = view $ ccOpts . coVerbose
@@ -113,12 +118,13 @@ floatOutPasses = do
   optimize <- view (ccOpts . coOptimize)
   tcconfig <- view ccTypeCheckConfig
   binfo <- view ccBuiltinsInfo
+  recursiveInlinePasses <- recInlinePasses
   pure $
     mwhen optimize $
       P.NamedPass "float-out" $
         fold
           [ LetFloatOut.floatTermPassSC tcconfig binfo
-          , RecSplit.recSplitPass tcconfig
+          , recursiveInlinePasses
           , LetMerge.letMergePass tcconfig
           ]
 
@@ -137,7 +143,8 @@ floatInPasses = do
           ]
 
 simplifierIteration
-  :: Compiling m uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
+  :: forall m uni fun a
+   . Compiling m uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
 simplifierIteration suffix = do
   opts <- view ccOpts
   tcconfig <- view ccTypeCheckConfig
@@ -165,6 +172,9 @@ simplifierIteration suffix = do
             Inline.inlinePassSC threshUnconditional threshCallsite ic tcconfig hints binfo
         , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
         , DeadCase.deadCasePassSC tcconfig
+        , case (eqT @uni @PLC.DefaultUni, eqT @fun @PLC.DefaultFun) of
+            (Just Refl, Just Refl) -> CollapseCase.collapseCasePassSC tcconfig
+            _ -> P.NoOpPass
         ]
 
 simplifier :: Compiling m uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
@@ -173,6 +183,21 @@ simplifier = do
   maxIterations <- view (ccOpts . coMaxSimplifierIterations)
   passes <- for [1 .. maxIterations] $ \i -> simplifierIteration (" (pass " ++ show i ++ ")")
   pure $ mwhen optimize $ P.NamedPass "simplifier" (fold passes)
+
+recInlinePasses :: Compiling m uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
+recInlinePasses = do
+  optimize <- view (ccOpts . coOptimize)
+  tcconfig <- view ccTypeCheckConfig
+  binfo <- view ccBuiltinsInfo
+  inlineConstants <- view (ccOpts . coInlineConstants)
+  pure $
+    mwhen optimize $
+      P.NamedPass "recursive inline" $
+        fold
+          [ RecSplit.recSplitPass tcconfig
+          , RecInline.recInlinePassSC binfo inlineConstants tcconfig
+          , RecSplit.recSplitPass tcconfig
+          ]
 
 -- | Typecheck a PIR Term iff the context demands it.
 typeCheckTerm :: Compiling m uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))

@@ -41,7 +41,7 @@ This will just be an instance of the `Translation` relation once we define the "
 
 ```
 data CoC : Relation where
-  isCoC : {X : ℕ} (b : X ⊢) (tn fn : ℕ)  (tt tt' ft ft' alts alts' : List (X ⊢)) →
+  isCoC : {n : ℕ} (b : n ⊢) (tn fn : ℕ)  (tt tt' ft ft' alts alts' : List (n ⊢)) →
              Pointwise (Translation CoC) alts alts' →
              Pointwise (Translation CoC) tt tt' →
              Pointwise (Translation CoC) ft ft' →
@@ -49,7 +49,7 @@ data CoC : Relation where
                (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
                (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
 
-CaseOfCase : {X : ℕ} (ast : X ⊢) → (ast' : X ⊢) → Set
+CaseOfCase : {n : ℕ} (ast : n ⊢) → (ast' : n ⊢) → Set
 CaseOfCase = Translation CoC
 
 ```
@@ -64,9 +64,9 @@ detect that case. We create two "views" for the two patterns - we will tie toget
 later function `isCoC?`.
 ```
 
-data CoCCase {X : ℕ} : (X ⊢) → Set where
-  isCoCCase : (b : X ⊢) (tn fn : ℕ)  (tt ft alts : List (X ⊢)) → CoCCase (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
-isCoCCase? : {X : ℕ} → Unary.Decidable (CoCCase {X})
+data CoCCase {n : ℕ} : (n ⊢) → Set where
+  isCoCCase : (b : n ⊢) (tn fn : ℕ)  (tt ft alts : List (n ⊢)) → CoCCase (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
+isCoCCase? : {n : ℕ} → Unary.Decidable (CoCCase {n})
 isCoCCase? t with (isCase? (isApp? (isApp? (isApp? (isForce? (isBuiltin?)) isTerm?) (isConstr? (allTerms?))) (isConstr? (allTerms?))) (allTerms?)) t
 ... | yes (iscase (isapp (isapp (isapp (isforce (isbuiltin ite)) (isterm b)) (isconstr tn (allterms tt))) (isconstr fn (allterms ft))) (allterms alts)) with ite ≟ ifThenElse
 ... | yes refl = yes (isCoCCase b tn fn tt ft alts)
@@ -78,9 +78,9 @@ isCoCCase? t  | no ¬CoCCase = no λ { (isCoCCase b tn fn alts tt ft) → ¬CoCC
                                                                                   (isconstr fn (allterms tt)))
                                                                                  (allterms ft)) }
 
-data CoCForce {X : ℕ} :  (X ⊢) → Set where
-  isCoCForce : (b : (X ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (X ⊢)) → CoCForce (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
-isCoCForce? : {X : ℕ} → Unary.Decidable (CoCForce {X})
+data CoCForce {n : ℕ} :  (n ⊢) → Set where
+  isCoCForce : (b : (n ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (n ⊢)) → CoCForce (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
+isCoCForce? : {n : ℕ} → Unary.Decidable (CoCForce {n})
 isCoCForce? t with (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTerm?) (isDelay? (isCase? (isConstr? allTerms?) allTerms?))) (isDelay? (isCase? (isConstr? allTerms?) allTerms?)))) t
 ... | no ¬CoCForce = no λ { (isCoCForce b tn fn tt' ft' alts') → ¬CoCForce
                                                                   (isforce
@@ -98,10 +98,10 @@ the individual pattern decision `isCoC?` and the overall translation decision `i
 recursive, so the `isUntypedCaseOfCase?` type declaration comes first, with the implementation later.
 
 ```
-isCaseOfCase? : {X : ℕ} (ast ast' : X ⊢) → ProofOrCE (Translation CoC {X} ast ast')
+isCaseOfCase? : {n : ℕ} (ast ast' : n ⊢) → ProofOrCE (Translation CoC {n} ast ast')
 
 {-# TERMINATING #-}
-isCoC? : {X : ℕ}  (ast ast' : X ⊢) → ProofOrCE (CoC {X} ast ast')
+isCoC? : {n : ℕ}  (ast ast' : n ⊢) → ProofOrCE (CoC {n} ast ast')
 isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ... | no ¬cf = ce (λ { (isCoC b tn fn tt tt' ft ft' alts alts' x x₁ x₂) → ¬cf
                                                                            (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') } ) CaseOfCaseT ast ast'
@@ -115,7 +115,7 @@ isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ...        | ce ¬pp t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬pp x}) t b a
 ...        | proof alts=alts' = proof (isCoC b tn fn tt tt' ft ft' alts alts' alts=alts' tt=tt' ft=ft')
 
-isCaseOfCase? {X} = translation? {X} CaseOfCaseT isCoC?
+isCaseOfCase? {n} = translation? {n} CaseOfCaseT isCoC?
 ```
 
 ## Semantic Equivalence
@@ -133,7 +133,7 @@ large gas budget and begin in an empty context (which assumes the term is closed
 
 ```
 -- TODO: Several approaches are possible.
---semantic_equivalence : ∀ {X set} {ast ast' : ⊥ ⊢}
+--semantic_equivalence : ∀ {n set} {ast ast' : ⊥ ⊢}
  --                    → ⊥ ⊢̂ ast ⊳̂ ast'
  -- <Some stuff about whether one runs out of gas -- as long as neither runs out of gas, _then_ they are equivilent>
  --                    → (stepper maxsteps  (Stack.ϵ ; [] ▻ ast)) ≡ (stepper maxsteps (Stack.ε ; [] ▻ ast'))

@@ -18,10 +18,10 @@ open import VerifiedCompilation.UntypedViews
 
 ```
 Relation : Set₁
-Relation = ∀{X} → X ⊢ → X ⊢ → Set
+Relation = ∀{n} → n ⊢ → n ⊢ → Set
 
 Relation* : Set₁
-Relation* = ∀{X} → List (X ⊢) → List (X ⊢) → Set
+Relation* = ∀{n} → List (n ⊢) → List (n ⊢) → Set
 ```
 
 ## Pointwise
@@ -31,11 +31,11 @@ terms, which have an implicit scope parameter. The polarity annotation helps for
 constructing relations using `Untyped.Relation.Binary.Modular`.
 
 ```
-data Pointwise {X} (@++ R : Relation) : List (X ⊢) → List (X ⊢) → Set where
+data Pointwise {n} (@++ R : Relation) : List (n ⊢) → List (n ⊢) → Set where
   []  :
     Pointwise R [] []
 
-  _∷_ : ∀ {M N : X ⊢} {Ms Ns} →
+  _∷_ : ∀ {M N : n ⊢} {Ms Ns} →
     R M N →
     Pointwise R Ms Ns →
     Pointwise R (M ∷ Ms) (N ∷ Ns)
@@ -46,14 +46,14 @@ data Pointwise {X} (@++ R : Relation) : List (X ⊢) → List (X ⊢) → Set wh
 
 ```
 DecidableRel : Relation → Set
-DecidableRel R = ∀ {X : ℕ} (M M' : X ⊢) → Dec (R M M')
+DecidableRel R = ∀ {n : ℕ} (M M' : n ⊢) → Dec (R M M')
 ```
 
 
 ```
 pointwise? : ∀ {R : Relation} →
   DecidableRel R →
-  ∀ {X} (Ms Ns : List (X ⊢)) →
+  ∀ {n} (Ms Ns : List (n ⊢)) →
   Dec (Pointwise R Ms Ns)
 pointwise? R? [] []         = yes []
 pointwise? R? (x ∷ xs) (y ∷ ys)

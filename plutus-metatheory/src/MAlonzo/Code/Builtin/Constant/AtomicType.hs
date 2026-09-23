@@ -31,9 +31,10 @@ pattern C_aString_12 = ATyConStr
 pattern C_aUnit_14 = ATyConUnit
 pattern C_aBool_16 = ATyConBool
 pattern C_aData_18 = ATyConData
-pattern C_aBls12'45'381'45'g1'45'element_20 = ATyConBLS12_381_G1_Element
-pattern C_aBls12'45'381'45'g2'45'element_22 = ATyConBLS12_381_G2_Element
-pattern C_aBls12'45'381'45'mlresult_24 = ATyConBLS12_381_MlResult
+pattern C_aValue_20 = ATyConValue
+pattern C_aBls12'45'381'45'g1'45'element_22 = ATyConBLS12_381_G1_Element
+pattern C_aBls12'45'381'45'g2'45'element_24 = ATyConBLS12_381_G2_Element
+pattern C_aBls12'45'381'45'mlresult_26 = ATyConBLS12_381_MlResult
 check_aInteger_8 :: T_AtomicTyCon_6
 check_aInteger_8 = ATyConInt
 check_aBytestring_10 :: T_AtomicTyCon_6
@@ -46,14 +47,16 @@ check_aBool_16 :: T_AtomicTyCon_6
 check_aBool_16 = ATyConBool
 check_aData_18 :: T_AtomicTyCon_6
 check_aData_18 = ATyConData
-check_aBls12'45'381'45'g1'45'element_20 :: T_AtomicTyCon_6
-check_aBls12'45'381'45'g1'45'element_20
+check_aValue_20 :: T_AtomicTyCon_6
+check_aValue_20 = ATyConValue
+check_aBls12'45'381'45'g1'45'element_22 :: T_AtomicTyCon_6
+check_aBls12'45'381'45'g1'45'element_22
   = ATyConBLS12_381_G1_Element
-check_aBls12'45'381'45'g2'45'element_22 :: T_AtomicTyCon_6
-check_aBls12'45'381'45'g2'45'element_22
+check_aBls12'45'381'45'g2'45'element_24 :: T_AtomicTyCon_6
+check_aBls12'45'381'45'g2'45'element_24
   = ATyConBLS12_381_G2_Element
-check_aBls12'45'381'45'mlresult_24 :: T_AtomicTyCon_6
-check_aBls12'45'381'45'mlresult_24 = ATyConBLS12_381_MlResult
+check_aBls12'45'381'45'mlresult_26 :: T_AtomicTyCon_6
+check_aBls12'45'381'45'mlresult_26 = ATyConBLS12_381_MlResult
 cover_AtomicTyCon_6 :: AtomicTyCon -> ()
 cover_AtomicTyCon_6 x
   = case x of
@@ -63,15 +66,16 @@ cover_AtomicTyCon_6 x
       ATyConUnit -> ()
       ATyConBool -> ()
       ATyConData -> ()
+      ATyConValue -> ()
       ATyConBLS12_381_G1_Element -> ()
       ATyConBLS12_381_G2_Element -> ()
       ATyConBLS12_381_MlResult -> ()
 -- Builtin.Constant.AtomicType.decAtomicTyCon
-d_decAtomicTyCon_26 ::
+d_decAtomicTyCon_28 ::
   T_AtomicTyCon_6 ->
   T_AtomicTyCon_6 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_decAtomicTyCon_26 v0 v1
+d_decAtomicTyCon_28 v0 v1
   = case coe v0 of
       C_aInteger_8
         -> case coe v1 of
@@ -105,17 +109,22 @@ d_decAtomicTyCon_26 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g1'45'element_20
+             C_aValue_20
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g2'45'element_22
+             C_aBls12'45'381'45'g1'45'element_22
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'mlresult_24
+             C_aBls12'45'381'45'g2'45'element_24
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBls12'45'381'45'mlresult_26
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
@@ -153,17 +162,22 @@ d_decAtomicTyCon_26 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g1'45'element_20
+             C_aValue_20
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g2'45'element_22
+             C_aBls12'45'381'45'g1'45'element_22
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'mlresult_24
+             C_aBls12'45'381'45'g2'45'element_24
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBls12'45'381'45'mlresult_26
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
@@ -201,17 +215,22 @@ d_decAtomicTyCon_26 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g1'45'element_20
+             C_aValue_20
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g2'45'element_22
+             C_aBls12'45'381'45'g1'45'element_22
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'mlresult_24
+             C_aBls12'45'381'45'g2'45'element_24
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBls12'45'381'45'mlresult_26
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
@@ -249,17 +268,22 @@ d_decAtomicTyCon_26 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g1'45'element_20
+             C_aValue_20
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g2'45'element_22
+             C_aBls12'45'381'45'g1'45'element_22
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'mlresult_24
+             C_aBls12'45'381'45'g2'45'element_24
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBls12'45'381'45'mlresult_26
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
@@ -297,17 +321,22 @@ d_decAtomicTyCon_26 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g1'45'element_20
+             C_aValue_20
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g2'45'element_22
+             C_aBls12'45'381'45'g1'45'element_22
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'mlresult_24
+             C_aBls12'45'381'45'g2'45'element_24
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBls12'45'381'45'mlresult_26
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
@@ -345,23 +374,28 @@ d_decAtomicTyCon_26 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 erased)
-             C_aBls12'45'381'45'g1'45'element_20
+             C_aValue_20
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g2'45'element_22
+             C_aBls12'45'381'45'g1'45'element_22
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'mlresult_24
+             C_aBls12'45'381'45'g2'45'element_24
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBls12'45'381'45'mlresult_26
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              _ -> MAlonzo.RTE.mazUnreachableError
-      C_aBls12'45'381'45'g1'45'element_20
+      C_aValue_20
         -> case coe v1 of
              C_aInteger_8
                -> coe
@@ -393,23 +427,28 @@ d_decAtomicTyCon_26 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g1'45'element_20
+             C_aValue_20
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 erased)
-             C_aBls12'45'381'45'g2'45'element_22
+             C_aBls12'45'381'45'g1'45'element_22
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'mlresult_24
+             C_aBls12'45'381'45'g2'45'element_24
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBls12'45'381'45'mlresult_26
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              _ -> MAlonzo.RTE.mazUnreachableError
-      C_aBls12'45'381'45'g2'45'element_22
+      C_aBls12'45'381'45'g1'45'element_22
         -> case coe v1 of
              C_aInteger_8
                -> coe
@@ -441,23 +480,28 @@ d_decAtomicTyCon_26 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g1'45'element_20
+             C_aValue_20
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g2'45'element_22
+             C_aBls12'45'381'45'g1'45'element_22
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 erased)
-             C_aBls12'45'381'45'mlresult_24
+             C_aBls12'45'381'45'g2'45'element_24
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBls12'45'381'45'mlresult_26
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              _ -> MAlonzo.RTE.mazUnreachableError
-      C_aBls12'45'381'45'mlresult_24
+      C_aBls12'45'381'45'g2'45'element_24
         -> case coe v1 of
              C_aInteger_8
                -> coe
@@ -489,17 +533,75 @@ d_decAtomicTyCon_26 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g1'45'element_20
+             C_aValue_20
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'g2'45'element_22
+             C_aBls12'45'381'45'g1'45'element_22
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             C_aBls12'45'381'45'mlresult_24
+             C_aBls12'45'381'45'g2'45'element_24
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 erased)
+             C_aBls12'45'381'45'mlresult_26
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             _ -> MAlonzo.RTE.mazUnreachableError
+      C_aBls12'45'381'45'mlresult_26
+        -> case coe v1 of
+             C_aInteger_8
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBytestring_10
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aString_12
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aUnit_14
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBool_16
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aData_18
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aValue_20
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBls12'45'381'45'g1'45'element_22
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBls12'45'381'45'g2'45'element_24
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             C_aBls12'45'381'45'mlresult_26
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
@@ -507,5 +609,5 @@ d_decAtomicTyCon_26 v0 v1
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.Constant.AtomicType.⟦_⟧at
-d_'10214'_'10215'at_28 :: T_AtomicTyCon_6 -> ()
-d_'10214'_'10215'at_28 = erased
+d_'10214'_'10215'at_30 :: T_AtomicTyCon_6 -> ()
+d_'10214'_'10215'at_30 = erased

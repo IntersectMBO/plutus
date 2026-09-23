@@ -24,6 +24,7 @@ import qualified MAlonzo.Code.Agda.Builtin.Unit
 import qualified MAlonzo.Code.Builtin.Constant.AtomicType
 import qualified MAlonzo.Code.Builtin.Signature
 import qualified MAlonzo.Code.Cost.Base
+import qualified MAlonzo.Code.Data.Nat.Base
 import qualified MAlonzo.Code.RawU
 import qualified MAlonzo.Code.Untyped.CEK
 import qualified MAlonzo.Code.Utils
@@ -54,23 +55,32 @@ d_mlResultElementSize_12 = size
 -- Cost.Size.dataSize
 d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_618 -> Integer
 d_dataSize_14 = size
+-- Cost.Size.dataNodeCount
+d_dataNodeCount_16 :: MAlonzo.Code.Utils.T_DATA_618 -> Integer
+d_dataNodeCount_16 = size . DataNodeCount
 -- Cost.Size.boolSize
-d_boolSize_16 :: Bool -> Integer
-d_boolSize_16 = size
+d_boolSize_18 :: Bool -> Integer
+d_boolSize_18 = size
 -- Cost.Size.unitSize
-d_unitSize_18 ::
+d_unitSize_20 ::
   MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6 -> Integer
-d_unitSize_18 = size
+d_unitSize_20 = size
 -- Cost.Size.stringSize
-d_stringSize_20 ::
+d_stringSize_22 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 -> Integer
-d_stringSize_20 = size
+d_stringSize_22 = size
+-- Cost.Size.valueSize
+d_valueSize_24 :: MAlonzo.Code.Utils.T_Value_776 -> Integer
+d_valueSize_24 = size
+-- Cost.Size.valueMaxDepth
+d_valueMaxDepth_26 :: MAlonzo.Code.Utils.T_Value_776 -> Integer
+d_valueMaxDepth_26 = size . ValueMaxDepth
 -- Cost.Size.defaultConstantMeasure
-d_defaultConstantMeasure_22 ::
-  MAlonzo.Code.RawU.T_TmCon_202 -> Integer
-d_defaultConstantMeasure_22 v0
+d_defaultConstantMeasure_28 ::
+  MAlonzo.Code.RawU.T_TmCon_204 -> Integer
+d_defaultConstantMeasure_28 v0
   = case coe v0 of
-      MAlonzo.Code.RawU.C_tmCon_206 v1 v2
+      MAlonzo.Code.RawU.C_tmCon_208 v1 v2
         -> case coe v1 of
              MAlonzo.Code.Builtin.Signature.C_atomic_12 v4
                -> case coe v4 of
@@ -79,18 +89,20 @@ d_defaultConstantMeasure_22 v0
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
                       -> coe d_byteStringSize_6 v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aString_12
-                      -> coe d_stringSize_20 v2
+                      -> coe d_stringSize_22 v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aUnit_14
-                      -> coe d_unitSize_18 v2
+                      -> coe d_unitSize_20 v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16
-                      -> coe d_boolSize_16 v2
+                      -> coe d_boolSize_18 v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
                       -> coe d_dataSize_14 v2
-                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_20
+                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                      -> coe d_valueSize_24 v2
+                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_22
                       -> coe d_g1ElementSize_8 v2
-                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_22
+                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_24
                       -> coe d_g2ElementSize_10 v2
-                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'mlresult_24
+                    MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'mlresult_26
                       -> coe d_mlResultElementSize_12 v2
                     _ -> MAlonzo.RTE.mazUnreachableError
              MAlonzo.Code.Builtin.Signature.C_list_16 v4
@@ -108,14 +120,72 @@ d_defaultConstantMeasure_22 v0
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Size.defaultValueMeasure
-d_defaultValueMeasure_78 ::
+d_defaultValueMeasure_86 ::
   MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
-d_defaultValueMeasure_78 v0
+d_defaultValueMeasure_86 v0
   = let v1 = 0 :: Integer in
     coe
       (case coe v0 of
          MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
            -> coe
-                d_defaultConstantMeasure_22
-                (coe MAlonzo.Code.RawU.C_tmCon_206 (coe v2) (coe v3))
+                d_defaultConstantMeasure_28
+                (coe MAlonzo.Code.RawU.C_tmCon_208 (coe v2) (coe v3))
+         _ -> coe v1)
+-- Cost.Size.valueMaxDepthMeasure
+d_valueMaxDepthMeasure_92 ::
+  MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
+d_valueMaxDepthMeasure_92 v0
+  = let v1 = 0 :: Integer in
+    coe
+      (case coe v0 of
+         MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
+           -> case coe v2 of
+                MAlonzo.Code.Builtin.Signature.C_atomic_12 v5
+                  -> case coe v5 of
+                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                         -> coe d_valueMaxDepth_26 v3
+                       _ -> coe v1
+                _ -> coe v1
+         _ -> coe v1)
+-- Cost.Size.dataNodeCountMeasure
+d_dataNodeCountMeasure_96 ::
+  MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
+d_dataNodeCountMeasure_96 v0
+  = let v1 = 0 :: Integer in
+    coe
+      (case coe v0 of
+         MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
+           -> case coe v2 of
+                MAlonzo.Code.Builtin.Signature.C_atomic_12 v5
+                  -> case coe v5 of
+                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
+                         -> coe d_dataNodeCount_16 v3
+                       _ -> coe v1
+                _ -> coe v1
+         _ -> coe v1)
+-- Cost.Size.numBytesAsWords
+d_numBytesAsWords_100 ::
+  MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
+d_numBytesAsWords_100 v0
+  = let v1 = 0 :: Integer in
+    coe
+      (case coe v0 of
+         MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
+           -> case coe v2 of
+                MAlonzo.Code.Builtin.Signature.C_atomic_12 v5
+                  -> case coe v5 of
+                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8
+                         -> case coe v3 of
+                              _ | coe geqInt (coe v3) (coe (1 :: Integer)) ->
+                                  let v6 = subInt (coe v3) (coe (1 :: Integer)) in
+                                  coe
+                                    (coe
+                                       addInt (coe (1 :: Integer))
+                                       (coe
+                                          MAlonzo.Code.Data.Nat.Base.du__'47'__318 (coe v6)
+                                          (coe (8 :: Integer))))
+                              0 -> coe v1
+                              _ -> coe v1
+                       _ -> coe v1
+                _ -> coe v1
          _ -> coe v1)

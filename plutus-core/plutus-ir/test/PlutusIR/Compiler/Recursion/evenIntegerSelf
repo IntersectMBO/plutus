@@ -1,0 +1,20 @@
+(let (rec)
+  (termbind (strict) (vardecl even (fun (con integer) (con bool)))
+    (lam n (con integer)
+      [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+          [(builtin equalsInteger) n (con integer 0)]
+          (lam u (con unit) (con bool True))
+          (lam u (con unit)
+            (let (nonrec)
+              (termbind (strict) (vardecl n1 (con integer))
+                [(builtin subtractInteger) n (con integer 1)])
+              [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+                  [(builtin equalsInteger) n1 (con integer 0)]
+                  (lam u (con unit) (con bool False))
+                  (lam u (con unit)
+                    [even [(builtin subtractInteger) n1 (con integer 1)]])
+                  (con unit ())
+              ]))
+          (con unit ())
+      ]))
+  even)

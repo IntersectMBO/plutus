@@ -378,6 +378,15 @@ builtinMemoryModels =
       paramUnionValue = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 24 21
     , -- See Note [Memory model for Value builtins]
       paramScaleValue = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 12 21
+    , -- The result is a list of length y (the index list) whose elements are shared with
+      -- the array; only the spine is new, at three words per cons cell. The nonzero
+      -- intercept keeps the cost nonzero for the empty index list.
+      paramMultiIndexArray = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 4 3
+    , paramAssetCount = Id $ ModelOneArgumentConstantCost 10
+    , -- `policies` returns the outer map's keys. The bytestrings are shared with the
+      -- `Value`, so only the list spine is new, at three words per cons cell (as for
+      -- `multiIndexArray`). The size measure is the number of policies (`ValueOuterSize`).
+      paramPolicies = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 3
     }
   where
     identityFunction = OneVariableLinearFunction 0 1

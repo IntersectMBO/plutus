@@ -25,8 +25,8 @@ open import Untyped.Purity using (Pure; isPure?)
 open import VerifiedCompilation.Certificate using (ce; proof; DecidableCE; FloatDelayT)
 
 variable
-  X : ℕ
-  x x' y y' : X ⊢
+  n : ℕ
+  x x' y y' : n ⊢
 ```
 ## Translation Relation
 
@@ -44,7 +44,7 @@ actually constitute an optimization otherwise, but these conditions are not nece
 We first define an auxiliary function to add `delay` to all bound variables.
 ```
 {-# TERMINATING #-}
-subs-delay : {X : ℕ} → (v : Fin (suc X)) → (suc X ⊢) → (suc X ⊢)
+subs-delay : {n : ℕ} → (v : Fin (suc n)) → (suc n ⊢) → (suc n ⊢)
 subs-delay v (` x) with v ≟ x
 ... | yes refl = (delay (` x))
 ... | no _ = (` x)
@@ -62,24 +62,24 @@ subs-delay v error = error
 The translation relation is then fairly striaghtforward.
 
 ```
-data FlD {X : ℕ}  : (X ⊢) → (X ⊢) → Set where
-  floatdelay : {y y' : X ⊢} {x x' : suc X ⊢}
+data FlD {n : ℕ}  : (n ⊢) → (n ⊢) → Set where
+  floatdelay : {y y' : n ⊢} {x x' : suc n ⊢}
           → Translation FlD (subs-delay zero x) x'
           → Translation FlD y y'
           → Pure y'
           → FlD (ƛ x · (delay y)) (ƛ x' · y')
 
-FloatDelay : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set
+FloatDelay : {n : ℕ} → (ast : n ⊢) → (ast' : n ⊢) → Set
 FloatDelay = Translation FlD
 
 ```
 ## Decision Procedure
 ```
 
-isFloatDelay? : {X : ℕ} → DecidableCE (FloatDelay {X})
+isFloatDelay? : {n : ℕ} → DecidableCE (FloatDelay {n})
 
 {-# TERMINATING #-}
-isFlD? : {X : ℕ} → DecidableCE (FlD {X})
+isFlD? : {n : ℕ} → DecidableCE (FlD {n})
 isFlD? ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?)) ast
 ... | no ¬match = ce (λ { (floatdelay x x₁ x₂) → ¬match (isapp (islambda (isterm _)) (isdelay (isterm _)))}) FloatDelayT ast ast'
 ... | yes (isapp (islambda (isterm t₁)) (isdelay (isterm t₂))) with (isApp? (isLambda? isTerm?) isTerm?) ast'

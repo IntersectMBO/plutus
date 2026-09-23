@@ -9,6 +9,7 @@ import PlutusIR.Pass
 import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty.QuickCheck
 
 test_rename :: TestTree
@@ -25,4 +26,4 @@ test_rename =
 
 prop_rename :: Property
 prop_rename =
-  withMaxSuccess numTestsForPassProp $ testPassProp runQuote (const renamePass)
+  BaseQC.withNumTests numTestsForPassProp $ testPassProp runQuote (const renamePass)

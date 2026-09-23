@@ -32,6 +32,13 @@ untyped version of PLC which can also be executed directly.
 The final two pieces are a type checker which is guaranteed to be
 sound and an executable that is intended to be compiled into Haskell.
 
+A separate family of modules specify UPLC compiler optimizations as syntactic
+binary relations. The relations are (semi-)decidable, so for a given pair of
+input/output terms, we can produce a proof when the pass behaved according to
+specification. This is the basis of the `--certify` flag available in the Plinth
+compiler and UPLC CLI tool. The Plinth user guide contains more detail on how to
+use the certifier.
+
 1. [Types](#types)
 2. [Normalisation of types](#normal-types)
 3. [Builtin machinery](#builtins)
@@ -41,6 +48,7 @@ sound and an executable that is intended to be compiled into Haskell.
 7. [Untyped terms](#untyped-terms)
 8. [A typechecker](#type-checker)
 9. [An executable](#executable)
+10. [Certified compilation](#certified-compilation)
 
 ## Types
 
@@ -88,6 +96,15 @@ types such as integers and bytestrings and operations on them.
 ```
 import Builtin
 import Builtin.Constant.Type
+```
+
+The integer division builtins are backed by `quot`/`rem` (truncated
+division) and `div`/`mod` (floored division) operators on ℤ, whose
+defining laws are proved in the accompanying properties module.
+
+```
+import Builtin.Integer.Base
+import Builtin.Integer.Properties
 ```
 
 The types of the built-in operations are defined by a signature.
@@ -198,5 +215,15 @@ to produce an executable.
 
 ```
 import Main
+```
+
+
+## Certified Compilation
+
+The top-level module that defines the `certify` function, imports all
+translation relations and their (semi-)decision procedures.
+
+```
+import VerifiedCompilation
 ```
 

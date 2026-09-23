@@ -12,6 +12,7 @@ import Control.Monad
 import Data.Bifunctor
 import Data.Either
 import Data.Map.Strict qualified as Map
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck
 
 prop_genKindCorrect :: Property
@@ -21,7 +22,7 @@ prop_genKindCorrect = p_genKindCorrect False
 See Note [Debugging generators that don't generate well-typed/kinded terms/types]
 and see the utility tests below when this property fails. -}
 p_genKindCorrect :: Bool -> Property
-p_genKindCorrect debug = withMaxSuccess 1000 $
+p_genKindCorrect debug = BaseQC.withNumTests 1000 $
   -- Context minimality doesn't help readability, so no shrinking here
   forAllDoc "ctx" genCtx (const []) $ \ctx ->
     -- Note, no shrinking here because shrinking relies on well-kindedness.
@@ -30,7 +31,7 @@ p_genKindCorrect debug = withMaxSuccess 1000 $
 
 -- | Check that shrinking types maintains kinds.
 prop_shrinkTypeSound :: Property
-prop_shrinkTypeSound = withMaxSuccess 500 $
+prop_shrinkTypeSound = BaseQC.withNumTests 500 $
   forAllDoc "ctx" genCtx (const []) $ \ctx ->
     forAllDoc "k,ty" (genKindAndTypeWithCtx ctx) (shrinkKindAndType ctx) $ \(k, ty) ->
       -- See discussion about the same trick in 'prop_shrinkTermSound'.
@@ -45,7 +46,7 @@ prop_shrinkTypeSound = withMaxSuccess 500 $
 
 -- | Test that shrinking a type results in a type of a smaller kind. Useful for debugging shrinking.
 prop_shrinkTypeSmallerKind :: Property
-prop_shrinkTypeSmallerKind = withMaxSuccess 3000 $
+prop_shrinkTypeSmallerKind = BaseQC.withNumTests 3000 $
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \(k, ty) ->
     assertNoCounterexamples
       [ (k', ty')
@@ -55,13 +56,13 @@ prop_shrinkTypeSmallerKind = withMaxSuccess 3000 $
 
 -- | Test that shrinking kinds generates smaller kinds.
 prop_shrinkKindSmaller :: Property
-prop_shrinkKindSmaller = withMaxSuccess 30000 $
+prop_shrinkKindSmaller = BaseQC.withNumTests 30000 $
   forAllDoc "k" arbitrary shrink $ \k ->
     assertNoCounterexamples [k' | k' <- shrink k, not $ leKind k' k]
 
 -- | Test that fixKind actually gives you something of the right kind.
 prop_fixKind :: Property
-prop_fixKind = withMaxSuccess 10000 $
+prop_fixKind = BaseQC.withNumTests 10000 $
   forAllDoc "ctx" genCtx (const []) $ \ctx ->
     forAllDoc "k,ty" genKindAndType (shrinkKindAndType ctx) $ \(k, ty) ->
       -- Note, fixKind only works on smaller kinds, so we use shrink to get a definitely smaller kind
@@ -74,7 +75,7 @@ prop_fixKind = withMaxSuccess 10000 $
 
 -- | Check that 'normalizeType' returns a normal type.
 prop_normalizedTypeIsNormal :: Property
-prop_normalizedTypeIsNormal = withMaxSuccess 1000 $
+prop_normalizedTypeIsNormal = BaseQC.withNumTests 1000 $
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \(_, ty) ->
     unless (isNormalType . unNormalized . runQuote $ normalizeType ty) $
       Left "'normalizeType' returned a non-normal type"

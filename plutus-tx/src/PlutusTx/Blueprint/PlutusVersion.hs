@@ -12,7 +12,7 @@ import Data.Aeson (ToJSON (..))
 |
 | This version corresponds to the "Plutus Ledger Language Version"
 | defined by the plutus-tx-plugin. -}
-data PlutusVersion = PlutusV1 | PlutusV2 | PlutusV3
+data PlutusVersion = PlutusV1 | PlutusV2 | PlutusV3 | PlutusV4
   deriving stock (Show)
 
 instance ToJSON PlutusVersion where
@@ -20,3 +20,4 @@ instance ToJSON PlutusVersion where
     PlutusV1 -> "v1"
     PlutusV2 -> "v2"
     PlutusV3 -> "v3"
+    PlutusV4 -> "v4"

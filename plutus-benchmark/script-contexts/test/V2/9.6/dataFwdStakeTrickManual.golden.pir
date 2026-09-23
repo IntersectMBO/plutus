@@ -1,32 +1,28 @@
-let
-  data Unit | Unit_match where
-    Unit : Unit
-in
 \(r_stake_cred : data) ->
   letrec
-    !lookForCred : list (pair data data) -> Unit
+    !lookForCred : list (pair data data) -> unit
       = \(l : list (pair data data)) ->
           (let
               a = pair data data
             in
             /\r ->
               \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z])
-            {Unit -> Unit}
-            (\(ds : Unit) ->
+            {unit -> unit}
+            (\(ds : unit) ->
                let
-                 !x : Unit = trace {Unit} "not found" Unit
+                 !x : unit = trace {unit} "not found" ()
                in
-               error {Unit})
-            (\(x : pair data data) (xs : list (pair data data)) (ds : Unit) ->
+               error {unit})
+            (\(x : pair data data) (xs : list (pair data data)) (ds : unit) ->
                case
-                 (all dead. Unit)
+                 (all dead. unit)
                  (equalsData
                     r_stake_cred
                     (case data x [(\(l : data) (r : data) -> l)]))
-                 [(/\dead -> lookForCred xs), (/\dead -> Unit)]
+                 [(/\dead -> lookForCred xs), (/\dead -> ())]
                  {all dead. dead})
             l
-            Unit
+            ()
   in
   \(r_ctx : data) ->
     let
@@ -72,13 +68,13 @@ in
             [(\(l : data) (r : data) -> l)]
     in
     case
-      (all dead. Unit)
+      (all dead. unit)
       (equalsData r_stake_cred wdrlAtZero)
       [ (/\dead ->
            case
-             (all dead. Unit)
+             (all dead. unit)
              (equalsData r_stake_cred wdrlAtOne)
-             [(/\dead -> lookForCred rest), (/\dead -> Unit)]
+             [(/\dead -> lookForCred rest), (/\dead -> ())]
              {all dead. dead})
-      , (/\dead -> Unit) ]
+      , (/\dead -> ()) ]
       {all dead. dead}

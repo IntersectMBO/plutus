@@ -9,6 +9,7 @@ import PlutusIR.Test
 import PlutusIR.Transform.RewriteRules as RewriteRules
 import PlutusPrelude
 
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck
 import Test.Tasty
 
@@ -36,4 +37,4 @@ test_rewriteRules =
 
 prop_rewriteRules :: Property
 prop_rewriteRules =
-  withMaxSuccess numTestsForPassProp $ testPassProp runQuote $ \tc -> rewritePassSC tc def
+  BaseQC.withNumTests numTestsForPassProp $ testPassProp runQuote $ \tc -> rewritePassSC tc def

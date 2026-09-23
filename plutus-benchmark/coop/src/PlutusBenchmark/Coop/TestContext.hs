@@ -14,8 +14,15 @@ module PlutusBenchmark.Coop.TestContext
   ) where
 
 import PlutusLedgerApi.V1.Address (scriptHashAddress)
-import PlutusLedgerApi.V1.Value (AssetClass, CurrencySymbol (..), TokenName (..), assetClass)
-import PlutusLedgerApi.V2 (Address, ScriptContext, ScriptHash (..))
+import PlutusLedgerApi.V2
+  ( Address
+  , AssetClass
+  , CurrencySymbol (..)
+  , ScriptContext
+  , ScriptHash (..)
+  , TokenName (..)
+  , assetClass
+  )
 
 import Test.QuickCheck.Gen (Gen (unGen))
 import Test.QuickCheck.Random (mkQCGen)

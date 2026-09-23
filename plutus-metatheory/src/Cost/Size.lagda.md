@@ -15,6 +15,9 @@ module Cost.Size where
 open import Data.Bool using (Bool)
 open import Data.Unit using (⊤)
 open import Data.Nat using (ℕ;_+_)
+open import Data.Nat using (ℕ;zero;suc;_+_)
+open import Data.Nat.DivMod using (_/_)
+open import Agda.Builtin.Int using (pos)
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 
@@ -41,9 +44,12 @@ postulate g1ElementSize : Utils.Bls12-381-G1-Element → CostingNat
 postulate g2ElementSize : Utils.Bls12-381-G2-Element → CostingNat
 postulate mlResultElementSize : Utils.Bls12-381-MlResult → CostingNat
 postulate dataSize : DATA → CostingNat
+postulate dataNodeCount : DATA → CostingNat
 postulate boolSize : Bool → CostingNat
 postulate unitSize : ⊤ → CostingNat
 postulate stringSize : String → CostingNat
+postulate valueSize : Utils.Value → CostingNat
+postulate valueMaxDepth : Utils.Value → CostingNat
 
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExMemoryUsage #-}
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.CostStream #-}
@@ -55,9 +61,12 @@ postulate stringSize : String → CostingNat
 {-# COMPILE GHC g2ElementSize = size #-}
 {-# COMPILE GHC mlResultElementSize = size #-}
 {-# COMPILE GHC dataSize  = size #-}
+{-# COMPILE GHC dataNodeCount  = size . DataNodeCount #-}
 {-# COMPILE GHC boolSize = size #-}
 {-# COMPILE GHC unitSize = size #-}
 {-# COMPILE GHC stringSize  = size #-}
+{-# COMPILE GHC valueSize = size #-}
+{-# COMPILE GHC valueMaxDepth = size . ValueMaxDepth #-}
 ```
 
 For each constant we return the corresponding size.
@@ -71,6 +80,7 @@ defaultConstantMeasure (tmCon (atomic aString) x) = stringSize x
 defaultConstantMeasure (tmCon (atomic aUnit) x) = unitSize x
 defaultConstantMeasure (tmCon (atomic aBool) x) = boolSize x
 defaultConstantMeasure (tmCon (atomic aData) d) = dataSize d
+defaultConstantMeasure (tmCon (atomic aValue) v) = valueSize v
 defaultConstantMeasure (tmCon (atomic aBls12-381-g1-element) x) = g1ElementSize x
 defaultConstantMeasure (tmCon (atomic aBls12-381-g2-element) x) = g2ElementSize x
 defaultConstantMeasure (tmCon (atomic aBls12-381-mlresult) x) = mlResultElementSize x
@@ -87,4 +97,21 @@ defaultConstantMeasure (tmCon (pair t u) (x , y)) = 1
 defaultValueMeasure : Value → CostingNat
 defaultValueMeasure (V-con ty x) = defaultConstantMeasure (tmCon ty x)
 defaultValueMeasure _ = 0
+```
+
+Non-standard measures:
+
+```
+valueMaxDepthMeasure : Value → CostingNat
+valueMaxDepthMeasure (V-con (atomic aValue) v) = valueMaxDepth v
+valueMaxDepthMeasure _ = 0
+
+dataNodeCountMeasure : Value → CostingNat
+dataNodeCountMeasure (V-con (atomic aData) d) = dataNodeCount d
+dataNodeCountMeasure _ = 0
+
+numBytesAsWords : Value → CostingNat
+numBytesAsWords (V-con (atomic aInteger) (pos (suc n))) = (n / 8) + 1
+numBytesAsWords _ = 0
+
 ```

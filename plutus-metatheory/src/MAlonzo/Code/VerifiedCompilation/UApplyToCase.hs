@@ -39,7 +39,7 @@ d_a2c'63''7580''7580'_24 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50
 d_a2c'63''7580''7580'_24 v0
   = coe
       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_160
@@ -51,7 +51,7 @@ d_a2c'63'_32 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50
 d_a2c'63'_32 v0 v1 v2
   = let v3
           = coe
@@ -74,31 +74,31 @@ d_a2c'63'_32 v0 v1 v2
          (case coe v2 of
             MAlonzo.Code.Untyped.C_'96'_18 v5
               -> coe
-                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                    MAlonzo.Code.VerifiedCompilation.Trace.d_ApplyToCaseT_42 v1 v2
             MAlonzo.Code.Untyped.C_ƛ_20 v5
               -> coe
-                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                    MAlonzo.Code.VerifiedCompilation.Trace.d_ApplyToCaseT_42 v1 v2
             MAlonzo.Code.Untyped.C__'183'__22 v5 v6
               -> coe
-                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                    MAlonzo.Code.VerifiedCompilation.Trace.d_ApplyToCaseT_42 v1 v2
             MAlonzo.Code.Untyped.C_force_24 v5
               -> coe
-                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                    MAlonzo.Code.VerifiedCompilation.Trace.d_ApplyToCaseT_42 v1 v2
             MAlonzo.Code.Untyped.C_delay_26 v5
               -> coe
-                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                    MAlonzo.Code.VerifiedCompilation.Trace.d_ApplyToCaseT_42 v1 v2
             MAlonzo.Code.Untyped.C_con_28 v5
               -> coe
-                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                    MAlonzo.Code.VerifiedCompilation.Trace.d_ApplyToCaseT_42 v1 v2
             MAlonzo.Code.Untyped.C_constr_34 v5 v6
               -> coe
-                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                    MAlonzo.Code.VerifiedCompilation.Trace.d_ApplyToCaseT_42 v1 v2
             MAlonzo.Code.Untyped.C_case_40 v5 v6
               -> let v7
@@ -144,15 +144,15 @@ d_a2c'63'_32 v0 v1 v2
                                                                                             coe
                                                                                               (case coe
                                                                                                       v29 of
-                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v30
+                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v30
                                                                                                    -> coe
-                                                                                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                                                         (coe
                                                                                                            C_a2c_16
                                                                                                            v30)
-                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v33 v34 v35
+                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v33 v34 v35
                                                                                                    -> coe
-                                                                                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                                                         v33
                                                                                                         v34
                                                                                                         v35
@@ -217,15 +217,15 @@ d_a2c'63'_32 v0 v1 v2
                                                                                                               coe
                                                                                                                 (case coe
                                                                                                                         v34 of
-                                                                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v35
+                                                                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v35
                                                                                                                      -> coe
-                                                                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                                                                           (coe
                                                                                                                              C_a2c_16
                                                                                                                              v35)
-                                                                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v38 v39 v40
+                                                                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v38 v39 v40
                                                                                                                      -> coe
-                                                                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                                                                           v38
                                                                                                                           v39
                                                                                                                           v40
@@ -240,18 +240,18 @@ d_a2c'63'_32 v0 v1 v2
                                                else coe
                                                       seq (coe v12)
                                                       (coe
-                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                          MAlonzo.Code.VerifiedCompilation.Trace.d_ApplyToCaseT_42
                                                          v1 v2)
                                         _ -> MAlonzo.RTE.mazUnreachableError))
                       _ -> MAlonzo.RTE.mazUnreachableError)
             MAlonzo.Code.Untyped.C_builtin_44 v5
               -> coe
-                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                    MAlonzo.Code.VerifiedCompilation.Trace.d_ApplyToCaseT_42 v1 v2
             MAlonzo.Code.Untyped.C_error_46
               -> coe
-                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                    MAlonzo.Code.VerifiedCompilation.Trace.d_ApplyToCaseT_42 v1 v2
             _ -> MAlonzo.RTE.mazUnreachableError))
 -- VerifiedCompilation.UApplyToCase..extendedlambda0

@@ -37,7 +37,7 @@ open import Data.Sum using (_⊎_;inj₁; inj₂)
 open import Data.List using (List; []; _∷_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Data.List.Relation.Binary.Pointwise using (Pointwise-≡⇒≡; ≡⇒Pointwise-≡)
-open import Data.Bool.Base using (Bool; false; true; not)
+open import Data.Bool.Base using (Bool; false; true; not; T)
 open import Function.Base using (_∘_)
 
 variable
@@ -47,6 +47,15 @@ data CertResult (P : Set 𝓁) : Set (suc 𝓁) where
   proof : (p : P) → CertResult P
   ce : (¬p : ¬ P) → {X X' : Set} → OptTag → X → X' → CertResult P
   abort : {X X' : Set} → OptTag → X → X' → CertResult P
+
+is-proof : {P : Set 𝓁} → CertResult P → Bool
+is-proof (proof _) = true
+is-proof (ce  _ _ _ _) = false
+is-proof (abort _ _ _) = false
+
+-- | Reflect the proof object if there is one
+to-witness-T : ∀ {P : Set 𝓁} (p : CertResult P) → T (is-proof p) → P
+to-witness-T (proof p) _ = p
 
 -- | Result of a decision procedure: either a proof or a counterexample
 data ProofOrCE (P : Set 𝓁) : Set (suc 𝓁) where

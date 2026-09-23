@@ -160,8 +160,7 @@ $\lamU{x}{N}$.%
   \Eval'(b, [V_1, \ldots, V_n]) =
   \begin{cases}
     \errorU  & \text{if $\Eval(b,[V_1, \ldots, V_n]) = \errorX$}\\
-    V & \text{if $\Eval(b,[V_1, \ldots, V_n]) = (V|)$}\\
-    [V \repetition{V^{\prime}}] & \text{if $\Eval(b,[V_1, \ldots, V_n]) = (V|\repetition{V^{\prime}})$ with $\repetition{V^{\prime}}$ nonempty.}
+    \Eval(b,[V_1, \ldots, V_n]) &\text{otherwise}.
   \end{cases}
   $$
   \caption{Built-in function application}

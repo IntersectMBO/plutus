@@ -17,7 +17,6 @@
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:conservative-optimisation #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-remove-trace #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:preserve-logging #-}
 
@@ -28,8 +27,7 @@ module LinearVesting.Validator
   )
 where
 
-import PlutusLedgerApi.Data.V3 (Address)
-import PlutusLedgerApi.V1.Data.Value (AssetClass)
+import PlutusLedgerApi.Data.V3 (Address, AssetClass)
 import PlutusTx (CompiledCode, compile, makeIsDataIndexed, makeLift)
 import PlutusTx.Bool (Bool (..), not, otherwise)
 import PlutusTx.Builtins.HasOpaque ()

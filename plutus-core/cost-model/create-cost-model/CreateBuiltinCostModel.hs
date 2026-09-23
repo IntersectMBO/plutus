@@ -153,6 +153,9 @@ builtinCostModelNames =
     , paramInsertCoin = "insertCoinModel"
     , paramUnionValue = "unionValueModel"
     , paramScaleValue = "scaleValueModel"
+    , paramMultiIndexArray = "multiIndexArrayModel"
+    , paramAssetCount = "assetCountModel"
+    , paramPolicies = "policiesModel"
     }
 
 {-| Loads the models from R.
@@ -308,6 +311,9 @@ createBuiltinCostModel bmfile rfile = do
   paramInsertCoin <- getParams readCF4 paramInsertCoin
   paramUnionValue <- getParams readCF2 paramUnionValue
   paramScaleValue <- getParams readCF2 paramScaleValue
+  paramMultiIndexArray <- getParams readCF2 paramMultiIndexArray
+  paramAssetCount <- getParams readCF1 paramAssetCount
+  paramPolicies <- getParams readCF1 paramPolicies
 
   pure $ BuiltinCostModelBase {..}
 

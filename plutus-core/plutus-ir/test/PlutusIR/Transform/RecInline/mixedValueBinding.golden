@@ -1,0 +1,20 @@
+letrec
+  !even : integer -> bool
+    = \(n : integer) ->
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger n 0)
+          (\(u : unit) -> True)
+          (\(u : unit) ->
+             (\(m : integer) ->
+                ifThenElse
+                  {unit -> bool}
+                  (equalsInteger m 0)
+                  (\(u : unit) -> False)
+                  (\(u : unit) -> even (subtractInteger m 1))
+                  ())
+               (subtractInteger n 1))
+          ()
+  !val : bool = even 42
+in
+val

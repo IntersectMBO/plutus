@@ -16,6 +16,7 @@ import PlutusLedgerApi.Common (IsParamName, PlutusLedgerLanguage (..), showParam
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3
+import PlutusLedgerApi.V4 qualified as V4
 
 import Data.Aeson qualified as A (Object, ToJSON, Value (Array, Number))
 import Data.Aeson.Encode.Pretty (encodePretty)
@@ -70,6 +71,7 @@ infoFor =
         PlutusV1 -> (PLC.DefaultFunSemanticsVariantD, paramNames @V1.ParamName)
         PlutusV2 -> (PLC.DefaultFunSemanticsVariantD, paramNames @V2.ParamName)
         PlutusV3 -> (PLC.DefaultFunSemanticsVariantE, paramNames @V3.ParamName)
+        PlutusV4 -> (PLC.DefaultFunSemanticsVariantE, paramNames @V4.ParamName)
 
 -- Return the current cost model parameters for a given LL version in the form
 -- of a list of (name, value) pairs ordered by name according to the relevant

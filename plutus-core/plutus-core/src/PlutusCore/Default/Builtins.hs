@@ -18,6 +18,7 @@ module PlutusCore.Default.Builtins where
 
 import PlutusPrelude
 
+import PlutusCore.Arrays qualified as Arrays
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
@@ -31,6 +32,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , NumBytesCostedAsNumWords (..)
   , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
+  , ValueOuterSize (..)
   , ValueTotalSize (..)
   , memoryUsage
   , singletonRose
@@ -218,6 +220,12 @@ data DefaultFun
   | ValueData
   | UnValueData
   | ScaleValue
+  | -- Batch 7
+    MultiIndexArray
+  | Policies
+  | AssetCount
+  | KeepPolicies
+  | DropPolicies
   deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
   deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2399,6 +2407,51 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           scaleValueDenotation
           (runCostingFunTwoArguments . paramScaleValue)
+  toBuiltinMeaning _semvar MultiIndexArray =
+    -- Indices are 'Integer', not 'Int'. 'indexArray' takes a scalar 'Int', which unlifts via a
+    -- special 'ReadKnown' instance (read as 'Integer', then range-checked); a '[Int]' instance is
+    -- possible but pointless here (an extra traversal and allocations, and the bounds check still
+    -- lands in the denotation). So indices stay '[Integer]', checked in the 'Integer' domain.
+    let multiIndexArrayDenotation
+          :: SomeConstant uni (Vector a) -> [Integer] -> BuiltinResult (Opaque val [a])
+        multiIndexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) indices =
+          case uni of
+            DefaultUniArray uniA ->
+              fromValueOf (DefaultUniList uniA) <$> Arrays.multiIndexArray vec indices
+            _ ->
+              throwError $ structuralUnliftingError "Expected an array but got something else"
+        {-# INLINE multiIndexArrayDenotation #-}
+     in makeBuiltinMeaning
+          multiIndexArrayDenotation
+          (runCostingFunTwoArguments . paramMultiIndexArray)
+  toBuiltinMeaning _semvar Policies =
+    let policiesDenotation :: ValueOuterSize -> [ByteString]
+        policiesDenotation (ValueOuterSize v) = Value.policies v
+        {-# INLINE policiesDenotation #-}
+     in makeBuiltinMeaning
+          policiesDenotation
+          (runCostingFunOneArgument . paramPolicies)
+  toBuiltinMeaning _semvar AssetCount =
+    let assetCountDenotation :: Value -> Integer
+        assetCountDenotation = toInteger . Value.totalSize
+        {-# INLINE assetCountDenotation #-}
+     in makeBuiltinMeaning
+          assetCountDenotation
+          (runCostingFunOneArgument . paramAssetCount)
+  toBuiltinMeaning _semvar KeepPolicies =
+    let keepPoliciesDenotation :: [ByteString] -> Value -> Value
+        keepPoliciesDenotation = Value.keepPolicies
+        {-# INLINE keepPoliciesDenotation #-}
+     in makeBuiltinMeaning
+          keepPoliciesDenotation
+          (runCostingFunTwoArguments . unimplementedCostingFun)
+  toBuiltinMeaning _semvar DropPolicies =
+    let dropPoliciesDenotation :: [ByteString] -> Value -> Value
+        dropPoliciesDenotation = Value.dropPolicies
+        {-# INLINE dropPoliciesDenotation #-}
+     in makeBuiltinMeaning
+          dropPoliciesDenotation
+          (runCostingFunTwoArguments . unimplementedCostingFun)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 
@@ -2542,6 +2595,11 @@ instance Flat DefaultFun where
       ValueData -> 98
       UnValueData -> 99
       ScaleValue -> 100
+      MultiIndexArray -> 101
+      Policies -> 102
+      AssetCount -> 103
+      KeepPolicies -> 104
+      DropPolicies -> 105
 
   decode = go =<< decodeBuiltin
     where
@@ -2646,6 +2704,11 @@ instance Flat DefaultFun where
       go 98 = pure ValueData
       go 99 = pure UnValueData
       go 100 = pure ScaleValue
+      go 101 = pure MultiIndexArray
+      go 102 = pure Policies
+      go 103 = pure AssetCount
+      go 104 = pure KeepPolicies
+      go 105 = pure DropPolicies
       go t = fail $ "Failed to decode builtin tag, got: " ++ show t
 
   size _ n = n + builtinTagWidth

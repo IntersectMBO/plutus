@@ -1,0 +1,41 @@
+letrec
+  !even : integer -> bool
+    = \(n : integer) ->
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger n 0)
+          (\(u : unit) -> True)
+          (\(u : unit) ->
+             (\(m : integer) ->
+                ifThenElse
+                  {unit -> bool}
+                  (equalsInteger m 0)
+                  (\(u : unit) -> False)
+                  (\(u : unit) -> even (subtractInteger m 1))
+                  ())
+               (subtractInteger n 1))
+          ()
+  !f : integer -> bool
+    = \(x : integer) ->
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger x 0)
+          (\(u : unit) -> True)
+          (\(u : unit) -> g (subtractInteger x 1))
+          ()
+  !g : integer -> bool
+    = \(y : integer) ->
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger y 0)
+          (\(u : unit) -> False)
+          (\(u : unit) -> f (subtractInteger y 1))
+          ()
+in
+let
+  !a : bool = even 10
+in
+let
+  !b : bool = f 5
+in
+g 3

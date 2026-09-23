@@ -1,0 +1,25 @@
+letrec
+  ~even : integer -> bool
+    = \(n : integer) ->
+        let
+          !n' : integer = n
+        in
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger n' 0)
+          (\(u : unit) -> True)
+          (\(u : unit) ->
+             (\(m : integer) ->
+                let
+                  !m' : integer = m
+                in
+                ifThenElse
+                  {unit -> bool}
+                  (equalsInteger m' 0)
+                  (\(u : unit) -> False)
+                  (\(u : unit) -> even (subtractInteger m' 1))
+                  ())
+               (subtractInteger n' 1))
+          ()
+in
+even

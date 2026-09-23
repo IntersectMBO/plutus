@@ -12,6 +12,7 @@ import Control.Exception as E
 import Data.List
 import Data.Maybe
 import Data.SatInt
+import qualified Test.Cardano.Base.QuickCheck as BaseQC
 import Test.Framework as TF
 import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2
@@ -80,9 +81,9 @@ tests =
   , testProperty "+" (propBinOp (+))
   , testProperty "-" (propBinOp (-))
   , testProperty "/0" propDividedBy0
-  , testProperty "plusSI" (withMaxSuccess 10000 propPlusSI)
-  , testProperty "minusSI" (withMaxSuccess 10000 propMinusSI)
-  , testProperty "timesSI" (withMaxSuccess 10000 propTimesSI)
+  , testProperty "plusSI" (BaseQC.withNumTests 10000 propPlusSI)
+  , testProperty "minusSI" (BaseQC.withNumTests 10000 propMinusSI)
+  , testProperty "timesSI" (BaseQC.withNumTests 10000 propTimesSI)
   -- lcm and gcd do *not* pass `behavesOk` since they *internally* use `abs` (which will give the wrong/saturated
   -- answer for minBound), and hence go astray after that. But we can't easily detect that this is the "correct"
   -- saturated thing to do as we do for other operations (where we can just see if the saturating version is
@@ -95,13 +96,13 @@ intWithSpecialCases :: Gen Int
 intWithSpecialCases = frequency [(1, pure (-1)), (1, pure minBound), (1, pure maxBound), (80, arbitrary)]
 
 propBinOp :: (forall a. Num a => a -> a -> a) -> Property
-propBinOp (!) = withMaxSuccess 10000 $
+propBinOp (!) = BaseQC.withNumTests 10000 $
   forAll intWithSpecialCases $ \x ->
     forAll intWithSpecialCases $ \y ->
       ioProperty $ behavesOk (fromIntegral x ! fromIntegral y)
 
 propDividedBy0 :: Property
-propDividedBy0 = withMaxSuccess 1000 $
+propDividedBy0 = BaseQC.withNumTests 1000 $
   forAll intWithSpecialCases $
     \n -> saturatesPos ((fromIntegral n) `dividedBy` 0)
 

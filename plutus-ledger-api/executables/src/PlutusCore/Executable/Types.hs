@@ -52,7 +52,8 @@ instance Show Input where
 data Output = FileOutput FilePath | StdOutput | NoOutput
 data TimingMode = NoTiming | Timing Integer deriving stock (Eq) -- Report program execution time?
 data CekModel = Default | Unit -- Which cost model should we use for CEK machine steps?
-data PrintMode = Classic | Simple | Readable | ReadableSimple deriving stock (Show, Read)
+data PrintMode = Classic | Simple | Readable | ReadableSimple
+  deriving stock (Show, Read, Enum, Bounded)
 data NameFormat = IdNames | DeBruijnNames -- Format for textual output of names
 data TraceMode
   = None
@@ -60,7 +61,7 @@ data TraceMode
   | LogsWithTimestamps
   | LogsWithBudgets
   | LogsWithCallTrace
-  deriving stock (Show, Read)
+  deriving stock (Show, Read, Enum, Bounded)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 
@@ -105,13 +106,17 @@ data OptimiseOptions name a
       OptimiseEvalOpts
 data PrintOptions = PrintOptions Input Output PrintMode
 newtype ExampleOptions = ExampleOptions ExampleMode
-data ApplyOptions = ApplyOptions Files Format Output Format PrintMode
+
+{-| Each input file is paired with the input format to read it with (the
+explicit @--if@, or the format deduced from that file's own extension). -}
+data ApplyOptions = ApplyOptions [(FilePath, Format)] Output Format PrintMode
 
 data EvalArgKind
   = -- | Each argument is a program
     ArgProg
   | -- | Each argment is a Data object
     ArgData
+  deriving stock (Show)
 
 data OptimiseEvalOpts = OptimiseEvalOpts
   { oeEval :: Bool
@@ -137,3 +142,4 @@ pirFormatToFormat FlatNamed = Flat Named
 
 -- | Output types for some pir commands
 data Language = PLC | UPLC
+  deriving stock (Show)

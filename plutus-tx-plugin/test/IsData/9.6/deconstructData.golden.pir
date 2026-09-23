@@ -1,6 +1,4 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
@@ -27,9 +25,9 @@ let
             !d : data = d
           in
           chooseData
-            {Unit -> Maybe (Tuple2 a b)}
+            {unit -> Maybe (Tuple2 a b)}
             d
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                casePair
                  {integer}
                  {list data}
@@ -123,11 +121,11 @@ let
                                (/\dead -> Nothing {Tuple2 a b})
                                {all dead. dead}) ]
                         {all dead. dead}))
-            (\(ds : Unit) -> Nothing {Tuple2 a b})
-            (\(ds : Unit) -> Nothing {Tuple2 a b})
-            (\(ds : Unit) -> Nothing {Tuple2 a b})
-            (\(ds : Unit) -> Nothing {Tuple2 a b})
-            Unit
+            (\(ds : unit) -> Nothing {Tuple2 a b})
+            (\(ds : unit) -> Nothing {Tuple2 a b})
+            (\(ds : unit) -> Nothing {Tuple2 a b})
+            (\(ds : unit) -> Nothing {Tuple2 a b})
+            ()
   ~`$fFromDataTuple2` :
      all a b.
        (\a -> data -> Maybe a) a ->
@@ -144,32 +142,32 @@ let
           !d : data = d
         in
         chooseData
-          {Unit -> Maybe integer}
+          {unit -> Maybe integer}
           d
-          (\(ds : Unit) ->
+          (\(ds : unit) ->
              casePair
                {integer}
                {list data}
                {Maybe integer}
                (unsafeDataAsConstr d)
                (\(l : integer) (r : list data) -> Nothing {integer}))
-          (\(ds : Unit) ->
+          (\(ds : unit) ->
              let
                !ds : list (pair data data) = unsafeDataAsMap d
              in
              Nothing {integer})
-          (\(ds : Unit) ->
+          (\(ds : unit) ->
              let
                !ds : list data = unsafeDataAsList d
              in
              Nothing {integer})
-          (\(ds : Unit) -> Just {integer} (unsafeDataAsI d))
-          (\(ds : Unit) ->
+          (\(ds : unit) -> Just {integer} (unsafeDataAsI d))
+          (\(ds : unit) ->
              let
                !ds : bytestring = unsafeDataAsB d
              in
              Nothing {integer})
-          Unit
+          ()
   ~`$fFromDataInteger` : (\a -> data -> Maybe a) integer
     = `$fFromDataInteger_$cfromBuiltinData`
   ~`$dFromData` : (\a -> data -> Maybe a) (Tuple2 integer integer)

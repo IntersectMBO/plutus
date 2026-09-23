@@ -8,7 +8,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
 
 module Spec.Data.Budget where
@@ -31,6 +30,9 @@ tests =
   runTestNested ["test-ledger-api", "Spec", "Data", "Budget"] . pure . testNestedGhc $
     [ goldenPirReadable "gt" compiledGt
     , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
+    , goldenPirReadable "valueOf" compiledValueOf
+    , goldenPirReadable "lovelaceValueOf" compiledLovelaceValueOf
+    , goldenPirReadable "unsafeLovelaceValueOf" compiledUnsafeLovelaceValueOf
     ]
       ++ testCases
 
@@ -48,6 +50,15 @@ compiledMintValueBurned = $$(compile [||MintValue.mintValueBurned||])
 
 compiledCurrencySymbolValueOf :: CompiledCode (Value -> CurrencySymbol -> Integer)
 compiledCurrencySymbolValueOf = $$(compile [||currencySymbolValueOf||])
+
+compiledValueOf :: CompiledCode (Value -> CurrencySymbol -> TokenName -> Integer)
+compiledValueOf = $$(compile [||valueOf||])
+
+compiledLovelaceValueOf :: CompiledCode (Value -> Lovelace)
+compiledLovelaceValueOf = $$(compile [||lovelaceValueOf||])
+
+compiledUnsafeLovelaceValueOf :: CompiledCode (Value -> Lovelace)
+compiledUnsafeLovelaceValueOf = $$(compile [||unsafeLovelaceValueOf||])
 
 mkValue :: [(Integer, [(Integer, Integer)])] -> Value
 mkValue = Value . mkCurrencyMap
@@ -108,6 +119,21 @@ value4 =
     , (4, [(400, -401), (402, 403), (404, 405), (406, 407)])
     , (5, [(500, -501), (502, 503), (504, 505), (506, 507), (508, -509)])
     ]
+
+{-| A ledger-shaped @TxOut@ value: ada (the empty 'CurrencySymbol' and
+'TokenName') sorts first, followed by native assets, exactly as the ledger
+presents it to a validator. This is the canonical shape that
+'unsafeLovelaceValueOf' assumes. -}
+txOutValue :: Value
+txOutValue =
+  Value . Map.unsafeFromSOPList $
+    (adaSymbol, Map.unsafeFromSOPList [(adaToken, 2000000)])
+      : fmap
+        (bimap toSymbol (Map.unsafeFromSOPList . fmap (first toToken)))
+        [ (1, [(100, 101)])
+        , (2, [(200, 201), (202, 203)])
+        , (3, [(300, 301), (302, 303), (304, 305)])
+        ]
 
 testCases :: [TestNested]
 testCases =
@@ -178,6 +204,34 @@ testCases =
           `unsafeApplyCode` liftCodeDef (toSymbol 6)
       )
   , goldenEvalCekCatchBudget
+      "valueOf_hit_first"
+      ( compiledValueOf
+          `unsafeApplyCode` liftCodeDef value1
+          `unsafeApplyCode` liftCodeDef (toSymbol 1)
+          `unsafeApplyCode` liftCodeDef (toToken 100)
+      )
+  , goldenEvalCekCatchBudget
+      "valueOf_hit_middle"
+      ( compiledValueOf
+          `unsafeApplyCode` liftCodeDef value1
+          `unsafeApplyCode` liftCodeDef (toSymbol 3)
+          `unsafeApplyCode` liftCodeDef (toToken 302)
+      )
+  , goldenEvalCekCatchBudget
+      "valueOf_hit_last"
+      ( compiledValueOf
+          `unsafeApplyCode` liftCodeDef value1
+          `unsafeApplyCode` liftCodeDef (toSymbol 5)
+          `unsafeApplyCode` liftCodeDef (toToken 508)
+      )
+  , goldenEvalCekCatchBudget
+      "valueOf_miss"
+      ( compiledValueOf
+          `unsafeApplyCode` liftCodeDef value1
+          `unsafeApplyCode` liftCodeDef (toSymbol 99)
+          `unsafeApplyCode` liftCodeDef (toToken 999)
+      )
+  , goldenEvalCekCatchBudget
       "mintValueMinted"
       ( compiledMintValueMinted
           `unsafeApplyCode` liftCodeDef value4
@@ -186,5 +240,15 @@ testCases =
       "mintValueBurned"
       ( compiledMintValueBurned
           `unsafeApplyCode` liftCodeDef value4
+      )
+  , goldenEvalCekCatchBudget
+      "lovelaceValueOf"
+      ( compiledLovelaceValueOf
+          `unsafeApplyCode` liftCodeDef txOutValue
+      )
+  , goldenEvalCekCatchBudget
+      "unsafeLovelaceValueOf"
+      ( compiledUnsafeLovelaceValueOf
+          `unsafeApplyCode` liftCodeDef txOutValue
       )
   ]

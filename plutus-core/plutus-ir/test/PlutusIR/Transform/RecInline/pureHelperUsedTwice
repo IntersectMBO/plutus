@@ -1,0 +1,7 @@
+(let (rec)
+  (termbind (strict) (vardecl f (fun (con integer) (con integer)))
+    (lam n (con integer)
+      [(builtin addInteger) g g]))
+  (termbind (strict) (vardecl g (con integer))
+    (con integer 1))
+  f)

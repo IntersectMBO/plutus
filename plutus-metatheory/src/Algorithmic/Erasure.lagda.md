@@ -123,10 +123,10 @@ lenLemma⋆ (Φ ,⋆ K) = cong suc (lenLemma⋆ Φ)
 -- string of arguments, both contexts, equality proof above, and
 -- before and after versions of all arguments and all recursive calls
 
-lemzero : ∀{X X' : ℕ} (p : suc X ≡ suc X') → zero ≡ subst Fin p zero
+lemzero : ∀{n m : ℕ} (p : suc n ≡ suc m) → zero ≡ subst Fin p zero
 lemzero refl = refl
 
-lemsuc : ∀{X X' : ℕ} (p : suc X ≡ suc X') (q : X ≡ X') (x : Fin X) →
+lemsuc : ∀{n m : ℕ} (p : suc n ≡ suc m) (q : n ≡ m) (x : Fin n) →
   suc (subst Fin q x) ≡ subst Fin p (suc x)
 lemsuc refl refl x = refl
 
@@ -147,37 +147,37 @@ sameVar {Γ = Γ D.,⋆ _} (D.T {A = A} x) = trans
   (sameVar x)
   (cong (subst Fin (lenLemma Γ)) (lem-conv∋ refl (ren-nf S A) (T (nfTyVar x))))
 
-lemVar : ∀{X X'}(p : X ≡ X')(x : Fin X) →  ` (subst Fin p x) ≡ subst _⊢ p (` x)
+lemVar : ∀{n m}(p : n ≡ m)(x : Fin n) →  ` (subst Fin p x) ≡ subst _⊢ p (` x)
 lemVar refl x = refl
 
-lemƛ : ∀{X X'}(p : X ≡ X')(q : suc X ≡ suc X')(t : suc X ⊢)
+lemƛ : ∀{n m}(p : n ≡ m)(q : suc n ≡ suc m)(t : suc n ⊢)
   → ƛ (subst _⊢ q t) ≡ subst _⊢ p (ƛ t)
 lemƛ refl refl t = refl
 
-lem· : ∀{X X'}(p : X ≡ X')(t u : X ⊢) → subst _⊢ p t · subst _⊢ p u ≡ subst _⊢ p (t · u)
+lem· : ∀{n m}(p : n ≡ m)(t u : n ⊢) → subst _⊢ p t · subst _⊢ p u ≡ subst _⊢ p (t · u)
 lem· refl t u = refl
 
-lem-delay : ∀{X X'}(p : X ≡ X')(t : X ⊢) → delay (subst _⊢ p t) ≡ subst _⊢ p (delay t)
+lem-delay : ∀{n m}(p : n ≡ m)(t : n ⊢) → delay (subst _⊢ p t) ≡ subst _⊢ p (delay t)
 lem-delay refl t = refl
 
-lem-force : ∀{X X'}(p : X ≡ X')(t : X ⊢) → force (subst _⊢ p t) ≡ subst _⊢ p (force t)
+lem-force : ∀{n m}(p : n ≡ m)(t : n ⊢) → force (subst _⊢ p t) ≡ subst _⊢ p (force t)
 lem-force refl t = refl
 
-lemcon' : ∀{X X'}(p : X ≡ X')(tcn : TmCon) → con tcn ≡ subst _⊢ p (con tcn)
+lemcon' : ∀{n m}(p : n ≡ m)(tcn : TmCon) → con tcn ≡ subst _⊢ p (con tcn)
 lemcon' refl tcn = refl
 
-lemerror : ∀{X X'}(p : X ≡ X') →  error ≡ subst _⊢ p error
+lemerror : ∀{n m}(p : n ≡ m) →  error ≡ subst _⊢ p error
 lemerror refl = refl
 
-lembuiltin : ∀{X X'}(b : Builtin)(p : X ≡ X') →  builtin b ≡ subst _⊢ p (builtin b)
+lembuiltin : ∀{n m}(b : Builtin)(p : n ≡ m) →  builtin b ≡ subst _⊢ p (builtin b)
 lembuiltin b refl = refl
 
-lemConstr : ∀ {X X'}(e : ℕ) (xs : List (X ⊢))(p : X ≡ X')
+lemConstr : ∀ {n m}(e : ℕ) (xs : List (n ⊢))(p : n ≡ m)
          → subst _⊢ p (constr e xs) ≡ constr e (map (subst _⊢ p) xs)
 lemConstr e [] refl = refl
 lemConstr e (x ∷ xs) refl = cong (constr e) (cong (x ∷_) (sym (map-id xs)))
 
-lemCase : ∀ {X X'}(t : X ⊢) (cs : List (X ⊢))(p : X ≡ X')
+lemCase : ∀ {n m}(t : n ⊢) (cs : List (n ⊢))(p : n ≡ m)
         → subst _⊢ p (case t cs) ≡ case (subst _⊢ p t) (map (subst _⊢ p) cs)
 lemCase t cs refl = cong (case t) (sym (map-id cs))
 

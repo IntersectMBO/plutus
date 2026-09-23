@@ -1,4 +1,90 @@
 
+<a id='changelog-1.70.0.0'></a>
+# 1.70.0.0 — 2026-09-22
+
+## Removed
+
+- `plc optimise` no longer accepts the `--certify` and `--certifier-*` options. It never ran the certifier (or any optimisation), so accepting the flags and silently producing no certificate was misleading.
+
+## Added
+
+- Added some helper functions for dealing with V4 script context.
+
+<a id='changelog-1.69.0.0'></a>
+# 1.69.0.0 — 2026-09-11
+
+## Changed
+
+- Encode product types in the Plutus V4 ledger API as `List` instead of `Constr 0`, including their data-backed counterparts and blueprint schemas. Introduce V4 wrappers for products previously reused from earlier versions, including transaction references, governance products, rational numbers and asset classes. V1-V3 encodings are unchanged.
+
+<a id='changelog-1.68.0.0'></a>
+# 1.68.0.0 — 2026-08-21
+
+## Added
+
+- Plutus V4 and `dijkstraPV`.
+
+<a id='changelog-1.67.0.0'></a>
+# 1.67.0.0 — 2026-08-06
+
+## Added
+
+- Shell completion (bash/zsh/fish) and worked `Examples` sections in `--help`
+  for the `uplc`, `plc` and `pir` executables, via completion metadata in the
+  shared `plutus-execlib` option parsers and a new `PlutusCore.Executable.Help`
+  module.
+
+- `unsafeLovelaceValueOf` in `PlutusLedgerApi.V1.Value` and `PlutusLedgerApi.V1.Data.Value`: assumes the first amount of the first currency represents lovelace without verifying this, which makes it much faster than `lovelaceValueOf`. It is sound only when this is true.
+
+- `PlutusLedgerApi.V2`, `PlutusLedgerApi.V3`, and `PlutusLedgerApi.Data.V1`/`V2`/`V3` re-export the full `Value` API that `PlutusLedgerApi.V1` already exposed (read accessors, `AssetClass`, helpers), and all of these umbrellas (including `V1`) now also expose `geq`, `gt`, `leq`, `lt`, and `withCurrencySymbol`. Reading or comparing a `Value` from these modules no longer requires importing `PlutusLedgerApi.V1.Value` or `PlutusLedgerApi.V1.Data.Value`.
+
+- Add first draft Plutus V4 script context types.
+
+- The `uplc` and `plc` executables now deduce the input and output format from
+  the file extension when `--if`/`--of` is not supplied: `.uplc`/`.plc`/`.pir`
+  → textual, `.flat` → flat, and (for `uplc` only) `.hex` → hex and `.cbor` →
+  serialised. An explicit `--if`/`--of` always overrides the deduced format, and
+  reading from stdin, writing to stdout, or an unrecognised extension still
+  falls back to textual.
+- The `apply` command now deduces the format of each input file independently
+  from its own extension, so a script and arguments in different formats can be
+  applied together (for example a textual script applied to flat-encoded
+  arguments). An explicit `--if` still forces a single format for every file.
+
+## Changed
+
+- When an output file is given with `-o` but no `--of`, the output format is now
+  deduced from the file's extension instead of always defaulting to textual. A
+  command that relied on the old default (for example `uplc convert -i p.uplc -o
+  p.flat` with no `--of`) will now write the format implied by the extension;
+  pass `--of textual` explicitly to restore the previous behaviour.
+
+## Fixed
+
+- The `plc` executable no longer advertises the `serialised`, `hex` and
+  `blueprint` formats, which it never supported: `--if`/`--of` now accept only
+  `textual` and the `flat` variants, and unsupported values are rejected when
+  the command line is parsed rather than a failure occurring at runtime.
+
+<a id='changelog-1.66.0.0'></a>
+# 1.66.0.0 — 2026-07-09
+
+## Added
+
+- Exported `inclusiveLowerBound` and `inclusiveUpperBound` from
+  `PlutusLedgerApi.V1.Interval`, `PlutusLedgerApi.V1.Data.Interval`,
+  and all re-exporting modules (`PlutusLedgerApi.V1`/`V2`/`V3` and the
+  `PlutusLedgerApi.Data.V1`/`V2`/`V3` counterparts). These helpers
+  normalise `LowerBound`/`UpperBound` values into an equivalent
+  inclusive `Extended a`, removing the need for validator authors to
+  re-implement the same closure handling locally.
+
+## Changed
+
+- `PlutusLedgerApi.V1.Data.Value.valueOf` rewritten to walk the underlying `BuiltinList` directly via `unsafeDataAsMap` / `unsafeDataAsB` / `unsafeDataAsI` and short-circuit on the first match. The previous implementation went through `Map.lookup`, which materialised a `Maybe` only to deconstruct it immediately. Semantics are unchanged.
+
+- Optimised `unionWith` in `PlutusLedgerApi.V1.Data.Value`: same semantics and signature, but the merge now runs in two outer passes instead of three. A constant-factor speedup, not an algorithmic one.
+
 <a id='changelog-1.60.0.0'></a>
 # 1.60.0.0 — 2026-03-18
 

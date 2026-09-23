@@ -37,6 +37,7 @@ import Data.Either
 import Data.HashMap.Strict qualified as HashMap
 import Data.Hashable
 import Data.Map.Strict qualified as Map
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck
 
 -- | 'rename' a 'Term' and 'show' it afterwards.
@@ -67,7 +68,7 @@ Note, the counterexamples from this property are not shrunk (see why below).
 See Note [Debugging generators that don't generate well-typed/kinded terms/types]
 and the utility properties below when this property fails. -}
 p_genTypeCorrect :: Bool -> Property
-p_genTypeCorrect debug = withMaxSuccess 200 $ do
+p_genTypeCorrect debug = BaseQC.withNumTests 200 $ do
   -- Note, we don't shrink this term here because a precondition of shrinking is that
   -- the term we are shrinking is well-typed. If it is not, the counterexample we get
   -- from shrinking will be nonsene.
@@ -77,7 +78,7 @@ p_genTypeCorrect debug = withMaxSuccess 200 $ do
 {-| Test that when we generate a fully applied term we end up
 with a well-typed term. -}
 prop_genWellTypedFullyApplied :: Property
-prop_genWellTypedFullyApplied = withMaxSuccess 50 $
+prop_genWellTypedFullyApplied = BaseQC.withNumTests 50 $
   forAllDoc "ty, tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \(ty, tm) ->
     -- No shrinking here because if `genFullyApplied` is wrong then the shrinking
     -- will be wrong too. See `prop_genTypeCorrect`.
@@ -87,7 +88,7 @@ prop_genWellTypedFullyApplied = withMaxSuccess 50 $
 -- | Test that shrinking a well-typed term results in a well-typed term
 prop_shrinkTermSound :: Property
 -- The test is disabled, because it's exponential and was hanging CI.
-prop_shrinkTermSound = withMaxSuccess 0 $
+prop_shrinkTermSound = BaseQC.withNumTests 0 $
   forAllDoc "ty,tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \(ty, tm) ->
     let shrinks = shrinkClosedTypedTerm (ty, tm)
      in -- While we generate well-typed terms we still need this check here for
@@ -112,7 +113,7 @@ prop_shrinkTermSound = withMaxSuccess 0 $
 
 -- | Test that `findInstantiation` results in a well-typed instantiation.
 prop_findInstantiation :: Property
-prop_findInstantiation = withMaxSuccess 1000 $
+prop_findInstantiation = BaseQC.withNumTests 1000 $
   forAllDoc "ctx" genCtx (const []) $ \ctx0 ->
     forAllDoc "ty" (genTypeWithCtx ctx0 $ Type ()) (shrinkType ctx0) $ \ty0 ->
       forAllDoc "target" (genTypeWithCtx ctx0 $ Type ()) (shrinkType ctx0) $ \target ->
@@ -149,7 +150,7 @@ prop_findInstantiation = withMaxSuccess 1000 $
 
 -- | Check what's in the leaves of the generated data
 prop_stats_leaves :: Property
-prop_stats_leaves = withMaxSuccess 10 $
+prop_stats_leaves = BaseQC.withNumTests 10 $
   -- No shrinking here because we are only collecting stats
   forAllDoc "_,tm" genTypeAndTerm_ (const []) $ \(_, tm) ->
     tabulate "leaves" (map (filter isAlpha . show . prettyReadable) $ leaves tm) $ property True
@@ -168,7 +169,7 @@ prop_stats_leaves = withMaxSuccess 10 $
 -- | Check the ratio of duplicate shrinks
 prop_stats_numShrink :: Property
 -- The test is disabled, because it's exponential and was hanging CI.
-prop_stats_numShrink = withMaxSuccess 0 $
+prop_stats_numShrink = BaseQC.withNumTests 0 $
   -- No shrinking here because we are only collecting stats
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \(ty, tm) ->
     let shrinks = map snd $ shrinkClosedTypedTerm (ty, tm)
@@ -181,7 +182,7 @@ prop_stats_numShrink = withMaxSuccess 0 $
 
 -- | Specific test that `inhabitType` returns well-typed things
 prop_inhabited :: Property
-prop_inhabited = withMaxSuccess 50 $
+prop_inhabited = BaseQC.withNumTests 50 $
   -- No shrinking here because if the generator
   -- generates nonsense shrinking will be nonsense.
   forAllDoc "ty,tm" (genInhab mempty) (const []) $
@@ -201,7 +202,7 @@ prop_inhabited = withMaxSuccess 50 $
 -- | Check that there are no one-step shrink loops
 prop_noTermShrinkLoops :: Property
 -- The test is disabled, because it's exponential and was hanging CI.
-prop_noTermShrinkLoops = withMaxSuccess 0
+prop_noTermShrinkLoops = BaseQC.withNumTests 0
   $
   -- Note that we need to remove x from the shrinks of x here because
   -- a counterexample to this property is otherwise guaranteed to
@@ -226,7 +227,7 @@ noStructuralErrors term =
 
 -- | Test that evaluation of well-typed terms doesn't fail with a structural error.
 prop_noStructuralErrors :: Property
-prop_noStructuralErrors = withMaxSuccess 99 $
+prop_noStructuralErrors = BaseQC.withNumTests 99 $
   forAllDoc "ty,tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \(_, termPir) -> ioProperty $ do
     termUPlc <-
       fmap UPLC._progTerm . modifyError (userError . displayException) . toUPlc $

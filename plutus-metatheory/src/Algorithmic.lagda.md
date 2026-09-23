@@ -35,7 +35,7 @@ open import Builtin using (Builtin)
 
 open import Builtin.Constant.Type using (TyCon)
 open TyCon
-open import Builtin.Constant.AtomicType using (⟦_⟧at)
+open import Builtin.Constant.AtomicType using (AtomicTyCon; ⟦_⟧at)
 
 open import Builtin.Signature using (_⊢♯)
 open _⊢♯
@@ -152,6 +152,15 @@ ty≅sty₂ (atomic x) = refl
 ty≅sty₂ (list A) = cong list (ty≅sty₂ A)
 ty≅sty₂ (array A) = cong array (ty≅sty₂ A)
 ty≅sty₂ (pair A B) = cong₂ pair (ty≅sty₂ A) (ty≅sty₂ B)
+```
+
+The normal-form type of an atomic builtin constant: `con-atomic aInteger` is
+the type of integer constants, and so on. This is used in particular as the
+error type reported by failing builtins in the CEK machine.
+
+```
+con-atomic : ∀ {Φ} → AtomicTyCon → Φ ⊢Nf⋆ *
+con-atomic a = con (ne (^ (atomic a)))
 ```
 
 The semantics of closed types of kind ♯ is given by the following

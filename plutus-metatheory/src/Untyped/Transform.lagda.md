@@ -32,9 +32,9 @@ recursing in lists of terms, which happens for `constr` and `case`.
 infixl 30 _↑_
 infixl 30 _↑*_
 
-_↑_ : (∀ {X} → X ⊢ → X ⊢) → ∀ {X} → X ⊢ → X ⊢
-_↑*_ : (∀ {X} → X ⊢ → X ⊢) → ∀ {X} → List (X ⊢) → List (X ⊢)
-subterms : (∀ {X} → X ⊢ → X ⊢) → ∀ {X} → X ⊢ → X ⊢
+_↑_ : (∀ {n} → n ⊢ → n ⊢) → ∀ {n} → n ⊢ → n ⊢
+_↑*_ : (∀ {n} → n ⊢ → n ⊢) → ∀ {n} → List (n ⊢) → List (n ⊢)
+subterms : (∀ {n} → n ⊢ → n ⊢) → ∀ {n} → n ⊢ → n ⊢
 
 f ↑ M = f (subterms f M)
 
@@ -61,9 +61,9 @@ With partial functions:
 infixl 30 _↑?_
 infixl 30 _↑?*_
 
-_↑?_ : (∀ {X} → X ⊢ → Maybe (X ⊢)) → ∀ {X} → X ⊢ → X ⊢
-_↑?*_ : (∀ {X} → X ⊢ → Maybe (X ⊢)) → ∀ {X} → List (X ⊢) → List (X ⊢)
-sub : (∀ {X} → X ⊢ → Maybe (X ⊢)) → ∀ {X} → X ⊢ → X ⊢
+_↑?_ : (∀ {n} → n ⊢ → Maybe (n ⊢)) → ∀ {n} → n ⊢ → n ⊢
+_↑?*_ : (∀ {n} → n ⊢ → Maybe (n ⊢)) → ∀ {n} → List (n ⊢) → List (n ⊢)
+sub : (∀ {n} → n ⊢ → Maybe (n ⊢)) → ∀ {n} → n ⊢ → n ⊢
 
 f ↑? M = let M' = sub f M
         in fromMaybe M' (f M')
@@ -100,14 +100,14 @@ module Refines
   open TermCompatible ~-compat
 
   ↑-refines : Refines (f ↑_) R
-  ↑*-refines : ∀ {X} {Ms : List (X ⊢)} →
+  ↑*-refines : ∀ {n} {Ms : List (n ⊢)} →
       Pointwise R Ms (f ↑* Ms)
   subterms-refines : Refines (subterms f) R
 
-  ↑-refines {X} {M} = ~-trans subterms-refines f-refines 
+  ↑-refines {n} {M} = ~-trans subterms-refines f-refines 
   ↑*-refines {Ms = []} = []
   ↑*-refines {Ms = _ ∷ _} = ↑-refines ∷ ↑*-refines
-  subterms-refines {X} {M} with M
+  subterms-refines {n} {M} with M
   ... | ` _ = compat-var
   ... | ƛ _ = compat-ƛ ↑-refines
   ... | _ · _ = compat-· ↑-refines ↑-refines 
@@ -123,24 +123,24 @@ module Refines?
   (R : Relation)
   (~-trans : Transitive R)
   (~-compat : TermCompatible R)
-  (f : ∀ {X} → X ⊢ → Maybe (X ⊢))
+  (f : ∀ {n} → n ⊢ → Maybe (n ⊢))
   (f-refines? : Refines? f R)
   where
 
   open TermCompatible ~-compat
 
   ↑?-refines : Refines (f ↑?_) R
-  ↑?*-refines : ∀ {X} {Ms : List (X ⊢)} →
+  ↑?*-refines : ∀ {n} {Ms : List (n ⊢)} →
       Pointwise R Ms (f ↑?* Ms)
   sub-refines : Refines (sub f) R
 
-  ↑?-refines {X} {M} with sub-refines {_} {M}
+  ↑?-refines {n} {M} with sub-refines {_} {M}
   ... | sub-ext with f (sub f M) in eq
   ... | just M'' = ~-trans sub-ext (f-refines? _ _ eq)
   ... | nothing = sub-ext
   ↑?*-refines {Ms = []} = []
   ↑?*-refines {Ms = _ ∷ _} = ↑?-refines ∷ ↑?*-refines
-  sub-refines {X} {M} with M
+  sub-refines {n} {M} with M
   ... | ` _ = compat-var
   ... | ƛ _ = compat-ƛ ↑?-refines
   ... | _ · _ = compat-· ↑?-refines ↑?-refines

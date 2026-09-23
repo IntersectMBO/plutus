@@ -5,7 +5,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.Coop.Scripts where
 
@@ -15,16 +14,9 @@ import PlutusTx.Prelude
 import Prelude ()
 
 import PlutusLedgerApi.V1.Interval (contains)
-import PlutusLedgerApi.V1.Value
-  ( AssetClass (AssetClass)
-  , isZero
-  , unAssetClass
-  , valueOf
-  , withCurrencySymbol
-  )
-import PlutusLedgerApi.V1.Value qualified as Value
 import PlutusLedgerApi.V2
-  ( Datum
+  ( AssetClass (AssetClass)
+  , Datum
   , Extended (PosInf)
   , Interval (Interval, ivTo)
   , LedgerBytes (getLedgerBytes)
@@ -48,7 +40,12 @@ import PlutusLedgerApi.V2
   , TxOutRef (TxOutRef, txOutRefId, txOutRefIdx)
   , UpperBound (UpperBound)
   , Value (Value, getValue)
+  , isZero
+  , unAssetClass
+  , valueOf
+  , withCurrencySymbol
   )
+import PlutusLedgerApi.V2 qualified as Value
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.List (elem, find, foldl, null)

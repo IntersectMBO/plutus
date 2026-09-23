@@ -31,6 +31,7 @@ module PlutusLedgerApi.Common.Versions
   , batch4b
   , batch5
   , batch6
+  , batch7
   , MaxBounds (..)
   , maxBoundsByPV
   ) where
@@ -96,6 +97,8 @@ data PlutusLedgerLanguage
     PlutusV2
   | -- | introduced in Chang HF
     PlutusV3
+  | -- | introduced in Dijkstra HF
+    PlutusV4
   deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
   deriving anyclass (NFData, NoThunks, Serialise)
 
@@ -108,6 +111,7 @@ ledgerLanguageIntroducedIn = \case
   PlutusV1 -> alonzoPV
   PlutusV2 -> vasilPV
   PlutusV3 -> changPV
+  PlutusV4 -> dijkstraPV
 
 {-| Which Plutus language versions are available in the given
 'MajorProtocolVersion'?  See Note [New builtins/language versions and protocol
@@ -139,7 +143,7 @@ collectUpTo m thisPv =
   then a new `batch` object MUST be added to contain them and the
   `builtinsIntroducedIn` function must be updated; the contents of batches which
   have already been deployed must NOT be altered.  Also, remember to UPDATE THE
-  TESTS in `Spec.Versions` and `Spec.Data.Versions` when a new batch is added.
+  TESTS in `Spec.Versions` when a new batch is added.
 -}
 
 {- It's tempting to try something like `fmap toEnum [0..50]` here, but that's
@@ -302,6 +306,12 @@ batch6 =
   , ScaleValue
   ]
 
+-- Builtins that are implemented but not yet approved for release in any protocol
+-- version. See Note [Adding new builtins: protocol versions].
+batch7 :: [DefaultFun]
+batch7 =
+  [MultiIndexArray, Policies, AssetCount, KeepPolicies, DropPolicies]
+
 {-| Given a ledger language, return a map indicating which builtin functions were
   introduced in which 'MajorProtocolVersion'.  This __must__ be updated when new
   builtins are added.  It is not necessary to add entries for protocol versions
@@ -314,6 +324,7 @@ builtinsIntroducedIn =
       Map.fromList
         [ (alonzoPV, Set.fromList batch1)
         , (vanRossemPV, Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
+        , (futurePV, Set.fromList batch7)
         ]
     PlutusV2 ->
       Map.fromList
@@ -321,12 +332,22 @@ builtinsIntroducedIn =
         , (valentinePV, Set.fromList batch3)
         , (plominPV, Set.fromList batch4b)
         , (vanRossemPV, Set.fromList (batch4a ++ batch5 ++ batch6))
+        , (futurePV, Set.fromList batch7)
         ]
     PlutusV3 ->
       Map.fromList
         [ (changPV, Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
         , (plominPV, Set.fromList batch5)
         , (vanRossemPV, Set.fromList batch6)
+        , (futurePV, Set.fromList batch7)
+        ]
+    PlutusV4 ->
+      Map.fromList
+        [
+          ( dijkstraPV
+          , Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6)
+          )
+        , (futurePV, Set.fromList batch7)
         ]
 
 {-| Return a set containing the builtins which are available in a given LL in a
@@ -354,6 +375,10 @@ plcVersionsIntroducedIn =
     PlutusV3 ->
       Map.fromList
         [ (changPV, Set.fromList [plcVersion100, plcVersion110])
+        ]
+    PlutusV4 ->
+      Map.fromList
+        [ (dijkstraPV, Set.fromList [plcVersion100, plcVersion110])
         ]
 
 {-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'

@@ -37,10 +37,10 @@ The `sat` function is used to measure whether a builtin at the bottom of a
 sub-tree of `force` and applications is now saturated and ready to reduce.
 
 ```
-data Pure {X : ℕ} : (X ⊢) → Set where
-    force : {t : X ⊢} → Pure t → Pure (force (delay t))
+data Pure {n : ℕ} : (n ⊢) → Set where
+    force : {t : n ⊢} → Pure t → Pure (force (delay t))
 
-    constr : {i : ℕ} {xs : List (X ⊢)} → All Pure xs → Pure (constr i xs)
+    constr : {i : ℕ} {xs : List (n ⊢)} → All Pure xs → Pure (constr i xs)
 
     -- This assumes there are no builtins with arity 0
     -- Or, if there are, they can just be replaced by a
@@ -51,7 +51,7 @@ data Pure {X : ℕ} : (X ⊢) → Set where
     -- after it has been force'd or had something applied
     -- hence, unsat-builtin₀ and unsat-builtin₁ have
     -- (suc (suc _)) requirements.
-    unsat-builtin₀ : {t : X ⊢} {a₀ a₁ : ℕ}
+    unsat-builtin₀ : {t : n ⊢} {a₀ a₁ : ℕ}
             → sat t ≡ want (suc (suc a₀)) a₁
             → Pure t
             → Pure (force t)
@@ -59,12 +59,12 @@ data Pure {X : ℕ} : (X ⊢) → Set where
     -- unsat-builtin₀₋₁ handles the case where
     -- we consume the last type argument but
     -- still have some unsaturated term args.
-    unsat-builtin₀₋₁ : {t : X ⊢} {a₁ : ℕ}
+    unsat-builtin₀₋₁ : {t : n ⊢} {a₁ : ℕ}
             → sat t ≡ want (suc zero) (suc a₁)
             → Pure t
             → Pure (force t)
 
-    unsat-builtin₁ : {t t₁ : X ⊢} {a₁ : ℕ}
+    unsat-builtin₁ : {t t₁ : n ⊢} {a₁ : ℕ}
             → sat t ≡ want zero (suc (suc a₁))
             → Pure t
             → Pure t₁
@@ -76,20 +76,20 @@ data Pure {X : ℕ} : (X ⊢) → Set where
     -- ƛ ƛ ( (` nothing) · (` just nothing) ) · (ƛ error) · t -- not pure
     -- Double application is considered impure (Unknown) by
     -- the Haskell implementation at the moment.
-    app : {l : suc X ⊢} {r : X ⊢}
+    app : {l : suc n ⊢} {r : n ⊢}
             → Pure l
             → Pure r
             → Pure ((ƛ l) · r)
 
-    var : {v : Fin X} → Pure (` v)
-    delay : {t : X ⊢} → Pure (delay t)
-    ƛ : {t : (suc X) ⊢} → Pure (ƛ t)
+    var : {v : Fin n} → Pure (` v)
+    delay : {t : n ⊢} → Pure (delay t)
+    ƛ : {t : (suc n) ⊢} → Pure (ƛ t)
     con : {c : TmCon} → Pure (con c)
     -- all `case` and `error` terms are considered impure.
 
-isPure? : {X : ℕ} → (t : X ⊢) → Dec (Pure t)
+isPure? : {n : ℕ} → (t : n ⊢) → Dec (Pure t)
 
-allPure? : {X : ℕ} → (ts : List (X ⊢)) → Dec (All Pure ts)
+allPure? : {n : ℕ} → (ts : List (n ⊢)) → Dec (All Pure ts)
 allPure? [] = yes All.[]
 allPure? (t ∷ ts) with (isPure? t) ×-dec (allPure? ts)
 ... | yes (p , ps) = yes (p All.∷ ps)
@@ -167,7 +167,7 @@ An open term is semantically pure when closing it with a value substitution
 results in a closed pure term:
 
 ```
-pure : ∀{X} → X ⊢ → Set
+pure : ∀{n} → n ⊢ → Set
 pure M = ∃ λ ρ → pure₀ (sub (env2sub ρ) M)
 ```
 
@@ -191,5 +191,5 @@ TODO:
 
 ```
 postulate
-  Pure-pure : ∀ {X} {M : X ⊢} → Pure M → pure M
+  Pure-pure : ∀ {n} {M : n ⊢} → Pure M → pure M
 ```

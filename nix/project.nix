@@ -130,6 +130,12 @@ let
             plutus-tx.components.tests.plutus-tx-test.testFlags = [ "--no-create" ];
           };
         }
+        {
+          # The uplc-evaluator is a non-critical, on-demand tool. Its executable
+          # is still built on every PR, but the integration tests run only in
+          # the nightly testsuite rather than gating every PR.
+          packages.plutus-benchmark.components.tests.uplc-evaluator-integration-tests.doCheck = false;
+        }
         ({ lib, pkgs, ... }: lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
           # This fixed basement compilation error on Windows (ref: https://ci.iog.io/build/8529222/nixlog/1)
           # ```

@@ -7,6 +7,7 @@ Parsable functions are  [ addInteger
                         , andByteString
                         , appendByteString
                         , appendString
+                        , assetCount
                         , bData
                         , blake2b_224
                         , blake2b_256
@@ -40,6 +41,7 @@ Parsable functions are  [ addInteger
                         , decodeUtf8
                         , divideInteger
                         , dropList
+                        , dropPolicies
                         , encodeUtf8
                         , equalsByteString
                         , equalsData
@@ -56,6 +58,7 @@ Parsable functions are  [ addInteger
                         , insertCoin
                         , integerToByteString
                         , keccak_256
+                        , keepPolicies
                         , lengthOfArray
                         , lengthOfByteString
                         , lessThanByteString
@@ -71,9 +74,11 @@ Parsable functions are  [ addInteger
                         , mkNilPairData
                         , mkPairData
                         , modInteger
+                        , multiIndexArray
                         , multiplyInteger
                         , nullList
                         , orByteString
+                        , policies
                         , quotientInteger
                         , readBit
                         , remainderInteger

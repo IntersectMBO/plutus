@@ -25,14 +25,14 @@ open _⊢
 
 ```
 Ren : ℕ → ℕ → Set
-Ren X Y = Fin X → Fin Y
+Ren n m = Fin n → Fin m
 
-lift : {X Y : ℕ} → Ren X Y → Ren (suc X) (suc Y)
+lift : {n m : ℕ} → Ren n m → Ren (suc n) (suc m)
 lift ρ zero = zero
 lift ρ (suc x) = suc (ρ x)
 
-renList  : {X Y : ℕ} → Ren X Y → List (X ⊢) → List (Y ⊢)
-ren : {X Y : ℕ} → Ren X Y → X ⊢ → Y ⊢
+renList  : {n m : ℕ} → Ren n m → List (n ⊢) → List (m ⊢)
+ren : {n m : ℕ} → Ren n m → n ⊢ → m ⊢
 ren ρ (` x)         = ` (ρ x)
 ren ρ (ƛ t)         = ƛ (ren (lift ρ) t)
 ren ρ (t · u)       = ren ρ t · ren ρ u
@@ -47,32 +47,32 @@ ren ρ (case x ts)   = case (ren ρ x) (renList ρ ts)
 renList ρ [] = []
 renList ρ (x ∷ xs) = ren ρ x ∷ renList ρ xs
 
-weaken : {X : ℕ} → X ⊢ → suc X ⊢
+weaken : {n : ℕ} → n ⊢ → suc n ⊢
 weaken t = ren suc t
 ```
 
 Proofs that renaming forms a functor
 
 ```
-lift-cong : ∀{X Y}
-    {ρ ρ' : Ren X Y}
+lift-cong : ∀{n m}
+    {ρ ρ' : Ren n m}
   → (∀ x → ρ x ≡ ρ' x)
-  → (x : Fin (suc X))
+  → (x : Fin (suc n))
     --------------------
   → lift ρ x ≡ lift ρ' x
 lift-cong p zero  = refl
 lift-cong p (suc x) = cong suc (p x)
 
-renList-cong : ∀{X Y}
-    {ρ ρ' : Ren X Y}
+renList-cong : ∀{n m}
+    {ρ ρ' : Ren n m}
   → (∀ x → ρ x ≡ ρ' x)
-  → (t : List (X ⊢))
+  → (t : List (n ⊢))
   → renList ρ t ≡ renList ρ' t
 
-ren-cong : ∀{X Y}
-    {ρ ρ' : Ren X Y}
+ren-cong : ∀{n m}
+    {ρ ρ' : Ren n m}
   → (∀ x → ρ x ≡ ρ' x)
-  → (t : X ⊢)
+  → (t : n ⊢)
   → ren ρ t ≡ ren ρ' t
 ren-cong p (` x)         = cong ` (p x)
 ren-cong p (ƛ t)         = cong ƛ (ren-cong (lift-cong p) t)
@@ -88,17 +88,17 @@ ren-cong p (case t ts)   = cong₂ case (ren-cong p t) (renList-cong p ts)
 renList-cong p [] = refl
 renList-cong p (x ∷ xs) = cong₂ _∷_ (ren-cong p x) (renList-cong p xs)
 
-lift-id : ∀{X}(x : Fin (suc X)) → id x ≡ lift id x
+lift-id : ∀{n}(x : Fin (suc n)) → id x ≡ lift id x
 lift-id zero  = refl
 lift-id (suc x) = refl
 
-lift-comp : ∀{X Y Z}(g : Ren X Y)(f : Ren Y Z)(x : Fin (suc X))
+lift-comp : ∀{n m o}(g : Ren n m)(f : Ren m o)(x : Fin (suc n))
   → lift (f ∘ g) x ≡ lift f (lift g x)
 lift-comp g f zero  = refl
 lift-comp g f (suc x) = refl
 
-renList-id : ∀{X}(ts : List (X ⊢)) → ts ≡ renList id ts
-ren-id : ∀{X}(t : X ⊢) → t ≡ ren id t
+renList-id : ∀{n}(ts : List (n ⊢)) → ts ≡ renList id ts
+ren-id : ∀{n}(t : n ⊢) → t ≡ ren id t
 ren-id (` x)         = refl
 ren-id (ƛ t)         = cong ƛ (trans (ren-id t) (ren-cong lift-id t))
 ren-id (t · u)       = cong₂ _·_ (ren-id t) (ren-id u)
@@ -114,9 +114,9 @@ renList-id [] = refl
 renList-id (x ∷ ts) = cong₂ _∷_ (ren-id x) (renList-id ts)
 
 
-renList-comp : ∀{X Y Z}(g : Ren X Y)(f : Ren Y Z)(t : List (X ⊢))
+renList-comp : ∀{n m o}(g : Ren n m)(f : Ren m o)(t : List (n ⊢))
   → renList (f ∘ g) t ≡ renList f (renList g t)
-ren-comp : ∀{X Y Z}(g : Ren X Y)(f : Ren Y Z)(t : X ⊢)
+ren-comp : ∀{n m o}(g : Ren n m)(f : Ren m o)(t : n ⊢)
   → ren (f ∘ g) t ≡ ren f (ren g t)
 ren-comp ρ ρ' (` x)            = refl
 ren-comp ρ ρ' (ƛ t)            = cong ƛ (trans
@@ -139,14 +139,14 @@ renList-comp ρ ρ' (x ∷ xs) = cong₂ _∷_ (ren-comp ρ ρ' x) (renList-comp
 
 ```
 Sub : ℕ → ℕ → Set
-Sub X Y = Fin X → Y ⊢
+Sub n m = Fin n → m ⊢
 
-lifts : {X Y : ℕ} → Sub X Y → Sub (suc X) (suc Y)
+lifts : {n m : ℕ} → Sub n m → Sub (suc n) (suc m)
 lifts ρ zero = ` zero
 lifts ρ (suc x) = ren suc (ρ x)
 
-subList : {X Y : ℕ} → Sub X Y → List (X ⊢) → List (Y ⊢)
-sub : {X Y : ℕ} → Sub X Y → X ⊢ → Y ⊢
+subList : {n m : ℕ} → Sub n m → List (n ⊢) → List (m ⊢)
+sub : {n m : ℕ} → Sub n m → n ⊢ → m ⊢
 sub σ (` x)         = σ x
 sub σ (ƛ t)         = ƛ (sub (lifts σ) t)
 sub σ (t · u)       = sub σ t · sub σ u
@@ -161,34 +161,34 @@ sub σ (case x ts)  = case (sub σ x) (subList σ ts)
 subList σ [] = []
 subList σ (x ∷ xs) = sub σ x ∷ subList σ xs
 
-extend : ∀{X Y} → Sub X Y → Y ⊢ → Sub (suc X) Y
+extend : ∀{n m} → Sub n m → m ⊢ → Sub (suc n) m
 extend σ t zero  = t
 extend σ t (suc x) = σ x
 
-_↑ˢ : ∀{X Y} → Sub X Y → Sub X (suc Y)
+_↑ˢ : ∀{n m} → Sub n m → Sub n (suc m)
 _↑ˢ σ x = weaken (σ x)
 
-_[_] : ∀{X} → suc X ⊢ → X ⊢ → X ⊢
+_[_] : ∀{n} → suc n ⊢ → n ⊢ → n ⊢
 t [ u ] = sub (extend ` u) t
 ```
 
 Proofs that substitution forms a monad
 
 ```
-lifts-cong : ∀{X Y}{σ σ' : Sub X Y}
+lifts-cong : ∀{n m}{σ σ' : Sub n m}
   → (∀ x → σ x ≡ σ' x)
-  → (x : Fin (suc X))
+  → (x : Fin (suc n))
   → lifts σ x ≡ lifts σ' x
 lifts-cong p zero  = refl
 lifts-cong p (suc x) = cong (ren suc) (p x)
 
-subList-cong : ∀{X Y}{σ σ' : Sub X Y}
+subList-cong : ∀{n m}{σ σ' : Sub n m}
   → (∀ x → σ x ≡ σ' x)
-  → (ts : List (X ⊢))
+  → (ts : List (n ⊢))
   → subList σ ts ≡ subList σ' ts
-sub-cong : ∀{X Y}{σ σ' : Sub X Y}
+sub-cong : ∀{n m}{σ σ' : Sub n m}
   → (∀ x → σ x ≡ σ' x)
-  → (t : X ⊢)
+  → (t : n ⊢)
   → sub σ t ≡ sub σ' t
 sub-cong p (` x)         = p x
 sub-cong p (ƛ t)         = cong ƛ (sub-cong (lifts-cong p) t)
@@ -204,12 +204,12 @@ sub-cong p (case t ts)   = cong₂ case (sub-cong p t) (subList-cong p ts)
 subList-cong p [] = refl
 subList-cong p (x ∷ xs) = cong₂ _∷_ (sub-cong p x) (subList-cong p xs)
 
-lifts-id : ∀{X}(x : Fin (suc X)) → ` x ≡ lifts ` x
+lifts-id : ∀{n}(x : Fin (suc n)) → ` x ≡ lifts ` x
 lifts-id zero  = refl
 lifts-id (suc x) = refl
 
-subList-id : ∀{X}(ts : List (X ⊢)) → ts ≡ subList ` ts
-sub-id : ∀{X}(t : X ⊢) → t ≡ sub ` t
+subList-id : ∀{n}(ts : List (n ⊢)) → ts ≡ subList ` ts
+sub-id : ∀{n}(t : n ⊢) → t ≡ sub ` t
 sub-id (` x)         = refl
 sub-id (ƛ t)         = cong ƛ (trans (sub-id t) (sub-cong lifts-id t))
 sub-id (t · u)       = cong₂ _·_ (sub-id t) (sub-id u)
@@ -224,14 +224,14 @@ sub-id (case t ts)   = cong₂ case (sub-id t) (subList-id ts)
 subList-id [] = refl
 subList-id (x ∷ xs) = cong₂ _∷_ (sub-id x) (subList-id xs)
 
-lifts-lift : ∀{X Y Z}(g : Ren X Y)(f : Sub Y Z)(x : Fin (suc X))
+lifts-lift : ∀{n m o}(g : Ren n m)(f : Sub m o)(x : Fin (suc n))
   → lifts (f ∘ g) x ≡ lifts f (lift g x)
 lifts-lift g f zero  = refl
 lifts-lift g f (suc x) = refl
 
-subList-ren : ∀{X Y Z}(ρ : Ren X Y)(σ : Sub Y Z)(xs : List (X ⊢))
+subList-ren : ∀{n m o}(ρ : Ren n m)(σ : Sub m o)(xs : List (n ⊢))
             → subList (σ ∘ ρ) xs ≡ subList σ (renList ρ xs)
-sub-ren : ∀{X Y Z}(ρ : Ren X Y)(σ : Sub Y Z)(t : X ⊢)
+sub-ren : ∀{n m o}(ρ : Ren n m)(σ : Sub m o)(t : n ⊢)
   → sub (σ ∘ ρ) t ≡ sub σ (ren ρ t)
 sub-ren ρ σ (` x)         = refl
 sub-ren ρ σ (ƛ t)         = cong ƛ (trans
@@ -249,16 +249,16 @@ sub-ren ρ σ (case t ts)   = cong₂ case (sub-ren ρ σ t) (subList-ren ρ σ 
 subList-ren ρ σ [] = refl
 subList-ren ρ σ (x ∷ xs) = cong₂ _∷_ (sub-ren ρ σ x) (subList-ren ρ σ xs)
 
-ren-lift-lifts : ∀{X Y Z}(g : Sub X Y)(f : Ren Y Z)(x : Fin (suc X))
+ren-lift-lifts : ∀{n m o}(g : Sub n m)(f : Ren m o)(x : Fin (suc n))
   → lifts (ren f ∘ g) x ≡ ren (lift f) (lifts g x)
 ren-lift-lifts g f zero  = refl
 ren-lift-lifts g f (suc x) = trans
   (sym (ren-comp f suc (g x)))
   (ren-comp suc (lift f) (g x))
 
-renList-sub : ∀{X Y Z}(σ : Sub X Y)(ρ : Ren Y Z)(xs : List (X ⊢))
+renList-sub : ∀{n m o}(σ : Sub n m)(ρ : Ren m o)(xs : List (n ⊢))
             → subList (ren ρ ∘ σ) xs ≡ renList ρ (subList σ xs)
-ren-sub : ∀{X Y Z}(σ : Sub X Y)(ρ : Ren Y Z)(t : X ⊢)
+ren-sub : ∀{n m o}(σ : Sub n m)(ρ : Ren m o)(t : n ⊢)
   → sub (ren ρ ∘ σ) t ≡ ren ρ (sub σ t)
 ren-sub σ ρ (` x)         = refl
 ren-sub σ ρ (ƛ t)         = cong ƛ (trans
@@ -276,7 +276,7 @@ ren-sub σ ρ (case t ts)   = cong₂ case (ren-sub σ ρ t) (renList-sub σ ρ 
 renList-sub σ ρ [] = refl
 renList-sub σ ρ (x ∷ xs) = cong₂ _∷_ (ren-sub σ ρ x) (renList-sub σ ρ xs)
 
-lifts-comp : ∀{X Y Z}(g : Sub X Y)(f : Sub Y Z)(x : Fin (suc X))
+lifts-comp : ∀{n m o}(g : Sub n m)(f : Sub m o)(x : Fin (suc n))
   → lifts (sub f ∘ g) x ≡ sub (lifts f) (lifts g x)
 lifts-comp g f zero  = refl
 lifts-comp g f (suc x) = trans
@@ -284,9 +284,9 @@ lifts-comp g f (suc x) = trans
   (sub-ren suc (lifts f) (g x))
 
 
-subList-comp : ∀{X Y Z}(g : Sub X Y)(f : Sub Y Z)(xs : List (X ⊢))
+subList-comp : ∀{n m o}(g : Sub n m)(f : Sub m o)(xs : List (n ⊢))
              → subList (sub f ∘ g) xs ≡ subList f (subList g xs)
-sub-comp : ∀{X Y Z}(g : Sub X Y)(f : Sub Y Z)(t : X ⊢)
+sub-comp : ∀{n m o}(g : Sub n m)(f : Sub m o)(t : n ⊢)
   → sub (sub f ∘ g) t ≡ sub f (sub g t)
 sub-comp g f (` x)       = refl
 sub-comp g f (ƛ t)       =

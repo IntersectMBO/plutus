@@ -1,5 +1,4 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -15,12 +14,23 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 where
 
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusPrelude (Generic, lowerInitialChar)
 
 import Barbies
 import Control.DeepSeq
+import Data.Aeson
+  ( FromJSON (..)
+  , Options
+  , ToJSON (..)
+  , defaultOptions
+  , fieldLabelModifier
+  , genericParseJSON
+  , genericToEncoding
+  , genericToJSON
+  , omitNothingFields
+  )
 import Data.Functor.Identity
 import Data.Text qualified as Text
-import Deriving.Aeson
 import Language.Haskell.TH.Syntax (Lift)
 import NoThunks.Class
 
@@ -52,27 +62,24 @@ data CekMachineCostsBase f
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)
 
-deriving via
-  CustomJSON
-    '[FieldLabelModifier LowerInitialCharacter]
-    (CekMachineCostsBase Identity)
-  instance
-    ToJSON (CekMachineCostsBase Identity)
-deriving via
-  CustomJSON
-    '[FieldLabelModifier LowerInitialCharacter]
-    (CekMachineCostsBase Identity)
-  instance
-    FromJSON (CekMachineCostsBase Identity)
+cekMachineCostsOptions :: Options
+cekMachineCostsOptions = defaultOptions {fieldLabelModifier = lowerInitialChar}
+
+instance ToJSON (CekMachineCostsBase Identity) where
+  toJSON = genericToJSON cekMachineCostsOptions
+  toEncoding = genericToEncoding cekMachineCostsOptions
+
+instance FromJSON (CekMachineCostsBase Identity) where
+  parseJSON = genericParseJSON cekMachineCostsOptions
 
 -- This instance will omit the generation of JSON for Nothing fields,
 -- (any functors which have Maybe functor at the outer layer)
-deriving via
-  CustomJSON
-    '[OmitNothingFields, FieldLabelModifier LowerInitialCharacter]
-    (CekMachineCostsBase Maybe)
-  instance
-    ToJSON (CekMachineCostsBase Maybe)
+instance ToJSON (CekMachineCostsBase Maybe) where
+  toJSON = genericToJSON mCekMachineCostsOptions
+  toEncoding = genericToEncoding mCekMachineCostsOptions
+
+mCekMachineCostsOptions :: Options
+mCekMachineCostsOptions = cekMachineCostsOptions {omitNothingFields = True}
 
 deriving stock instance AllBF Show f CekMachineCostsBase => Show (CekMachineCostsBase f)
 deriving stock instance AllBF Eq f CekMachineCostsBase => Eq (CekMachineCostsBase f)

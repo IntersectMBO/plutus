@@ -12,6 +12,7 @@ import Evaluation.Builtins.Integer.Common (arbitraryBigInteger)
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty (TestName, TestTree, testGroup)
 import Test.Tasty.QuickCheck
 
@@ -19,7 +20,7 @@ numberOfTests :: Int
 numberOfTests = 400
 
 testProp :: Testable prop => TestName -> prop -> TestTree
-testProp s p = testProperty s $ withMaxSuccess numberOfTests p
+testProp s p = testProperty s $ BaseQC.withNumTests numberOfTests p
 
 expModInteger :: Integer -> Integer -> Integer -> PlcTerm
 expModInteger (integer -> a) (integer -> e) (integer -> m) =

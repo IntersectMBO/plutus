@@ -4,14 +4,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.V2.Data.ScriptContexts where
 
 import Plinth.Plugin ()
 import PlutusLedgerApi.Data.V2
 import PlutusLedgerApi.V1.Data.Address
-import PlutusLedgerApi.V1.Data.Value
 import PlutusTx qualified
 import PlutusTx.BuiltinList qualified as BuiltinList
 import PlutusTx.Builtins qualified as PlutusTx

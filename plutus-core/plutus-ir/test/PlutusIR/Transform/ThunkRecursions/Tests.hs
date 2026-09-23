@@ -13,7 +13,8 @@ import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.ThunkRecursions
 import PlutusPrelude
-import Test.QuickCheck.Property (Property, withMaxSuccess)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
+import Test.QuickCheck.Property (Property)
 
 test_thunkRecursions :: TestTree
 test_thunkRecursions =
@@ -31,6 +32,6 @@ test_thunkRecursions =
 
 prop_thunkRecursions :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_thunkRecursions biVariant =
-  withMaxSuccess numTestsForPassProp $
+  BaseQC.withNumTests numTestsForPassProp $
     testPassProp runIdentity $
       \tc -> thunkRecursionsPass tc (def {_biSemanticsVariant = biVariant})

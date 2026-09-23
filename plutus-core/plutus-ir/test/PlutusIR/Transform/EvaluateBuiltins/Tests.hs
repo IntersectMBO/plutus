@@ -11,7 +11,8 @@ import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.EvaluateBuiltins
 import PlutusPrelude
-import Test.QuickCheck.Property (Property, withMaxSuccess)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
+import Test.QuickCheck.Property (Property)
 
 test_evaluateBuiltins :: TestTree
 test_evaluateBuiltins =
@@ -44,7 +45,7 @@ test_evaluateBuiltins =
 
 prop_evaluateBuiltins :: Bool -> BuiltinSemanticsVariant DefaultFun -> Property
 prop_evaluateBuiltins conservative biVariant =
-  withMaxSuccess numTestsForPassProp
+  BaseQC.withNumTests numTestsForPassProp
     $ testPassProp
       runIdentity
     $ \tc -> evaluateBuiltinsPass tc conservative (def {_biSemanticsVariant = biVariant}) def

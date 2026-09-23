@@ -10,12 +10,19 @@ import Data.String.Interpolate (__i)
 import Data.Text qualified as T
 import Data.UUID qualified as UUID
 import Data.UUID.V4 qualified as UUID
-import Harness (ServiceHandle (..), findEvaluatorExecutable, withEvaluatorService)
+import GHC.Clock (getMonotonicTime)
+import Harness
+  ( ServiceHandle (..)
+  , findEvaluatorExecutable
+  , stopProcessBounded
+  , withEvaluatorService
+  )
 import Main.Utf8 (withUtf8)
-import System.Directory (doesDirectoryExist, doesFileExist, listDirectory)
+import System.Directory (doesDirectoryExist, doesFileExist, findExecutable, listDirectory)
 import System.FilePath ((</>))
 import System.IO (BufferMode (LineBuffering), hSetBuffering, stderr, stdout)
-import Test.Tasty (defaultMain, testGroup)
+import System.Process (createProcess, getProcessExitCode, proc)
+import Test.Tasty (Timeout (..), adjustOption, defaultMain, mkTimeout, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@?=))
 import TestHelpers
   ( EvalError (..)
@@ -40,8 +47,9 @@ main = withUtf8 do
   -- Prevent garbled output from concurrent test execution
   hSetBuffering stdout LineBuffering
   hSetBuffering stderr LineBuffering
-  defaultMain
-    ( testGroup
+  defaultMain $
+    adjustOption defaultTestTimeout $
+      testGroup
         "uplc-evaluator integration tests"
         [ testGroup
             "Infrastructure"
@@ -60,6 +68,24 @@ main = withUtf8 do
                   -- Verify output directory exists
                   outputExists <- doesDirectoryExist (shOutputDir handle)
                   assertBool "Output directory should exist" outputExists
+            , testCase "Bounded teardown kills a SIGTERM-ignoring process" do
+                -- Regression test: teardown used to wait on the service with no
+                -- timeout, so a process ignoring SIGTERM hung it indefinitely.
+                bash <-
+                  maybe (assertFailure "bash not found in PATH") pure
+                    =<< findExecutable "bash"
+                -- Ignore SIGTERM, then exec so 'sleep' inherits the ignore.
+                (_, _, _, ph) <-
+                  createProcess (proc bash ["-c", "trap '' TERM; exec sleep 600"])
+                threadDelay 200000 -- let bash install the trap and exec
+                started <- getMonotonicTime
+                stopProcessBounded 1000000 ph -- 1s grace, then SIGKILL
+                finished <- getMonotonicTime
+                assertBool
+                  ("stopProcessBounded took " ++ show (finished - started) ++ "s")
+                  (finished - started < 5)
+                mExit <- getProcessExitCode ph
+                assertBool "process should be dead and reaped" (mExit /= Nothing)
             ]
         , testGroup
             "Textual UPLC Programs"
@@ -907,4 +933,10 @@ main = withUtf8 do
                     (sampleCount >= 10)
             ]
         ]
-    )
+
+{-| Per-test timeout safety net: a wedged test fails in minutes instead of
+consuming the full CI wall clock. Applied only when no @--timeout@ was given,
+so it stays overridable. -}
+defaultTestTimeout :: Timeout -> Timeout
+defaultTestTimeout NoTimeout = mkTimeout 120000000 -- 120s
+defaultTestTimeout explicit = explicit

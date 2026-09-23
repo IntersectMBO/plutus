@@ -12,8 +12,8 @@
                             (equalsData r_stake_cred wdrlAtZero)
                             [ (case
                                  (equalsData r_stake_cred wdrlAtOne)
-                                 [(lookForCred rest), (constr 0 [])])
-                            , (constr 0 []) ])
+                                 [(lookForCred rest), ()])
+                            , () ])
                          (case (forced rest) [(\l r -> l)]))
                       (forced wdrl))
                    (case (forced wdrl) [(\l r -> l)]))
@@ -39,7 +39,6 @@
                      [ (\x xs ds ->
                           case
                             (equalsData r_stake_cred (case x [(\l r -> l)]))
-                            [(s s xs), (constr 0 [])])
-                     , (\ds ->
-                          (\x -> error) (forced "not found" (constr 0 []))) ]
-                     (constr 0 [])))) ]))
+                            [(s s xs), ()])
+                     , (\ds -> (\x -> error) (forced "not found" ())) ]
+                     ()))) ]))
