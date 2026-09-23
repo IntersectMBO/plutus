@@ -142,9 +142,8 @@ In our worst-case flat scenario (all inner maps have size 1), the footprint is c
 ## Per-Currency Negative Counts
 
 A 'Value' also carries a 'Map CurrencySymbol Int' holding, for each currency with a negative
-amount, how many it has. See Note [Per-currency negative counts] in PlutusCore.Value. Every
-operation that builds a 'Value' builds this map too, so its allocation is an addend on the
-figures above rather than a change to them.
+amount, how many it has. Every operation that builds a 'Value' builds this map too, so its
+allocation is an addend on the figures above rather than a change to them.
 
 Its keys are shared with the outer map, so a node is cheaper than an outer-map node:
   - 1 word for the 'Bin' closure
