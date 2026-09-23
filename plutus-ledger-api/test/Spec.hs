@@ -19,6 +19,7 @@ import Spec.Ord.Golden qualified
 import Spec.ScriptDecodeError qualified
 import Spec.V1.Data.Value qualified as Data.Value
 import Spec.V1.Value qualified as Value
+import Spec.V4.Contexts qualified
 import Spec.V4.Encoding qualified
 import Spec.Versions qualified
 
@@ -212,6 +213,7 @@ tests =
             , runTestNested ["CostModel", "Params"] [Spec.CostModelParams.tests]
             , Spec.ContextDecoding.tests
             , Spec.V4.Encoding.tests
+            , Spec.V4.Contexts.tests
             , Value.test_Value
             ]
         , testGroup

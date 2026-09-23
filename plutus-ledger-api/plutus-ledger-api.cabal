@@ -237,6 +237,7 @@ test-suite plutus-ledger-api-test
     Spec.ScriptDecodeError
     Spec.V1.Data.Value
     Spec.V1.Value
+    Spec.V4.Contexts
     Spec.V4.Encoding
     Spec.Versions
 
