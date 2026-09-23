@@ -199,24 +199,13 @@ data Value
       {-# UNPACK #-} !Int
       -- ^ The number of negative amounts it contains.
       !(Map K Int)
-      {-^ Map from a currency symbol to the number of negative amounts it holds, with no
-      zero values. See Note [Per-currency negative counts]. -}
+      {-^ Map from a currency symbol to the number of negative amounts it holds, so that
+      `keepPolicies`, `dropPolicies` and `dropPolicy` can update the previous field without
+      recounting the amounts of the currencies they remove.
+
+      Invariant: all counts are positive. -}
   deriving stock (Eq, Show, Generic)
   deriving anyclass (NFData)
-
-{- Note [Per-currency negative counts]
-
-`valueContains` reads the total count of negative amounts, and every operation that changes
-one amount knows the sign it replaced. The per-currency breakdown is for the operations that
-add or remove whole currencies: without it they would recount the amounts of each currency
-they touch, which is the only bookkeeping term that grows with the number of amounts rather
-than the number of currencies. Removing it is what lets `keepPolicies` and `dropPolicies` be
-charged on the policy list and the depth of the outer map.
-
-The field counts the negative amounts of each currency rather than only listing the
-currencies that hold one: `insertCoin` overwriting the last negative amount of a currency
-would otherwise have to scan its inner map to see whether another one remains.
--}
 
 instance Hashable Value where
   hash = hash . unpack
@@ -284,9 +273,10 @@ sizeCaches = Map.foldl' alg (Sizes mempty 0)
 
 {-| The two size caches, as an accumulator for `sizeCaches`.
 
-A tuple with bang patterns looks like it would do the same job. It does not: forcing a field
-is not the same as storing it inline, so every step still allocates the tuple and a box per
-`Int`. The `UNPACK`ed field here holds the machine word itself. -}
+A tuple with bang patterns does not compile to the same thing. Worker-wrapper does get rid
+of the tuple itself, but a bang makes a field strict rather than unpacked, so the `Int` stays
+boxed and the fold unwraps and rewraps it on every step. The `UNPACK`ed field here is an
+`Int#` the whole way through. -}
 data Sizes = Sizes !(IntMap Int) {-# UNPACK #-} !Int
 
 -- | Number of negative quantities in an inner map.
