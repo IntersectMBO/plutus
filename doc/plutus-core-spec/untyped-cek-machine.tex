@@ -209,11 +209,12 @@ state.
 \end{figure}
 
 \paragraph{Optimisations.}  The machine presented above is suboptimal in a number
-of ways.  For example, when casing on a built-in value one frame is pushed onto
-the stack for each of the values $\reify{V_1}, \ldots, \reify{V_m}$ and these
-then have to be popped off and processed one by one. It would be more efficient
-to have a single frame which contains all of the values, and in fact this
-optimisation is implemented in Cardano's production CEK machine.%
+of ways.  For example, when casing on a constant of a built-in type one frame
+is pushed onto the stack for each of the values $\reify{V_1}, \ldots,
+\reify{V_m}$ and these then have to be popped off and processed one by one. It
+would be more efficient to have a single frame which contains all of the values,
+and in fact this optimisation is implemented in Cardano's production CEK
+machine.%
 \footnote{This is implemented in Haskell: see
 \url{https://github.com/IntersectMBO/plutus}, and specifically
 \url{https://github.com/IntersectMBO/plutus/tree/master/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine}.}

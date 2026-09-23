@@ -237,22 +237,22 @@ and only if one of the following holds:
 \kwxm{\sf I tried using inference rules for this but the final case
   got kind of out of hand.}
 
-\subsubsection{Casing on built-in types}
+\subsubsection{Casing on constants of built-in types}
 \label{sec:builtin-casing}
 In concrete implementations, some built-in types may admit \textit{casing},
-which allows them to be used as the scrutinee of the \texttt{case} construct.
-One can write $\kase{M}{M_1 \ldots M_n}$ where $M$ evaluates to a
-value $x$ of some built-in type $T$, and one of the terms $M_i$ will be
-evaluated, perhaps applied to some built-in values which will generally be
-obtained from $x$.  For example, $\kase{\con{\ty{integer}}{k}}{M_1 \ldots
+which allows constants of that type to be used as scrutinees of the
+\texttt{case} construct.  One can write $\kase{M}{M_1 \ldots M_n}$ where $M$
+evaluates to a constant $x$ of some built-in type $T$, and one of the terms $M_i$
+will be evaluated, perhaps applied to some built-in values which will generally
+be obtained from $x$.  For example, $\kase{\con{\ty{integer}}{k}}{M_1 \ldots
   M_n}$ will evaluate $M_{k+1}$ if $0 \leq k \leq n-1$ and will evaluate to
 \texttt{(error)} otherwise.  If $x$ is \texttt{(con (pair boolean integer)
-  (False, 5))} then $\kase{x}{M_1}$ will cause the application
-\texttt{[[$M_1$ (con boolean False)] (con integer 5)]} to be evaluated (possibly
-failing if $M_1$ is of the wrong type).  For pairs, exactly one branch is
-required, with \texttt{(error)} occurring otherwise.  In general the number of
-branches for a particular type is variable, with an error occurring if
-\texttt{case} would cause a non-existent branch to be selected.
+  (False, 5))} then $\kase{x}{M_1}$ will cause the application \texttt{[[$M_1$
+      (con boolean False)] (con integer 5)]} to be evaluated (possibly failing
+if $M_1$ is of the wrong type).  For pairs, exactly one branch is required, with
+\texttt{(error)} occurring otherwise.  In general the number of branches for a
+particular type is variable, with an error occurring if \texttt{case} would
+cause a non-existent branch to be selected.
 
 \medskip
 To specify this behaviour in general we require some more notation.  For each
@@ -266,8 +266,9 @@ $$
 
 Given a built-in type $T$ and $x \in \denote{T}$, $\match{T}(x)$ returns either
 $\errorX$ (indicating an error) or a pair $(i, (v_1, \ldots, v_k))$ with $i$ a
-natural number and the $v_i$ built-in values in $\denote{\Uni}$. If $M$ is a term which
-evaluates to the constant \texttt{(con $T$ $x$)} then the expression
+natural number and $v_1, \ldots, v_k$ built-in values in $\denote{\Uni}$. If $M$
+is a term which evaluates to the constant \texttt{(con $T$ $x$)} then the
+expression
 $$
 \kase{M}{M_1 \ldots M_n}
 $$
