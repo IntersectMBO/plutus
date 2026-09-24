@@ -8,7 +8,6 @@ module Spec.Eval (tests) where
 
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 import PlutusCore.StdLib.Data.Unit
@@ -16,6 +15,9 @@ import PlutusCore.Version as PLC
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.V1.EvaluationContext qualified as V1
+import PlutusLedgerApi.Test.V2.EvaluationContext qualified as V2
+import PlutusLedgerApi.Test.V3.EvaluationContext qualified as V3
+import PlutusLedgerApi.Test.V4.EvaluationContext qualified as V4
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3
@@ -28,9 +30,6 @@ import UntypedPlutusCore.Test.DeBruijn.Good
 import Control.Exception (evaluate)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.Writer
-import Data.Int (Int64)
-import Data.Map qualified as Map
-import Data.Maybe (fromJust)
 import NoThunks.Class
 import PlutusCore.Data qualified as Data
 import Test.Tasty
@@ -115,23 +114,14 @@ testUnlifting = testCase "check unlifting behaviour changes in Vasil" $ do
     evalAPI alonzoPV illPartialBuiltin @?= True
     evalAPI vasilPV illPartialBuiltin @?= True -}
 
-costParams :: [Int64]
-costParams = Map.elems (fromJust defaultCostModelParamsForTesting)
-
-lengthParamNamesV :: PlutusLedgerLanguage -> Int
-lengthParamNamesV PlutusV1 = length $ enumerate @V1.ParamName
-lengthParamNamesV PlutusV2 = length $ enumerate @V2.ParamName
-lengthParamNamesV PlutusV3 = length $ enumerate @V3.ParamName
-lengthParamNamesV PlutusV4 = length $ enumerate @V4.ParamName
-
 mkEvaluationContextV :: PlutusLedgerLanguage -> IO EvaluationContext
 mkEvaluationContextV ll =
-  either (assertFailure . display) (pure . fst) . runWriterT $
-    take (lengthParamNamesV ll) costParams & case ll of
-      PlutusV1 -> V1.mkEvaluationContext
-      PlutusV2 -> V2.mkEvaluationContext
-      PlutusV3 -> V3.mkEvaluationContext
-      PlutusV4 -> V4.mkEvaluationContext
+  -- Cost parameters are positional, so each ledger version needs its own ledger-ordered values.
+  either (assertFailure . display) (pure . fst) . runWriterT $ case ll of
+    PlutusV1 -> V1.mkEvaluationContext $ fmap snd V1.costModelParamsForTesting
+    PlutusV2 -> V2.mkEvaluationContext $ fmap snd V2.costModelParamsForTesting
+    PlutusV3 -> V3.mkEvaluationContext $ fmap snd V3.costModelParamsForTesting
+    PlutusV4 -> V4.mkEvaluationContext $ fmap snd V4.costModelParamsForTesting
 
 -- | Ensure that 'toMachineParameters' never throws for all language and protocol versions.
 evaluationContextCacheIsComplete :: TestTree
