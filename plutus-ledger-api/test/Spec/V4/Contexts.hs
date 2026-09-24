@@ -37,8 +37,8 @@ outcome :: PlutusTx.ToData a => a -> IO Outcome
 outcome = fmap (either (Left . show @ErrorCall) Right) . try . evaluate . PlutusTx.toData
 
 -- | Convert between two types that share the same Data encoding.
-coerceD :: (PlutusTx.ToData a, PlutusTx.UnsafeFromData b) => a -> b
-coerceD = PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData
+viaData :: (PlutusTx.ToData a, PlutusTx.UnsafeFromData b) => a -> b
+viaData = PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData
 
 data TestInput = TestInput
   { ctx :: SOP.ScriptContext
@@ -65,15 +65,15 @@ helpers TestInput {..} =
   , check
       "findDatum"
       (SOP.findDatum tiDatumHash ti)
-      (DataV4.findDatum (coerceD tiDatumHash) tiD)
+      (DataV4.findDatum (viaData tiDatumHash) tiD)
   , check
       "findDatumHash"
       (SOP.findDatumHash tiDatum ti)
-      (DataV4.findDatumHash (coerceD tiDatum) tiD)
+      (DataV4.findDatumHash (viaData tiDatum) tiD)
   , check
       "findTxInByTxOutRef"
       (SOP.findTxInByTxOutRef tiOutRef ti)
-      (DataV4.findTxInByTxOutRef (coerceD tiOutRef) tiD)
+      (DataV4.findTxInByTxOutRef (viaData tiOutRef) tiD)
   , check
       "findContinuingOutputs"
       (SOP.findContinuingOutputs ctx)
@@ -85,19 +85,19 @@ helpers TestInput {..} =
   , check
       "txSignedBy"
       (SOP.txSignedBy ti tiPubKeyHash)
-      (DataV4.txSignedBy tiD (coerceD tiPubKeyHash))
+      (DataV4.txSignedBy tiD (viaData tiPubKeyHash))
   , check
       "txGuardedBy"
       (SOP.txGuardedBy ti tiCredential)
-      (DataV4.txGuardedBy tiD (coerceD tiCredential))
+      (DataV4.txGuardedBy tiD (viaData tiCredential))
   , check
       "pubKeyOutputsAt"
       (SOP.pubKeyOutputsAt tiPubKeyHash ti)
-      (DataV4.pubKeyOutputsAt (coerceD tiPubKeyHash) tiD)
+      (DataV4.pubKeyOutputsAt (viaData tiPubKeyHash) tiD)
   , check
       "valuePaidTo"
       (SOP.valuePaidTo ti tiPubKeyHash)
-      (DataV4.valuePaidTo tiD (coerceD tiPubKeyHash))
+      (DataV4.valuePaidTo tiD (viaData tiPubKeyHash))
   , check "valueSpent" (SOP.valueSpent ti) (DataV4.valueSpent tiD)
   , check "valueProduced" (SOP.valueProduced ti) (DataV4.valueProduced tiD)
   , check
@@ -107,7 +107,7 @@ helpers TestInput {..} =
   , check
       "spendsOutput"
       (SOP.spendsOutput ti tiTxId tiIndex)
-      (DataV4.spendsOutput tiD (coerceD tiTxId) tiIndex)
+      (DataV4.spendsOutput tiD (viaData tiTxId) tiIndex)
   , check "isTopLevelTx" (SOP.isTopLevelTx ti) (DataV4.isTopLevelTx tiD)
   , check
       "guardingTopTxInfo"
@@ -119,7 +119,7 @@ helpers TestInput {..} =
     check name sop dat = Helper name ((,) <$> outcome sop <*> outcome dat)
 
     ctxD :: DataV4.ScriptContext
-    ctxD = coerceD ctx
+    ctxD = viaData ctx
 
     ti = SOP.scriptContextTxInfo ctx
     tiD = DataV4.scriptContextTxInfo ctxD
