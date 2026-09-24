@@ -44,6 +44,8 @@ variants =
   , ("C", DefaultFunSemanticsVariantC, DFP.builtinCostModelFileC, DFP.cekMachineCostsFileC)
   , ("D", DefaultFunSemanticsVariantD, DFP.builtinCostModelFileD, DFP.cekMachineCostsFileD)
   , ("E", DefaultFunSemanticsVariantE, DFP.builtinCostModelFileE, DFP.cekMachineCostsFileE)
+  , ("F", DefaultFunSemanticsVariantF, DFP.builtinCostModelFileD, DFP.cekMachineCostsFileD)
+  , ("G", DefaultFunSemanticsVariantG, DFP.builtinCostModelFileE, DFP.cekMachineCostsFileE)
   ]
 
 {-| Assert that @model@ serializes to exactly the JSON stored in @file@. On a mismatch the

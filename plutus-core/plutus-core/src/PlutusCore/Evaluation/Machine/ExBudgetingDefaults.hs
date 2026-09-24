@@ -155,6 +155,8 @@ cekCostModelForVariant DefaultFunSemanticsVariantB = cekCostModelVariantB
 cekCostModelForVariant DefaultFunSemanticsVariantC = cekCostModelVariantC
 cekCostModelForVariant DefaultFunSemanticsVariantD = cekCostModelVariantD
 cekCostModelForVariant DefaultFunSemanticsVariantE = cekCostModelVariantE
+cekCostModelForVariant DefaultFunSemanticsVariantF = cekCostModelVariantD
+cekCostModelForVariant DefaultFunSemanticsVariantG = cekCostModelVariantE
 
 {-| The default cost model data.  This is exposed to the ledger, so let's not
 confuse anybody by mentioning the CEK machine -}
@@ -180,6 +182,8 @@ defaultCostModelParamsForVariant = \case
   DefaultFunSemanticsVariantC -> defaultCostModelParamsC
   DefaultFunSemanticsVariantD -> defaultCostModelParamsD
   DefaultFunSemanticsVariantE -> defaultCostModelParamsE
+  DefaultFunSemanticsVariantF -> defaultCostModelParamsD
+  DefaultFunSemanticsVariantG -> defaultCostModelParamsE
 
 {- Note [No inlining for MachineParameters]
 We don't want this to get inlined in order for this definition not to appear
@@ -219,6 +223,18 @@ defaultCekParametersE =
   MachineParameters def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantE cekCostModelVariantE
 
+defaultCekParametersF
+  :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParametersF =
+  MachineParameters def $
+    noinline mkMachineVariantParameters DefaultFunSemanticsVariantF cekCostModelVariantD
+
+defaultCekParametersG
+  :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParametersG =
+  MachineParameters def $
+    noinline mkMachineVariantParameters DefaultFunSemanticsVariantG cekCostModelVariantE
+
 {- Note [noinline for saving on ticks]
 We use 'noinline' purely for saving on simplifier ticks for definitions, whose performance doesn't
 matter. Otherwise compilation for this module is slower and GHC may end up exhausting simplifier
@@ -238,6 +254,8 @@ defaultBuiltinsRuntimeForSemanticsVariant semvar =
       DefaultFunSemanticsVariantC -> builtinCostModelVariantC
       DefaultFunSemanticsVariantD -> builtinCostModelVariantD
       DefaultFunSemanticsVariantE -> builtinCostModelVariantE
+      DefaultFunSemanticsVariantF -> builtinCostModelVariantD
+      DefaultFunSemanticsVariantG -> builtinCostModelVariantE
 
 defaultCekParametersForVariant
   :: Typeable ann
@@ -249,6 +267,8 @@ defaultCekParametersForVariant = \case
   DefaultFunSemanticsVariantC -> defaultCekParametersC
   DefaultFunSemanticsVariantD -> defaultCekParametersD
   DefaultFunSemanticsVariantE -> defaultCekParametersE
+  DefaultFunSemanticsVariantF -> defaultCekParametersF
+  DefaultFunSemanticsVariantG -> defaultCekParametersG
 
 -- *** THE FOLLOWING SHOULD ONLY BE USED FOR TESTING ***
 
@@ -266,11 +286,11 @@ defaultBuiltinsRuntimeForTesting
   :: HasMeaningIn DefaultUni term
   => BuiltinsRuntime DefaultFun term
 -- See Note [noinline for saving on ticks].
-defaultBuiltinsRuntimeForTesting = defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantE
+defaultBuiltinsRuntimeForTesting = defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantG
 
 defaultCekParametersForTesting
   :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
-defaultCekParametersForTesting = defaultCekParametersE
+defaultCekParametersForTesting = defaultCekParametersG
 
 defaultCekMachineCostsForTesting :: CekMachineCosts
 defaultCekMachineCostsForTesting = cekMachineCostsVariantE

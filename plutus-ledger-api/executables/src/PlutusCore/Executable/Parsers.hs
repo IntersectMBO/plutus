@@ -592,6 +592,8 @@ builtinSemanticsVariantTable =
   , ("C", DefaultFunSemanticsVariantC)
   , ("D", DefaultFunSemanticsVariantD)
   , ("E", DefaultFunSemanticsVariantE)
+  , ("F", DefaultFunSemanticsVariantF)
+  , ("G", DefaultFunSemanticsVariantG)
   ]
 
 builtinSemanticsVariantReader :: String -> Maybe (BuiltinSemanticsVariant DefaultFun)
@@ -608,7 +610,7 @@ builtinSemanticsVariant =
     ( long "builtin-semantics-variant"
         <> short 'S'
         <> metavar "VARIANT"
-        <> value DefaultFunSemanticsVariantE
+        <> value DefaultFunSemanticsVariantG
         <> showDefaultWith showBuiltinSemanticsVariant
         <> completeWith (map fst builtinSemanticsVariantTable)
         <> help

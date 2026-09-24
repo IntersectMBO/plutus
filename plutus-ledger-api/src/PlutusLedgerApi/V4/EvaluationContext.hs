@@ -13,7 +13,7 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.V4.ParamName as V4
 
 import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin)
-import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantE))
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantG))
 
 import Control.Monad
 import Control.Monad.Writer.Strict
@@ -42,6 +42,6 @@ mkEvaluationContext =
       PlutusV4
       -- 'PlutusV4' is introduced at the Dijkstra HF, so casing on builtins is always available.
       (\_ -> CaserBuiltin caseBuiltin)
-      [DefaultFunSemanticsVariantE]
+      [DefaultFunSemanticsVariantG]
       -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
-      (\_ -> DefaultFunSemanticsVariantE)
+      (\_ -> DefaultFunSemanticsVariantG)
