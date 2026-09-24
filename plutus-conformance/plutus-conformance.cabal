@@ -64,6 +64,7 @@ library
     , plutus-core                      ^>=1.70
     , plutus-core:flat
     , plutus-core:plutus-core-testlib
+    , plutus-ledger-api                ^>=1.70
     , tagged
     , tasty
     , tasty-expected-failure

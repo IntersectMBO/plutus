@@ -1,1 +1,1 @@
-(Right (program 1.1.0 (lam i (lam i (lam i (lam i (lam i i)))))))
+(Right (program 1.2.0 (lam i (lam i (lam i (lam i (lam i i)))))))

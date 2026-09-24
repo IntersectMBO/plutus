@@ -14,6 +14,7 @@ import PlutusCore.Evaluation.Machine.Ck qualified as Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Executable.AstIO (toDeBruijnTermPLC, toDeBruijnTypePLC)
 import PlutusCore.Executable.Common
+import PlutusCore.Executable.Eval (standaloneCaserBuiltin)
 import PlutusCore.Executable.Help qualified as Help
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
@@ -268,7 +269,10 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode _ _ _ _) = do
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt outp printMode nameFormat semvar) = do
   prog <- readProgram ifmt inp
-  let evaluate = Ck.evaluateCkNoEmit (PLC.defaultBuiltinsRuntimeForSemanticsVariant semvar) def
+  let evaluate =
+        Ck.evaluateCkNoEmit
+          (PLC.defaultBuiltinsRuntimeForSemanticsVariant semvar)
+          (standaloneCaserBuiltin (prog ^. PLC.progVer))
       term = void $ prog ^. PLC.progTerm
   case evaluate term of
     Right v ->

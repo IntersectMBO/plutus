@@ -18,7 +18,7 @@ import System.IO (IO)
 
 -- BEGIN Imports
 
-import PlutusLedgerApi.Common (PlutusLedgerLanguage (..), alonzoPV)
+import PlutusLedgerApi.Common (PlutusLedgerLanguage (..), Version (..), alonzoPV)
 import PlutusLedgerApi.MachineParameters (machineParametersFor)
 import PlutusTx (CompiledCode, applyCode, compile, liftCodeDef, unsafeApplyCode)
 import PlutusTx.Test (EvalResult, displayEvalResult, evaluateCompiledCode, evaluateCompiledCode')
@@ -98,7 +98,7 @@ resultV2 :: EvalResult
 resultV2 =
   evaluateCompiledCode'
     -- requires import PlutusLedgerApi.MachineParameters:
-    (machineParametersFor PlutusV2 alonzoPV)
+    (machineParametersFor PlutusV2 alonzoPV (Version 1 1 0))
     (compiledCode `unsafeApplyCode` argumentCompiled)
 
 -- END MachineParameters

@@ -133,8 +133,7 @@ Additional key differences between Plutus V3 and V1/V2 include:
 2. The datum is now optional for spending scripts.
    The script context may or may not contain a datum, depending on whether the UTXO being spent has a datum associated with it.
 3. There is an additional condition for the evaluation of a Plutus V3 script to be considered successful: the return value must be a `BuiltinUnit`.
-4. For now, Plutus V3 supports Plutus Core 1.1.0, a Plutus Core language version that introduced [sums-of-products](https://cips.cardano.org/cip/CIP-0085), as well as more builtin functions than Plutus V2.
-   However, we plan to enable all Plutus Core versions and all builtin functions across all ledger language versions in the future.
+4. Plutus V3 supports Plutus Core 1.1.0, which introduced [sums-of-products](https://cips.cardano.org/cip/CIP-0085), and Plutus Core 1.2.0 from protocol version 12. Plutus Core 1.2.0 permits casing on `Data.Constr` constants at protocol version 12. These Core versions are also supported by Plutus V1, V2, and V4 at their respective supported protocol versions.
 
 The first two points above are attributed to [CIP-69](https://cips.cardano.org/cip/CIP-69), whereas the third point is attributed to [CIP-117](https://cips.cardano.org/cip/CIP-0117).
 

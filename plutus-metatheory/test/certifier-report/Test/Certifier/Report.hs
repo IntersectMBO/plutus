@@ -78,7 +78,7 @@ evalTrace
        )
      ]
 evalTrace trace args =
-  first (either Just (const Nothing)) . evalCounting evalCtx newestPV
+  first (either Just (const Nothing)) . evalCounting evalCtx newestPV PLC.latestVersion
     <$> appliedTerms
   where
     appliedTerms :: [Term NamedDeBruijn DefaultUni DefaultFun ()]
@@ -105,6 +105,7 @@ testNQueensCertifierReport = withTempFile $ \actual -> pure $ goldenVsFile name 
   let costs =
         evalOptimizerTrace
           evalCtx
+          PLC.latestVersion
           trace
           [ snd $ lift PLC.latestVersion (5 :: Integer)
           , snd $ lift PLC.latestVersion Fc
@@ -120,6 +121,7 @@ testNQueensOptimizerReport = withTempFile $ \actual -> pure $ goldenVsFile name 
   let costs =
         evalOptimizerTrace
           evalCtx
+          PLC.latestVersion
           trace
           [ snd $ lift PLC.latestVersion (5 :: Integer)
           , snd $ lift PLC.latestVersion Fc
