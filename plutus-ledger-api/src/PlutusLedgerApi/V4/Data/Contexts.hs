@@ -142,7 +142,7 @@ module PlutusLedgerApi.V4.Data.Contexts
   , ttisValidRange
   , ttisGuards
   , ttisRequiredTopLevelGuards
-  , ttisScriptPurposes
+  , ttisRedeemerHashes
   , ttisData
   , ttisVotes
   , ttisProposalProcedures
