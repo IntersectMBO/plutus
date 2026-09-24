@@ -1,4 +1,4 @@
 name: plutus-metatheory
 depend: standard-library-2.3
 include: src
-flags: --polarity
+flags: --polarity --rewriting

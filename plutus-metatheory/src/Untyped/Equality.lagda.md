@@ -180,8 +180,8 @@ cannot supply. Instead we convert both arrays to lists with `U.HSarrayToList` an
 compare those structurally with the decision procedure for the element type (via
 the helper `decEqUList-⟦_⟧tag`, which is mutually recursive with `decEq-⟦_⟧tag` so
 that the termination checker can track the recursion into the elements); the
-`yes` proof is transported back along the (postulated, true) injectivity of the
-conversion.
+result is transported back to the arrays by `U.decEqArrayFromList` (see the
+"Arrays" section of `Utils` for why this works at both stages).
 
 Why not just implement the builtin types in Agda? The problem is that Agda's FFI
 only allows non-postulated Agda types which are representationally equivalent to
@@ -227,8 +227,8 @@ decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) (x₁ U.∷ v₁) =
        (λ { refl → refl , refl })
        (decEq-⟦ t ⟧tag x x₁ ×-dec decEq-⟦ _⊢♯.list t ⟧tag v v₁)
 decEq-⟦ _⊢♯.array t ⟧tag a a' =
-  map′ U.HSarrayToList-injective (cong U.HSarrayToList)
-       (decEqUList-⟦ t ⟧tag (U.HSarrayToList a) (U.HSarrayToList a'))
+  U.decEqArrayFromList
+    (decEqUList-⟦ t ⟧tag (U.HSarrayToList a) (U.HSarrayToList a'))
 decEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag (proj₁ U., proj₂) (proj₃ U., proj₄) with (decEq-⟦ t₁ ⟧tag proj₁ proj₃) ×-dec (decEq-⟦ t₂ ⟧tag proj₂ proj₄)
 ... | yes ( p , q ) = yes (cong₂ U._,_ p q)
 ... | no ¬pq = no λ { refl → ¬pq (refl , refl) }

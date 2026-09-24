@@ -42,21 +42,21 @@ d_byteStringSize_6 ::
 d_byteStringSize_6 = size
 -- Cost.Size.g1ElementSize
 d_g1ElementSize_8 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_828 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_848 -> Integer
 d_g1ElementSize_8 = size
 -- Cost.Size.g2ElementSize
 d_g2ElementSize_10 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_842 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_862 -> Integer
 d_g2ElementSize_10 = size
 -- Cost.Size.mlResultElementSize
 d_mlResultElementSize_12 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_856 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_876 -> Integer
 d_mlResultElementSize_12 = size
 -- Cost.Size.dataSize
-d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_698 -> Integer
+d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_718 -> Integer
 d_dataSize_14 = size
 -- Cost.Size.dataNodeCount
-d_dataNodeCount_16 :: MAlonzo.Code.Utils.T_DATA_698 -> Integer
+d_dataNodeCount_16 :: MAlonzo.Code.Utils.T_DATA_718 -> Integer
 d_dataNodeCount_16 = size . DataNodeCount
 -- Cost.Size.boolSize
 d_boolSize_18 :: Bool -> Integer
@@ -70,10 +70,10 @@ d_stringSize_22 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 -> Integer
 d_stringSize_22 = size
 -- Cost.Size.valueSize
-d_valueSize_24 :: MAlonzo.Code.Utils.T_Value_870 -> Integer
+d_valueSize_24 :: MAlonzo.Code.Utils.T_Value_890 -> Integer
 d_valueSize_24 = size
 -- Cost.Size.valueMaxDepth
-d_valueMaxDepth_26 :: MAlonzo.Code.Utils.T_Value_870 -> Integer
+d_valueMaxDepth_26 :: MAlonzo.Code.Utils.T_Value_890 -> Integer
 d_valueMaxDepth_26 = size . ValueMaxDepth
 -- Cost.Size.defaultConstantMeasure
 d_defaultConstantMeasure_28 ::

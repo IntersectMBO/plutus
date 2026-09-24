@@ -127,15 +127,15 @@ d_decEq'45''10214'_'10215'tag_24 v0
              MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16
                -> coe MAlonzo.Code.Data.Bool.Properties.d__'8799'__3196
              MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
-               -> coe MAlonzo.Code.Utils.d_eqDATA'63'_714
+               -> coe MAlonzo.Code.Utils.d_eqDATA'63'_734
              MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
-               -> coe MAlonzo.Code.Utils.d_eqValue'63'_878
+               -> coe MAlonzo.Code.Utils.d_eqValue'63'_898
              MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_22
-               -> coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'G1'45'Element'63'_836
+               -> coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'G1'45'Element'63'_856
              MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_24
-               -> coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'G2'45'Element'63'_850
+               -> coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'G2'45'Element'63'_870
              MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'mlresult_26
-               -> coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'MlResult'63'_864
+               -> coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'MlResult'63'_884
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.Signature.C_list_16 v2
         -> coe
@@ -187,8 +187,7 @@ d_decEq'45''10214'_'10215'tag_24 v0
         -> coe
              (\ v3 v4 ->
                 coe
-                  MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
-                  erased erased
+                  MAlonzo.Code.Utils.du_decEqArrayFromList_700
                   (coe
                      d_decEqUList'45''10214'_'10215'tag_396 (coe v2)
                      (coe MAlonzo.Code.Utils.d_HSarrayToList_686 erased v3)

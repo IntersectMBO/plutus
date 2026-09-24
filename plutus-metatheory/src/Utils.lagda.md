@@ -31,6 +31,7 @@ open import Data.Maybe using (Maybe; just; nothing; maybe)
 open import Data.Unit using (⊤)
 open import Level using (_⊔_)
 open import Agda.Builtin.TrustMe using (primTrustMe)
+open import Agda.Builtin.Equality.Rewrite
 
 {-# FOREIGN GHC import Raw #-}
 
@@ -400,23 +401,48 @@ described in "Equality of postulated types" above: that scheme injects Haskell's
 `(==)` at runtime, but `(==)` on vectors needs an `Eq` dictionary for the elements,
 which Agda cannot supply.
 
-The conversion approach needs one new axiom: `HSarrayToList` is injective. This is a
-true fact about `Data.Vector.Strict.toList` (two vectors are equal exactly when they
-have the same elements in the same order). The postulate is only ever used to build
-equality proofs, so it is erased by compilation and needs no `COMPILE` pragma.
-
 ```
-postulate
-  HSarrayToList-injective
-    : {a a' : Array A}
-    → HSarrayToList a ≡ HSarrayToList a'
-    → a ≡ a'
-
 -- This only exists for literal arrays in certificates,
 -- much like mkBytestring above.
 postulate
   mkArray : {A : Set} → List A → Array A
 
+```
+
+Since both `HSarrayToList` and `mkArray` are postulates, `HSarrayToList (mkArray xs)`
+is stuck at type-checking time, so the structural comparison could never reduce on
+the literal arrays appearing in certificates. We fix this with a rewrite rule turning
+`HSarrayToList (mkArray xs)` into `xs` during normalisation. This is a true fact
+about `Data.Vector.Strict` (`toList . fromList` is the identity), it only matters at
+type-checking time, and it is erased by compilation.
+
+```
+postulate
+  HSarrayToList-mkArray : (xs : List A) → HSarrayToList (mkArray xs) ≡ xs
+
+{-# REWRITE HSarrayToList-mkArray #-}
+```
+
+The result of the list comparison is transported back to the arrays by
+`decEqArrayFromList`. In the `no` case the negative proof is honest: if the arrays
+were equal their lists would be too. The `yes` case must produce a *canonical* proof,
+because the deciders consuming it (e.g. `compatCon?` in `Untyped.Relation.Binary.Modular`)
+pattern-match on `yes refl` — a proof built from a postulated injectivity axiom would
+leave them stuck. So, exactly as in `decEqFromBool` above, we match on `primTrustMe`,
+which reduces to `refl` precisely when the two arrays are definitionally equal (which,
+thanks to the rewrite rule, is the case whenever the list comparison of two literal
+arrays succeeds), and is a no-op at runtime, where the answer simply follows the
+structural comparison.
+
+```
+decEqArrayFromList
+  : {a a' : Array A}
+  → Dec (HSarrayToList a ≡ HSarrayToList a')
+  → Dec (a ≡ a')
+decEqArrayFromList (no ¬p) = no λ { refl → ¬p refl }
+decEqArrayFromList {a = a} {a' = a'} (yes _)
+  with primTrustMe {Agda.Primitive.lzero} {_} {a} {a'}
+... | refl = yes refl
 ```
 ## DATA
 ```

@@ -371,7 +371,7 @@ mkAgdaLib name =
              \\n  standard-library-2.3\
              \\n  plutus-metatheory\
              \\ninclude: src\
-             \\nflags: --polarity"
+             \\nflags: --polarity --rewriting"
    in (name <> ".agda-lib", contents)
 
 mkAgdaCertificateProject
