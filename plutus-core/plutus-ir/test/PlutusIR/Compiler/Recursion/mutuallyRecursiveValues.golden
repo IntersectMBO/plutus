@@ -1,5 +1,5 @@
 program
-  1.1.0
+  1.2.0
   ((/\a b ->
       \(f : (a -> b) -> a -> b) ->
         (\(s : (\a -> ifix (\(self :: * -> *) a -> self a -> a) a) (a -> b)) ->

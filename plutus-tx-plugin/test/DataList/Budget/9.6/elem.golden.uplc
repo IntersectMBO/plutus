@@ -1,5 +1,5 @@
 (program
-   1.1.0
+   1.2.0
    ((\go eta -> go eta)
       ((\s -> s s)
          (\s xs ->
