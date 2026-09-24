@@ -1,0 +1,34 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Relation.Binary.Morphism.Definitions</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Basic definitions for morphisms between algebraic structures</a>
+<a id="170" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="244" class="Symbol">{-#</a> <a id="248" class="Keyword">OPTIONS</a> <a id="256" class="Pragma">--cubical-compatible</a> <a id="277" class="Pragma">--safe</a> <a id="284" class="Symbol">#-}</a>
+
+<a id="289" class="Keyword">open</a> <a id="294" class="Keyword">import</a> <a id="301" href="Relation.Binary.Core.html" class="Module">Relation.Binary.Core</a>
+
+<a id="323" class="Keyword">module</a> <a id="330" href="Relation.Binary.Morphism.Definitions.html" class="Module">Relation.Binary.Morphism.Definitions</a>
+  <a id="369" class="Symbol">{</a><a id="370" href="Relation.Binary.Morphism.Definitions.html#370" class="Bound">a</a><a id="371" class="Symbol">}</a> <a id="373" class="Symbol">(</a><a id="374" href="Relation.Binary.Morphism.Definitions.html#374" class="Bound">A</a> <a id="376" class="Symbol">:</a> <a id="378" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="382" href="Relation.Binary.Morphism.Definitions.html#370" class="Bound">a</a><a id="383" class="Symbol">)</a>     <a id="389" class="Comment">-- The domain of the morphism</a>
+  <a id="421" class="Symbol">{</a><a id="422" href="Relation.Binary.Morphism.Definitions.html#422" class="Bound">b</a><a id="423" class="Symbol">}</a> <a id="425" class="Symbol">(</a><a id="426" href="Relation.Binary.Morphism.Definitions.html#426" class="Bound">B</a> <a id="428" class="Symbol">:</a> <a id="430" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="434" href="Relation.Binary.Morphism.Definitions.html#422" class="Bound">b</a><a id="435" class="Symbol">)</a>     <a id="441" class="Comment">-- The codomain of the morphism</a>
+  <a id="475" class="Keyword">where</a>
+
+<a id="482" class="Keyword">open</a> <a id="487" class="Keyword">import</a> <a id="494" href="Level.html" class="Module">Level</a> <a id="500" class="Keyword">using</a> <a id="506" class="Symbol">(</a><a id="507" href="Agda.Primitive.html#742" class="Postulate">Level</a><a id="512" class="Symbol">)</a>
+
+<a id="515" class="Keyword">private</a>
+  <a id="525" class="Keyword">variable</a>
+    <a id="538" href="Relation.Binary.Morphism.Definitions.html#538" class="Generalizable">ℓ₁</a> <a id="541" href="Relation.Binary.Morphism.Definitions.html#541" class="Generalizable">ℓ₂</a> <a id="544" class="Symbol">:</a> <a id="546" href="Agda.Primitive.html#742" class="Postulate">Level</a>
+
+<a id="553" class="Comment">------------------------------------------------------------------------</a>
+<a id="626" class="Comment">-- Morphism definition in Function.Core</a>
+
+<a id="667" class="Keyword">open</a> <a id="672" class="Keyword">import</a> <a id="679" href="Function.Core.html" class="Module">Function.Core</a> <a id="693" class="Keyword">public</a>
+  <a id="702" class="Keyword">using</a> <a id="708" class="Symbol">(</a><a id="709" href="Function.Core.html#654" class="Function">Morphism</a><a id="717" class="Symbol">)</a>
+
+<a id="720" class="Comment">------------------------------------------------------------------------</a>
+<a id="793" class="Comment">-- Basic definitions</a>
+
+<a id="Homomorphic₂"></a><a id="815" href="Relation.Binary.Morphism.Definitions.html#815" class="Function">Homomorphic₂</a> <a id="828" class="Symbol">:</a> <a id="830" href="Relation.Binary.Core.html#896" class="Function">Rel</a> <a id="834" href="Relation.Binary.Morphism.Definitions.html#374" class="Bound">A</a> <a id="836" href="Relation.Binary.Morphism.Definitions.html#538" class="Generalizable">ℓ₁</a> <a id="839" class="Symbol">→</a> <a id="841" href="Relation.Binary.Core.html#896" class="Function">Rel</a> <a id="845" href="Relation.Binary.Morphism.Definitions.html#426" class="Bound">B</a> <a id="847" href="Relation.Binary.Morphism.Definitions.html#541" class="Generalizable">ℓ₂</a> <a id="850" class="Symbol">→</a> <a id="852" class="Symbol">(</a><a id="853" href="Relation.Binary.Morphism.Definitions.html#374" class="Bound">A</a> <a id="855" class="Symbol">→</a> <a id="857" href="Relation.Binary.Morphism.Definitions.html#426" class="Bound">B</a><a id="858" class="Symbol">)</a> <a id="860" class="Symbol">→</a> <a id="862" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="866" class="Symbol">_</a>
+<a id="868" href="Relation.Binary.Morphism.Definitions.html#815" class="Function">Homomorphic₂</a> <a id="881" href="Relation.Binary.Morphism.Definitions.html#881" class="Bound Operator">_∼₁_</a> <a id="886" href="Relation.Binary.Morphism.Definitions.html#886" class="Bound Operator">_∼₂_</a> <a id="891" href="Relation.Binary.Morphism.Definitions.html#891" class="Bound Operator">⟦_⟧</a> <a id="895" class="Symbol">=</a> <a id="897" class="Symbol">∀</a> <a id="899" class="Symbol">{</a><a id="900" href="Relation.Binary.Morphism.Definitions.html#900" class="Bound">x</a> <a id="902" href="Relation.Binary.Morphism.Definitions.html#902" class="Bound">y</a><a id="903" class="Symbol">}</a> <a id="905" class="Symbol">→</a> <a id="907" href="Relation.Binary.Morphism.Definitions.html#900" class="Bound">x</a> <a id="909" href="Relation.Binary.Morphism.Definitions.html#881" class="Bound Operator">∼₁</a> <a id="912" href="Relation.Binary.Morphism.Definitions.html#902" class="Bound">y</a> <a id="914" class="Symbol">→</a> <a id="916" href="Relation.Binary.Morphism.Definitions.html#891" class="Bound Operator">⟦</a> <a id="918" href="Relation.Binary.Morphism.Definitions.html#900" class="Bound">x</a> <a id="920" href="Relation.Binary.Morphism.Definitions.html#891" class="Bound Operator">⟧</a> <a id="922" href="Relation.Binary.Morphism.Definitions.html#886" class="Bound Operator">∼₂</a> <a id="925" href="Relation.Binary.Morphism.Definitions.html#891" class="Bound Operator">⟦</a> <a id="927" href="Relation.Binary.Morphism.Definitions.html#902" class="Bound">y</a> <a id="929" href="Relation.Binary.Morphism.Definitions.html#891" class="Bound Operator">⟧</a>
+</pre></body></html>

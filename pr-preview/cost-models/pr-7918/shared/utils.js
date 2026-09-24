@@ -1,0 +1,771 @@
+// Shared utilities for Plutus Cost Model Visualization
+
+/**
+ * Parse CSV data from benching-conway.csv
+ * Format: benchmark,t,t.mean.lb,t.mean.ub,t.sd,t.sd.lb,t.sd.ub
+ * Where benchmark is FunctionName/Arg1/Arg2/.../ArgN
+ * Returns array of objects: { function, args: [arg1, arg2, ...], time }
+ */
+function parseCSV(csvText) {
+  const lines = csvText.trim().split('\n');
+  const results = [];
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    // Skip comments and header
+    if (!trimmedLine || trimmedLine.startsWith('#') || trimmedLine.startsWith('benchmark')) {
+      continue;
+    }
+
+    const parts = trimmedLine.split(',');
+    if (parts.length < 2) continue;
+
+    const pathParts = parts[0].trim().split('/');
+    const functionName = pathParts[0];
+    const args = pathParts.slice(1).map(arg => parseFloat(arg));
+
+    // Second column is 't' (mean execution time in seconds)
+    const timeSeconds = parseFloat(parts[1].trim());
+
+    if (!isNaN(timeSeconds)) {
+      // Convert from seconds to nanoseconds
+      const timeNanoseconds = timeSeconds * 1e9;
+      results.push({ function: functionName, args, time: timeNanoseconds });
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Filter parsed CSV data for a specific function
+ */
+function filterByFunction(parsedData, functionName) {
+  return parsedData.filter(row => row.function === functionName);
+}
+
+/**
+ * Calculate overhead from Nop benchmarks
+ * Returns a map of arity -> overhead (in nanoseconds)
+ * Nop benchmarks are named Nop1b, Nop2b, Nop3b, etc. where the number indicates arity
+ */
+function calculateOverhead(parsedData) {
+  const overheadMap = {};
+
+  // Match Nop functions: Nop1o, Nop2o, Nop3o, etc. (Opaque args, matching R's models.R)
+  const nopPattern = /^Nop(\d+)o$/;
+
+  for (const row of parsedData) {
+    const match = row.function.match(nopPattern);
+    if (match) {
+      const arity = parseInt(match[1], 10);
+      if (!overheadMap[arity]) {
+        overheadMap[arity] = [];
+      }
+      overheadMap[arity].push(row.time);
+    }
+  }
+
+  // Calculate average for each arity
+  const result = {};
+  for (const [arity, times] of Object.entries(overheadMap)) {
+    const avg = times.reduce((sum, t) => sum + t, 0) / times.length;
+    result[arity] = avg;
+  }
+
+  return result;
+}
+
+/**
+ * Cost model evaluators
+ * Each function takes coefficients object and args array
+ * Supports both c0/c1/c2 and intercept/slope naming conventions
+ */
+const CostModelEvaluators = {
+  constant_cost: (coeffs, args) => {
+    return coeffs.c0 || coeffs.intercept || 0;
+  },
+
+  linear_in_x: (coeffs, args) => {
+    const c0 = coeffs.c0 || coeffs.intercept || 0;
+    const c1 = coeffs.c1 || coeffs.slope || 0;
+    return c0 + c1 * args[0];
+  },
+
+  linear_in_y: (coeffs, args) => {
+    const c0 = coeffs.c0 || coeffs.intercept || 0;
+    const c1 = coeffs.c1 || coeffs.slope || 0;
+    return c0 + c1 * args[1];
+  },
+
+  linear_in_z: (coeffs, args) => {
+    const c0 = coeffs.c0 || coeffs.intercept || 0;
+    const c1 = coeffs.c1 || coeffs.slope || 0;
+    return c0 + c1 * args[2];
+  },
+
+  quadratic_in_x: (coeffs, args) => {
+    const x = args[0];
+    return (coeffs.c0 || 0) + (coeffs.c1 || 0) * x + (coeffs.c2 || 0) * x * x;
+  },
+
+  quadratic_in_y: (coeffs, args) => {
+    const y = args[1];
+    return (coeffs.c0 || 0) + (coeffs.c1 || 0) * y + (coeffs.c2 || 0) * y * y;
+  },
+
+  quadratic_in_z: (coeffs, args) => {
+    const z = args[2];
+    return (coeffs.c0 || 0) + (coeffs.c1 || 0) * z + (coeffs.c2 || 0) * z * z;
+  },
+
+  linear_in_xy: (coeffs, args) => {
+    return (coeffs.c0 || 0) + (coeffs.c1 || 0) * args[0] + (coeffs.c2 || 0) * args[1];
+  },
+
+  linear_in_xz: (coeffs, args) => {
+    return (coeffs.c0 || 0) + (coeffs.c1 || 0) * args[0] + (coeffs.c2 || 0) * args[2];
+  },
+
+  linear_in_yz: (coeffs, args) => {
+    return (coeffs.c0 || 0) + (coeffs.c1 || 0) * args[1] + (coeffs.c2 || 0) * args[2];
+  },
+
+  added_sizes: (coeffs, args) => {
+    // added_sizes models cost as linear in sum of sizes
+    const sum = args.reduce((a, b) => a + b, 0);
+    const c0 = coeffs.c0 || coeffs.intercept || 0;
+    const c1 = coeffs.c1 || coeffs.slope || 0;
+    return c0 + c1 * sum;
+  },
+
+  multiplied_sizes: (coeffs, args) => {
+    // multiplied_sizes models cost as linear in product of sizes
+    const product = args.reduce((a, b) => a * b, 1);
+    const c0 = coeffs.c0 || coeffs.intercept || 0;
+    const c1 = coeffs.c1 || coeffs.slope || 0;
+    return c0 + c1 * product;
+  },
+
+  min_size: (coeffs, args) => {
+    const min = Math.min(...args);
+    const c0 = coeffs.c0 || coeffs.intercept || 0;
+    const c1 = coeffs.c1 || coeffs.slope || 0;
+    return c0 + c1 * min;
+  },
+
+  max_size: (coeffs, args) => {
+    const max = Math.max(...args);
+    const c0 = coeffs.c0 || coeffs.intercept || 0;
+    const c1 = coeffs.c1 || coeffs.slope || 0;
+    return c0 + c1 * max;
+  },
+
+  linear_in_max_yz: (coeffs, args) => {
+    const max_yz = Math.max(args[1], args[2]);
+    return (coeffs.c0 || 0) + (coeffs.c1 || 0) * args[0] + (coeffs.c2 || 0) * max_yz;
+  },
+
+  linear_in_x_and_y: (coeffs, args) => {
+    const intercept = coeffs.intercept || coeffs.c0 || 0;
+    const slope1 = coeffs.slope1 || coeffs.c1 || 0;
+    const slope2 = coeffs.slope2 || coeffs.c2 || 0;
+    return intercept + slope1 * args[0] + slope2 * args[1];
+  },
+
+  const_above_diagonal: (coeffs, args) => {
+    // Above diagonal: x < y, return constant
+    // Below/on diagonal: x >= y, use inner model
+    if (args[0] < args[1]) {
+      return coeffs.constant || 0;
+    }
+    // Use inner model
+    const innerModel = coeffs.model;
+    if (innerModel && CostModelEvaluators[innerModel.type]) {
+      return CostModelEvaluators[innerModel.type](innerModel.arguments, args);
+    }
+    return 0;
+  },
+
+  const_below_diagonal: (coeffs, args) => {
+    // Below diagonal: x > y, return constant
+    // Above/on diagonal: x <= y, use inner model
+    if (args[0] > args[1]) {
+      return coeffs.constant || 0;
+    }
+    // Use inner model
+    const innerModel = coeffs.model;
+    if (innerModel && CostModelEvaluators[innerModel.type]) {
+      return CostModelEvaluators[innerModel.type](innerModel.arguments, args);
+    }
+    return 0;
+  },
+
+  // c00 + c10*x + c01*y + c11*x*y, the coefficient names the JSON uses
+  // (TwoVariableWithInteractionFunction in CostingFun.Core).
+  with_interaction_in_x_and_y: (coeffs, args) => {
+    return (coeffs.c00 ?? 0)
+      + (coeffs.c10 ?? 0) * args[0]
+      + (coeffs.c01 ?? 0) * args[1]
+      + (coeffs.c11 ?? 0) * args[0] * args[1];
+  },
+
+  linear_in_u: (coeffs, args) => {
+    // linear_in_u is linear in the fourth argument (args[3])
+    // The "u" refers to the fourth parameter's cost stream
+    const c0 = coeffs.c0 ?? coeffs.intercept ?? 0;
+    const c1 = coeffs.c1 ?? coeffs.slope ?? 0;
+    const u = args.length > 3 ? args[3] : 0;
+    return c0 + c1 * u;
+  }
+};
+
+/**
+ * Evaluate cost model for given arguments
+ * Returns cost in picoseconds
+ */
+function evaluateCostModel(modelType, coefficients, args) {
+  const evaluator = CostModelEvaluators[modelType];
+  if (!evaluator) {
+    console.error(`Unsupported cost model type: ${modelType}`);
+    return null;
+  }
+
+  try {
+    return evaluator(coefficients, args);
+  } catch (error) {
+    console.error(`Error evaluating cost model: ${error}`);
+    return null;
+  }
+}
+
+/**
+ * Extract cost model from builtinCostModelE.json for a specific function
+ * Returns { modelType, coefficients } or null if not found
+ */
+function extractCostModel(costModelJson, functionName) {
+  // The JSON structure is: { functionName: { cpu: { type: "...", arguments: ... } } }
+  if (!costModelJson[functionName]) {
+    console.error(`Function ${functionName} not found in cost model`);
+    return null;
+  }
+
+  const cpuModel = costModelJson[functionName].cpu;
+  if (!cpuModel) {
+    console.error(`CPU model not found for ${functionName}`);
+    return null;
+  }
+
+  // Handle different argument formats
+  let coefficients = {};
+  if (typeof cpuModel.arguments === 'number') {
+    // For constant_cost, arguments is just a number
+    coefficients.c0 = cpuModel.arguments;
+  } else if (typeof cpuModel.arguments === 'object') {
+    // For other models, arguments is an object with coefficients
+    coefficients = cpuModel.arguments;
+  }
+
+  return {
+    modelType: cpuModel.type,
+    coefficients: coefficients
+  };
+}
+
+/**
+ * Generate model predictions for the same input points as benchmark data
+ * Returns array of { args, predictedTime } where predictedTime is in nanoseconds
+ *
+ * Note: The cost model represents NET cost (after overhead subtraction during fitting).
+ * To compare with benchmark data, we need to add the overhead back.
+ */
+function generateModelPredictions(benchmarkData, costModel, overhead) {
+  if (!costModel) return [];
+
+  const predictions = [];
+
+  for (const dataPoint of benchmarkData) {
+    const costPicoseconds = evaluateCostModel(
+      costModel.modelType,
+      costModel.coefficients,
+      dataPoint.args
+    );
+
+    if (costPicoseconds !== null) {
+      // Convert picoseconds to nanoseconds
+      const costNanoseconds = costPicoseconds / 1000;
+
+      // Add overhead to get total predicted time (to match benchmark measurements)
+      const totalTime = costNanoseconds + (overhead || 0);
+
+      predictions.push({
+        args: dataPoint.args,
+        predictedTime: totalTime
+      });
+    }
+  }
+
+  return predictions;
+}
+
+/**
+ * Format model formula as human-readable string
+ */
+function formatModelFormula(modelType, coefficients) {
+  const formatCoeff = (val) => {
+    if (val >= 1000) {
+      return val.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+    return val.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  };
+
+  // Support both c0/c1/c2 and intercept/slope naming
+  const c0 = coefficients.c0 || coefficients.intercept || 0;
+  const c1 = coefficients.c1 || coefficients.slope || 0;
+  const c2 = coefficients.c2 || 0;
+
+  switch (modelType) {
+    case 'constant_cost':
+      return `${formatCoeff(c0)} picoseconds`;
+
+    case 'linear_in_x':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg1) picoseconds`;
+
+    case 'linear_in_y':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg2) picoseconds`;
+
+    case 'linear_in_z':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg3) picoseconds`;
+
+    case 'quadratic_in_x':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg1) + ${formatCoeff(c2)} × (arg1)² picoseconds`;
+
+    case 'quadratic_in_y':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg2) + ${formatCoeff(c2)} × (arg2)² picoseconds`;
+
+    case 'quadratic_in_z':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg3) + ${formatCoeff(c2)} × (arg3)² picoseconds`;
+
+    case 'linear_in_xy':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg1) + ${formatCoeff(c2)} × (arg2) picoseconds`;
+
+    case 'linear_in_xz':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg1) + ${formatCoeff(c2)} × (arg3) picoseconds`;
+
+    case 'linear_in_yz':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg2) + ${formatCoeff(c2)} × (arg3) picoseconds`;
+
+    case 'added_sizes':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (sum of args) picoseconds`;
+
+    case 'multiplied_sizes':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (product of args) picoseconds`;
+
+    case 'min_size':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (min of args) picoseconds`;
+
+    case 'max_size':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (max of args) picoseconds`;
+
+    case 'linear_in_max_yz':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg1) + ${formatCoeff(c2)} × max(arg2, arg3) picoseconds`;
+
+    case 'linear_in_x_and_y': {
+      const intercept = coefficients.intercept || coefficients.c0 || 0;
+      const slope1 = coefficients.slope1 || coefficients.c1 || 0;
+      const slope2 = coefficients.slope2 || coefficients.c2 || 0;
+      return `${formatCoeff(intercept)} + ${formatCoeff(slope1)} × (arg1) + ${formatCoeff(slope2)} × (arg2) picoseconds`;
+    }
+
+    case 'const_above_diagonal': {
+      const constant = coefficients.constant || 0;
+      const innerModel = coefficients.model;
+      const innerFormula = innerModel ? formatModelFormula(innerModel.type, innerModel.arguments) : 'unknown';
+      return `if arg1 < arg2: ${formatCoeff(constant)} picoseconds, else: ${innerFormula}`;
+    }
+
+    case 'const_below_diagonal': {
+      const constant = coefficients.constant || 0;
+      const innerModel = coefficients.model;
+      const innerFormula = innerModel ? formatModelFormula(innerModel.type, innerModel.arguments) : 'unknown';
+      return `if arg1 > arg2: ${formatCoeff(constant)} picoseconds, else: ${innerFormula}`;
+    }
+
+    case 'with_interaction_in_x_and_y': {
+      const c00 = coefficients.c00 ?? 0;
+      const c10 = coefficients.c10 ?? 0;
+      const c01 = coefficients.c01 ?? 0;
+      const c11 = coefficients.c11 ?? 0;
+      return `${formatCoeff(c00)} + ${formatCoeff(c10)} × (arg1) + ${formatCoeff(c01)} × (arg2) + ${formatCoeff(c11)} × (arg1×arg2) picoseconds`;
+    }
+
+    case 'linear_in_u':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg4) picoseconds`;
+
+    default:
+      return `${modelType} (formula not yet implemented)`;
+  }
+}
+
+/**
+ * Calculate statistics from benchmark data
+ */
+function calculateStats(data, argIndex = null) {
+  if (data.length === 0) return {};
+
+  const times = data.map(d => d.time);
+  const minTime = Math.min(...times);
+  const maxTime = Math.max(...times);
+
+  const stats = {
+    dataPoints: data.length,
+    minTime: minTime,
+    maxTime: maxTime,
+    timeRange: `${(minTime / 1000).toFixed(2)} µs - ${(maxTime / 1000).toFixed(2)} µs`
+  };
+
+  if (argIndex !== null && data[0].args.length > argIndex) {
+    const argValues = data.map(d => d.args[argIndex]);
+    stats.minArg = Math.min(...argValues);
+    stats.maxArg = Math.max(...argValues);
+  }
+
+  return stats;
+}
+
+/**
+ * Load data from URLs
+ */
+async function loadData(csvUrl, jsonUrl) {
+  try {
+    const [csvResponse, jsonResponse] = await Promise.all([
+      fetch(csvUrl),
+      fetch(jsonUrl)
+    ]);
+
+    // Include status and URL: a stale saved branch (deleted after its PR
+    // merges) is the routine failure here, and the URL is what reveals it.
+    if (!csvResponse.ok) {
+      throw new Error(`CSV request returned HTTP ${csvResponse.status} for ${csvUrl}`);
+    }
+
+    if (!jsonResponse.ok) {
+      throw new Error(`JSON request returned HTTP ${jsonResponse.status} for ${jsonUrl}`);
+    }
+
+    const csvText = await csvResponse.text();
+    const costModelJson = await jsonResponse.json();
+
+    const parsedData = parseCSV(csvText);
+
+    return {
+      parsedData,
+      costModelJson,
+      overheadMap: calculateOverhead(parsedData)
+    };
+  } catch (error) {
+    console.error('Error loading data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get branch name from URL query parameter
+ * @returns {string|null} Branch name or null if not specified
+ */
+function getBranchFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('branch');
+}
+
+// ============================================================================
+// Shared page plumbing
+// ============================================================================
+// Every builtin page has the same navigation, data-source controls, URL
+// scheme and loading flow; a page supplies only its identity and rendering.
+// Adding a builtin page or switching to a new cost model file is done here,
+// in one place.
+
+const DEFAULT_BRANCH = 'master';
+const URL_TEMPLATE = 'https://raw.githubusercontent.com/IntersectMBO/plutus/{BRANCH}/plutus-core/cost-model/data';
+const GITHUB_DATA_URL = 'https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data';
+
+const BENCH_CSV_FILE = 'benching-conway.csv';
+// Variant E is the PlutusV3 cost model from the vanRossem hard fork (PV 11)
+// onwards (C is the previous V3 era).
+const COST_MODEL_FILE = 'builtinCostModelE.json';
+const COST_MODEL_NOTE = '(PlutusV3 from PV 11 / vanRossem)';
+
+// One entry per builtin page, in navigation order: [slug, label, description].  Both the
+// nav bar and the landing page's function list are generated from this, so adding a page
+// means adding one entry here and nothing else.
+const PAGES = [
+  ['valuedata', 'ValueData',
+   'Converts a Plutus <code>Value</code> to <code>Data</code> representation. ' +
+   '(2D visualization: Value Size vs Time)'],
+  ['unvaluedata', 'UnValueData',
+   'Converts <code>Data</code> representation back to a Plutus <code>Value</code>. ' +
+   '(2D visualization: Data Size vs Time)'],
+  ['valuecontains', 'ValueContains',
+   'Checks if a Plutus <code>Value</code> (haystack) contains another <code>Value</code> ' +
+   '(needle). (3D visualization: Container Size \u00d7 Contained Size \u00d7 Time)'],
+  ['lookupcoin', 'LookupCoin',
+   'Looks up a specific coin (currency symbol and token name) in a Plutus ' +
+   '<code>Value</code>. (2D visualization: Value Size vs Time)'],
+  ['insertcoin', 'InsertCoin',
+   'Inserts a coin into a Plutus <code>Value</code> map structure. ' +
+   '(2D visualization: Value Size vs Time)'],
+  ['unionvalue', 'UnionValue',
+   'Unions two Plutus <code>Value</code> structures into one. ' +
+   '(3D visualization: Value Size \u00d7 Value Size \u00d7 Time)'],
+  ['scalevalue', 'ScaleValue',
+   'Multiplies a Plutus <code>Value</code> by a scalar, scaling all quantities. ' +
+   '(2D visualization: Value Size vs Time)'],
+  ['assetcount', 'AssetCount',
+   'Returns the number of <code>(currency symbol, token name)</code> pairs in a Plutus ' +
+   '<code>Value</code> in O(1) time. ' +
+   '(2D visualization: Value Size vs Time - constant cost)'],
+  ['listtoarray', 'ListToArray',
+   'Converts a Plutus list to an array representation. ' +
+   '(2D visualization: List Size vs Time)'],
+  ['lengthofarray', 'LengthOfArray',
+   'Returns the length of a Plutus array in O(1) time. ' +
+   '(2D visualization: Array Size vs Time - constant cost)'],
+  ['indexarray', 'IndexArray',
+   'Retrieves an element at a given index from a Plutus array in O(1) time. ' +
+   '(2D visualization: Array Size vs Time - constant cost)'],
+  ['multiindexarray', 'MultiIndexArray',
+   'Looks up a list of indices in a Plutus array; linear in the number of indices, ' +
+   'independent of the array size. (3D visualization: Haystack Size \u00d7 Needles Size ' +
+   'vs Time, plus per-index time distribution histogram)'],
+  ['indexbytestring', 'IndexByteString',
+   'Retrieves a byte at a given index from a ByteString in O(1) time. Performs a bounds ' +
+   'check and returns the byte value (Word8). ' +
+   '(2D visualization: ByteString Size vs Time - constant cost)']
+];
+
+// LocalStorage keys
+const STORAGE_KEYS = {
+  BRANCH: 'plutus-viz-branch',
+  CSV_URL: 'plutus-viz-csv-url',
+  JSON_URL: 'plutus-viz-json-url',
+  DATA_SOURCE_COLLAPSED: 'plutus-viz-data-source-collapsed',
+  PLOT_CONTROLS_COLLAPSED: 'plutus-viz-plot-controls-collapsed'
+};
+
+function generateUrlFromBranch(branch) {
+  return URL_TEMPLATE.replace('{BRANCH}', branch);
+}
+
+function getFileUrls(baseUrl) {
+  return {
+    csv: `${baseUrl}/${BENCH_CSV_FILE}`,
+    json: `${baseUrl}/${COST_MODEL_FILE}`
+  };
+}
+
+// Load settings from localStorage (URL param takes precedence)
+function loadSettings() {
+  const urlBranch = getBranchFromUrl();
+  return {
+    branch: urlBranch || localStorage.getItem(STORAGE_KEYS.BRANCH) || DEFAULT_BRANCH,
+    csvUrl: localStorage.getItem(STORAGE_KEYS.CSV_URL) || '',
+    jsonUrl: localStorage.getItem(STORAGE_KEYS.JSON_URL) || '',
+    collapsed: localStorage.getItem(STORAGE_KEYS.DATA_SOURCE_COLLAPSED) === 'true'
+  };
+}
+
+function saveSettings(branch, csvUrl, jsonUrl) {
+  localStorage.setItem(STORAGE_KEYS.BRANCH, branch);
+  localStorage.setItem(STORAGE_KEYS.CSV_URL, csvUrl);
+  localStorage.setItem(STORAGE_KEYS.JSON_URL, jsonUrl);
+}
+
+// Update URL fields based on branch name
+function updateUrlsFromBranch() {
+  const branchInput = document.getElementById('branch-name');
+  const csvInput = document.getElementById('csv-url');
+  const jsonInput = document.getElementById('json-url');
+
+  const branch = branchInput.value.trim() || DEFAULT_BRANCH;
+  const urls = getFileUrls(generateUrlFromBranch(branch));
+
+  csvInput.value = urls.csv;
+  jsonInput.value = urls.json;
+}
+
+function showError(message) {
+  const container = document.getElementById('plot-container');
+  // The message can contain request URLs built from the user-editable
+  // data-source fields, so it goes in as text, never as HTML.
+  container.innerHTML = `
+    <div class="error">
+      <h3>Error Loading Data</h3>
+      <p></p>
+    </div>
+  `;
+  container.querySelector('.error p').textContent = message;
+}
+
+// Fill <nav> with the standard page list; `active` is the page's slug and
+// `prefix` the relative path to the site root ('..' from a page, '.' from
+// the home page).
+function renderNav(active, prefix = '..') {
+  const nav = document.querySelector('nav');
+  if (!nav) return;
+  const items = [[`${prefix}/index.html`, 'Home', active === null]].concat(
+    PAGES.map(([slug, name]) => [`${prefix}/${slug}/index.html`, name, slug === active]));
+  nav.innerHTML = '<ul>' + items.map(([href, name, isActive]) =>
+    `<li><a href="${href}"${isActive ? ' class="active"' : ''}>${name}</a></li>`).join('') + '</ul>';
+}
+
+// Fill the landing page's function list from the standard page list.  The descriptions
+// carry markup, so they go in as HTML; unlike `showError` below, nothing here comes from
+// a user-editable field.
+function renderFunctionList() {
+  const list = document.querySelector('ul.function-list');
+  if (!list) return;
+  list.innerHTML = PAGES.map(([slug, name, description]) =>
+    `<li><a href="${slug}/index.html">${name}</a>` +
+    `<p class="description">${description}</p></li>`).join('');
+}
+
+function renderFooter() {
+  const footer = document.querySelector('footer');
+  if (!footer) return;
+  footer.innerHTML = '<p>Plutus Cost Model Visualization | ' +
+    '<a href="https://github.com/IntersectMBO/plutus" target="_blank">Plutus Repository</a></p>';
+}
+
+// Fill the info-panel "Data sources" list from the shared file names.
+function renderDataSources() {
+  const el = document.getElementById('info-data-sources');
+  if (!el) return;
+  el.innerHTML = `
+    <dt>Data sources:</dt>
+    <dd><a href="${GITHUB_DATA_URL}/${BENCH_CSV_FILE}" target="_blank">${BENCH_CSV_FILE}</a></dd>
+    <dd><a href="${GITHUB_DATA_URL}/${COST_MODEL_FILE}" target="_blank">${COST_MODEL_FILE}</a>
+      ${COST_MODEL_NOTE}</dd>
+  `;
+}
+
+
+/**
+ * Wire up a builtin page.  The page supplies its identity and two callbacks;
+ * everything else -- navigation, data-source controls, URL handling,
+ * loading -- is shared.
+ *
+ * @param {Object} page
+ * @param {string} page.slug            Directory name, used to highlight the nav
+ * @param {string} page.functionName    Benchmark name (PascalCase, as in the CSV)
+ * @param {string} page.costModelName   Cost model key (camelCase, as in the JSON)
+ * @param {number} page.arity           Number of arguments, for the Nop overhead
+ * @param {Function} page.render        Called with {benchmarkData, costModel,
+ *                                      overhead, modelPredictions} after each load
+ * @param {Function} page.setupControls Called once to wire plot-specific controls
+ */
+function setupCostModelPage(page) {
+  async function loadAndRenderData() {
+    const container = document.getElementById('plot-container');
+    container.innerHTML = '<div class="loading">Loading data and generating plot...</div>';
+
+    try {
+      const csvUrl = document.getElementById('csv-url').value.trim();
+      const jsonUrl = document.getElementById('json-url').value.trim();
+
+      if (!csvUrl || !jsonUrl) {
+        showError('Please provide both CSV and JSON file URLs');
+        return;
+      }
+
+      const { parsedData, costModelJson, overheadMap } = await loadData(csvUrl, jsonUrl);
+
+      const benchmarkData = filterByFunction(parsedData, page.functionName);
+      if (benchmarkData.length === 0) {
+        showError(`No benchmark data found for ${page.functionName}`);
+        return;
+      }
+
+      const costModel = extractCostModel(costModelJson, page.costModelName);
+      const overhead = overheadMap[page.arity] || 0;
+      const modelPredictions =
+        costModel ? generateModelPredictions(benchmarkData, costModel, overhead) : [];
+
+      page.render({ benchmarkData, costModel, overhead, modelPredictions });
+    } catch (error) {
+      console.error('Error loading data:', error);
+      showError(`Failed to load data. Check console for details. Error: ${error.message}`);
+    }
+  }
+
+  async function init() {
+    renderNav(page.slug);
+    renderFooter();
+    renderDataSources();
+
+    const settings = loadSettings();
+
+    // Collapsible sections
+    const dataSourceControls = document.getElementById('data-source-controls');
+    const dataSourceToggle = document.getElementById('data-source-toggle');
+    if (dataSourceControls && dataSourceToggle) {
+      if (settings.collapsed) {
+        dataSourceControls.classList.add('collapsed');
+      }
+      dataSourceToggle.addEventListener('click', () => {
+        const isCollapsed = dataSourceControls.classList.toggle('collapsed');
+        localStorage.setItem(STORAGE_KEYS.DATA_SOURCE_COLLAPSED, isCollapsed);
+      });
+    }
+
+    const plotControls = document.getElementById('plot-controls');
+    const plotControlsToggle = document.getElementById('plot-controls-toggle');
+    if (plotControls && plotControlsToggle) {
+      if (localStorage.getItem(STORAGE_KEYS.PLOT_CONTROLS_COLLAPSED) === 'true') {
+        plotControls.classList.add('collapsed');
+      }
+      plotControlsToggle.addEventListener('click', () => {
+        const isCollapsed = plotControls.classList.toggle('collapsed');
+        localStorage.setItem(STORAGE_KEYS.PLOT_CONTROLS_COLLAPSED, isCollapsed);
+      });
+    }
+
+    // Data-source inputs
+    const branchInput = document.getElementById('branch-name');
+    const csvInput = document.getElementById('csv-url');
+    const jsonInput = document.getElementById('json-url');
+
+    branchInput.value = settings.branch;
+    if (settings.csvUrl && settings.jsonUrl) {
+      csvInput.value = settings.csvUrl;
+      jsonInput.value = settings.jsonUrl;
+    } else {
+      updateUrlsFromBranch();
+    }
+    branchInput.addEventListener('input', updateUrlsFromBranch);
+
+    document.getElementById('reload-data').addEventListener('click', async () => {
+      const branch = branchInput.value.trim() || DEFAULT_BRANCH;
+      saveSettings(branch, csvInput.value.trim(), jsonInput.value.trim());
+      await loadAndRenderData();
+    });
+
+    document.getElementById('copy-link').addEventListener('click', () => {
+      const branch = branchInput.value.trim() || DEFAULT_BRANCH;
+      const url = new URL(window.location.href);
+      url.search = '';
+      url.searchParams.set('branch', branch);
+      navigator.clipboard.writeText(url.toString());
+      const btn = document.getElementById('copy-link');
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = original, 1500);
+    });
+
+    page.setupControls();
+
+    await loadAndRenderData();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+}

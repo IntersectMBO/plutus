@@ -1,0 +1,1346 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Transform.Certify.Hints</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Certifier hints for the inlining pass.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Inline"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	  ><span class="hs-identifier hs-var"
+	    >Inline</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="InlVar"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlVar"
+	  ><span class="hs-identifier hs-var"
+	    >InlVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlLam"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlLam"
+	  ><span class="hs-identifier hs-var"
+	    >InlLam</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlApply"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlApply"
+	  ><span class="hs-identifier hs-var"
+	    >InlApply</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlForce"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlForce"
+	  ><span class="hs-identifier hs-var"
+	    >InlForce</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlDelay"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlDelay"
+	  ><span class="hs-identifier hs-var"
+	    >InlDelay</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlCon"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlCon"
+	  ><span class="hs-identifier hs-var"
+	    >InlCon</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlBuiltin"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlBuiltin"
+	  ><span class="hs-identifier hs-var"
+	    >InlBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlError"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlError"
+	  ><span class="hs-identifier hs-var"
+	    >InlError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlConstr"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlConstr"
+	  ><span class="hs-identifier hs-var"
+	    >InlConstr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlCase"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlCase"
+	  ><span class="hs-identifier hs-var"
+	    >InlCase</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlExpand"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlExpand"
+	  ><span class="hs-identifier hs-var"
+	    >InlExpand</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlDrop"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlDrop"
+	  ><span class="hs-identifier hs-var"
+	    >InlDrop</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681294254"
+      ><span id="local-6989586621681294256"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. Inline -&gt; Rep Inline x)
+-&gt; (forall x. Rep Inline x -&gt; Inline) -&gt; Generic Inline
+forall x. Rep Inline x -&gt; Inline
+forall x. Inline -&gt; Rep Inline x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Inline -&gt; Rep Inline x
+from :: forall x. Inline -&gt; Rep Inline x
+$cto :: forall x. Rep Inline x -&gt; Inline
+to :: forall x. Rep Inline x -&gt; Inline
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681294260"
+      ><span class="annot"
+	><span class="annottext"
+	  >Inline -&gt; ()
+(Inline -&gt; ()) -&gt; NFData Inline
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: Inline -&gt; ()
+rnf :: Inline -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="InlinePlus"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlinePlus"
+	  ><span class="hs-identifier hs-var"
+	    >InlinePlus</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681294304"
+      ><span class="annot"
+	><a href="#local-6989586621681294304"
+	  ><span class="hs-identifier hs-type"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="InlOne"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlOne"
+	  ><span class="hs-identifier hs-var"
+	    >InlOne</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InlSeq"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlSeq"
+	  ><span class="hs-identifier hs-var"
+	    >InlSeq</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681294304"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlinePlus"
+	><span class="hs-identifier hs-type"
+	  >InlinePlus</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681294304"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681294308"
+      ><span id="local-6989586621681294310"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. InlinePlus term -&gt; Rep (InlinePlus term) x)
+-&gt; (forall x. Rep (InlinePlus term) x -&gt; InlinePlus term)
+-&gt; Generic (InlinePlus term)
+forall x. Rep (InlinePlus term) x -&gt; InlinePlus term
+forall x. InlinePlus term -&gt; Rep (InlinePlus term) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall term x. Rep (InlinePlus term) x -&gt; InlinePlus term
+forall term x. InlinePlus term -&gt; Rep (InlinePlus term) x
+$cfrom :: forall term x. InlinePlus term -&gt; Rep (InlinePlus term) x
+from :: forall x. InlinePlus term -&gt; Rep (InlinePlus term) x
+$cto :: forall term x. Rep (InlinePlus term) x -&gt; InlinePlus term
+to :: forall x. Rep (InlinePlus term) x -&gt; InlinePlus term
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681294313"
+      ><span id="local-6989586621681294317"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b. (a -&gt; b) -&gt; InlinePlus a -&gt; InlinePlus b)
+-&gt; (forall a b. a -&gt; InlinePlus b -&gt; InlinePlus a)
+-&gt; Functor InlinePlus
+forall a b. a -&gt; InlinePlus b -&gt; InlinePlus a
+forall a b. (a -&gt; b) -&gt; InlinePlus a -&gt; InlinePlus b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; InlinePlus a -&gt; InlinePlus b
+fmap :: forall a b. (a -&gt; b) -&gt; InlinePlus a -&gt; InlinePlus b
+$c&lt;$ :: forall a b. a -&gt; InlinePlus b -&gt; InlinePlus a
+&lt;$ :: forall a b. a -&gt; InlinePlus b -&gt; InlinePlus a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681294321"
+      ><span id="local-6989586621681294327"
+	><span id="local-6989586621681294334"
+	  ><span id="local-6989586621681294339"
+	    ><span id="local-6989586621681294342"
+	      ><span id="local-6989586621681294345"
+		><span id="local-6989586621681294348"
+		  ><span id="local-6989586621681294351"
+		    ><span id="local-6989586621681294354"
+		      ><span id="local-6989586621681294357"
+			><span id="local-6989586621681294360"
+			  ><span id="local-6989586621681294362"
+			    ><span id="local-6989586621681294365"
+			      ><span id="local-6989586621681294370"
+				><span id="local-6989586621681294375"
+				  ><span id="local-6989586621681294380"
+				    ><span id="local-6989586621681294385"
+				      ><span class="annot"
+					><span class="annottext"
+					  >(forall m. Monoid m =&gt; InlinePlus m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; InlinePlus a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; InlinePlus a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; InlinePlus a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; InlinePlus a -&gt; a)
+-&gt; (forall a. InlinePlus a -&gt; [a])
+-&gt; (forall a. InlinePlus a -&gt; Bool)
+-&gt; (forall a. InlinePlus a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; InlinePlus a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; InlinePlus a -&gt; a)
+-&gt; (forall a. Ord a =&gt; InlinePlus a -&gt; a)
+-&gt; (forall a. Num a =&gt; InlinePlus a -&gt; a)
+-&gt; (forall a. Num a =&gt; InlinePlus a -&gt; a)
+-&gt; Foldable InlinePlus
+forall a. Eq a =&gt; a -&gt; InlinePlus a -&gt; Bool
+forall a. Num a =&gt; InlinePlus a -&gt; a
+forall a. Ord a =&gt; InlinePlus a -&gt; a
+forall m. Monoid m =&gt; InlinePlus m -&gt; m
+forall a. InlinePlus a -&gt; Bool
+forall a. InlinePlus a -&gt; Int
+forall a. InlinePlus a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; InlinePlus a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; InlinePlus a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+$cfold :: forall m. Monoid m =&gt; InlinePlus m -&gt; m
+fold :: forall m. Monoid m =&gt; InlinePlus m -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; InlinePlus a -&gt; m
+foldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; InlinePlus a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; InlinePlus a -&gt; m
+foldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; InlinePlus a -&gt; m
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b
+foldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b
+foldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b
+foldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b
+foldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; InlinePlus a -&gt; b
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; InlinePlus a -&gt; a
+foldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; InlinePlus a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; InlinePlus a -&gt; a
+foldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; InlinePlus a -&gt; a
+$ctoList :: forall a. InlinePlus a -&gt; [a]
+toList :: forall a. InlinePlus a -&gt; [a]
+$cnull :: forall a. InlinePlus a -&gt; Bool
+null :: forall a. InlinePlus a -&gt; Bool
+$clength :: forall a. InlinePlus a -&gt; Int
+length :: forall a. InlinePlus a -&gt; Int
+$celem :: forall a. Eq a =&gt; a -&gt; InlinePlus a -&gt; Bool
+elem :: forall a. Eq a =&gt; a -&gt; InlinePlus a -&gt; Bool
+$cmaximum :: forall a. Ord a =&gt; InlinePlus a -&gt; a
+maximum :: forall a. Ord a =&gt; InlinePlus a -&gt; a
+$cminimum :: forall a. Ord a =&gt; InlinePlus a -&gt; a
+minimum :: forall a. Ord a =&gt; InlinePlus a -&gt; a
+$csum :: forall a. Num a =&gt; InlinePlus a -&gt; a
+sum :: forall a. Num a =&gt; InlinePlus a -&gt; a
+$cproduct :: forall a. Num a =&gt; InlinePlus a -&gt; a
+product :: forall a. Num a =&gt; InlinePlus a -&gt; a
+</span
+					  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+					  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+					    >Foldable</span
+					    ></a
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681294395"
+      ><span id="local-6989586621681294403"
+	><span id="local-6989586621681294408"
+	  ><span id="local-6989586621681294413"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>Functor InlinePlus
+Foldable InlinePlus
+(Functor InlinePlus, Foldable InlinePlus) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; InlinePlus a -&gt; f (InlinePlus b))
+-&gt; (forall (f :: * -&gt; *) a.
+    Applicative f =&gt;
+    InlinePlus (f a) -&gt; f (InlinePlus a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; InlinePlus a -&gt; m (InlinePlus b))
+-&gt; (forall (m :: * -&gt; *) a.
+    Monad m =&gt;
+    InlinePlus (m a) -&gt; m (InlinePlus a))
+-&gt; Traversable InlinePlus
+forall (t :: * -&gt; *).
+(Functor t, Foldable t) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; t a -&gt; f (t b))
+-&gt; (forall (f :: * -&gt; *) a. Applicative f =&gt; t (f a) -&gt; f (t a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; t a -&gt; m (t b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; t (m a) -&gt; m (t a))
+-&gt; Traversable t
+forall (m :: * -&gt; *) a.
+Monad m =&gt;
+InlinePlus (m a) -&gt; m (InlinePlus a)
+forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+InlinePlus (f a) -&gt; f (InlinePlus a)
+forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; InlinePlus a -&gt; m (InlinePlus b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; InlinePlus a -&gt; f (InlinePlus b)
+$ctraverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; InlinePlus a -&gt; f (InlinePlus b)
+traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; InlinePlus a -&gt; f (InlinePlus b)
+$csequenceA :: forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+InlinePlus (f a) -&gt; f (InlinePlus a)
+sequenceA :: forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+InlinePlus (f a) -&gt; f (InlinePlus a)
+$cmapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; InlinePlus a -&gt; m (InlinePlus b)
+mapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; InlinePlus a -&gt; m (InlinePlus b)
+$csequence :: forall (m :: * -&gt; *) a.
+Monad m =&gt;
+InlinePlus (m a) -&gt; m (InlinePlus a)
+sequence :: forall (m :: * -&gt; *) a.
+Monad m =&gt;
+InlinePlus (m a) -&gt; m (InlinePlus a)
+</span
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#Traversable"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Traversable</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681294420"
+      ><span class="annot"
+	><span class="annottext"
+	  >InlinePlus term -&gt; ()
+(InlinePlus term -&gt; ()) -&gt; NFData (InlinePlus term)
+forall term. NFData term =&gt; InlinePlus term -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: forall term. NFData term =&gt; InlinePlus term -&gt; ()
+rnf :: InlinePlus term -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Hints for the certifier.
+
+Note that there's a separate and unrelated notion of @InlineHints@. When there's
+ambiguity, this should be referred to as &quot;certifier hints&quot;. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Hints"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Hints"
+	  ><span class="hs-identifier hs-var"
+	    >Hints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681294438"
+      ><span class="annot"
+	><a href="#local-6989586621681294438"
+	  ><span class="hs-identifier hs-type"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Inline"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#Inline"
+	  ><span class="hs-identifier hs-var"
+	    >Inline</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.Certify.Hints.html#InlinePlus"
+	><span class="hs-identifier hs-type"
+	  >InlinePlus</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681294438"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="NoHints"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Transform.Certify.Hints.html#NoHints"
+	  ><span class="hs-identifier hs-var"
+	    >NoHints</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681294442"
+      ><span id="local-6989586621681294444"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. Hints term -&gt; Rep (Hints term) x)
+-&gt; (forall x. Rep (Hints term) x -&gt; Hints term)
+-&gt; Generic (Hints term)
+forall x. Rep (Hints term) x -&gt; Hints term
+forall x. Hints term -&gt; Rep (Hints term) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall term x. Rep (Hints term) x -&gt; Hints term
+forall term x. Hints term -&gt; Rep (Hints term) x
+$cfrom :: forall term x. Hints term -&gt; Rep (Hints term) x
+from :: forall x. Hints term -&gt; Rep (Hints term) x
+$cto :: forall term x. Rep (Hints term) x -&gt; Hints term
+to :: forall x. Rep (Hints term) x -&gt; Hints term
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681294447"
+      ><span id="local-6989586621681294450"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b. (a -&gt; b) -&gt; Hints a -&gt; Hints b)
+-&gt; (forall a b. a -&gt; Hints b -&gt; Hints a) -&gt; Functor Hints
+forall a b. a -&gt; Hints b -&gt; Hints a
+forall a b. (a -&gt; b) -&gt; Hints a -&gt; Hints b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; Hints a -&gt; Hints b
+fmap :: forall a b. (a -&gt; b) -&gt; Hints a -&gt; Hints b
+$c&lt;$ :: forall a b. a -&gt; Hints b -&gt; Hints a
+&lt;$ :: forall a b. a -&gt; Hints b -&gt; Hints a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681294454"
+      ><span id="local-6989586621681294460"
+	><span id="local-6989586621681294466"
+	  ><span id="local-6989586621681294471"
+	    ><span id="local-6989586621681294474"
+	      ><span id="local-6989586621681294477"
+		><span id="local-6989586621681294480"
+		  ><span id="local-6989586621681294483"
+		    ><span id="local-6989586621681294486"
+		      ><span id="local-6989586621681294489"
+			><span id="local-6989586621681294492"
+			  ><span id="local-6989586621681294495"
+			    ><span id="local-6989586621681294498"
+			      ><span id="local-6989586621681294503"
+				><span id="local-6989586621681294508"
+				  ><span id="local-6989586621681294513"
+				    ><span id="local-6989586621681294518"
+				      ><span class="annot"
+					><span class="annottext"
+					  >(forall m. Monoid m =&gt; Hints m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Hints a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Hints a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Hints a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Hints a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Hints a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Hints a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Hints a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Hints a -&gt; a)
+-&gt; (forall a. Hints a -&gt; [a])
+-&gt; (forall a. Hints a -&gt; Bool)
+-&gt; (forall a. Hints a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; Hints a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; Hints a -&gt; a)
+-&gt; (forall a. Ord a =&gt; Hints a -&gt; a)
+-&gt; (forall a. Num a =&gt; Hints a -&gt; a)
+-&gt; (forall a. Num a =&gt; Hints a -&gt; a)
+-&gt; Foldable Hints
+forall a. Eq a =&gt; a -&gt; Hints a -&gt; Bool
+forall a. Num a =&gt; Hints a -&gt; a
+forall a. Ord a =&gt; Hints a -&gt; a
+forall m. Monoid m =&gt; Hints m -&gt; m
+forall a. Hints a -&gt; Bool
+forall a. Hints a -&gt; Int
+forall a. Hints a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; Hints a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Hints a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Hints a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Hints a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+$cfold :: forall m. Monoid m =&gt; Hints m -&gt; m
+fold :: forall m. Monoid m =&gt; Hints m -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Hints a -&gt; m
+foldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Hints a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Hints a -&gt; m
+foldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Hints a -&gt; m
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Hints a -&gt; b
+foldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Hints a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Hints a -&gt; b
+foldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Hints a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Hints a -&gt; b
+foldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Hints a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Hints a -&gt; b
+foldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Hints a -&gt; b
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; Hints a -&gt; a
+foldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; Hints a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; Hints a -&gt; a
+foldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; Hints a -&gt; a
+$ctoList :: forall a. Hints a -&gt; [a]
+toList :: forall a. Hints a -&gt; [a]
+$cnull :: forall a. Hints a -&gt; Bool
+null :: forall a. Hints a -&gt; Bool
+$clength :: forall a. Hints a -&gt; Int
+length :: forall a. Hints a -&gt; Int
+$celem :: forall a. Eq a =&gt; a -&gt; Hints a -&gt; Bool
+elem :: forall a. Eq a =&gt; a -&gt; Hints a -&gt; Bool
+$cmaximum :: forall a. Ord a =&gt; Hints a -&gt; a
+maximum :: forall a. Ord a =&gt; Hints a -&gt; a
+$cminimum :: forall a. Ord a =&gt; Hints a -&gt; a
+minimum :: forall a. Ord a =&gt; Hints a -&gt; a
+$csum :: forall a. Num a =&gt; Hints a -&gt; a
+sum :: forall a. Num a =&gt; Hints a -&gt; a
+$cproduct :: forall a. Num a =&gt; Hints a -&gt; a
+product :: forall a. Num a =&gt; Hints a -&gt; a
+</span
+					  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+					  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+					    >Foldable</span
+					    ></a
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681294527"
+      ><span id="local-6989586621681294535"
+	><span id="local-6989586621681294541"
+	  ><span id="local-6989586621681294546"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>Functor Hints
+Foldable Hints
+(Functor Hints, Foldable Hints) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; Hints a -&gt; f (Hints b))
+-&gt; (forall (f :: * -&gt; *) a.
+    Applicative f =&gt;
+    Hints (f a) -&gt; f (Hints a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; Hints a -&gt; m (Hints b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; Hints (m a) -&gt; m (Hints a))
+-&gt; Traversable Hints
+forall (t :: * -&gt; *).
+(Functor t, Foldable t) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; t a -&gt; f (t b))
+-&gt; (forall (f :: * -&gt; *) a. Applicative f =&gt; t (f a) -&gt; f (t a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; t a -&gt; m (t b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; t (m a) -&gt; m (t a))
+-&gt; Traversable t
+forall (m :: * -&gt; *) a. Monad m =&gt; Hints (m a) -&gt; m (Hints a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; Hints (f a) -&gt; f (Hints a)
+forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Hints a -&gt; m (Hints b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Hints a -&gt; f (Hints b)
+$ctraverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Hints a -&gt; f (Hints b)
+traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Hints a -&gt; f (Hints b)
+$csequenceA :: forall (f :: * -&gt; *) a. Applicative f =&gt; Hints (f a) -&gt; f (Hints a)
+sequenceA :: forall (f :: * -&gt; *) a. Applicative f =&gt; Hints (f a) -&gt; f (Hints a)
+$cmapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Hints a -&gt; m (Hints b)
+mapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Hints a -&gt; m (Hints b)
+$csequence :: forall (m :: * -&gt; *) a. Monad m =&gt; Hints (m a) -&gt; m (Hints a)
+sequence :: forall (m :: * -&gt; *) a. Monad m =&gt; Hints (m a) -&gt; m (Hints a)
+</span
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#Traversable"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Traversable</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681294553"
+      ><span class="annot"
+	><span class="annottext"
+	  >Hints term -&gt; ()
+(Hints term -&gt; ()) -&gt; NFData (Hints term)
+forall term. NFData term =&gt; Hints term -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: forall term. NFData term =&gt; Hints term -&gt; ()
+rnf :: Hints term -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

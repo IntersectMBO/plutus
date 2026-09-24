@@ -1,0 +1,81 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>-- | Built-in @pair@ and related functions.
+<span class="lineno">    6 </span>module PlutusCore.StdLib.Data.Pair
+<span class="lineno">    7 </span>  ( pair
+<span class="lineno">    8 </span>  , fstPair
+<span class="lineno">    9 </span>  , sndPair
+<span class="lineno">   10 </span>  , uncurry
+<span class="lineno">   11 </span>  ) where
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import Prelude hiding (fst, snd, uncurry)
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import PlutusCore.Core
+<span class="lineno">   16 </span>import PlutusCore.Default
+<span class="lineno">   17 </span>import PlutusCore.MkPlc
+<span class="lineno">   18 </span>import PlutusCore.Name.Unique
+<span class="lineno">   19 </span>import PlutusCore.Quote
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>-- | @(,)@ as a built-in PLC type.
+<span class="lineno">   22 </span>pair :: uni `HasTypeLevel` (,) =&gt; Type tyname uni ()
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">pair = mkTyBuiltin @_ @(,) <span class="nottickedoff">()</span></span></span>
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>{-| @fst@ as a PLC term.
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>&gt; /\(a :: *) (b :: *) -&gt; \(p : pair a b) -&gt; fst {a} {b} p -}
+<span class="lineno">   28 </span>fstPair :: TermLike term tyname name DefaultUni DefaultFun =&gt; term ()
+<span class="lineno">   29 </span><span class="decl"><span class="istickedoff">fstPair = builtin () FstPair</span></span>
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>{-| @snd@ as a PLC term.
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>&gt; /\(a :: *) (b :: *) -&gt; \(p : pair a b) -&gt; snd {a} {b} p -}
+<span class="lineno">   34 </span>sndPair :: TermLike term tyname name DefaultUni DefaultFun =&gt; term ()
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">sndPair = builtin () SndPair</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>{-| @uncurry@ as a PLC term.
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>&gt; /\(a :: *) (b :: *) (c :: *) -&gt; \(f : a -&gt; b -&gt; c) (p : pair a b) -&gt;
+<span class="lineno">   40 </span>&gt;     f (fst {a} {b} p) (snd {a} {b} p) -}
+<span class="lineno">   41 </span>uncurry :: TermLike term TyName Name DefaultUni DefaultFun =&gt; term ()
+<span class="lineno">   42 </span><span class="decl"><span class="istickedoff">uncurry = runQuote $ do</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">b &lt;- freshTyName &quot;b&quot;</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">c &lt;- freshTyName &quot;c&quot;</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">p &lt;- freshName &quot;p&quot;</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () b (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () c (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () f (TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> a) . TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> b) $ TyVar <span class="nottickedoff">()</span> c)</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () p (mkIterTyAppNoAnn pair [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> b])</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="istickedoff">(var () f)</span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="istickedoff">[ apply () (mkIterInstNoAnn fstPair [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> b]) $ var () p</span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="istickedoff">, apply () (mkIterInstNoAnn sndPair [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> b]) $ var () p</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+
+</pre>
+</body>
+</html>

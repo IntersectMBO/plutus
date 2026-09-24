@@ -1,0 +1,2639 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingVia #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-specialise #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.V4.Ratio</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#ratio"
+	><span class="hs-identifier"
+	  >ratio</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#unsafeRatio"
+	><span class="hs-identifier"
+	  >unsafeRatio</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#numerator"
+	><span class="hs-identifier"
+	  >numerator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#denominator"
+	><span class="hs-identifier"
+	  >denominator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#fromHaskellRatio"
+	><span class="hs-identifier"
+	  >fromHaskellRatio</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#toHaskellRatio"
+	><span class="hs-identifier"
+	  >toHaskellRatio</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#fromGHC"
+	><span class="hs-identifier"
+	  >fromGHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#toGHC"
+	><span class="hs-identifier"
+	  >toGHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.html"
+	><span class="hs-identifier"
+	  >Data.Aeson</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	><span class="hs-identifier"
+	  >FromJSON</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	><span class="hs-identifier"
+	  >ToJSON</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Ratio.html"
+	><span class="hs-identifier"
+	  >Data.Ratio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Haskell</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Internal.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V4.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Internal.html#ListEncoded"
+	><span class="hs-identifier"
+	  >ListEncoded</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	><span class="hs-identifier"
+	  >HasBlueprintSchema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Definition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	><span class="hs-identifier"
+	  >HasBlueprintDefinition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Prelude.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ratio.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Ratio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Ratio</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#Rational"
+	><span class="hs-identifier"
+	  >Rational</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="Rational"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	  ><span class="hs-identifier hs-var"
+	    >Rational</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Rational"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	  ><span class="hs-identifier hs-var"
+	    >Rational</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="unRational"
+      ><span class="annot"
+	><span class="annottext"
+	  >Rational -&gt; Rational
+</span
+	  ><a href="PlutusLedgerApi.V4.Ratio.html#unRational"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unRational</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Ratio.Rational</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682198306"
+      ><span id="local-6989586621682198308"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. Rational -&gt; Rep Rational x)
+-&gt; (forall x. Rep Rational x -&gt; Rational) -&gt; Generic Rational
+forall x. Rep Rational x -&gt; Rational
+forall x. Rational -&gt; Rep Rational x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Rational -&gt; Rep Rational x
+from :: forall x. Rational -&gt; Rep Rational x
+$cto :: forall x. Rep Rational x -&gt; Rational
+to :: forall x. Rep Rational x -&gt; Rational
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198312"
+      ><span id="local-6989586621682198317"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Rational -&gt; Rational -&gt; Bool
+(Rational -&gt; Rational -&gt; Bool)
+-&gt; (Rational -&gt; Rational -&gt; Bool) -&gt; Eq Rational
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Rational -&gt; Rational -&gt; Bool
+== :: Rational -&gt; Rational -&gt; Bool
+$c/= :: Rational -&gt; Rational -&gt; Bool
+/= :: Rational -&gt; Rational -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198325"
+      ><span id="local-6989586621682198330"
+	><span id="local-6989586621682198334"
+	  ><span id="local-6989586621682198338"
+	    ><span id="local-6989586621682198342"
+	      ><span id="local-6989586621682198346"
+		><span id="local-6989586621682198350"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq Rational
+Eq Rational =&gt;
+(Rational -&gt; Rational -&gt; Ordering)
+-&gt; (Rational -&gt; Rational -&gt; Bool)
+-&gt; (Rational -&gt; Rational -&gt; Bool)
+-&gt; (Rational -&gt; Rational -&gt; Bool)
+-&gt; (Rational -&gt; Rational -&gt; Bool)
+-&gt; (Rational -&gt; Rational -&gt; Rational)
+-&gt; (Rational -&gt; Rational -&gt; Rational)
+-&gt; Ord Rational
+Rational -&gt; Rational -&gt; Bool
+Rational -&gt; Rational -&gt; Ordering
+Rational -&gt; Rational -&gt; Rational
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Rational -&gt; Rational -&gt; Ordering
+compare :: Rational -&gt; Rational -&gt; Ordering
+$c&lt; :: Rational -&gt; Rational -&gt; Bool
+&lt; :: Rational -&gt; Rational -&gt; Bool
+$c&lt;= :: Rational -&gt; Rational -&gt; Bool
+&lt;= :: Rational -&gt; Rational -&gt; Bool
+$c&gt; :: Rational -&gt; Rational -&gt; Bool
+&gt; :: Rational -&gt; Rational -&gt; Bool
+$c&gt;= :: Rational -&gt; Rational -&gt; Bool
+&gt;= :: Rational -&gt; Rational -&gt; Bool
+$cmax :: Rational -&gt; Rational -&gt; Rational
+max :: Rational -&gt; Rational -&gt; Rational
+$cmin :: Rational -&gt; Rational -&gt; Rational
+min :: Rational -&gt; Rational -&gt; Rational
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198356"
+      ><span id="local-6989586621682198361"
+	><span id="local-6989586621682198365"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Rational -&gt; ShowS
+[Rational] -&gt; ShowS
+Rational -&gt; String
+(Int -&gt; Rational -&gt; ShowS)
+-&gt; (Rational -&gt; String) -&gt; ([Rational] -&gt; ShowS) -&gt; Show Rational
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Rational -&gt; ShowS
+showsPrec :: Int -&gt; Rational -&gt; ShowS
+$cshow :: Rational -&gt; String
+show :: Rational -&gt; String
+$cshowList :: [Rational] -&gt; ShowS
+showList :: [Rational] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198371"
+      ><span id="local-6989586621682198376"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall ann. Rational -&gt; Doc ann)
+-&gt; (forall ann. [Rational] -&gt; Doc ann) -&gt; Pretty Rational
+forall ann. [Rational] -&gt; Doc ann
+forall ann. Rational -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+$cpretty :: forall ann. Rational -&gt; Doc ann
+pretty :: forall ann. Rational -&gt; Doc ann
+$cprettyList :: forall ann. [Rational] -&gt; Doc ann
+prettyList :: forall ann. [Rational] -&gt; Doc ann
+</span
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198382"
+      ><span id="local-6989586621682198387"
+	><span id="local-6989586621682198391"
+	  ><span id="local-6989586621682198395"
+	    ><span id="local-6989586621682198399"
+	      ><span class="annot"
+		><span class="annottext"
+		  >[Rational] -&gt; Value
+[Rational] -&gt; Encoding
+Rational -&gt; Bool
+Rational -&gt; Value
+Rational -&gt; Encoding
+(Rational -&gt; Value)
+-&gt; (Rational -&gt; Encoding)
+-&gt; ([Rational] -&gt; Value)
+-&gt; ([Rational] -&gt; Encoding)
+-&gt; (Rational -&gt; Bool)
+-&gt; ToJSON Rational
+forall a.
+(a -&gt; Value)
+-&gt; (a -&gt; Encoding)
+-&gt; ([a] -&gt; Value)
+-&gt; ([a] -&gt; Encoding)
+-&gt; (a -&gt; Bool)
+-&gt; ToJSON a
+$ctoJSON :: Rational -&gt; Value
+toJSON :: Rational -&gt; Value
+$ctoEncoding :: Rational -&gt; Encoding
+toEncoding :: Rational -&gt; Encoding
+$ctoJSONList :: [Rational] -&gt; Value
+toJSONList :: [Rational] -&gt; Value
+$ctoEncodingList :: [Rational] -&gt; Encoding
+toEncodingList :: [Rational] -&gt; Encoding
+$comitField :: Rational -&gt; Bool
+omitField :: Rational -&gt; Bool
+</span
+		  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198405"
+      ><span id="local-6989586621682198410"
+	><span id="local-6989586621682198414"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Maybe Rational
+Value -&gt; Parser [Rational]
+Value -&gt; Parser Rational
+(Value -&gt; Parser Rational)
+-&gt; (Value -&gt; Parser [Rational])
+-&gt; Maybe Rational
+-&gt; FromJSON Rational
+forall a.
+(Value -&gt; Parser a)
+-&gt; (Value -&gt; Parser [a]) -&gt; Maybe a -&gt; FromJSON a
+$cparseJSON :: Value -&gt; Parser Rational
+parseJSON :: Value -&gt; Parser Rational
+$cparseJSONList :: Value -&gt; Parser [Rational]
+parseJSONList :: Value -&gt; Parser [Rational]
+$comittedField :: Maybe Rational
+omittedField :: Maybe Rational
+</span
+	      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>FromJSON</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198420"
+      ><span class="annot"
+	><span class="annottext"
+	  >Rational -&gt; Rational -&gt; Bool
+(Rational -&gt; Rational -&gt; Bool) -&gt; Eq Rational
+forall a. (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Rational -&gt; Rational -&gt; Bool
+== :: Rational -&gt; Rational -&gt; Bool
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eq.Class.html#Eq"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.Eq</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198429"
+      ><span id="local-6989586621682198434"
+	><span id="local-6989586621682198438"
+	  ><span id="local-6989586621682198442"
+	    ><span id="local-6989586621682198446"
+	      ><span id="local-6989586621682198450"
+		><span id="local-6989586621682198454"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq Rational
+Eq Rational =&gt;
+(Rational -&gt; Rational -&gt; Ordering)
+-&gt; (Rational -&gt; Rational -&gt; Bool)
+-&gt; (Rational -&gt; Rational -&gt; Bool)
+-&gt; (Rational -&gt; Rational -&gt; Bool)
+-&gt; (Rational -&gt; Rational -&gt; Bool)
+-&gt; (Rational -&gt; Rational -&gt; Rational)
+-&gt; (Rational -&gt; Rational -&gt; Rational)
+-&gt; Ord Rational
+Rational -&gt; Rational -&gt; Bool
+Rational -&gt; Rational -&gt; Ordering
+Rational -&gt; Rational -&gt; Rational
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Rational -&gt; Rational -&gt; Ordering
+compare :: Rational -&gt; Rational -&gt; Ordering
+$c&lt; :: Rational -&gt; Rational -&gt; Bool
+&lt; :: Rational -&gt; Rational -&gt; Bool
+$c&lt;= :: Rational -&gt; Rational -&gt; Bool
+&lt;= :: Rational -&gt; Rational -&gt; Bool
+$c&gt; :: Rational -&gt; Rational -&gt; Bool
+&gt; :: Rational -&gt; Rational -&gt; Bool
+$c&gt;= :: Rational -&gt; Rational -&gt; Bool
+&gt;= :: Rational -&gt; Rational -&gt; Bool
+$cmax :: Rational -&gt; Rational -&gt; Rational
+max :: Rational -&gt; Rational -&gt; Rational
+$cmin :: Rational -&gt; Rational -&gt; Rational
+min :: Rational -&gt; Rational -&gt; Rational
+</span
+		      ><a href="../../plutus-tx/src/PlutusTx.Ord.Class.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>PlutusTx.Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198460"
+      ><span id="local-6989586621682198465"
+	><span id="local-6989586621682198469"
+	  ><span id="local-6989586621682198473"
+	    ><span id="local-6989586621682198477"
+	      ><span id="local-6989586621682198481"
+		><span class="annot"
+		  ><span class="annottext"
+		    >Integer -&gt; Rational
+Rational -&gt; Integer
+Rational -&gt; Rational
+Rational -&gt; Rational -&gt; [Rational]
+Rational -&gt; Rational -&gt; Rational -&gt; [Rational]
+(Rational -&gt; Rational)
+-&gt; (Rational -&gt; Rational)
+-&gt; (Integer -&gt; Rational)
+-&gt; (Rational -&gt; Integer)
+-&gt; (Rational -&gt; Rational -&gt; [Rational])
+-&gt; (Rational -&gt; Rational -&gt; Rational -&gt; [Rational])
+-&gt; Enum Rational
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Integer -&gt; a)
+-&gt; (a -&gt; Integer)
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: Rational -&gt; Rational
+succ :: Rational -&gt; Rational
+$cpred :: Rational -&gt; Rational
+pred :: Rational -&gt; Rational
+$ctoEnum :: Integer -&gt; Rational
+toEnum :: Integer -&gt; Rational
+$cfromEnum :: Rational -&gt; Integer
+fromEnum :: Rational -&gt; Integer
+$cenumFromTo :: Rational -&gt; Rational -&gt; [Rational]
+enumFromTo :: Rational -&gt; Rational -&gt; [Rational]
+$cenumFromThenTo :: Rational -&gt; Rational -&gt; Rational -&gt; [Rational]
+enumFromThenTo :: Rational -&gt; Rational -&gt; Rational -&gt; [Rational]
+</span
+		    ><a href="../../plutus-tx/src/PlutusTx.Enum.Class.html#Enum"
+		    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		      >PlutusTx.Enum</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198487"
+      ><span class="annot"
+	><span class="annottext"
+	  >Rational -&gt; Rational -&gt; Rational
+(Rational -&gt; Rational -&gt; Rational) -&gt; AdditiveSemigroup Rational
+forall a. (a -&gt; a -&gt; a) -&gt; AdditiveSemigroup a
+$c+ :: Rational -&gt; Rational -&gt; Rational
++ :: Rational -&gt; Rational -&gt; Rational
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Numeric.html#AdditiveSemigroup"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.AdditiveSemigroup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198496"
+      ><span class="annot"
+	><span class="annottext"
+	  >AdditiveSemigroup Rational
+Rational
+AdditiveSemigroup Rational =&gt; Rational -&gt; AdditiveMonoid Rational
+forall a. AdditiveSemigroup a =&gt; a -&gt; AdditiveMonoid a
+$czero :: Rational
+zero :: Rational
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Numeric.html#AdditiveMonoid"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	    >PlutusTx.AdditiveMonoid</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198505"
+      ><span class="annot"
+	><span class="annottext"
+	  >AdditiveMonoid Rational
+AdditiveMonoid Rational =&gt;
+(Rational -&gt; Rational -&gt; Rational) -&gt; AdditiveGroup Rational
+Rational -&gt; Rational -&gt; Rational
+forall a. AdditiveMonoid a =&gt; (a -&gt; a -&gt; a) -&gt; AdditiveGroup a
+$c- :: Rational -&gt; Rational -&gt; Rational
+- :: Rational -&gt; Rational -&gt; Rational
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Numeric.html#AdditiveGroup"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	    >PlutusTx.AdditiveGroup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198512"
+      ><span class="annot"
+	><span class="annottext"
+	  >Rational -&gt; Rational -&gt; Rational
+(Rational -&gt; Rational -&gt; Rational)
+-&gt; MultiplicativeSemigroup Rational
+forall a. (a -&gt; a -&gt; a) -&gt; MultiplicativeSemigroup a
+$c* :: Rational -&gt; Rational -&gt; Rational
+* :: Rational -&gt; Rational -&gt; Rational
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Numeric.html#MultiplicativeSemigroup"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.MultiplicativeSemigroup</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198521"
+      ><span class="annot"
+	><span class="annottext"
+	  >MultiplicativeSemigroup Rational
+Rational
+MultiplicativeSemigroup Rational =&gt;
+Rational -&gt; MultiplicativeMonoid Rational
+forall a. MultiplicativeSemigroup a =&gt; a -&gt; MultiplicativeMonoid a
+$cone :: Rational
+one :: Rational
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Numeric.html#MultiplicativeMonoid"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	    >PlutusTx.MultiplicativeMonoid</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198534"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Numeric.html#Module"
+	  ><span class="hs-identifier hs-type"
+	    >PlutusTx.Module</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	  ><span class="hs-identifier hs-type"
+	    >Integer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682198543"
+      ><span class="annot"
+	><span class="annottext"
+	  >Rational -&gt; BuiltinData
+(Rational -&gt; BuiltinData) -&gt; ToData Rational
+forall a. (a -&gt; BuiltinData) -&gt; ToData a
+$ctoBuiltinData :: Rational -&gt; BuiltinData
+toBuiltinData :: Rational -&gt; BuiltinData
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.ToData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198552"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Maybe Rational
+(BuiltinData -&gt; Maybe Rational) -&gt; FromData Rational
+forall a. (BuiltinData -&gt; Maybe a) -&gt; FromData a
+$cfromBuiltinData :: BuiltinData -&gt; Maybe Rational
+fromBuiltinData :: BuiltinData -&gt; Maybe Rational
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.FromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198561"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Rational
+(BuiltinData -&gt; Rational) -&gt; UnsafeFromData Rational
+forall a. (BuiltinData -&gt; a) -&gt; UnsafeFromData a
+$cunsafeFromBuiltinData :: BuiltinData -&gt; Rational
+unsafeFromBuiltinData :: BuiltinData -&gt; Rational
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.UnsafeFromData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Internal.html#ListEncoded"
+	><span class="hs-identifier hs-type"
+	  >ListEncoded</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Ratio.Rational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198570"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	  ><span class="hs-identifier hs-type"
+	    >Rational</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Unroll"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#Unroll"
+	  ><span class="hs-identifier hs-var"
+	    >Unroll</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682198137"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#Rational"
+	  ><span class="hs-identifier hs-type"
+	    >Ratio.Rational</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682198137"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	  ><span class="hs-identifier hs-type"
+	    >Rational</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682198137"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682198582"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema referencedTypes
+</span
+	  ><a href="#local-6989586621682198582"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t (referencedTypes :: [*]).
+HasBlueprintSchema t referencedTypes =&gt;
+Schema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#schema"
+	><span class="hs-identifier hs-var"
+	  >schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Internal.html#ListEncoded"
+	><span class="hs-identifier hs-type"
+	  >ListEncoded</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Ratio.Rational</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682198137"
+	><span class="hs-identifier hs-type"
+	  >referencedTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span id="local-6989586621682198585"
+      ><span id="local-6989586621682198587"
+	><span class="hs-identifier"
+	  >PlutusTx.makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >Rational</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#ratio"
+	><span class="hs-pragma hs-type"
+	  >ratio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#ratio"
+	><span class="hs-identifier hs-type"
+	  >ratio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span id="ratio"
+      ><span class="annot"
+	><span class="annottext"
+	  >ratio :: Integer -&gt; Integer -&gt; Maybe Rational
+</span
+	  ><a href="PlutusLedgerApi.V4.Ratio.html#ratio"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ratio</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682198705"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621682198705"
+	  ><span class="hs-identifier hs-var"
+	    >numeratorValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682198706"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621682198706"
+	  ><span class="hs-identifier hs-var"
+	    >denominatorValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Rational
+</span
+	><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-var"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Rational -&gt; Rational) -&gt; Maybe Rational -&gt; Maybe Rational
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >PlutusTx.&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Maybe Rational
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#ratio"
+	><span class="hs-identifier hs-var"
+	  >Ratio.ratio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621682198705"
+	><span class="hs-identifier hs-var"
+	  >numeratorValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621682198706"
+	><span class="hs-identifier hs-var"
+	  >denominatorValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#unsafeRatio"
+	><span class="hs-pragma hs-type"
+	  >unsafeRatio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#unsafeRatio"
+	><span class="hs-identifier hs-type"
+	  >unsafeRatio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="unsafeRatio"
+      ><span class="annot"
+	><span class="annottext"
+	  >unsafeRatio :: Integer -&gt; Integer -&gt; Rational
+</span
+	  ><a href="PlutusLedgerApi.V4.Ratio.html#unsafeRatio"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unsafeRatio</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682198709"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621682198709"
+	  ><span class="hs-identifier hs-var"
+	    >numeratorValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682198710"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621682198710"
+	  ><span class="hs-identifier hs-var"
+	    >denominatorValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Rational
+</span
+	><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-var"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Rational
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#unsafeRatio"
+	><span class="hs-identifier hs-var"
+	  >Ratio.unsafeRatio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621682198709"
+	><span class="hs-identifier hs-var"
+	  >numeratorValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621682198710"
+	><span class="hs-identifier hs-var"
+	  >denominatorValue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#numerator"
+	><span class="hs-pragma hs-type"
+	  >numerator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#numerator"
+	><span class="hs-identifier hs-type"
+	  >numerator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span id="numerator"
+      ><span class="annot"
+	><span class="annottext"
+	  >numerator :: Rational -&gt; Integer
+</span
+	  ><a href="PlutusLedgerApi.V4.Ratio.html#numerator"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >numerator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682198712"
+      ><span class="annot"
+	><span class="annottext"
+	  >Rational
+</span
+	  ><a href="#local-6989586621682198712"
+	  ><span class="hs-identifier hs-var"
+	    >value</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Integer
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#numerator"
+	><span class="hs-identifier hs-var"
+	  >Ratio.numerator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational
+</span
+	><a href="#local-6989586621682198712"
+	><span class="hs-identifier hs-var"
+	  >value</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#denominator"
+	><span class="hs-pragma hs-type"
+	  >denominator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#denominator"
+	><span class="hs-identifier hs-type"
+	  >denominator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span id="denominator"
+      ><span class="annot"
+	><span class="annottext"
+	  >denominator :: Rational -&gt; Integer
+</span
+	  ><a href="PlutusLedgerApi.V4.Ratio.html#denominator"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >denominator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682198714"
+      ><span class="annot"
+	><span class="annottext"
+	  >Rational
+</span
+	  ><a href="#local-6989586621682198714"
+	  ><span class="hs-identifier hs-var"
+	    >value</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Integer
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#denominator"
+	><span class="hs-identifier hs-var"
+	  >Ratio.denominator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational
+</span
+	><a href="#local-6989586621682198714"
+	><span class="hs-identifier hs-var"
+	  >value</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#fromHaskellRatio"
+	><span class="hs-identifier hs-type"
+	  >fromHaskellRatio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span id="fromHaskellRatio"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromHaskellRatio :: Rational -&gt; Rational
+</span
+	  ><a href="PlutusLedgerApi.V4.Ratio.html#fromHaskellRatio"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromHaskellRatio</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682198716"
+      ><span class="annot"
+	><span class="annottext"
+	  >Rational
+</span
+	  ><a href="#local-6989586621682198716"
+	  ><span class="hs-identifier hs-var"
+	    >value</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Rational
+</span
+	><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-var"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Rational
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#fromHaskellRatio"
+	><span class="hs-identifier hs-var"
+	  >Ratio.fromHaskellRatio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational
+</span
+	><a href="#local-6989586621682198716"
+	><span class="hs-identifier hs-var"
+	  >value</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#toHaskellRatio"
+	><span class="hs-identifier hs-type"
+	  >toHaskellRatio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Rational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="toHaskellRatio"
+      ><span class="annot"
+	><span class="annottext"
+	  >toHaskellRatio :: Rational -&gt; Rational
+</span
+	  ><a href="PlutusLedgerApi.V4.Ratio.html#toHaskellRatio"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toHaskellRatio</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682198718"
+      ><span class="annot"
+	><span class="annottext"
+	  >Rational
+</span
+	  ><a href="#local-6989586621682198718"
+	  ><span class="hs-identifier hs-var"
+	    >value</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Rational
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Ratio.html#toHaskellRatio"
+	><span class="hs-identifier hs-var"
+	  >Ratio.toHaskellRatio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational
+</span
+	><a href="#local-6989586621682198718"
+	><span class="hs-identifier hs-var"
+	  >value</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#fromGHC"
+	><span class="hs-identifier hs-type"
+	  >fromGHC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span id="fromGHC"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromGHC :: Rational -&gt; Rational
+</span
+	  ><a href="PlutusLedgerApi.V4.Ratio.html#fromGHC"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromGHC</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Rational
+</span
+	><a href="PlutusLedgerApi.V4.Ratio.html#fromHaskellRatio"
+	><span class="hs-identifier hs-var"
+	  >fromHaskellRatio</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#toGHC"
+	><span class="hs-identifier hs-type"
+	  >toGHC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Ratio.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Rational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#Rational"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Rational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span id="toGHC"
+      ><span class="annot"
+	><span class="annottext"
+	  >toGHC :: Rational -&gt; Rational
+</span
+	  ><a href="PlutusLedgerApi.V4.Ratio.html#toGHC"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toGHC</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Rational -&gt; Rational
+</span
+	><a href="PlutusLedgerApi.V4.Ratio.html#toHaskellRatio"
+	><span class="hs-identifier hs-var"
+	  >toHaskellRatio</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

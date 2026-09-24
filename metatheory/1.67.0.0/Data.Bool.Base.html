@@ -1,0 +1,77 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Bool.Base</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- The type for booleans and some operations</a>
+<a id="151" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="225" class="Symbol">{-#</a> <a id="229" class="Keyword">OPTIONS</a> <a id="237" class="Pragma">--cubical-compatible</a> <a id="258" class="Pragma">--safe</a> <a id="265" class="Symbol">#-}</a>
+
+<a id="270" class="Keyword">module</a> <a id="277" href="Data.Bool.Base.html" class="Module">Data.Bool.Base</a> <a id="292" class="Keyword">where</a>
+
+<a id="299" class="Keyword">open</a> <a id="304" class="Keyword">import</a> <a id="311" href="Data.Unit.Base.html" class="Module">Data.Unit.Base</a> <a id="326" class="Keyword">using</a> <a id="332" class="Symbol">(</a><a id="333" href="Agda.Builtin.Unit.html#175" class="Record">⊤</a><a id="334" class="Symbol">)</a>
+<a id="336" class="Keyword">open</a> <a id="341" class="Keyword">import</a> <a id="348" href="Data.Empty.html" class="Module">Data.Empty</a> <a id="359" class="Keyword">using</a> <a id="365" class="Symbol">(</a><a id="366" href="Data.Empty.html#914" class="Function">⊥</a><a id="367" class="Symbol">)</a>
+<a id="369" class="Keyword">open</a> <a id="374" class="Keyword">import</a> <a id="381" href="Level.html" class="Module">Level</a> <a id="387" class="Keyword">using</a> <a id="393" class="Symbol">(</a><a id="394" href="Agda.Primitive.html#742" class="Postulate">Level</a><a id="399" class="Symbol">)</a>
+
+<a id="402" class="Keyword">private</a>
+  <a id="412" class="Keyword">variable</a>
+    <a id="425" href="Data.Bool.Base.html#425" class="Generalizable">a</a> <a id="427" class="Symbol">:</a> <a id="429" href="Agda.Primitive.html#742" class="Postulate">Level</a>
+    <a id="439" href="Data.Bool.Base.html#439" class="Generalizable">A</a> <a id="441" class="Symbol">:</a> <a id="443" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="447" href="Data.Bool.Base.html#425" class="Generalizable">a</a>
+
+<a id="450" class="Comment">------------------------------------------------------------------------</a>
+<a id="523" class="Comment">-- The boolean type</a>
+
+<a id="544" class="Keyword">open</a> <a id="549" class="Keyword">import</a> <a id="556" href="Agda.Builtin.Bool.html" class="Module">Agda.Builtin.Bool</a> <a id="574" class="Keyword">public</a>
+
+<a id="582" class="Comment">------------------------------------------------------------------------</a>
+<a id="655" class="Comment">-- Relations</a>
+
+<a id="669" class="Keyword">infix</a> <a id="675" class="Number">4</a> <a id="677" href="Data.Bool.Base.html#691" class="Datatype Operator">_≤_</a> <a id="681" href="Data.Bool.Base.html#770" class="Datatype Operator">_&lt;_</a>
+
+<a id="686" class="Keyword">data</a> <a id="_≤_"></a><a id="691" href="Data.Bool.Base.html#691" class="Datatype Operator">_≤_</a> <a id="695" class="Symbol">:</a> <a id="697" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="702" class="Symbol">→</a> <a id="704" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="709" class="Symbol">→</a> <a id="711" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="715" class="Keyword">where</a>
+  <a id="_≤_.f≤t"></a><a id="723" href="Data.Bool.Base.html#723" class="InductiveConstructor">f≤t</a> <a id="727" class="Symbol">:</a> <a id="729" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a> <a id="735" href="Data.Bool.Base.html#691" class="Datatype Operator">≤</a> <a id="737" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a>
+  <a id="_≤_.b≤b"></a><a id="744" href="Data.Bool.Base.html#744" class="InductiveConstructor">b≤b</a> <a id="748" class="Symbol">:</a> <a id="750" class="Symbol">∀</a> <a id="752" class="Symbol">{</a><a id="753" href="Data.Bool.Base.html#753" class="Bound">b</a><a id="754" class="Symbol">}</a> <a id="756" class="Symbol">→</a> <a id="758" href="Data.Bool.Base.html#753" class="Bound">b</a> <a id="760" href="Data.Bool.Base.html#691" class="Datatype Operator">≤</a> <a id="762" href="Data.Bool.Base.html#753" class="Bound">b</a>
+
+<a id="765" class="Keyword">data</a> <a id="_&lt;_"></a><a id="770" href="Data.Bool.Base.html#770" class="Datatype Operator">_&lt;_</a> <a id="774" class="Symbol">:</a> <a id="776" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="781" class="Symbol">→</a> <a id="783" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="788" class="Symbol">→</a> <a id="790" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="794" class="Keyword">where</a>
+  <a id="_&lt;_.f&lt;t"></a><a id="802" href="Data.Bool.Base.html#802" class="InductiveConstructor">f&lt;t</a> <a id="806" class="Symbol">:</a> <a id="808" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a> <a id="814" href="Data.Bool.Base.html#770" class="Datatype Operator">&lt;</a> <a id="816" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a>
+
+<a id="822" class="Comment">------------------------------------------------------------------------</a>
+<a id="895" class="Comment">-- Boolean operations</a>
+
+<a id="918" class="Keyword">infixr</a> <a id="925" class="Number">6</a> <a id="927" href="Data.Bool.Base.html#1005" class="Function Operator">_∧_</a>
+<a id="931" class="Keyword">infixr</a> <a id="938" class="Number">5</a> <a id="940" href="Data.Bool.Base.html#1063" class="Function Operator">_∨_</a> <a id="944" href="Data.Bool.Base.html#1120" class="Function Operator">_xor_</a>
+
+<a id="not"></a><a id="951" href="Data.Bool.Base.html#951" class="Function">not</a> <a id="955" class="Symbol">:</a> <a id="957" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="962" class="Symbol">→</a> <a id="964" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a>
+<a id="969" href="Data.Bool.Base.html#951" class="Function">not</a> <a id="973" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a>  <a id="979" class="Symbol">=</a> <a id="981" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a>
+<a id="987" href="Data.Bool.Base.html#951" class="Function">not</a> <a id="991" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a> <a id="997" class="Symbol">=</a> <a id="999" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a>
+
+<a id="_∧_"></a><a id="1005" href="Data.Bool.Base.html#1005" class="Function Operator">_∧_</a> <a id="1009" class="Symbol">:</a> <a id="1011" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="1016" class="Symbol">→</a> <a id="1018" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="1023" class="Symbol">→</a> <a id="1025" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a>
+<a id="1030" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a>  <a id="1036" href="Data.Bool.Base.html#1005" class="Function Operator">∧</a> <a id="1038" href="Data.Bool.Base.html#1038" class="Bound">b</a> <a id="1040" class="Symbol">=</a> <a id="1042" href="Data.Bool.Base.html#1038" class="Bound">b</a>
+<a id="1044" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a> <a id="1050" href="Data.Bool.Base.html#1005" class="Function Operator">∧</a> <a id="1052" href="Data.Bool.Base.html#1052" class="Bound">b</a> <a id="1054" class="Symbol">=</a> <a id="1056" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a>
+
+<a id="_∨_"></a><a id="1063" href="Data.Bool.Base.html#1063" class="Function Operator">_∨_</a> <a id="1067" class="Symbol">:</a> <a id="1069" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="1074" class="Symbol">→</a> <a id="1076" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="1081" class="Symbol">→</a> <a id="1083" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a>
+<a id="1088" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a>  <a id="1094" href="Data.Bool.Base.html#1063" class="Function Operator">∨</a> <a id="1096" href="Data.Bool.Base.html#1096" class="Bound">b</a> <a id="1098" class="Symbol">=</a> <a id="1100" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a>
+<a id="1105" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a> <a id="1111" href="Data.Bool.Base.html#1063" class="Function Operator">∨</a> <a id="1113" href="Data.Bool.Base.html#1113" class="Bound">b</a> <a id="1115" class="Symbol">=</a> <a id="1117" href="Data.Bool.Base.html#1113" class="Bound">b</a>
+
+<a id="_xor_"></a><a id="1120" href="Data.Bool.Base.html#1120" class="Function Operator">_xor_</a> <a id="1126" class="Symbol">:</a> <a id="1128" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="1133" class="Symbol">→</a> <a id="1135" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="1140" class="Symbol">→</a> <a id="1142" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a>
+<a id="1147" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a>  <a id="1153" href="Data.Bool.Base.html#1120" class="Function Operator">xor</a> <a id="1157" href="Data.Bool.Base.html#1157" class="Bound">b</a> <a id="1159" class="Symbol">=</a> <a id="1161" href="Data.Bool.Base.html#951" class="Function">not</a> <a id="1165" href="Data.Bool.Base.html#1157" class="Bound">b</a>
+<a id="1167" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a> <a id="1173" href="Data.Bool.Base.html#1120" class="Function Operator">xor</a> <a id="1177" href="Data.Bool.Base.html#1177" class="Bound">b</a> <a id="1179" class="Symbol">=</a> <a id="1181" href="Data.Bool.Base.html#1177" class="Bound">b</a>
+
+<a id="1184" class="Comment">------------------------------------------------------------------------</a>
+<a id="1257" class="Comment">-- Conversion to Set</a>
+
+<a id="1279" class="Comment">-- A function mapping true to an inhabited type and false to an empty</a>
+<a id="1349" class="Comment">-- type.</a>
+<a id="T"></a><a id="1358" href="Data.Bool.Base.html#1358" class="Function">T</a> <a id="1360" class="Symbol">:</a> <a id="1362" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="1367" class="Symbol">→</a> <a id="1369" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1373" href="Data.Bool.Base.html#1358" class="Function">T</a> <a id="1375" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a>  <a id="1381" class="Symbol">=</a> <a id="1383" href="Agda.Builtin.Unit.html#175" class="Record">⊤</a>
+<a id="1385" href="Data.Bool.Base.html#1358" class="Function">T</a> <a id="1387" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a> <a id="1393" class="Symbol">=</a> <a id="1395" href="Data.Empty.html#914" class="Function">⊥</a>
+
+<a id="1398" class="Comment">------------------------------------------------------------------------</a>
+<a id="1471" class="Comment">-- Other operations</a>
+
+<a id="1492" class="Keyword">infix</a> <a id="1498" class="Number">0</a> <a id="1500" href="Data.Bool.Base.html#1515" class="Function Operator">if_then_else_</a>
+
+<a id="if_then_else_"></a><a id="1515" href="Data.Bool.Base.html#1515" class="Function Operator">if_then_else_</a> <a id="1529" class="Symbol">:</a> <a id="1531" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a> <a id="1536" class="Symbol">→</a> <a id="1538" href="Data.Bool.Base.html#439" class="Generalizable">A</a> <a id="1540" class="Symbol">→</a> <a id="1542" href="Data.Bool.Base.html#439" class="Generalizable">A</a> <a id="1544" class="Symbol">→</a> <a id="1546" href="Data.Bool.Base.html#439" class="Generalizable">A</a>
+<a id="1548" href="Data.Bool.Base.html#1515" class="Function Operator">if</a> <a id="1551" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a>  <a id="1557" href="Data.Bool.Base.html#1515" class="Function Operator">then</a> <a id="1562" href="Data.Bool.Base.html#1562" class="Bound">t</a> <a id="1564" href="Data.Bool.Base.html#1515" class="Function Operator">else</a> <a id="1569" href="Data.Bool.Base.html#1569" class="Bound">f</a> <a id="1571" class="Symbol">=</a> <a id="1573" href="Data.Bool.Base.html#1562" class="Bound">t</a>
+<a id="1575" href="Data.Bool.Base.html#1515" class="Function Operator">if</a> <a id="1578" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a> <a id="1584" href="Data.Bool.Base.html#1515" class="Function Operator">then</a> <a id="1589" href="Data.Bool.Base.html#1589" class="Bound">t</a> <a id="1591" href="Data.Bool.Base.html#1515" class="Function Operator">else</a> <a id="1596" href="Data.Bool.Base.html#1596" class="Bound">f</a> <a id="1598" class="Symbol">=</a> <a id="1600" href="Data.Bool.Base.html#1596" class="Bound">f</a>
+</pre></body></html>

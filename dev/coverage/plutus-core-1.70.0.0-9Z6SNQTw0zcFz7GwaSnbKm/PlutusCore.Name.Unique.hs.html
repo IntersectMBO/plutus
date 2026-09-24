@@ -1,0 +1,214 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DefaultSignatures #-}
+<span class="lineno">    2 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    4 </span>{-# LANGUAGE FunctionalDependencies #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>{-| A 'Name' is a datatype used to identify a variable inside the Plutus Core languages.
+<span class="lineno">   10 </span> Name comparisons are a fundamental part of the domain logic, and comparing 'Text' directly
+<span class="lineno">   11 </span> is inefficient. As a solution to this problem, we provide the 'Unique' type which is an
+<span class="lineno">   12 </span> integer associated to the 'Name', unique to each instantiation of the type. We can,
+<span class="lineno">   13 </span> therefore, compare the integers instead, which is obviously much more cost-effective.
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span> We distinguish between the names of term variables and type variables by defining the
+<span class="lineno">   16 </span> 'TyName' wrapper over 'Name'. Since the code we usually write is polymorphic in the
+<span class="lineno">   17 </span> name type, we want to be able to define a class of names which have an associated 'Unique'.
+<span class="lineno">   18 </span> This class is 'HasUnique', see the definition below. -}
+<span class="lineno">   19 </span>module PlutusCore.Name.Unique
+<span class="lineno">   20 </span>  ( -- * Types
+<span class="lineno">   21 </span>    Name (..)
+<span class="lineno">   22 </span>  , isIdentifierStartingChar
+<span class="lineno">   23 </span>  , isIdentifierChar
+<span class="lineno">   24 </span>  , isQuotedIdentifierChar
+<span class="lineno">   25 </span>  , isValidUnquotedName
+<span class="lineno">   26 </span>  , toPrintedName
+<span class="lineno">   27 </span>  , TyName (..)
+<span class="lineno">   28 </span>  , Named (..)
+<span class="lineno">   29 </span>  , Unique (..)
+<span class="lineno">   30 </span>  , TypeUnique (..)
+<span class="lineno">   31 </span>  , TermUnique (..)
+<span class="lineno">   32 </span>  , HasText (..)
+<span class="lineno">   33 </span>  , HasUnique (..)
+<span class="lineno">   34 </span>  , theUnique
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>    -- * Functions
+<span class="lineno">   37 </span>  , mapNameString
+<span class="lineno">   38 </span>  , mapTyNameString
+<span class="lineno">   39 </span>  ) where
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>import PlutusPrelude
+<span class="lineno">   42 </span>  ( Coercible
+<span class="lineno">   43 </span>  , Generic
+<span class="lineno">   44 </span>  , Lens'
+<span class="lineno">   45 </span>  , NFData
+<span class="lineno">   46 </span>  , Pretty (pretty)
+<span class="lineno">   47 </span>  , PrettyBy (prettyBy)
+<span class="lineno">   48 </span>  , Render (render)
+<span class="lineno">   49 </span>  , coerce
+<span class="lineno">   50 </span>  , on
+<span class="lineno">   51 </span>  , over
+<span class="lineno">   52 </span>  )
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>import PlutusCore.Pretty.ConfigName (HasPrettyConfigName (..), PrettyConfigName (PrettyConfigName))
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>import Control.Lens (Wrapped (..), coerced, makeLenses)
+<span class="lineno">   57 </span>import Data.Char (isAlpha, isAscii, isDigit, isPunctuation, isSymbol)
+<span class="lineno">   58 </span>import Data.Hashable (Hashable (hashWithSalt))
+<span class="lineno">   59 </span>import Data.Text (Text)
+<span class="lineno">   60 </span>import Data.Text qualified as T
+<span class="lineno">   61 </span>import Instances.TH.Lift ()
+<span class="lineno">   62 </span>import Language.Haskell.TH.Syntax (Lift)
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>-- | A 'Name' represents variables/names in Plutus Core.
+<span class="lineno">   65 </span>data Name = Name
+<span class="lineno">   66 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">_nameText</span></span></span> :: T.Text
+<span class="lineno">   67 </span>  -- ^ The identifier name, for use in error messages.
+<span class="lineno">   68 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_nameUnique</span></span></span> :: Unique
+<span class="lineno">   69 </span>  -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
+<span class="lineno">   70 </span>  }
+<span class="lineno">   71 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">   72 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>-- | Allowed characters in the starting position of a non-quoted identifier.
+<span class="lineno">   75 </span>isIdentifierStartingChar :: Char -&gt; Bool
+<span class="lineno">   76 </span><span class="decl"><span class="istickedoff">isIdentifierStartingChar c = isAscii c &amp;&amp; isAlpha c || c == '_'</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>-- | Allowed characters in a non-starting position of a non-quoted identifier.
+<span class="lineno">   79 </span>isIdentifierChar :: Char -&gt; Bool
+<span class="lineno">   80 </span><span class="decl"><span class="istickedoff">isIdentifierChar c = isIdentifierStartingChar c || isDigit c || c == '\''</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>-- | Allowed characters in a quoted identifier.
+<span class="lineno">   83 </span>isQuotedIdentifierChar :: Char -&gt; Bool
+<span class="lineno">   84 </span><span class="decl"><span class="istickedoff">isQuotedIdentifierChar c =</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">(isAlpha c || isDigit c || isPunctuation c || isSymbol c)</span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="istickedoff">&amp;&amp; isAscii c</span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="istickedoff">&amp;&amp; c /= '`'</span></span>
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>isValidUnquotedName :: Text -&gt; Bool
+<span class="lineno">   90 </span><span class="decl"><span class="istickedoff">isValidUnquotedName n = case T.uncons n of</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="istickedoff">Just (hd, tl) -&gt; isIdentifierStartingChar hd &amp;&amp; T.all isIdentifierChar tl</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="istickedoff">Nothing -&gt; <span class="nottickedoff">False</span></span></span>
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>{-| Quote the name with backticks if it is not a valid unquoted name.
+<span class="lineno">   95 </span>It does not check whether the given name is a valid quoted name. -}
+<span class="lineno">   96 </span>toPrintedName :: Text -&gt; Text
+<span class="lineno">   97 </span><span class="decl"><span class="istickedoff">toPrintedName txt = if isValidUnquotedName txt then txt else &quot;`&quot; &lt;&gt; txt &lt;&gt; &quot;`&quot;</span></span>
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>{-| We use a @newtype@ to enforce separation between names used for types and
+<span class="lineno">  100 </span>those used for terms. -}
+<span class="lineno">  101 </span>newtype TyName = TyName {<span class="istickedoff"><span class="decl"><span class="istickedoff">unTyName</span></span></span> :: Name}
+<span class="lineno">  102 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Generic</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">  103 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff">NFData</span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">PrettyBy config</span></span></span></span>)
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>instance <span class="decl"><span class="istickedoff">Wrapped TyName</span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>data Named a = Named
+<span class="lineno">  108 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_namedString</span></span></span> :: Text
+<span class="lineno">  109 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_namedValue</span></span></span> :: a
+<span class="lineno">  110 </span>  }
+<span class="lineno">  111 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Traversable</span></span></span></span></span></span></span></span>)
+<span class="lineno">  112 </span>
+<span class="lineno">  113 </span>instance <span class="decl"><span class="nottickedoff">HasPrettyConfigName config =&gt; PrettyBy config Name</span></span> where
+<span class="lineno">  114 </span>  <span class="decl"><span class="istickedoff">prettyBy config (Name txt (Unique uniq))</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="istickedoff">| showsUnique = pretty $ toPrintedName txt &lt;&gt; &quot;-&quot; &lt;&gt; render (pretty uniq)</span>
+<span class="lineno">  116 </span><span class="spaces">    </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = pretty $ toPrintedName txt</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  118 </span><span class="spaces">      </span><span class="istickedoff">PrettyConfigName showsUnique = toPrettyConfigName config</span></span>
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>instance <span class="decl"><span class="nottickedoff">Eq Name</span></span> where
+<span class="lineno">  121 </span>  <span class="decl"><span class="istickedoff">(==) = (==) `on` _nameUnique</span></span>
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord Name</span></span></span></span></span></span></span></span></span></span></span></span> where
+<span class="lineno">  124 </span>  <span class="decl"><span class="istickedoff">(&lt;=) = (&lt;=) `on` _nameUnique</span></span>
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span>-- Hashable follows Eq and Ord in only depending on the unique
+<span class="lineno">  127 </span>instance <span class="decl"><span class="nottickedoff">Hashable Name</span></span> where
+<span class="lineno">  128 </span>  <span class="decl"><span class="istickedoff">hashWithSalt s = hashWithSalt s . _nameUnique</span></span>
+<span class="lineno">  129 </span>
+<span class="lineno">  130 </span>{-| A unique identifier
+<span class="lineno">  131 </span>This is normally a positive integral number, except
+<span class="lineno">  132 </span>in `LetFloatOut.topUnique` where we make use of a negative unique to signify top-level. -}
+<span class="lineno">  133 </span>newtype Unique = Unique {<span class="istickedoff"><span class="decl"><span class="istickedoff">unUnique</span></span></span> :: Int}
+<span class="lineno">  134 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Eq</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">  135 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Enum</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff">NFData</span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Pretty</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>)
+<span class="lineno">  136 </span>
+<span class="lineno">  137 </span>-- | The unique of a type-level name.
+<span class="lineno">  138 </span>newtype TypeUnique = TypeUnique
+<span class="lineno">  139 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unTypeUnique</span></span></span> :: Unique
+<span class="lineno">  140 </span>  }
+<span class="lineno">  141 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">  142 </span>  deriving newtype (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>)
+<span class="lineno">  143 </span>
+<span class="lineno">  144 </span>-- | The unique of a term-level name.
+<span class="lineno">  145 </span>newtype TermUnique = TermUnique
+<span class="lineno">  146 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unTermUnique</span></span></span> :: Unique
+<span class="lineno">  147 </span>  }
+<span class="lineno">  148 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">  149 </span>  deriving newtype (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>)
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff">makeLenses 'Name</span></span></span></span></span></span></span>
+<span class="lineno">  152 </span>
+<span class="lineno">  153 </span>-- | Apply a function to the string representation of a 'Name'.
+<span class="lineno">  154 </span>mapNameString :: (T.Text -&gt; T.Text) -&gt; Name -&gt; Name
+<span class="lineno">  155 </span><span class="decl"><span class="nottickedoff">mapNameString = over nameText</span></span>
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>-- | Apply a function to the string representation of a 'TyName'.
+<span class="lineno">  158 </span>mapTyNameString :: (T.Text -&gt; T.Text) -&gt; TyName -&gt; TyName
+<span class="lineno">  159 </span><span class="decl"><span class="nottickedoff">mapTyNameString = coerce mapNameString</span></span>
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>-- | Types which have a textual name attached to them.
+<span class="lineno">  162 </span>class HasText a where
+<span class="lineno">  163 </span>  theText :: Lens' a Text
+<span class="lineno">  164 </span>
+<span class="lineno">  165 </span>instance HasText Name where
+<span class="lineno">  166 </span>  <span class="decl"><span class="istickedoff">theText = nameText</span></span>
+<span class="lineno">  167 </span>
+<span class="lineno">  168 </span>instance HasText TyName where
+<span class="lineno">  169 </span>  <span class="decl"><span class="istickedoff">theText = coerced . theText @Name</span></span>
+<span class="lineno">  170 </span>
+<span class="lineno">  171 </span>-- | Types which have a 'Unique' attached to them, mostly names.
+<span class="lineno">  172 </span>class Coercible unique Unique =&gt; HasUnique a unique | a -&gt; unique where
+<span class="lineno">  173 </span>  unique :: Lens' a unique
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>  -- | The default implementation of 'HasUnique' for newtypes.
+<span class="lineno">  176 </span>  default unique
+<span class="lineno">  177 </span>    :: (Wrapped a, HasUnique (Unwrapped a) unique', Coercible unique' unique)
+<span class="lineno">  178 </span>    =&gt; Lens' a unique
+<span class="lineno">  179 </span>  <span class="decl"><span class="istickedoff">unique = _Wrapped' . unique . coerced</span></span>
+<span class="lineno">  180 </span>
+<span class="lineno">  181 </span>instance HasUnique Unique Unique where
+<span class="lineno">  182 </span>  <span class="decl"><span class="nottickedoff">unique = id</span></span>
+<span class="lineno">  183 </span>
+<span class="lineno">  184 </span>instance HasUnique Name TermUnique where
+<span class="lineno">  185 </span>  <span class="decl"><span class="istickedoff">unique = nameUnique . coerced</span></span>
+<span class="lineno">  186 </span>
+<span class="lineno">  187 </span>instance <span class="decl"><span class="istickedoff">HasUnique TyName TypeUnique</span></span>
+<span class="lineno">  188 </span>
+<span class="lineno">  189 </span>-- | A lens focused on the 'Unique' of a name.
+<span class="lineno">  190 </span>theUnique :: HasUnique name unique =&gt; Lens' name Unique
+<span class="lineno">  191 </span><span class="decl"><span class="istickedoff">theUnique = unique . coerced</span></span>
+
+</pre>
+</body>
+</html>
