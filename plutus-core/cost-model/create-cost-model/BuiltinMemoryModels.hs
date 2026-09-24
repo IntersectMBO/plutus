@@ -366,8 +366,10 @@ builtinMemoryModels =
     , paramListToArray = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 7 1
     , paramIndexArray = Id $ ModelTwoArgumentsConstantCost 32
     , -- Builtin values
-      paramLookupCoin = Id $ ModelThreeArgumentsConstantCost 10
-    , paramValueContains = Id $ ModelTwoArgumentsConstantCost 32
+      -- `lookupCoin` returns a quantity that is already stored in the `Value`, so it
+      -- allocates nothing; `valueContains` returns a `Bool`.
+      paramLookupCoin = Id $ ModelThreeArgumentsConstantCost 1
+    , paramValueContains = Id $ boolMemModel
     , -- See Note [Memory model for Value builtins]
       paramValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 2 22
     , -- See Note [Memory model for Value builtins]
