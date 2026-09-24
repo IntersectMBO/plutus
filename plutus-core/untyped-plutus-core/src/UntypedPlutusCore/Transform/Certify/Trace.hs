@@ -101,7 +101,7 @@ data Optimization name uni fun a
   = Optimization
   { beforeAST :: Term name uni fun a
   , stage :: OptStage
-  , hints :: Certify.Hints
+  , hints :: Certify.Hints (Term name uni fun a)
   , afterAST :: Term name uni fun a
   }
 

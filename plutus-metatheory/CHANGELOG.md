@@ -1,4 +1,53 @@
 
+<a id='changelog-1.69.0.0'></a>
+# 1.69.0.0 — 2026-09-11
+
+## Fixed
+
+- The `TRACE` builtin is no longer postulated and is implemented as a no-op in the Agda formalization of the semantics of UPLC.
+
+<a id='changelog-1.68.0.0'></a>
+# 1.68.0.0 — 2026-08-21
+
+## Added
+
+- Formalized `CInteger` and all of the `BuiltinInteger` functions which
+depend on it.
+- Removed the postulates for `divideInteger`, `modInteger`, `quotientInteger`
+and `remainderInteger`, they are now implemented in the metatheory.
+- Proved all the laws from the `QuotRemProperties` and `DivModProperties`
+QuickCheck test suites as theorems in `Builtin.Integer.Properties`,
+including the quotient-remainder round trips, sign and range laws, and the
+additive/multiplicative homomorphism properties of `rem` and `mod`.
+- Added `Maybe`-valued partial denotations of `quot`/`rem`/`div`/`mod` to
+`Builtin.Integer.Base` (reused by `Builtin.CInteger`), exported them to
+Haskell under stable names, and added the `test-integer-division` suite
+property-testing the compiled Agda implementations against Haskell's
+`quot`/`rem`/`div`/`mod`. The denotations are proved to agree with the total
+operators on all non-zero divisors.
+
+- Added casing on constants of builtin types (unit, bool, integer, list, pair)
+  to the untyped CEK machine, mirroring the Haskell `CaseBuiltin DefaultUni`
+  instance. The corresponding conformance tests now pass.
+
+## Fixed
+
+- Fixed the Agda metatheory's `cekMachineCostFunction` calling `getCekConstCost` instead of `getCekConstrCost` for the `Constr` case, a copy-paste bug that would silently mis-cost `Constr`-containing terms once a cost-model update sets the two parameters apart.
+
+- Fixed `chooseUnit`'s signature and typed CEK semantics having their arguments reversed (`forall a. a -> unit -> a` instead of the correct `forall a. unit -> a -> a`).
+- Fixed `serialiseData` being an unbound postulate that crashed at runtime with "postulate evaluated" whenever actually called.
+
+<a id='changelog-1.67.0.0'></a>
+# 1.67.0.0 — 2026-08-06
+
+## Added
+
+- Postulated definitions for `Value` and its corresponding built-in functions
+
+## Fixed
+
+- Fixed a performance bug in the certifier regarding decidable equality.
+
 <a id='changelog-1.65.0.0'></a>
 # 1.65.0.0 — 2026-05-21
 

@@ -1,4 +1,3 @@
 (program
    1.1.0
-   ((\forced d -> unIData (forced (case (unConstrData d) [(\l r -> r)])))
-      (force headList)))
+   (\d -> case (case (unConstrData d) [(\l r -> r)]) [(\ds ds -> unIData ds)]))

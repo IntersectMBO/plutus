@@ -39,7 +39,7 @@ import PlutusTx.Blueprint.Schema.Annotation
   , schemaDescriptionToString
   , schemaTitleToString
   )
-import PlutusTx.IsData.TH (makeIsDataIndexed)
+import PlutusTx.IsData.TH (makeIsDataAsList, makeIsDataIndexed)
 
 {-|
   Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasBlueprintSchema' instances for a type,
@@ -52,6 +52,14 @@ makeIsDataSchemaIndexed :: TH.Name -> [(TH.Name, Natural)] -> TH.Q [TH.InstanceD
 makeIsDataSchemaIndexed dataTypeName indices = do
   dataInstances <- makeIsDataIndexed dataTypeName (fmap fromIntegral <$> indices)
   hasSchemaInstance <- makeHasSchemaInstance dataTypeName indices
+  pure $ hasSchemaInstance ++ dataInstances
+
+makeIsDataSchemaAsList :: TH.Name -> TH.Q [TH.InstanceDec]
+makeIsDataSchemaAsList dataTypeName = do
+  dataInstances <- makeIsDataAsList dataTypeName
+  dataTypeInfo <- TH.reifyDatatype dataTypeName
+  let indices = [(TH.constructorName constructor, 0) | constructor <- TH.datatypeCons dataTypeInfo]
+  hasSchemaInstance <- makeHasSchemaInstanceWith True dataTypeName indices
   pure $ hasSchemaInstance ++ dataInstances
 
 {-|   Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasBlueprintSchema' instances for a type,
@@ -67,7 +75,10 @@ unstableMakeIsDataSchema name = do
   makeIsDataSchemaIndexed name defaultIndex
 
 makeHasSchemaInstance :: TH.Name -> [(TH.Name, Natural)] -> TH.Q [TH.InstanceDec]
-makeHasSchemaInstance dataTypeName indices = do
+makeHasSchemaInstance = makeHasSchemaInstanceWith False
+
+makeHasSchemaInstanceWith :: Bool -> TH.Name -> [(TH.Name, Natural)] -> TH.Q [TH.InstanceDec]
+makeHasSchemaInstanceWith encodeAsList dataTypeName indices = do
   dataTypeInfo <- TH.reifyDatatype dataTypeName
   let appliedType = TH.datatypeType dataTypeInfo
   let nonOverlapInstance = TH.InstanceD Nothing
@@ -99,7 +110,7 @@ makeHasSchemaInstance dataTypeName indices = do
           ]
 
   -- Generate a 'schema' function for the instance with one clause.
-  schemaPrag <- TH.funD 'schema [mkSchemaClause referencedTypes indexedCons]
+  schemaPrag <- TH.funD 'schema [mkSchemaClauseWith encodeAsList referencedTypes indexedCons]
   -- Generate a pragma for the 'schema' function, making it inlinable.
   schemaDecl <- TH.pragInlD 'schema TH.Inlinable TH.FunLike TH.AllPhases
   pure
@@ -133,7 +144,14 @@ mkSchemaClause
   -- ^ The constructors of the type with their schema infos and indices.
   -> TH.ClauseQ
   -- ^ The clause for the 'schema' function.
-mkSchemaClause ts ctorIndexes =
+mkSchemaClause = mkSchemaClauseWith False
+
+mkSchemaClauseWith
+  :: Bool
+  -> TH.Type
+  -> [(TH.ConstructorInfo, SchemaInfo, Natural)]
+  -> TH.ClauseQ
+mkSchemaClauseWith encodeAsList ts ctorIndexes =
   case ctorIndexes of
     [] -> fail "At least one constructor index must be specified."
     [ctorIndex] -> mkBody (mkSchemaConstructor ctorIndex)
@@ -148,7 +166,9 @@ mkSchemaClause ts ctorIndexes =
     mkSchemaConstructor :: (TH.ConstructorInfo, SchemaInfo, Natural) -> TH.ExpQ
     mkSchemaConstructor (TH.ConstructorInfo {..}, info, naturalToInteger -> ctorIndex) = do
       fields <- for constructorFields $ \t -> [|definitionRef @($(pure t)) @($(pure ts))|]
-      [|SchemaConstructor info (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))|]
+      if encodeAsList
+        then [|SchemaListTuple info $(pure (TH.ListE fields))|]
+        else [|SchemaConstructor info (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))|]
 
 deriveParameterBlueprint :: TH.Name -> Set Purpose -> TH.ExpQ
 deriveParameterBlueprint tyName purpose = do

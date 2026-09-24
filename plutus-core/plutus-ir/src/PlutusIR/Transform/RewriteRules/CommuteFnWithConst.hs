@@ -155,3 +155,8 @@ isCommutative = \case
   ValueData -> False
   UnValueData -> False
   ScaleValue -> False
+  MultiIndexArray -> False
+  Policies -> False
+  AssetCount -> False
+  KeepPolicies -> False
+  DropPolicies -> False

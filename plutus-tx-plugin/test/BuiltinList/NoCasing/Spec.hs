@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=ScottEncoding #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=0 #-}
 
@@ -23,6 +24,7 @@ tests =
     . pure
     $ testNestedGhc
       [ goldenBundle "unsafeUnconsOk" unsafeUnconsOk (unsafeUnconsOk `unsafeApplyCode` l1)
+      , goldenBundle "caseData" caseData (caseData `unsafeApplyCode` data0)
       ]
 
 unsafeUnconsOk :: CompiledCode (L.BuiltinList Integer -> (Integer, L.BuiltinList Integer))
@@ -30,3 +32,9 @@ unsafeUnconsOk = $$(compile [||\xs -> B.unsafeUncons xs||])
 
 l1 :: CompiledCode (L.BuiltinList Integer)
 l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
+
+caseData :: CompiledCode (BuiltinData -> L.BuiltinList BuiltinData)
+caseData = $$(compile [||\d -> B.caseData d [\xs -> xs]||])
+
+data0 :: CompiledCode BuiltinData
+data0 = liftCodeDef $ toBuiltinData ()

@@ -98,6 +98,15 @@ import Builtin
 import Builtin.Constant.Type
 ```
 
+The integer division builtins are backed by `quot`/`rem` (truncated
+division) and `div`/`mod` (floored division) operators on ℤ, whose
+defining laws are proved in the accompanying properties module.
+
+```
+import Builtin.Integer.Base
+import Builtin.Integer.Properties
+```
+
 The types of the built-in operations are defined by a signature.
 These types are abstract, and they can be made concrete to obtain the different
 notions of type used in the formalisation.

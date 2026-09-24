@@ -5,8 +5,11 @@
 
 module Main (main) where
 
+import Array.Spec (arrayTests)
 import Blueprint.Definition.Spec qualified
+import Blueprint.Spec qualified
 import Bool.Spec (boolTests)
+import Builtins.Spec (builtinsTests)
 import Codec.CBOR.FlatTerm qualified as FlatTerm
 import Codec.Serialise (deserialiseOrFail, serialise)
 import Codec.Serialise qualified as Serialise
@@ -40,19 +43,22 @@ tests :: TestTree
 tests =
   testGroup
     "plutus-tx"
-    [ serdeTests
+    [ arrayTests
+    , serdeTests
     , sqrtTests
     , ratioTests
     , bytestringTests
     , enumTests
     , listTests
     , boolTests
+    , builtinsTests
     , eqTests
     , lawsTests
     , ordTests
     , Show.Spec.propertyTests
     , Show.Spec.goldenTests
     , Blueprint.Definition.Spec.tests
+    , Blueprint.Spec.tests
     ]
 
 sqrtTests :: TestTree

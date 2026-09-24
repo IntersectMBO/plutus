@@ -46,6 +46,7 @@ import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import GHC.Generics (Generic)
+import PlutusCore.Arrays qualified as Arrays
 import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -242,16 +243,25 @@ appendByteString (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinByteStri
   - For builtin semantics variant A and B, that is for PlutusV1 and PlutusV2, this reduces the first argument
     modulo 256 and will never fail.
   - For builtin semantics variant C, that is for PlutusV3, this will expect first argument to be in range
-    @[0..255]@ and fail otherwise. -}
+    @[0..255]@ and fail otherwise.
+  This definition follows the PlutusV3 semantics. -}
 consByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-consByteString n (BuiltinByteString b) = BuiltinByteString $ BS.cons (fromIntegral n) b
+consByteString n (BuiltinByteString b)
+  | 0 <= n && n <= 255 = BuiltinByteString (BS.cons (fromInteger n) b)
+  | otherwise = Haskell.error "byte out of range"
 {-# OPAQUE consByteString #-}
 
-{-| Slices the given bytestring and never fails. The first integer marks the beginning index and the
+{-| Slices the given bytestring. The first integer marks the beginning index and the
   second marks the end. Indices are expected to be 0-indexed, and when the first integer is greater
-  than the second, it returns an empty bytestring. -}
+  than the second, it returns an empty bytestring. Fails only if either integer does not fit in a
+  machine 'Int', matching the builtin. -}
 sliceByteString :: BuiltinInteger -> BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-sliceByteString start n (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegral n) (BS.drop (fromIntegral start) b)
+sliceByteString start n (BuiltinByteString b)
+  | fitsInt start && fitsInt n =
+      BuiltinByteString (BS.take (fromInteger n) (BS.drop (fromInteger start) b))
+  | otherwise = Haskell.error "slice argument out of Int range"
+  where
+    fitsInt x = toInteger (minBound :: Int) <= x && x <= toInteger (maxBound :: Int)
 {-# OPAQUE sliceByteString #-}
 
 -- | Returns the length of the provided bytestring.
@@ -262,7 +272,9 @@ lengthOfByteString (BuiltinByteString b) = toInteger $ BS.length b
 {-| Returns the n-th byte from the bytestring. Fails if the given index is not in the range @[0..j)@,
   where @j@ is the length of the bytestring. -}
 indexByteString :: BuiltinByteString -> BuiltinInteger -> BuiltinInteger
-indexByteString (BuiltinByteString b) i = toInteger $ BS.index b (fromInteger i)
+indexByteString (BuiltinByteString b) i
+  | 0 <= i && i < toInteger (BS.length b) = toInteger (BS.index b (fromInteger i))
+  | otherwise = Haskell.error "bytestring index out of bounds"
 {-# OPAQUE indexByteString #-}
 
 -- | An empty bytestring.
@@ -602,6 +614,15 @@ unsafeDataAsConstr (BuiltinData (PLC.Constr i args)) = BuiltinPair (i, BuiltinLi
 unsafeDataAsConstr _ = Haskell.error "not a Constr"
 {-# OPAQUE unsafeDataAsConstr #-}
 
+{-| Dispatches on the constructor index of a 'BuiltinData' value and passes its fields to the
+selected branch. This is a Plinth compiler marker: with builtin casing enabled it compiles to a
+single native @case@ on the data value. -}
+caseData :: BuiltinData -> [BuiltinList BuiltinData -> a] -> a
+caseData (BuiltinData (PLC.Constr i args)) branches =
+  caseInteger i branches (BuiltinList $ fmap dataToBuiltinData args)
+caseData _ _ = Haskell.error "not a Constr"
+{-# OPAQUE caseData #-}
+
 -- | Deconstructs the given data as a 'Map', failing if it is not a 'Map'.
 unsafeDataAsMap :: BuiltinData -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
 unsafeDataAsMap (BuiltinData (PLC.Map m)) = BuiltinList (fmap p2p m)
@@ -672,8 +693,24 @@ listToArray (BuiltinList l) = BuiltinArray (Vector.fromList l)
 {-| Returns the n-th element from the array. Fails if the given index is not in the range @[0..j)@,
   where @j@ is the length of the array. -}
 indexArray :: BuiltinArray a -> BuiltinInteger -> a
-indexArray (BuiltinArray v) i = v Vector.! fromInteger i
+indexArray (BuiltinArray v) i
+  | 0 <= i && i < toInteger (Vector.length v) = Vector.unsafeIndex v (fromInteger i)
+  | otherwise = Haskell.error "array index out of bounds"
 {-# OPAQUE indexArray #-}
+
+{-| Returns the elements at the given indices, in index-list order with duplicates preserved.
+  Fails if any index is not in the range @[0..j)@, where @j@ is the length of the array, or if
+  there are more indices than 'Arrays.maximumIndexCount'.
+  See 'PlutusCore.Arrays.multiIndexArray', which this shares with the builtin so that the two
+  cannot fail in different places. -}
+multiIndexArray :: BuiltinArray a -> BuiltinList BuiltinInteger -> BuiltinList a
+multiIndexArray (BuiltinArray v) (BuiltinList is) =
+  case Arrays.multiIndexArray v is of
+    BuiltinSuccess els -> BuiltinList els
+    BuiltinSuccessWithLogs logs els -> traceAll logs $ BuiltinList els
+    BuiltinFailure logs err ->
+      traceAll (logs <> pure (display err)) $ Haskell.error "multiIndexArray errored."
+{-# OPAQUE multiIndexArray #-}
 
 {-
 BLS12_381
@@ -920,23 +957,29 @@ BITWISE
 
 {-| Shifts the bytestring to the left if the second argument is positive, and to the right otherwise.
 Right-shifts fill with 0s from the left (logical shift); left-shifts fill with 0s from the right.
-Never fails. -}
+Fails only if the shift amount does not fit in a machine 'Int', matching builtin semantics
+variants D and E; earlier variants accept any amount. -}
 shiftByteString
   :: BuiltinByteString
   -> BuiltinInteger
   -> BuiltinByteString
-shiftByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.shiftByteString bs
+shiftByteString (BuiltinByteString bs) i
+  | toInteger (minBound :: Int) <= i && i <= toInteger (maxBound :: Int) =
+      BuiltinByteString (Bitwise.shiftByteString bs i)
+  | otherwise = Haskell.error "shift amount out of Int range"
 {-# OPAQUE shiftByteString #-}
 
 {-| Rotates the bytestring to the left if the second argument is positive, and to the right otherwise.
-Never fails. -}
+Fails only if the rotation amount does not fit in a machine 'Int', matching builtin semantics
+variants D and E; earlier variants accept any amount. -}
 rotateByteString
   :: BuiltinByteString
   -> BuiltinInteger
   -> BuiltinByteString
-rotateByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.rotateByteString bs
+rotateByteString (BuiltinByteString bs) i
+  | toInteger (minBound :: Int) <= i && i <= toInteger (maxBound :: Int) =
+      BuiltinByteString (Bitwise.rotateByteString bs i)
+  | otherwise = Haskell.error "rotation amount out of Int range"
 {-# OPAQUE rotateByteString #-}
 
 -- | Counts the number of bits set to 1 in the bytestring and never fails.
@@ -1005,13 +1048,15 @@ readBit
   :: BuiltinByteString
   -> BuiltinInteger
   -> Bool
-readBit (BuiltinByteString bs) i =
-  case Bitwise.readBit bs (fromIntegral i) of
-    BuiltinFailure logs err ->
-      traceAll (logs <> pure (display err)) $
-        Haskell.error "readBit errored."
-    BuiltinSuccess b -> b
-    BuiltinSuccessWithLogs logs b -> traceAll logs b
+readBit (BuiltinByteString bs) i
+  | 0 <= i && i < 8 * toInteger (BS.length bs) =
+      case Bitwise.readBit bs (fromInteger i) of
+        BuiltinFailure logs err ->
+          traceAll (logs <> pure (display err)) $
+            Haskell.error "readBit errored."
+        BuiltinSuccess b -> b
+        BuiltinSuccessWithLogs logs b -> traceAll logs b
+  | otherwise = Haskell.error "bit index out of bounds"
 {-# OPAQUE readBit #-}
 
 {-| Writes the given bit (third argument, True for 1, False for 0) at the specified indices (second argument) in the bytestring.
@@ -1037,13 +1082,15 @@ replicateByte
   :: BuiltinInteger
   -> BuiltinInteger
   -> BuiltinByteString
-replicateByte n w8 =
-  case Bitwise.replicateByte n (fromIntegral w8) of
-    BuiltinFailure logs err ->
-      traceAll (logs <> pure (display err)) $
-        Haskell.error "byteStringReplicate errored."
-    BuiltinSuccess bs -> BuiltinByteString bs
-    BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
+replicateByte n w8
+  | 0 <= w8 && w8 <= 255 =
+      case Bitwise.replicateByte n (fromInteger w8) of
+        BuiltinFailure logs err ->
+          traceAll (logs <> pure (display err)) $
+            Haskell.error "byteStringReplicate errored."
+        BuiltinSuccess bs -> BuiltinByteString bs
+        BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
+  | otherwise = Haskell.error "byte out of range"
 {-# OPAQUE replicateByte #-}
 
 {-| Computes modular exponentiation (base^exponent mod modulus). Fails if the modulus is zero or negative,
@@ -1135,8 +1182,28 @@ scaleValue c (BuiltinValue val) =
         Haskell.error "scaleValue errored."
 {-# OPAQUE scaleValue #-}
 
+policies :: BuiltinValue -> BuiltinList BuiltinByteString
+policies (BuiltinValue v) = BuiltinList (BuiltinByteString <$> Value.policies v)
+{-# OPAQUE policies #-}
+
+assetCount :: BuiltinValue -> BuiltinInteger
+assetCount (BuiltinValue v) = fromIntegral (Value.totalSize v)
+{-# OPAQUE assetCount #-}
+
+keepPolicies :: BuiltinList BuiltinByteString -> BuiltinValue -> BuiltinValue
+keepPolicies (BuiltinList ps) (BuiltinValue v) =
+  BuiltinValue (Value.keepPolicies (fmap (\(BuiltinByteString b) -> b) ps) v)
+{-# OPAQUE keepPolicies #-}
+
+dropPolicies :: BuiltinList BuiltinByteString -> BuiltinValue -> BuiltinValue
+dropPolicies (BuiltinList ps) (BuiltinValue v) =
+  BuiltinValue (Value.dropPolicies (fmap (\(BuiltinByteString b) -> b) ps) v)
+{-# OPAQUE dropPolicies #-}
+
 caseInteger :: Integer -> [a] -> a
-caseInteger i b = b !! fromIntegral i
+caseInteger i b
+  | 0 <= i && i < toInteger (Haskell.length b) = b !! fromInteger i
+  | otherwise = Haskell.error "case index out of bounds"
 {-# OPAQUE caseInteger #-}
 
 {-| Case matching on a builtin pair. Continuation is needed here to make

@@ -98,9 +98,6 @@ constraints:
   , setup.optparse-applicative >=0.19.0.0
 
 allow-newer:
-  , deriving-aeson:aeson
-  , microstache:aeson
-  , turtle:containers
   , turtle:optparse-applicative
 
 if impl (ghc >= 9.14)

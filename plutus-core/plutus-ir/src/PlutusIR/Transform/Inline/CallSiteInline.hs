@@ -12,7 +12,7 @@ module PlutusIR.Transform.Inline.CallSiteInline where
 import PlutusCore qualified as PLC
 import PlutusCore.Rename (rename)
 import PlutusCore.Rename.Internal (Dupable (Dupable))
-import PlutusIR.AstSize (AstSize, termAstSize)
+import PlutusIR.AstSize (AstSize, termAstSizeErased)
 import PlutusIR.Contexts
 import PlutusIR.Core
 import PlutusIR.Subst
@@ -43,7 +43,8 @@ necessarily, because other transformations, such as CSE, may change the size fur
 specifically, if a large constant occurs multiple times in a program, it may get CSE'd.
 
 In general there's no reliable way to precisely predict the size impact of an inlining
-decision, and we believe the number of AST nodes is in fact a good approximation.
+decision, and we believe the number of AST nodes (excluding term and kind nodes) is
+in fact a good approximation.
 
 For cost, we check whether the RHS (in this example, `\x. \y -> x`) has a small cost.
 If the RHS has a non-zero arity, then the cost is always small (since a lambda or a type
@@ -154,7 +155,7 @@ callSiteInline processedTSize = go
             Just inlined -> do
               let
                 -- Inline only if the size is no bigger than not inlining plus threshold.
-                sizeIsOk = termAstSize inlined <= processedTSize + max 0 thresh
+                sizeIsOk = termAstSizeErased inlined <= processedTSize + max 0 thresh
               pure $ if sizeIsOk then Just inlined else Nothing
             Nothing -> pure Nothing
         else pure Nothing

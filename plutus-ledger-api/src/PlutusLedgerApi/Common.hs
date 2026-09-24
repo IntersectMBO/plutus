@@ -16,6 +16,7 @@ module PlutusLedgerApi.Common
   , Eval.evaluateScriptCounting
   , Eval.evaluateScriptRestricting
   , Eval.evaluateTerm
+  , Eval.defaultCaserBuiltinFor
   , Eval.VerboseMode (..)
   , Eval.LogOutput
   , Eval.EvaluationError (..)
@@ -47,6 +48,7 @@ module PlutusLedgerApi.Common
   , Protocol.changPV
   , Protocol.plominPV
   , Protocol.vanRossemPV
+  , Protocol.dijkstraPV
   , Protocol.newestPV
   , Protocol.knownPVs
 

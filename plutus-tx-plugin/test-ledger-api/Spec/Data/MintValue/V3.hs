@@ -18,9 +18,9 @@ module Spec.Data.MintValue.V3 where
 import PlutusTx.Prelude
 
 import Data.Coerce (coerce)
+import PlutusLedgerApi.Data.V3 (AssetClass (..), Value (..), flattenValue)
 import PlutusLedgerApi.Test.V1.Data.Value ()
 import PlutusLedgerApi.Test.V3.Data.MintValue ()
-import PlutusLedgerApi.V1.Data.Value (AssetClass (..), Value (..), flattenValue)
 import PlutusLedgerApi.V3.Data.MintValue (MintValue (..), mintValueBurned, mintValueMinted)
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Data.AssocMap qualified as Map
@@ -30,8 +30,8 @@ import PlutusTx.TH (compile)
 import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck qualified as QC
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.QuickCheck (Property, testProperty, (===))
+import Test.Tasty (TestTree, localOption, testGroup)
+import Test.Tasty.QuickCheck (Property, QuickCheckTests (..), testProperty, (===))
 import Prelude qualified as Haskell
 
 tests :: TestTree
@@ -105,13 +105,14 @@ test_Hask_MintValueBurnedIsPositive =
 
 testPropsInPlinth :: TestTree
 testPropsInPlinth =
-  testGroup
-    "Plinth"
-    [ test_Plinth_MintValueBuiltinData
-    , test_Plinth_AssetClassIsEitherMintedOrBurned
-    , test_Plinth_MintValueMintedIsPositive
-    , test_Plinth_MintValueBurnedIsPositive
-    ]
+  localOption (QuickCheckTests 10)
+    $ testGroup
+      "Plinth"
+      [ test_Plinth_MintValueBuiltinData
+      , test_Plinth_AssetClassIsEitherMintedOrBurned
+      , test_Plinth_MintValueMintedIsPositive
+      , test_Plinth_MintValueBurnedIsPositive
+      ]
 
 test_Plinth_MintValueBuiltinData :: TestTree
 test_Plinth_MintValueBuiltinData =

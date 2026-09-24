@@ -59,8 +59,8 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import Control.DeepSeq
 import Data.Default.Class
 import Data.Hashable
-import Deriving.Aeson
 import GHC.Exts
+import GHC.Generics (Generic)
 import Language.Haskell.TH.Syntax hiding
   ( Name
   , newName

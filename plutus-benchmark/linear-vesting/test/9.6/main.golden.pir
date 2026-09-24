@@ -58,62 +58,61 @@
                    {all dead. dead})
             , 0 ]
   in
-  let
-    data Unit | Unit_match where
-      Unit : Unit
-    !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-      = /\a r ->
-          \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
-  in
   letrec
     !findInputByOutRef : data -> list data -> data
       = \(ref : data) (inputs : list data) ->
-          caseList'
-            {data}
-            {data}
-            (let
-              !x : Unit = trace {Unit} "Own input not found" Unit
-            in
-            error {data})
-            (\(txIn : data) (txIns : list data) ->
-               case
-                 (all dead. data)
-                 (equalsData
-                    (headList
-                       {data}
-                       (case
-                          (list data)
-                          (unConstrData txIn)
-                          [(\(l : integer) (r : list data) -> r)]))
-                    ref)
-                 [(/\dead -> findInputByOutRef ref txIns), (/\dead -> txIn)]
-                 {all dead. dead})
+          let
+            !z : data
+              = let
+                !x : unit = trace {unit} "Own input not found" ()
+              in
+              error {data}
+          in
+          case
+            data
             inputs
+            [ (\(txIn : data) (txIns : list data) ->
+                 case
+                   (all dead. data)
+                   (equalsData
+                      (headList
+                         {data}
+                         (case
+                            (list data)
+                            (unConstrData txIn)
+                            [(\(l : integer) (r : list data) -> r)]))
+                      ref)
+                   [(/\dead -> findInputByOutRef ref txIns), (/\dead -> txIn)]
+                   {all dead. dead})
+            , z ]
   in
   letrec
     !findOutputByAddress : data -> list data -> data
       = \(addr : data) (outputs : list data) ->
-          caseList'
-            {data}
-            {data}
-            (let
-              !x : Unit = trace {Unit} "Own output not found" Unit
-            in
-            error {data})
-            (\(out : data) (outs : list data) ->
-               case
-                 (all dead. data)
-                 (equalsData
-                    (headList
-                       {data}
-                       (case
-                          (list data)
-                          (unConstrData out)
-                          [(\(l : integer) (r : list data) -> r)]))
-                    addr)
-                 [(/\dead -> findOutputByAddress addr outs), (/\dead -> out)]
-                 {all dead. dead})
+          let
+            !z : data
+              = let
+                !x : unit = trace {unit} "Own output not found" ()
+              in
+              error {data}
+          in
+          case
+            data
             outputs
+            [ (\(out : data) (outs : list data) ->
+                 case
+                   (all dead. data)
+                   (equalsData
+                      (headList
+                         {data}
+                         (case
+                            (list data)
+                            (unConstrData out)
+                            [(\(l : integer) (r : list data) -> r)]))
+                      addr)
+                   [(/\dead -> findOutputByAddress addr outs), (/\dead -> out)]
+                   {all dead. dead})
+            , z ]
   in
   letrec
     !txSignedBy' : list data -> bytestring -> bool
@@ -176,7 +175,7 @@
           (equalsInteger 1 tag)
           [ (/\dead ->
                let
-                 !x : Unit = trace {Unit} "Not spending script" Unit
+                 !x : unit = trace {unit} "Not spending script" ()
                in
                error {pair data data})
           , (/\dead ->
@@ -197,7 +196,7 @@
                  (equalsInteger 0 mdTag)
                  [ (/\dead ->
                       let
-                        !x : Unit = trace {Unit} "Missing datum" Unit
+                        !x : unit = trace {unit} "Missing datum" ()
                       in
                       error {pair data data})
                  , (/\dead -> mkPairData ownRef (headList {data} mdFields)) ]
@@ -266,8 +265,8 @@
                           (equalsInteger 1 extTag)
                           [ (/\dead ->
                                let
-                                 !x : Unit
-                                   = trace {Unit} "Time range not Finite" Unit
+                                 !x : unit
+                                   = trace {unit} "Time range not Finite" ()
                                in
                                error {integer})
                           , (/\dead ->
@@ -600,11 +599,11 @@
                                                                 , (/\dead ->
                                                                      let
                                                                        !x :
-                                                                          Unit
+                                                                          unit
                                                                          = trace
-                                                                             {Unit}
+                                                                             {unit}
                                                                              "Double satisfaction"
-                                                                             Unit
+                                                                             ()
                                                                      in
                                                                      error
                                                                        {bool}) ]
@@ -613,65 +612,62 @@
                                                          , (/\dead ->
                                                               let
                                                                 !x :
-                                                                   Unit
+                                                                   unit
                                                                   = trace
-                                                                      {Unit}
+                                                                      {unit}
                                                                       "Datum Modification Prohibited"
-                                                                      Unit
+                                                                      ()
                                                               in
                                                               error {bool}) ]
                                                          {all dead. dead})
                                                   , (/\dead ->
                                                        let
                                                          !x :
-                                                            Unit
+                                                            unit
                                                            = trace
-                                                               {Unit}
+                                                               {unit}
                                                                "Mismatched remaining asset"
-                                                               Unit
+                                                               ()
                                                        in
                                                        error {bool}) ]
                                                   {all dead. dead})
                                            , (/\dead ->
                                                 let
                                                   !x :
-                                                     Unit
+                                                     unit
                                                     = trace
-                                                        {Unit}
+                                                        {unit}
                                                         "Remaining asset is not decreasing"
-                                                        Unit
+                                                        ()
                                                 in
                                                 error {bool}) ]
                                            {all dead. dead})
                                     , (/\dead ->
                                          let
                                            !x :
-                                              Unit
+                                              unit
                                              = trace
-                                                 {Unit}
+                                                 {unit}
                                                  "Zero remaining assets not allowed"
-                                                 Unit
+                                                 ()
                                          in
                                          error {bool}) ]
                                     {all dead. dead})
                              , (/\dead ->
                                   let
                                     !x :
-                                       Unit
+                                       unit
                                       = trace
-                                          {Unit}
+                                          {unit}
                                           "Unlock not permitted until firstUnlockPossibleAfter time"
-                                          Unit
+                                          ()
                                   in
                                   error {bool}) ]
                              {all dead. dead})
                       , (/\dead ->
                            let
-                             !x : Unit
-                               = trace
-                                   {Unit}
-                                   "Missing beneficiary signature"
-                                   Unit
+                             !x : unit
+                               = trace {unit} "Missing beneficiary signature" ()
                            in
                            error {bool}) ]
                       {all dead. dead}))
@@ -724,8 +720,8 @@
                           (equalsInteger 1 extTag)
                           [ (/\dead ->
                                let
-                                 !x : Unit
-                                   = trace {Unit} "Time range not Finite" Unit
+                                 !x : unit
+                                   = trace {unit} "Time range not Finite" ()
                                in
                                error {integer})
                           , (/\dead ->
@@ -782,27 +778,24 @@
                              , (/\dead ->
                                   let
                                     !x :
-                                       Unit
+                                       unit
                                       = trace
-                                          {Unit}
+                                          {unit}
                                           "Unlock not permitted until vestingPeriodEnd time"
-                                          Unit
+                                          ()
                                   in
                                   error {bool}) ]
                              {all dead. dead})
                       , (/\dead ->
                            let
-                             !x : Unit
-                               = trace
-                                   {Unit}
-                                   "Missing beneficiary signature"
-                                   Unit
+                             !x : unit
+                               = trace {unit} "Missing beneficiary signature" ()
                            in
                            error {bool}) ]
                       {all dead. dead})) ])))
       [ (/\dead ->
            let
-             !x : Unit = trace {Unit} "Validation failed" Unit
+             !x : unit = trace {unit} "Validation failed" ()
            in
            error {unit})
       , (/\dead -> trace {unit} "Validation completed" ()) ]

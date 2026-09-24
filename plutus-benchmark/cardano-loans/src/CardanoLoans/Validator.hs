@@ -24,7 +24,6 @@
 {-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-conservative-optimisation #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-remove-trace #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:preserve-logging #-}
@@ -48,7 +47,6 @@ module CardanoLoans.Validator
   , loanValidatorCode
   ) where
 
-import PlutusLedgerApi.V1.Value (valueOf)
 import PlutusLedgerApi.V3
 import PlutusLedgerApi.V3.Contexts (valueSpent)
 import PlutusTx

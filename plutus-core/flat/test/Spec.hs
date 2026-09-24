@@ -42,6 +42,7 @@ import Test.Data.Values hiding (lbs, ns)
 import Test.E
 import Test.E.Arbitrary ()
 import Test.E.Flat
+import Test.LargeInteger (testLargeIntegers)
 import Test.Tasty
 import Test.Tasty.Golden (goldenVsStringDiff)
 import Test.Tasty.HUnit
@@ -117,6 +118,7 @@ testFlat = testGroup
   "flat/unflat"
   [ testSize
   , testLargeEnum
+  , testLargeIntegers
   , testContainers
   , flatUnflatRT
   , flatTests
@@ -914,4 +916,3 @@ test_preAlignedRoundtrip = do
   case decoded of
     Right pa -> preValue pa @?= 42
     Left err -> assertFailure $ "decode failed: " ++ show err
-

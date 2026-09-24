@@ -11,8 +11,7 @@ import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Short qualified as BS
 import PlutusLedgerApi.V1.Crypto qualified as Crypto
 import PlutusLedgerApi.V1.Time qualified as Time
-import PlutusLedgerApi.V1.Value qualified as Value
-import PlutusLedgerApi.V3 (serialiseCompiledCode)
+import PlutusLedgerApi.V3 (CurrencySymbol (..), serialiseCompiledCode, tokenName)
 import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteStringHex)
 
 main :: IO ()
@@ -32,13 +31,13 @@ main =
                     )
               , apCurrencySymbol =
                   -- Replace with your desired currency symbol (minting policy hash):
-                  Value.CurrencySymbol
+                  CurrencySymbol
                     ( stringToBuiltinByteStringHex
                         "00000000000000000000000000000000000000000000000000000000"
                     )
               , apTokenName =
                   -- Replace with your desired token name:
-                  Value.tokenName "MY_TOKEN"
+                  tokenName "MY_TOKEN"
               , apMinBid =
                   -- Minimal bid in lovelace:
                   100

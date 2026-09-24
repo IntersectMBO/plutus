@@ -11,45 +11,9 @@
       = error {Tuple2 bytestring bytestring}
     ~defaultBody : Tuple2 bytestring bytestring
       = error {Tuple2 bytestring bytestring}
-    data Unit | Unit_match where
-      Unit : Unit
     data Credential | Credential_match where
       PubKeyCredential : bytestring -> Credential
       ScriptCredential : bytestring -> Credential
-    data StakingCredential | StakingCredential_match where
-      StakingHash : Credential -> StakingCredential
-      StakingPtr : integer -> integer -> integer -> StakingCredential
-    data (Maybe :: * -> *) a | Maybe_match where
-      Just : a -> Maybe a
-      Nothing : Maybe a
-    data Address | Address_match where
-      Address : Credential -> Maybe StakingCredential -> Address
-    data OutputDatum | OutputDatum_match where
-      NoOutputDatum : OutputDatum
-      OutputDatum : data -> OutputDatum
-      OutputDatumHash : bytestring -> OutputDatum
-  in
-  letrec
-    data (List :: * -> *) a | List_match where
-      Nil : List a
-      Cons : a -> List a -> List a
-  in
-  let
-    data TxOut | TxOut_match where
-      TxOut :
-        Address ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
-        OutputDatum ->
-        Maybe bytestring ->
-        TxOut
-    !fail : unit -> TxOut
-      = \(ds : unit) ->
-          let
-            !x : Unit = trace {Unit} "Missing output to address" Unit
-          in
-          error {TxOut}
     !`$fEqCredential0_$c==` : Credential -> Credential -> bool
       = \(ds : Credential) (ds : Credential) ->
           Credential_match
@@ -67,6 +31,14 @@
                  {bool}
                  (\(ipv : bytestring) -> False)
                  (\(r1r : bytestring) -> equalsByteString l1l r1r))
+    data StakingCredential | StakingCredential_match where
+      StakingHash : Credential -> StakingCredential
+      StakingPtr : integer -> integer -> integer -> StakingCredential
+    data (Maybe :: * -> *) a | Maybe_match where
+      Just : a -> Maybe a
+      Nothing : Maybe a
+    data Address | Address_match where
+      Address : Credential -> Maybe StakingCredential -> Address
     !`$fEqAddress0_$c==` : Address -> Address -> bool
       = \(eta : Address) (eta : Address) ->
           Address_match
@@ -143,6 +115,26 @@
                                   True)
                              {all dead. dead}) ]
                       {all dead. dead}))
+    data OutputDatum | OutputDatum_match where
+      NoOutputDatum : OutputDatum
+      OutputDatum : data -> OutputDatum
+      OutputDatumHash : bytestring -> OutputDatum
+  in
+  letrec
+    data (List :: * -> *) a | List_match where
+      Nil : List a
+      Cons : a -> List a -> List a
+  in
+  let
+    data TxOut | TxOut_match where
+      TxOut :
+        Address ->
+        (\k v -> List (Tuple2 k v))
+          bytestring
+          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
+        OutputDatum ->
+        Maybe bytestring ->
+        TxOut
   in
   letrec
     !foo :
@@ -184,11 +176,11 @@
                                [ (/\dead ->
                                     let
                                       !x :
-                                         Unit
+                                         unit
                                         = trace
-                                            {Unit}
+                                            {unit}
                                             "There can only be one output to address"
-                                            Unit
+                                            ()
                                     in
                                     error {List TxOut})
                                , (/\dead -> foo ds (Cons {TxOut} x' acc) xs') ]
@@ -1016,41 +1008,37 @@
   let
     ~defaultBody : TxOut
       = let
-        !x : Unit = trace {Unit} "script input error ownInput" Unit
+        !x : unit = trace {unit} "script input error ownInput" ()
       in
       error {TxOut}
-    !casePair : all a b r. pair a b -> (a -> b -> r) -> r
-      = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
     !`$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData` :
        data -> Maybe bytestring
       = \(d : data) ->
           chooseData
-            {Unit -> Maybe bytestring}
+            {unit -> Maybe bytestring}
             d
-            (\(ds : Unit) ->
-               casePair
-                 {integer}
-                 {list data}
-                 {Maybe bytestring}
+            (\(ds : unit) ->
+               case
+                 (Maybe bytestring)
                  (unConstrData d)
-                 (\(l : integer) (r : list data) -> Nothing {bytestring}))
-            (\(ds : Unit) ->
+                 [(\(l : integer) (r : list data) -> Nothing {bytestring})])
+            (\(ds : unit) ->
                let
                  !ds : list (pair data data) = unMapData d
                in
                Nothing {bytestring})
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                let
                  !ds : list data = unListData d
                in
                Nothing {bytestring})
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                let
                  !ds : integer = unIData d
                in
                Nothing {bytestring})
-            (\(ds : Unit) -> Just {bytestring} (unBData d))
-            Unit
+            (\(ds : unit) -> Just {bytestring} (unBData d))
+            ()
     !`$fFromDataTuple2_$cfromBuiltinData` :
        all a b.
          (\a -> data -> Maybe a) a ->
@@ -1062,88 +1050,88 @@
            (`$dFromData` : (\a -> data -> Maybe a) b)
            (d : data) ->
             chooseData
-              {Unit -> Maybe (Tuple2 a b)}
+              {unit -> Maybe (Tuple2 a b)}
               d
-              (\(ds : Unit) ->
-                 casePair
-                   {integer}
-                   {list data}
-                   {Maybe (Tuple2 a b)}
+              (\(ds : unit) ->
+                 case
+                   (Maybe (Tuple2 a b))
                    (unConstrData d)
-                   (\(l : integer) (r : list data) ->
-                      case
-                        (all dead. Maybe (Tuple2 a b))
-                        (equalsInteger 0 l)
-                        [ (/\dead -> Nothing {Tuple2 a b})
-                        , (/\dead ->
-                             Maybe_match
-                               {Tuple2 data (list data)}
-                               (case
-                                  (Maybe (Tuple2 data (list data)))
-                                  r
-                                  [ (\(h : data) (t : list data) ->
-                                       Just
-                                         {Tuple2 data (list data)}
-                                         (Tuple2 {data} {list data} h t))
-                                  , (Nothing {Tuple2 data (list data)}) ])
-                               {all dead. Maybe (Tuple2 a b)}
-                               (\(ds : Tuple2 data (list data)) ->
-                                  /\dead ->
-                                    Tuple2_match
-                                      {data}
-                                      {list data}
-                                      ds
-                                      {Maybe (Tuple2 a b)}
-                                      (\(ds : data) (ds : list data) ->
-                                         Maybe_match
-                                           {a}
-                                           (`$dFromData` ds)
-                                           {all dead. Maybe (Tuple2 a b)}
-                                           (\(arg : a) ->
-                                              /\dead ->
-                                                Maybe_match
-                                                  {data}
-                                                  (case
-                                                     (Maybe data)
-                                                     ds
-                                                     [ (\(h : data)
-                                                         (ds : list data) ->
-                                                          Just {data} h)
-                                                     , (Nothing {data}) ])
-                                                  {all dead. Maybe (Tuple2 a b)}
-                                                  (\(ds : data) ->
-                                                     /\dead ->
-                                                       Maybe_match
-                                                         {b}
-                                                         (`$dFromData` ds)
-                                                         {all dead.
-                                                            Maybe (Tuple2 a b)}
-                                                         (\(arg : b) ->
-                                                            /\dead ->
-                                                              Just
-                                                                {Tuple2 a b}
-                                                                (Tuple2
-                                                                   {a}
-                                                                   {b}
-                                                                   arg
-                                                                   arg))
-                                                         (/\dead ->
-                                                            Nothing
-                                                              {Tuple2 a b})
-                                                         {all dead. dead})
-                                                  (/\dead ->
-                                                     Nothing {Tuple2 a b})
-                                                  {all dead. dead})
-                                           (/\dead -> Nothing {Tuple2 a b})
-                                           {all dead. dead}))
-                               (/\dead -> Nothing {Tuple2 a b})
-                               {all dead. dead}) ]
-                        {all dead. dead}))
-              (\(ds : Unit) -> Nothing {Tuple2 a b})
-              (\(ds : Unit) -> Nothing {Tuple2 a b})
-              (\(ds : Unit) -> Nothing {Tuple2 a b})
-              (\(ds : Unit) -> Nothing {Tuple2 a b})
-              Unit
+                   [ (\(l : integer) (r : list data) ->
+                        case
+                          (all dead. Maybe (Tuple2 a b))
+                          (equalsInteger 0 l)
+                          [ (/\dead -> Nothing {Tuple2 a b})
+                          , (/\dead ->
+                               Maybe_match
+                                 {Tuple2 data (list data)}
+                                 (case
+                                    (Maybe (Tuple2 data (list data)))
+                                    r
+                                    [ (\(h : data) (t : list data) ->
+                                         Just
+                                           {Tuple2 data (list data)}
+                                           (Tuple2 {data} {list data} h t))
+                                    , (Nothing {Tuple2 data (list data)}) ])
+                                 {all dead. Maybe (Tuple2 a b)}
+                                 (\(ds : Tuple2 data (list data)) ->
+                                    /\dead ->
+                                      Tuple2_match
+                                        {data}
+                                        {list data}
+                                        ds
+                                        {Maybe (Tuple2 a b)}
+                                        (\(ds : data) (ds : list data) ->
+                                           Maybe_match
+                                             {a}
+                                             (`$dFromData` ds)
+                                             {all dead. Maybe (Tuple2 a b)}
+                                             (\(arg : a) ->
+                                                /\dead ->
+                                                  Maybe_match
+                                                    {data}
+                                                    (case
+                                                       (Maybe data)
+                                                       ds
+                                                       [ (\(h : data)
+                                                           (ds : list data) ->
+                                                            Just {data} h)
+                                                       , (Nothing {data}) ])
+                                                    {all dead.
+                                                       Maybe (Tuple2 a b)}
+                                                    (\(ds : data) ->
+                                                       /\dead ->
+                                                         Maybe_match
+                                                           {b}
+                                                           (`$dFromData` ds)
+                                                           {all dead.
+                                                              Maybe
+                                                                (Tuple2 a b)}
+                                                           (\(arg : b) ->
+                                                              /\dead ->
+                                                                Just
+                                                                  {Tuple2 a b}
+                                                                  (Tuple2
+                                                                     {a}
+                                                                     {b}
+                                                                     arg
+                                                                     arg))
+                                                           (/\dead ->
+                                                              Nothing
+                                                                {Tuple2 a b})
+                                                           {all dead. dead})
+                                                    (/\dead ->
+                                                       Nothing {Tuple2 a b})
+                                                    {all dead. dead})
+                                             (/\dead -> Nothing {Tuple2 a b})
+                                             {all dead. dead}))
+                                 (/\dead -> Nothing {Tuple2 a b})
+                                 {all dead. dead}) ]
+                          {all dead. dead}) ])
+              (\(ds : unit) -> Nothing {Tuple2 a b})
+              (\(ds : unit) -> Nothing {Tuple2 a b})
+              (\(ds : unit) -> Nothing {Tuple2 a b})
+              (\(ds : unit) -> Nothing {Tuple2 a b})
+              ()
     ~`$dFromData` : data -> Maybe (Tuple2 bytestring bytestring)
       = `$fFromDataTuple2_$cfromBuiltinData`
           {bytestring}
@@ -1153,32 +1141,30 @@
     !`$fFromDataInteger_$cfromBuiltinData` : data -> Maybe integer
       = \(d : data) ->
           chooseData
-            {Unit -> Maybe integer}
+            {unit -> Maybe integer}
             d
-            (\(ds : Unit) ->
-               casePair
-                 {integer}
-                 {list data}
-                 {Maybe integer}
+            (\(ds : unit) ->
+               case
+                 (Maybe integer)
                  (unConstrData d)
-                 (\(l : integer) (r : list data) -> Nothing {integer}))
-            (\(ds : Unit) ->
+                 [(\(l : integer) (r : list data) -> Nothing {integer})])
+            (\(ds : unit) ->
                let
                  !ds : list (pair data data) = unMapData d
                in
                Nothing {integer})
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                let
                  !ds : list data = unListData d
                in
                Nothing {integer})
-            (\(ds : Unit) -> Just {integer} (unIData d))
-            (\(ds : Unit) ->
+            (\(ds : unit) -> Just {integer} (unIData d))
+            (\(ds : unit) ->
                let
                  !ds : bytestring = unBData d
                in
                Nothing {integer})
-            Unit
+            ()
   in
   letrec
     !euclid : integer -> integer -> integer
@@ -1190,9 +1176,6 @@
             {all dead. dead}
   in
   let
-    !traceError : all a. string -> a
-      = /\a ->
-          \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
     data Rational | Rational_match where
       Rational : integer -> integer -> Rational
   in
@@ -1218,7 +1201,11 @@
                           (subtractInteger 0 n)
                           (subtractInteger 0 d)) ]
                    {all dead. dead})
-            , (/\dead -> traceError {Rational} "PT3") ]
+            , (/\dead ->
+                 let
+                   !x : unit = trace {unit} "PT3" ()
+                 in
+                 error {Rational}) ]
             {all dead. dead}
   in
   let
@@ -1258,44 +1245,37 @@
           `$fFromDataRational_$cfromBuiltinData`
     data (Solo :: * -> *) a | Solo_match where
       MkSolo : a -> Solo a
-    !fail : unit -> Solo data
-      = \(ds : unit) ->
-          let
-            !defaultBody : Solo data = error {Solo data}
-          in
-          Unit_match (error {Unit}) {Solo data} defaultBody
-    ~defaultBody : Solo data = fail ()
+    ~defaultBody : Solo data
+      = case (Solo data) (error {unit}) [(error {Solo data})]
     !`$fFromDataBuiltinData_$cfromBuiltinData` : data -> Maybe data
       = \(d : data) -> Just {data} d
     !`$fFromDataBool_$cfromBuiltinData` : data -> Maybe bool
       = \(d : data) ->
           chooseData
-            {Unit -> Maybe bool}
+            {unit -> Maybe bool}
             d
-            (\(ds : Unit) ->
-               casePair
-                 {integer}
-                 {list data}
-                 {Maybe bool}
+            (\(ds : unit) ->
+               case
+                 (Maybe bool)
                  (unConstrData d)
-                 (\(l : integer) (r : list data) ->
-                    case
-                      (all dead. Maybe bool)
-                      (equalsInteger 0 l)
-                      [ (/\dead ->
-                           case
-                             (all dead. Maybe bool)
-                             (equalsInteger 1 l)
-                             [ (/\dead -> Nothing {bool})
-                             , (/\dead -> Just {bool} True) ]
-                             {all dead. dead})
-                      , (/\dead -> Just {bool} False) ]
-                      {all dead. dead}))
-            (\(ds : Unit) -> Nothing {bool})
-            (\(ds : Unit) -> Nothing {bool})
-            (\(ds : Unit) -> Nothing {bool})
-            (\(ds : Unit) -> Nothing {bool})
-            Unit
+                 [ (\(l : integer) (r : list data) ->
+                      case
+                        (all dead. Maybe bool)
+                        (equalsInteger 0 l)
+                        [ (/\dead ->
+                             case
+                               (all dead. Maybe bool)
+                               (equalsInteger 1 l)
+                               [ (/\dead -> Nothing {bool})
+                               , (/\dead -> Just {bool} True) ]
+                               {all dead. dead})
+                        , (/\dead -> Just {bool} False) ]
+                        {all dead. dead}) ])
+            (\(ds : unit) -> Nothing {bool})
+            (\(ds : unit) -> Nothing {bool})
+            (\(ds : unit) -> Nothing {bool})
+            (\(ds : unit) -> Nothing {bool})
+            ()
     !matchData' :
        all r.
          data ->
@@ -1313,20 +1293,18 @@
            (iCase : integer -> r)
            (bCase : bytestring -> r) ->
             chooseData
-              {Unit -> r}
+              {unit -> r}
               d
-              (\(ds : Unit) ->
-                 casePair
-                   {integer}
-                   {list data}
-                   {r}
+              (\(ds : unit) ->
+                 case
+                   r
                    (unConstrData d)
-                   (\(l : integer) (r : list data) -> constrCase l r))
-              (\(ds : Unit) -> mapCase (unMapData d))
-              (\(ds : Unit) -> listCase (unListData d))
-              (\(ds : Unit) -> iCase (unIData d))
-              (\(ds : Unit) -> bCase (unBData d))
-              Unit
+                   [(\(l : integer) (r : list data) -> constrCase l r)])
+              (\(ds : unit) -> mapCase (unMapData d))
+              (\(ds : unit) -> listCase (unListData d))
+              (\(ds : unit) -> iCase (unIData d))
+              (\(ds : unit) -> bCase (unBData d))
+              ()
     data (Extended :: * -> *) a | Extended_match where
       Finite : a -> Extended a
       NegInf : Extended a
@@ -1562,54 +1540,54 @@
       = /\a ->
           \(`$dFromData` : (\a -> data -> Maybe a) a) (d : data) ->
             chooseData
-              {Unit -> Maybe (Maybe a)}
+              {unit -> Maybe (Maybe a)}
               d
-              (\(ds : Unit) ->
-                 casePair
-                   {integer}
-                   {list data}
-                   {Maybe (Maybe a)}
+              (\(ds : unit) ->
+                 case
+                   (Maybe (Maybe a))
                    (unConstrData d)
-                   (\(l : integer) (r : list data) ->
-                      case
-                        (all dead. Maybe (Maybe a))
-                        (equalsInteger 1 l)
-                        [ (/\dead ->
-                             case
-                               (all dead. Maybe (Maybe a))
-                               (equalsInteger 0 l)
-                               [ (/\dead -> Nothing {Maybe a})
-                               , (/\dead ->
-                                    Maybe_match
-                                      {data}
-                                      (case
-                                         (Maybe data)
-                                         r
-                                         [ (\(h : data) (ds : list data) ->
-                                              Just {data} h)
-                                         , (Nothing {data}) ])
-                                      {all dead. Maybe (Maybe a)}
-                                      (\(ds : data) ->
-                                         /\dead ->
-                                           Maybe_match
-                                             {a}
-                                             (`$dFromData` ds)
-                                             {all dead. Maybe (Maybe a)}
-                                             (\(arg : a) ->
-                                                /\dead ->
-                                                  Just {Maybe a} (Just {a} arg))
-                                             (/\dead -> Nothing {Maybe a})
-                                             {all dead. dead})
-                                      (/\dead -> Nothing {Maybe a})
-                                      {all dead. dead}) ]
-                               {all dead. dead})
-                        , (/\dead -> Just {Maybe a} (Nothing {a})) ]
-                        {all dead. dead}))
-              (\(ds : Unit) -> Nothing {Maybe a})
-              (\(ds : Unit) -> Nothing {Maybe a})
-              (\(ds : Unit) -> Nothing {Maybe a})
-              (\(ds : Unit) -> Nothing {Maybe a})
-              Unit
+                   [ (\(l : integer) (r : list data) ->
+                        case
+                          (all dead. Maybe (Maybe a))
+                          (equalsInteger 1 l)
+                          [ (/\dead ->
+                               case
+                                 (all dead. Maybe (Maybe a))
+                                 (equalsInteger 0 l)
+                                 [ (/\dead -> Nothing {Maybe a})
+                                 , (/\dead ->
+                                      Maybe_match
+                                        {data}
+                                        (case
+                                           (Maybe data)
+                                           r
+                                           [ (\(h : data) (ds : list data) ->
+                                                Just {data} h)
+                                           , (Nothing {data}) ])
+                                        {all dead. Maybe (Maybe a)}
+                                        (\(ds : data) ->
+                                           /\dead ->
+                                             Maybe_match
+                                               {a}
+                                               (`$dFromData` ds)
+                                               {all dead. Maybe (Maybe a)}
+                                               (\(arg : a) ->
+                                                  /\dead ->
+                                                    Just
+                                                      {Maybe a}
+                                                      (Just {a} arg))
+                                               (/\dead -> Nothing {Maybe a})
+                                               {all dead. dead})
+                                        (/\dead -> Nothing {Maybe a})
+                                        {all dead. dead}) ]
+                                 {all dead. dead})
+                          , (/\dead -> Just {Maybe a} (Nothing {a})) ]
+                          {all dead. dead}) ])
+              (\(ds : unit) -> Nothing {Maybe a})
+              (\(ds : unit) -> Nothing {Maybe a})
+              (\(ds : unit) -> Nothing {Maybe a})
+              (\(ds : unit) -> Nothing {Maybe a})
+              ()
     !`$fFromDataMap_$cfromBuiltinData` :
        all k v.
          (\a -> data -> Maybe a) k ->
@@ -1688,17 +1666,15 @@
             in
             \(d : data) ->
               chooseData
-                {Unit -> Maybe ((\k v -> List (Tuple2 k v)) k v)}
+                {unit -> Maybe ((\k v -> List (Tuple2 k v)) k v)}
                 d
-                (\(ds : Unit) ->
-                   casePair
-                     {integer}
-                     {list data}
-                     {Maybe ((\k v -> List (Tuple2 k v)) k v)}
+                (\(ds : unit) ->
+                   case
+                     (Maybe ((\k v -> List (Tuple2 k v)) k v))
                      (unConstrData d)
-                     (\(l : integer) (r : list data) ->
-                        Nothing {(\k v -> List (Tuple2 k v)) k v}))
-                (\(ds : Unit) ->
+                     [ (\(l : integer) (r : list data) ->
+                          Nothing {(\k v -> List (Tuple2 k v)) k v}) ])
+                (\(ds : unit) ->
                    let
                      !es : list (pair data data) = unMapData d
                    in
@@ -1710,22 +1686,22 @@
                         /\dead -> Just {(\k v -> List (Tuple2 k v)) k v} a)
                      (/\dead -> Nothing {(\k v -> List (Tuple2 k v)) k v})
                      {all dead. dead})
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    let
                      !ds : list data = unListData d
                    in
                    Nothing {(\k v -> List (Tuple2 k v)) k v})
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    let
                      !ds : integer = unIData d
                    in
                    Nothing {(\k v -> List (Tuple2 k v)) k v})
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    let
                      !ds : bytestring = unBData d
                    in
                    Nothing {(\k v -> List (Tuple2 k v)) k v})
-                Unit
+                ()
     !`$fFromDataList_$cfromBuiltinData` :
        all a. (\a -> data -> Maybe a) a -> data -> Maybe (List a)
       = /\a ->
@@ -1761,32 +1737,30 @@
             in
             \(d : data) ->
               chooseData
-                {Unit -> Maybe (List a)}
+                {unit -> Maybe (List a)}
                 d
-                (\(ds : Unit) ->
-                   casePair
-                     {integer}
-                     {list data}
-                     {Maybe (List a)}
+                (\(ds : unit) ->
+                   case
+                     (Maybe (List a))
                      (unConstrData d)
-                     (\(l : integer) (r : list data) -> Nothing {List a}))
-                (\(ds : Unit) ->
+                     [(\(l : integer) (r : list data) -> Nothing {List a})])
+                (\(ds : unit) ->
                    let
                      !ds : list (pair data data) = unMapData d
                    in
                    Nothing {List a})
-                (\(ds : Unit) -> go (unListData d))
-                (\(ds : Unit) ->
+                (\(ds : unit) -> go (unListData d))
+                (\(ds : unit) ->
                    let
                      !ds : integer = unIData d
                    in
                    Nothing {List a})
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    let
                      !ds : bytestring = unBData d
                    in
                    Nothing {List a})
-                Unit
+                ()
     data ProtocolVersion | ProtocolVersion_match where
       ProtocolVersion : integer -> integer -> ProtocolVersion
     data GovernanceAction | GovernanceAction_match where
@@ -5509,8 +5483,7 @@
             {all dead. TxOut}
             (/\dead ->
                let
-                 !x : Unit
-                   = trace {Unit} "script input error getScriptInput" Unit
+                 !x : unit = trace {unit} "script input error getScriptInput" ()
                in
                error {TxOut})
             (\(ds : TxInInfo) (tl : List TxInInfo) ->
@@ -8998,71 +8971,74 @@
                                 ds)
                      in
                      chooseData
-                       {Unit -> Maybe LoanRedeemer}
+                       {unit -> Maybe LoanRedeemer}
                        d
-                       (\(ds : Unit) ->
-                          casePair
-                            {integer}
-                            {list data}
-                            {Maybe LoanRedeemer}
+                       (\(ds : unit) ->
+                          case
+                            (Maybe LoanRedeemer)
                             (unConstrData d)
-                            (\(l : integer)
-                              (r : list data) ->
-                               case
-                                 (all dead. Maybe LoanRedeemer)
-                                 (equalsInteger 0 l)
-                                 [ (/\dead ->
-                                      case
-                                        (all dead. Maybe LoanRedeemer)
-                                        (equalsInteger 1 l)
-                                        [ (/\dead ->
-                                             case
-                                               (all dead. Maybe LoanRedeemer)
-                                               (equalsInteger 2 l)
-                                               [ (/\dead ->
-                                                    case
-                                                      (all dead.
-                                                         Maybe LoanRedeemer)
-                                                      (equalsInteger 3 l)
-                                                      [ (/\dead ->
-                                                           case
-                                                             (all dead.
-                                                                Maybe
-                                                                  LoanRedeemer)
-                                                             (equalsInteger 4 l)
-                                                             [ (/\dead ->
-                                                                  Nothing
-                                                                    {LoanRedeemer})
-                                                             , (/\dead ->
-                                                                  Just
-                                                                    {LoanRedeemer}
-                                                                    Claim) ]
-                                                             {all dead. dead})
-                                                      , (/\dead ->
-                                                           Just
-                                                             {LoanRedeemer}
-                                                             RepayLoan) ]
-                                                      {all dead. dead})
-                                               , (/\dead ->
-                                                    Just
-                                                      {LoanRedeemer}
-                                                      AcceptOffer) ]
-                                               {all dead. dead})
-                                        , (/\dead ->
-                                             Just {LoanRedeemer} CloseOffer) ]
-                                        {all dead. dead})
-                                 , (/\dead -> Just {LoanRedeemer} CloseAsk) ]
-                                 {all dead. dead}))
-                       (\(ds : Unit) -> Nothing {LoanRedeemer})
-                       (\(ds : Unit) -> Nothing {LoanRedeemer})
-                       (\(ds : Unit) -> Nothing {LoanRedeemer})
-                       (\(ds : Unit) -> Nothing {LoanRedeemer})
-                       Unit)
+                            [ (\(l : integer)
+                                (r : list data) ->
+                                 case
+                                   (all dead. Maybe LoanRedeemer)
+                                   (equalsInteger 0 l)
+                                   [ (/\dead ->
+                                        case
+                                          (all dead. Maybe LoanRedeemer)
+                                          (equalsInteger 1 l)
+                                          [ (/\dead ->
+                                               case
+                                                 (all dead. Maybe LoanRedeemer)
+                                                 (equalsInteger 2 l)
+                                                 [ (/\dead ->
+                                                      case
+                                                        (all dead.
+                                                           Maybe LoanRedeemer)
+                                                        (equalsInteger 3 l)
+                                                        [ (/\dead ->
+                                                             case
+                                                               (all dead.
+                                                                  Maybe
+                                                                    LoanRedeemer)
+                                                               (equalsInteger
+                                                                  4
+                                                                  l)
+                                                               [ (/\dead ->
+                                                                    Nothing
+                                                                      {LoanRedeemer})
+                                                               , (/\dead ->
+                                                                    Just
+                                                                      {LoanRedeemer}
+                                                                      Claim) ]
+                                                               {all dead. dead})
+                                                        , (/\dead ->
+                                                             Just
+                                                               {LoanRedeemer}
+                                                               RepayLoan) ]
+                                                        {all dead. dead})
+                                                 , (/\dead ->
+                                                      Just
+                                                        {LoanRedeemer}
+                                                        AcceptOffer) ]
+                                                 {all dead. dead})
+                                          , (/\dead ->
+                                               Just {LoanRedeemer} CloseOffer) ]
+                                          {all dead. dead})
+                                   , (/\dead -> Just {LoanRedeemer} CloseAsk) ]
+                                   {all dead. dead}) ])
+                       (\(ds : unit) -> Nothing {LoanRedeemer})
+                       (\(ds : unit) -> Nothing {LoanRedeemer})
+                       (\(ds : unit) -> Nothing {LoanRedeemer})
+                       (\(ds : unit) -> Nothing {LoanRedeemer})
+                       ())
                      {all dead. LoanRedeemer}
                      (\(r : LoanRedeemer) ->
                         /\dead -> trace {LoanRedeemer} "Parsed Redeemer" r)
                      (/\dead ->
-                        traceError {LoanRedeemer} "Failed to parse Redeemer")
+                        let
+                          !x : unit = trace {unit} "Failed to parse Redeemer" ()
+                        in
+                        error {LoanRedeemer})
                      {all dead. dead}
              in
              trace
@@ -9093,7 +9069,11 @@
                                ds
                                {all dead. Solo data}
                                (\(ds : data) -> /\dead -> MkSolo {data} ds)
-                               (/\dead -> fail ())
+                               (/\dead ->
+                                  case
+                                    (Solo data)
+                                    (error {unit})
+                                    [(error {Solo data})])
                                {all dead. dead})
                           (\(default_arg0 : Voter) -> defaultBody))
                        {LoanDatum}
@@ -9101,1931 +9081,1938 @@
                           Maybe_match
                             {LoanDatum}
                             (chooseData
-                               {Unit -> Maybe LoanDatum}
+                               {unit -> Maybe LoanDatum}
                                ipv
-                               (\(ds : Unit) ->
-                                  casePair
-                                    {integer}
-                                    {list data}
-                                    {Maybe LoanDatum}
+                               (\(ds : unit) ->
+                                  case
+                                    (Maybe LoanDatum)
                                     (unConstrData ipv)
-                                    (\(l : integer)
-                                      (r : list data) ->
-                                       (\(index : integer)
-                                         (args : list data) ->
-                                          let
-                                            !fail :
-                                               unit -> Maybe LoanDatum
-                                              = \(ds : unit) ->
-                                                  case
-                                                    (all dead. Maybe LoanDatum)
-                                                    (equalsInteger 2 index)
-                                                    [ (/\dead ->
-                                                         Nothing {LoanDatum})
-                                                    , (/\dead ->
-                                                         Maybe_match
-                                                           {Tuple2
-                                                              data
-                                                              (list data)}
-                                                           (case
-                                                              (Maybe
-                                                                 (Tuple2
-                                                                    data
-                                                                    (list
-                                                                       data)))
-                                                              args
-                                                              [ (\(h : data)
-                                                                  (t :
-                                                                     list
-                                                                       data) ->
-                                                                   Just
-                                                                     {Tuple2
-                                                                        data
-                                                                        (list
-                                                                           data)}
-                                                                     (Tuple2
-                                                                        {data}
-                                                                        {list
-                                                                           data}
-                                                                        h
-                                                                        t))
-                                                              , (Nothing
-                                                                   {Tuple2
-                                                                      data
-                                                                      (list
-                                                                         data)}) ])
-                                                           {all dead.
-                                                              Maybe LoanDatum}
-                                                           (\(ds :
-                                                                Tuple2
-                                                                  data
-                                                                  (list
-                                                                     data)) ->
-                                                              /\dead ->
-                                                                Tuple2_match
-                                                                  {data}
-                                                                  {list data}
-                                                                  ds
-                                                                  {Maybe
-                                                                     LoanDatum}
-                                                                  (\(ds : data)
-                                                                    (ds :
-                                                                       list
-                                                                         data) ->
-                                                                     Maybe_match
-                                                                       {Tuple2
-                                                                          bytestring
-                                                                          bytestring}
-                                                                       (`$fFromDataTuple2_$cfromBuiltinData`
-                                                                          {bytestring}
-                                                                          {bytestring}
-                                                                          `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                          `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                          ds)
-                                                                       {all dead.
-                                                                          Maybe
-                                                                            LoanDatum}
-                                                                       (\(arg :
-                                                                            Tuple2
-                                                                              bytestring
-                                                                              bytestring) ->
-                                                                          /\dead ->
-                                                                            Maybe_match
-                                                                              {Tuple2
-                                                                                 data
-                                                                                 (list
-                                                                                    data)}
-                                                                              (case
-                                                                                 (Maybe
-                                                                                    (Tuple2
-                                                                                       data
-                                                                                       (list
-                                                                                          data)))
-                                                                                 ds
-                                                                                 [ (\(h :
-                                                                                        data)
-                                                                                     (t :
-                                                                                        list
-                                                                                          data) ->
-                                                                                      Just
-                                                                                        {Tuple2
-                                                                                           data
-                                                                                           (list
-                                                                                              data)}
-                                                                                        (Tuple2
-                                                                                           {data}
-                                                                                           {list
-                                                                                              data}
-                                                                                           h
-                                                                                           t))
-                                                                                 , (Nothing
-                                                                                      {Tuple2
-                                                                                         data
-                                                                                         (list
-                                                                                            data)}) ])
-                                                                              {all dead.
-                                                                                 Maybe
-                                                                                   LoanDatum}
-                                                                              (\(ds :
-                                                                                   Tuple2
-                                                                                     data
-                                                                                     (list
-                                                                                        data)) ->
-                                                                                 /\dead ->
-                                                                                   Tuple2_match
-                                                                                     {data}
-                                                                                     {list
-                                                                                        data}
-                                                                                     ds
-                                                                                     {Maybe
-                                                                                        LoanDatum}
-                                                                                     (\(ds :
-                                                                                          data)
-                                                                                       (ds :
-                                                                                          list
-                                                                                            data) ->
-                                                                                        Maybe_match
-                                                                                          {Tuple2
-                                                                                             bytestring
-                                                                                             bytestring}
-                                                                                          (`$fFromDataTuple2_$cfromBuiltinData`
-                                                                                             {bytestring}
-                                                                                             {bytestring}
-                                                                                             `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                             `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                             ds)
-                                                                                          {all dead.
-                                                                                             Maybe
-                                                                                               LoanDatum}
-                                                                                          (\(arg :
-                                                                                               Tuple2
-                                                                                                 bytestring
-                                                                                                 bytestring) ->
-                                                                                             /\dead ->
-                                                                                               Maybe_match
-                                                                                                 {Tuple2
-                                                                                                    data
-                                                                                                    (list
-                                                                                                       data)}
-                                                                                                 (case
-                                                                                                    (Maybe
-                                                                                                       (Tuple2
-                                                                                                          data
-                                                                                                          (list
-                                                                                                             data)))
-                                                                                                    ds
-                                                                                                    [ (\(h :
-                                                                                                           data)
-                                                                                                        (t :
-                                                                                                           list
-                                                                                                             data) ->
-                                                                                                         Just
-                                                                                                           {Tuple2
-                                                                                                              data
-                                                                                                              (list
-                                                                                                                 data)}
-                                                                                                           (Tuple2
-                                                                                                              {data}
-                                                                                                              {list
-                                                                                                                 data}
-                                                                                                              h
-                                                                                                              t))
-                                                                                                    , (Nothing
-                                                                                                         {Tuple2
-                                                                                                            data
-                                                                                                            (list
-                                                                                                               data)}) ])
-                                                                                                 {all dead.
-                                                                                                    Maybe
-                                                                                                      LoanDatum}
-                                                                                                 (\(ds :
-                                                                                                      Tuple2
-                                                                                                        data
-                                                                                                        (list
-                                                                                                           data)) ->
-                                                                                                    /\dead ->
-                                                                                                      Tuple2_match
-                                                                                                        {data}
-                                                                                                        {list
-                                                                                                           data}
-                                                                                                        ds
-                                                                                                        {Maybe
-                                                                                                           LoanDatum}
-                                                                                                        (\(ds :
-                                                                                                             data)
-                                                                                                          (ds :
-                                                                                                             list
-                                                                                                               data) ->
-                                                                                                           Maybe_match
-                                                                                                             {Tuple2
-                                                                                                                bytestring
-                                                                                                                bytestring}
-                                                                                                             (`$fFromDataTuple2_$cfromBuiltinData`
-                                                                                                                {bytestring}
-                                                                                                                {bytestring}
-                                                                                                                `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                                                `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                                                ds)
-                                                                                                             {all dead.
-                                                                                                                Maybe
-                                                                                                                  LoanDatum}
-                                                                                                             (\(arg :
-                                                                                                                  Tuple2
-                                                                                                                    bytestring
-                                                                                                                    bytestring) ->
-                                                                                                                /\dead ->
-                                                                                                                  Maybe_match
-                                                                                                                    {Tuple2
-                                                                                                                       data
-                                                                                                                       (list
-                                                                                                                          data)}
-                                                                                                                    (case
-                                                                                                                       (Maybe
-                                                                                                                          (Tuple2
-                                                                                                                             data
-                                                                                                                             (list
-                                                                                                                                data)))
-                                                                                                                       ds
-                                                                                                                       [ (\(h :
-                                                                                                                              data)
-                                                                                                                           (t :
-                                                                                                                              list
-                                                                                                                                data) ->
-                                                                                                                            Just
-                                                                                                                              {Tuple2
-                                                                                                                                 data
-                                                                                                                                 (list
-                                                                                                                                    data)}
-                                                                                                                              (Tuple2
-                                                                                                                                 {data}
-                                                                                                                                 {list
-                                                                                                                                    data}
-                                                                                                                                 h
-                                                                                                                                 t))
-                                                                                                                       , (Nothing
-                                                                                                                            {Tuple2
-                                                                                                                               data
-                                                                                                                               (list
-                                                                                                                                  data)}) ])
-                                                                                                                    {all dead.
-                                                                                                                       Maybe
-                                                                                                                         LoanDatum}
-                                                                                                                    (\(ds :
-                                                                                                                         Tuple2
-                                                                                                                           data
-                                                                                                                           (list
-                                                                                                                              data)) ->
-                                                                                                                       /\dead ->
-                                                                                                                         Tuple2_match
-                                                                                                                           {data}
-                                                                                                                           {list
-                                                                                                                              data}
-                                                                                                                           ds
-                                                                                                                           {Maybe
-                                                                                                                              LoanDatum}
-                                                                                                                           (\(ds :
-                                                                                                                                data)
-                                                                                                                             (ds :
-                                                                                                                                list
-                                                                                                                                  data) ->
-                                                                                                                              Maybe_match
-                                                                                                                                {Tuple2
-                                                                                                                                   bytestring
-                                                                                                                                   bytestring}
-                                                                                                                                (`$fFromDataTuple2_$cfromBuiltinData`
-                                                                                                                                   {bytestring}
-                                                                                                                                   {bytestring}
-                                                                                                                                   `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                                                                   `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                                                                   ds)
-                                                                                                                                {all dead.
-                                                                                                                                   Maybe
-                                                                                                                                     LoanDatum}
-                                                                                                                                (\(arg :
-                                                                                                                                     Tuple2
-                                                                                                                                       bytestring
-                                                                                                                                       bytestring) ->
-                                                                                                                                   /\dead ->
-                                                                                                                                     Maybe_match
-                                                                                                                                       {Tuple2
-                                                                                                                                          data
-                                                                                                                                          (list
-                                                                                                                                             data)}
-                                                                                                                                       (case
-                                                                                                                                          (Maybe
-                                                                                                                                             (Tuple2
-                                                                                                                                                data
-                                                                                                                                                (list
-                                                                                                                                                   data)))
-                                                                                                                                          ds
-                                                                                                                                          [ (\(h :
-                                                                                                                                                 data)
-                                                                                                                                              (t :
-                                                                                                                                                 list
-                                                                                                                                                   data) ->
-                                                                                                                                               Just
-                                                                                                                                                 {Tuple2
-                                                                                                                                                    data
-                                                                                                                                                    (list
-                                                                                                                                                       data)}
-                                                                                                                                                 (Tuple2
-                                                                                                                                                    {data}
-                                                                                                                                                    {list
-                                                                                                                                                       data}
-                                                                                                                                                    h
-                                                                                                                                                    t))
-                                                                                                                                          , (Nothing
-                                                                                                                                               {Tuple2
-                                                                                                                                                  data
-                                                                                                                                                  (list
-                                                                                                                                                     data)}) ])
-                                                                                                                                       {all dead.
-                                                                                                                                          Maybe
-                                                                                                                                            LoanDatum}
-                                                                                                                                       (\(ds :
-                                                                                                                                            Tuple2
-                                                                                                                                              data
-                                                                                                                                              (list
-                                                                                                                                                 data)) ->
-                                                                                                                                          /\dead ->
-                                                                                                                                            Tuple2_match
-                                                                                                                                              {data}
-                                                                                                                                              {list
-                                                                                                                                                 data}
-                                                                                                                                              ds
-                                                                                                                                              {Maybe
-                                                                                                                                                 LoanDatum}
-                                                                                                                                              (\(ds :
-                                                                                                                                                   data)
-                                                                                                                                                (ds :
-                                                                                                                                                   list
-                                                                                                                                                     data) ->
-                                                                                                                                                 Maybe_match
-                                                                                                                                                   {integer}
-                                                                                                                                                   (`$fFromDataInteger_$cfromBuiltinData`
-                                                                                                                                                      ds)
-                                                                                                                                                   {all dead.
-                                                                                                                                                      Maybe
-                                                                                                                                                        LoanDatum}
-                                                                                                                                                   (\(arg :
-                                                                                                                                                        integer) ->
-                                                                                                                                                      /\dead ->
-                                                                                                                                                        Maybe_match
-                                                                                                                                                          {Tuple2
-                                                                                                                                                             data
-                                                                                                                                                             (list
-                                                                                                                                                                data)}
-                                                                                                                                                          (case
-                                                                                                                                                             (Maybe
-                                                                                                                                                                (Tuple2
-                                                                                                                                                                   data
-                                                                                                                                                                   (list
-                                                                                                                                                                      data)))
-                                                                                                                                                             ds
-                                                                                                                                                             [ (\(h :
-                                                                                                                                                                    data)
-                                                                                                                                                                 (t :
-                                                                                                                                                                    list
-                                                                                                                                                                      data) ->
-                                                                                                                                                                  Just
-                                                                                                                                                                    {Tuple2
-                                                                                                                                                                       data
-                                                                                                                                                                       (list
-                                                                                                                                                                          data)}
-                                                                                                                                                                    (Tuple2
-                                                                                                                                                                       {data}
-                                                                                                                                                                       {list
-                                                                                                                                                                          data}
-                                                                                                                                                                       h
-                                                                                                                                                                       t))
-                                                                                                                                                             , (Nothing
-                                                                                                                                                                  {Tuple2
-                                                                                                                                                                     data
-                                                                                                                                                                     (list
-                                                                                                                                                                        data)}) ])
-                                                                                                                                                          {all dead.
-                                                                                                                                                             Maybe
-                                                                                                                                                               LoanDatum}
-                                                                                                                                                          (\(ds :
-                                                                                                                                                               Tuple2
-                                                                                                                                                                 data
-                                                                                                                                                                 (list
-                                                                                                                                                                    data)) ->
-                                                                                                                                                             /\dead ->
-                                                                                                                                                               Tuple2_match
-                                                                                                                                                                 {data}
-                                                                                                                                                                 {list
-                                                                                                                                                                    data}
-                                                                                                                                                                 ds
-                                                                                                                                                                 {Maybe
-                                                                                                                                                                    LoanDatum}
-                                                                                                                                                                 (\(ds :
-                                                                                                                                                                      data)
-                                                                                                                                                                   (ds :
-                                                                                                                                                                      list
-                                                                                                                                                                        data) ->
-                                                                                                                                                                    Maybe_match
-                                                                                                                                                                      {integer}
-                                                                                                                                                                      (`$fFromDataInteger_$cfromBuiltinData`
-                                                                                                                                                                         ds)
-                                                                                                                                                                      {all dead.
-                                                                                                                                                                         Maybe
-                                                                                                                                                                           LoanDatum}
-                                                                                                                                                                      (\(arg :
-                                                                                                                                                                           integer) ->
-                                                                                                                                                                         /\dead ->
-                                                                                                                                                                           Maybe_match
-                                                                                                                                                                             {Tuple2
-                                                                                                                                                                                data
-                                                                                                                                                                                (list
-                                                                                                                                                                                   data)}
-                                                                                                                                                                             (case
-                                                                                                                                                                                (Maybe
-                                                                                                                                                                                   (Tuple2
-                                                                                                                                                                                      data
-                                                                                                                                                                                      (list
-                                                                                                                                                                                         data)))
-                                                                                                                                                                                ds
-                                                                                                                                                                                [ (\(h :
-                                                                                                                                                                                       data)
-                                                                                                                                                                                    (t :
-                                                                                                                                                                                       list
-                                                                                                                                                                                         data) ->
-                                                                                                                                                                                     Just
-                                                                                                                                                                                       {Tuple2
-                                                                                                                                                                                          data
-                                                                                                                                                                                          (list
-                                                                                                                                                                                             data)}
-                                                                                                                                                                                       (Tuple2
-                                                                                                                                                                                          {data}
-                                                                                                                                                                                          {list
-                                                                                                                                                                                             data}
-                                                                                                                                                                                          h
-                                                                                                                                                                                          t))
-                                                                                                                                                                                , (Nothing
-                                                                                                                                                                                     {Tuple2
-                                                                                                                                                                                        data
-                                                                                                                                                                                        (list
-                                                                                                                                                                                           data)}) ])
-                                                                                                                                                                             {all dead.
-                                                                                                                                                                                Maybe
-                                                                                                                                                                                  LoanDatum}
-                                                                                                                                                                             (\(ds :
-                                                                                                                                                                                  Tuple2
-                                                                                                                                                                                    data
-                                                                                                                                                                                    (list
-                                                                                                                                                                                       data)) ->
-                                                                                                                                                                                /\dead ->
-                                                                                                                                                                                  Tuple2_match
-                                                                                                                                                                                    {data}
-                                                                                                                                                                                    {list
-                                                                                                                                                                                       data}
-                                                                                                                                                                                    ds
-                                                                                                                                                                                    {Maybe
-                                                                                                                                                                                       LoanDatum}
-                                                                                                                                                                                    (\(ds :
-                                                                                                                                                                                         data)
-                                                                                                                                                                                      (ds :
-                                                                                                                                                                                         list
-                                                                                                                                                                                           data) ->
-                                                                                                                                                                                       Maybe_match
-                                                                                                                                                                                         {Rational}
-                                                                                                                                                                                         (`$fFromDataRational_$cfromBuiltinData`
-                                                                                                                                                                                            ds)
-                                                                                                                                                                                         {all dead.
-                                                                                                                                                                                            Maybe
-                                                                                                                                                                                              LoanDatum}
-                                                                                                                                                                                         (\(arg :
-                                                                                                                                                                                              Rational) ->
-                                                                                                                                                                                            /\dead ->
-                                                                                                                                                                                              Maybe_match
-                                                                                                                                                                                                {Tuple2
-                                                                                                                                                                                                   data
-                                                                                                                                                                                                   (list
-                                                                                                                                                                                                      data)}
-                                                                                                                                                                                                (case
-                                                                                                                                                                                                   (Maybe
-                                                                                                                                                                                                      (Tuple2
-                                                                                                                                                                                                         data
-                                                                                                                                                                                                         (list
-                                                                                                                                                                                                            data)))
-                                                                                                                                                                                                   ds
-                                                                                                                                                                                                   [ (\(h :
-                                                                                                                                                                                                          data)
-                                                                                                                                                                                                       (t :
-                                                                                                                                                                                                          list
-                                                                                                                                                                                                            data) ->
-                                                                                                                                                                                                        Just
-                                                                                                                                                                                                          {Tuple2
-                                                                                                                                                                                                             data
-                                                                                                                                                                                                             (list
-                                                                                                                                                                                                                data)}
-                                                                                                                                                                                                          (Tuple2
-                                                                                                                                                                                                             {data}
-                                                                                                                                                                                                             {list
-                                                                                                                                                                                                                data}
-                                                                                                                                                                                                             h
-                                                                                                                                                                                                             t))
-                                                                                                                                                                                                   , (Nothing
-                                                                                                                                                                                                        {Tuple2
-                                                                                                                                                                                                           data
-                                                                                                                                                                                                           (list
-                                                                                                                                                                                                              data)}) ])
-                                                                                                                                                                                                {all dead.
-                                                                                                                                                                                                   Maybe
-                                                                                                                                                                                                     LoanDatum}
-                                                                                                                                                                                                (\(ds :
-                                                                                                                                                                                                     Tuple2
-                                                                                                                                                                                                       data
-                                                                                                                                                                                                       (list
-                                                                                                                                                                                                          data)) ->
-                                                                                                                                                                                                   /\dead ->
-                                                                                                                                                                                                     Tuple2_match
-                                                                                                                                                                                                       {data}
-                                                                                                                                                                                                       {list
-                                                                                                                                                                                                          data}
-                                                                                                                                                                                                       ds
-                                                                                                                                                                                                       {Maybe
-                                                                                                                                                                                                          LoanDatum}
-                                                                                                                                                                                                       (\(ds :
-                                                                                                                                                                                                            data)
-                                                                                                                                                                                                         (ds :
-                                                                                                                                                                                                            list
-                                                                                                                                                                                                              data) ->
-                                                                                                                                                                                                          Maybe_match
-                                                                                                                                                                                                            {integer}
-                                                                                                                                                                                                            (`$fFromDataInteger_$cfromBuiltinData`
-                                                                                                                                                                                                               ds)
-                                                                                                                                                                                                            {all dead.
-                                                                                                                                                                                                               Maybe
-                                                                                                                                                                                                                 LoanDatum}
-                                                                                                                                                                                                            (\(arg :
-                                                                                                                                                                                                                 integer) ->
-                                                                                                                                                                                                               /\dead ->
-                                                                                                                                                                                                                 Maybe_match
-                                                                                                                                                                                                                   {Tuple2
-                                                                                                                                                                                                                      data
-                                                                                                                                                                                                                      (list
-                                                                                                                                                                                                                         data)}
-                                                                                                                                                                                                                   (case
-                                                                                                                                                                                                                      (Maybe
-                                                                                                                                                                                                                         (Tuple2
-                                                                                                                                                                                                                            data
-                                                                                                                                                                                                                            (list
-                                                                                                                                                                                                                               data)))
-                                                                                                                                                                                                                      ds
-                                                                                                                                                                                                                      [ (\(h :
-                                                                                                                                                                                                                             data)
-                                                                                                                                                                                                                          (t :
-                                                                                                                                                                                                                             list
-                                                                                                                                                                                                                               data) ->
-                                                                                                                                                                                                                           Just
-                                                                                                                                                                                                                             {Tuple2
-                                                                                                                                                                                                                                data
-                                                                                                                                                                                                                                (list
-                                                                                                                                                                                                                                   data)}
-                                                                                                                                                                                                                             (Tuple2
-                                                                                                                                                                                                                                {data}
-                                                                                                                                                                                                                                {list
-                                                                                                                                                                                                                                   data}
-                                                                                                                                                                                                                                h
-                                                                                                                                                                                                                                t))
-                                                                                                                                                                                                                      , (Nothing
-                                                                                                                                                                                                                           {Tuple2
-                                                                                                                                                                                                                              data
-                                                                                                                                                                                                                              (list
-                                                                                                                                                                                                                                 data)}) ])
-                                                                                                                                                                                                                   {all dead.
-                                                                                                                                                                                                                      Maybe
-                                                                                                                                                                                                                        LoanDatum}
-                                                                                                                                                                                                                   (\(ds :
-                                                                                                                                                                                                                        Tuple2
-                                                                                                                                                                                                                          data
-                                                                                                                                                                                                                          (list
-                                                                                                                                                                                                                             data)) ->
-                                                                                                                                                                                                                      /\dead ->
-                                                                                                                                                                                                                        Tuple2_match
-                                                                                                                                                                                                                          {data}
-                                                                                                                                                                                                                          {list
-                                                                                                                                                                                                                             data}
-                                                                                                                                                                                                                          ds
-                                                                                                                                                                                                                          {Maybe
-                                                                                                                                                                                                                             LoanDatum}
-                                                                                                                                                                                                                          (\(ds :
-                                                                                                                                                                                                                               data)
-                                                                                                                                                                                                                            (ds :
-                                                                                                                                                                                                                               list
-                                                                                                                                                                                                                                 data) ->
-                                                                                                                                                                                                                             Maybe_match
-                                                                                                                                                                                                                               {List
-                                                                                                                                                                                                                                  (Tuple2
-                                                                                                                                                                                                                                     (Tuple2
-                                                                                                                                                                                                                                        bytestring
-                                                                                                                                                                                                                                        bytestring)
-                                                                                                                                                                                                                                     Rational)}
-                                                                                                                                                                                                                               (`$fFromDataList_$cfromBuiltinData`
-                                                                                                                                                                                                                                  {Tuple2
-                                                                                                                                                                                                                                     (Tuple2
-                                                                                                                                                                                                                                        bytestring
-                                                                                                                                                                                                                                        bytestring)
-                                                                                                                                                                                                                                     Rational}
-                                                                                                                                                                                                                                  `$dFromData`
-                                                                                                                                                                                                                                  ds)
-                                                                                                                                                                                                                               {all dead.
-                                                                                                                                                                                                                                  Maybe
-                                                                                                                                                                                                                                    LoanDatum}
-                                                                                                                                                                                                                               (\(arg :
-                                                                                                                                                                                                                                    List
-                                                                                                                                                                                                                                      (Tuple2
-                                                                                                                                                                                                                                         (Tuple2
-                                                                                                                                                                                                                                            bytestring
-                                                                                                                                                                                                                                            bytestring)
-                                                                                                                                                                                                                                         Rational)) ->
-                                                                                                                                                                                                                                  /\dead ->
-                                                                                                                                                                                                                                    Maybe_match
-                                                                                                                                                                                                                                      {Tuple2
-                                                                                                                                                                                                                                         data
-                                                                                                                                                                                                                                         (list
-                                                                                                                                                                                                                                            data)}
-                                                                                                                                                                                                                                      (case
-                                                                                                                                                                                                                                         (Maybe
-                                                                                                                                                                                                                                            (Tuple2
-                                                                                                                                                                                                                                               data
-                                                                                                                                                                                                                                               (list
-                                                                                                                                                                                                                                                  data)))
-                                                                                                                                                                                                                                         ds
-                                                                                                                                                                                                                                         [ (\(h :
-                                                                                                                                                                                                                                                data)
-                                                                                                                                                                                                                                             (t :
-                                                                                                                                                                                                                                                list
-                                                                                                                                                                                                                                                  data) ->
-                                                                                                                                                                                                                                              Just
-                                                                                                                                                                                                                                                {Tuple2
-                                                                                                                                                                                                                                                   data
-                                                                                                                                                                                                                                                   (list
-                                                                                                                                                                                                                                                      data)}
-                                                                                                                                                                                                                                                (Tuple2
-                                                                                                                                                                                                                                                   {data}
-                                                                                                                                                                                                                                                   {list
-                                                                                                                                                                                                                                                      data}
-                                                                                                                                                                                                                                                   h
-                                                                                                                                                                                                                                                   t))
-                                                                                                                                                                                                                                         , (Nothing
-                                                                                                                                                                                                                                              {Tuple2
-                                                                                                                                                                                                                                                 data
-                                                                                                                                                                                                                                                 (list
-                                                                                                                                                                                                                                                    data)}) ])
-                                                                                                                                                                                                                                      {all dead.
-                                                                                                                                                                                                                                         Maybe
-                                                                                                                                                                                                                                           LoanDatum}
-                                                                                                                                                                                                                                      (\(ds :
-                                                                                                                                                                                                                                           Tuple2
-                                                                                                                                                                                                                                             data
-                                                                                                                                                                                                                                             (list
-                                                                                                                                                                                                                                                data)) ->
-                                                                                                                                                                                                                                         /\dead ->
-                                                                                                                                                                                                                                           Tuple2_match
-                                                                                                                                                                                                                                             {data}
-                                                                                                                                                                                                                                             {list
-                                                                                                                                                                                                                                                data}
-                                                                                                                                                                                                                                             ds
-                                                                                                                                                                                                                                             {Maybe
-                                                                                                                                                                                                                                                LoanDatum}
-                                                                                                                                                                                                                                             (\(ds :
-                                                                                                                                                                                                                                                  data)
-                                                                                                                                                                                                                                               (ds :
-                                                                                                                                                                                                                                                  list
-                                                                                                                                                                                                                                                    data) ->
-                                                                                                                                                                                                                                                Maybe_match
-                                                                                                                                                                                                                                                  {integer}
-                                                                                                                                                                                                                                                  (`$fFromDataInteger_$cfromBuiltinData`
-                                                                                                                                                                                                                                                     ds)
-                                                                                                                                                                                                                                                  {all dead.
-                                                                                                                                                                                                                                                     Maybe
-                                                                                                                                                                                                                                                       LoanDatum}
-                                                                                                                                                                                                                                                  (\(arg :
-                                                                                                                                                                                                                                                       integer) ->
-                                                                                                                                                                                                                                                     /\dead ->
-                                                                                                                                                                                                                                                       Maybe_match
-                                                                                                                                                                                                                                                         {data}
-                                                                                                                                                                                                                                                         (case
-                                                                                                                                                                                                                                                            (Maybe
-                                                                                                                                                                                                                                                               data)
-                                                                                                                                                                                                                                                            ds
-                                                                                                                                                                                                                                                            [ (\(h :
-                                                                                                                                                                                                                                                                   data)
-                                                                                                                                                                                                                                                                (ds :
-                                                                                                                                                                                                                                                                   list
-                                                                                                                                                                                                                                                                     data) ->
-                                                                                                                                                                                                                                                                 Just
-                                                                                                                                                                                                                                                                   {data}
-                                                                                                                                                                                                                                                                   h)
-                                                                                                                                                                                                                                                            , (Nothing
-                                                                                                                                                                                                                                                                 {data}) ])
-                                                                                                                                                                                                                                                         {all dead.
-                                                                                                                                                                                                                                                            Maybe
-                                                                                                                                                                                                                                                              LoanDatum}
-                                                                                                                                                                                                                                                         (\(ds :
-                                                                                                                                                                                                                                                              data) ->
-                                                                                                                                                                                                                                                            /\dead ->
-                                                                                                                                                                                                                                                              Maybe_match
-                                                                                                                                                                                                                                                                {Rational}
-                                                                                                                                                                                                                                                                (`$fFromDataRational_$cfromBuiltinData`
-                                                                                                                                                                                                                                                                   ds)
-                                                                                                                                                                                                                                                                {all dead.
-                                                                                                                                                                                                                                                                   Maybe
-                                                                                                                                                                                                                                                                     LoanDatum}
-                                                                                                                                                                                                                                                                (\(arg :
-                                                                                                                                                                                                                                                                     Rational) ->
-                                                                                                                                                                                                                                                                   /\dead ->
-                                                                                                                                                                                                                                                                     Just
-                                                                                                                                                                                                                                                                       {LoanDatum}
-                                                                                                                                                                                                                                                                       (ActiveDatum
-                                                                                                                                                                                                                                                                          arg
-                                                                                                                                                                                                                                                                          arg
-                                                                                                                                                                                                                                                                          arg
-                                                                                                                                                                                                                                                                          arg
-                                                                                                                                                                                                                                                                          arg
-                                                                                                                                                                                                                                                                          arg
-                                                                                                                                                                                                                                                                          arg
-                                                                                                                                                                                                                                                                          arg
-                                                                                                                                                                                                                                                                          arg
-                                                                                                                                                                                                                                                                          arg
-                                                                                                                                                                                                                                                                          arg))
-                                                                                                                                                                                                                                                                (/\dead ->
-                                                                                                                                                                                                                                                                   Nothing
-                                                                                                                                                                                                                                                                     {LoanDatum})
-                                                                                                                                                                                                                                                                {all dead.
-                                                                                                                                                                                                                                                                   dead})
-                                                                                                                                                                                                                                                         (/\dead ->
-                                                                                                                                                                                                                                                            Nothing
-                                                                                                                                                                                                                                                              {LoanDatum})
-                                                                                                                                                                                                                                                         {all dead.
-                                                                                                                                                                                                                                                            dead})
-                                                                                                                                                                                                                                                  (/\dead ->
-                                                                                                                                                                                                                                                     Nothing
-                                                                                                                                                                                                                                                       {LoanDatum})
-                                                                                                                                                                                                                                                  {all dead.
-                                                                                                                                                                                                                                                     dead}))
-                                                                                                                                                                                                                                      (/\dead ->
-                                                                                                                                                                                                                                         Nothing
-                                                                                                                                                                                                                                           {LoanDatum})
-                                                                                                                                                                                                                                      {all dead.
-                                                                                                                                                                                                                                         dead})
-                                                                                                                                                                                                                               (/\dead ->
-                                                                                                                                                                                                                                  Nothing
-                                                                                                                                                                                                                                    {LoanDatum})
-                                                                                                                                                                                                                               {all dead.
-                                                                                                                                                                                                                                  dead}))
-                                                                                                                                                                                                                   (/\dead ->
-                                                                                                                                                                                                                      Nothing
-                                                                                                                                                                                                                        {LoanDatum})
-                                                                                                                                                                                                                   {all dead.
-                                                                                                                                                                                                                      dead})
-                                                                                                                                                                                                            (/\dead ->
-                                                                                                                                                                                                               Nothing
-                                                                                                                                                                                                                 {LoanDatum})
-                                                                                                                                                                                                            {all dead.
-                                                                                                                                                                                                               dead}))
-                                                                                                                                                                                                (/\dead ->
-                                                                                                                                                                                                   Nothing
-                                                                                                                                                                                                     {LoanDatum})
-                                                                                                                                                                                                {all dead.
-                                                                                                                                                                                                   dead})
-                                                                                                                                                                                         (/\dead ->
-                                                                                                                                                                                            Nothing
-                                                                                                                                                                                              {LoanDatum})
-                                                                                                                                                                                         {all dead.
-                                                                                                                                                                                            dead}))
-                                                                                                                                                                             (/\dead ->
-                                                                                                                                                                                Nothing
-                                                                                                                                                                                  {LoanDatum})
-                                                                                                                                                                             {all dead.
-                                                                                                                                                                                dead})
-                                                                                                                                                                      (/\dead ->
-                                                                                                                                                                         Nothing
-                                                                                                                                                                           {LoanDatum})
-                                                                                                                                                                      {all dead.
-                                                                                                                                                                         dead}))
-                                                                                                                                                          (/\dead ->
-                                                                                                                                                             Nothing
-                                                                                                                                                               {LoanDatum})
-                                                                                                                                                          {all dead.
-                                                                                                                                                             dead})
-                                                                                                                                                   (/\dead ->
-                                                                                                                                                      Nothing
-                                                                                                                                                        {LoanDatum})
-                                                                                                                                                   {all dead.
-                                                                                                                                                      dead}))
-                                                                                                                                       (/\dead ->
-                                                                                                                                          Nothing
-                                                                                                                                            {LoanDatum})
-                                                                                                                                       {all dead.
-                                                                                                                                          dead})
-                                                                                                                                (/\dead ->
-                                                                                                                                   Nothing
-                                                                                                                                     {LoanDatum})
-                                                                                                                                {all dead.
-                                                                                                                                   dead}))
-                                                                                                                    (/\dead ->
-                                                                                                                       Nothing
-                                                                                                                         {LoanDatum})
-                                                                                                                    {all dead.
-                                                                                                                       dead})
-                                                                                                             (/\dead ->
-                                                                                                                Nothing
-                                                                                                                  {LoanDatum})
-                                                                                                             {all dead.
-                                                                                                                dead}))
-                                                                                                 (/\dead ->
-                                                                                                    Nothing
-                                                                                                      {LoanDatum})
-                                                                                                 {all dead.
-                                                                                                    dead})
-                                                                                          (/\dead ->
-                                                                                             Nothing
-                                                                                               {LoanDatum})
-                                                                                          {all dead.
-                                                                                             dead}))
-                                                                              (/\dead ->
-                                                                                 Nothing
-                                                                                   {LoanDatum})
-                                                                              {all dead.
-                                                                                 dead})
-                                                                       (/\dead ->
-                                                                          Nothing
-                                                                            {LoanDatum})
-                                                                       {all dead.
-                                                                          dead}))
-                                                           (/\dead ->
-                                                              Nothing
-                                                                {LoanDatum})
-                                                           {all dead. dead}) ]
-                                                    {all dead. dead}
-                                            !fail :
-                                               unit -> Maybe LoanDatum
-                                              = \(ds : unit) ->
-                                                  case
-                                                    (all dead. Maybe LoanDatum)
-                                                    (equalsInteger 1 index)
-                                                    [ (/\dead -> fail ())
-                                                    , (/\dead ->
-                                                         Maybe_match
-                                                           {Tuple2
-                                                              data
-                                                              (list data)}
-                                                           (case
-                                                              (Maybe
-                                                                 (Tuple2
-                                                                    data
-                                                                    (list
-                                                                       data)))
-                                                              args
-                                                              [ (\(h : data)
-                                                                  (t :
-                                                                     list
-                                                                       data) ->
-                                                                   Just
-                                                                     {Tuple2
-                                                                        data
-                                                                        (list
-                                                                           data)}
-                                                                     (Tuple2
-                                                                        {data}
-                                                                        {list
-                                                                           data}
-                                                                        h
-                                                                        t))
-                                                              , (Nothing
-                                                                   {Tuple2
-                                                                      data
-                                                                      (list
-                                                                         data)}) ])
-                                                           {all dead.
-                                                              Maybe LoanDatum}
-                                                           (\(ds :
-                                                                Tuple2
-                                                                  data
-                                                                  (list
-                                                                     data)) ->
-                                                              /\dead ->
-                                                                Tuple2_match
-                                                                  {data}
-                                                                  {list data}
-                                                                  ds
-                                                                  {Maybe
-                                                                     LoanDatum}
-                                                                  (\(ds : data)
-                                                                    (ds :
-                                                                       list
-                                                                         data) ->
-                                                                     Maybe_match
-                                                                       {Tuple2
-                                                                          bytestring
-                                                                          bytestring}
-                                                                       (`$fFromDataTuple2_$cfromBuiltinData`
-                                                                          {bytestring}
-                                                                          {bytestring}
-                                                                          `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                          `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                          ds)
-                                                                       {all dead.
-                                                                          Maybe
-                                                                            LoanDatum}
-                                                                       (\(arg :
-                                                                            Tuple2
-                                                                              bytestring
-                                                                              bytestring) ->
-                                                                          /\dead ->
-                                                                            Maybe_match
-                                                                              {Tuple2
-                                                                                 data
-                                                                                 (list
-                                                                                    data)}
-                                                                              (case
-                                                                                 (Maybe
-                                                                                    (Tuple2
-                                                                                       data
-                                                                                       (list
-                                                                                          data)))
-                                                                                 ds
-                                                                                 [ (\(h :
-                                                                                        data)
-                                                                                     (t :
-                                                                                        list
-                                                                                          data) ->
-                                                                                      Just
-                                                                                        {Tuple2
-                                                                                           data
-                                                                                           (list
-                                                                                              data)}
-                                                                                        (Tuple2
-                                                                                           {data}
-                                                                                           {list
-                                                                                              data}
-                                                                                           h
-                                                                                           t))
-                                                                                 , (Nothing
-                                                                                      {Tuple2
-                                                                                         data
-                                                                                         (list
-                                                                                            data)}) ])
-                                                                              {all dead.
-                                                                                 Maybe
-                                                                                   LoanDatum}
-                                                                              (\(ds :
-                                                                                   Tuple2
-                                                                                     data
-                                                                                     (list
-                                                                                        data)) ->
-                                                                                 /\dead ->
-                                                                                   Tuple2_match
-                                                                                     {data}
-                                                                                     {list
-                                                                                        data}
-                                                                                     ds
-                                                                                     {Maybe
-                                                                                        LoanDatum}
-                                                                                     (\(ds :
-                                                                                          data)
-                                                                                       (ds :
-                                                                                          list
-                                                                                            data) ->
-                                                                                        Maybe_match
-                                                                                          {Tuple2
-                                                                                             bytestring
-                                                                                             bytestring}
-                                                                                          (`$fFromDataTuple2_$cfromBuiltinData`
-                                                                                             {bytestring}
-                                                                                             {bytestring}
-                                                                                             `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                             `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                             ds)
-                                                                                          {all dead.
-                                                                                             Maybe
-                                                                                               LoanDatum}
-                                                                                          (\(arg :
-                                                                                               Tuple2
-                                                                                                 bytestring
-                                                                                                 bytestring) ->
-                                                                                             /\dead ->
-                                                                                               Maybe_match
-                                                                                                 {Tuple2
-                                                                                                    data
-                                                                                                    (list
-                                                                                                       data)}
-                                                                                                 (case
-                                                                                                    (Maybe
-                                                                                                       (Tuple2
-                                                                                                          data
-                                                                                                          (list
-                                                                                                             data)))
-                                                                                                    ds
-                                                                                                    [ (\(h :
-                                                                                                           data)
-                                                                                                        (t :
-                                                                                                           list
-                                                                                                             data) ->
-                                                                                                         Just
-                                                                                                           {Tuple2
-                                                                                                              data
-                                                                                                              (list
-                                                                                                                 data)}
-                                                                                                           (Tuple2
-                                                                                                              {data}
-                                                                                                              {list
-                                                                                                                 data}
-                                                                                                              h
-                                                                                                              t))
-                                                                                                    , (Nothing
-                                                                                                         {Tuple2
-                                                                                                            data
-                                                                                                            (list
-                                                                                                               data)}) ])
-                                                                                                 {all dead.
-                                                                                                    Maybe
-                                                                                                      LoanDatum}
-                                                                                                 (\(ds :
-                                                                                                      Tuple2
-                                                                                                        data
-                                                                                                        (list
-                                                                                                           data)) ->
-                                                                                                    /\dead ->
-                                                                                                      Tuple2_match
-                                                                                                        {data}
-                                                                                                        {list
-                                                                                                           data}
-                                                                                                        ds
-                                                                                                        {Maybe
-                                                                                                           LoanDatum}
-                                                                                                        (\(ds :
-                                                                                                             data)
-                                                                                                          (ds :
-                                                                                                             list
-                                                                                                               data) ->
-                                                                                                           Maybe_match
-                                                                                                             {Tuple2
-                                                                                                                bytestring
-                                                                                                                bytestring}
-                                                                                                             (`$fFromDataTuple2_$cfromBuiltinData`
-                                                                                                                {bytestring}
-                                                                                                                {bytestring}
-                                                                                                                `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                                                `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                                                ds)
-                                                                                                             {all dead.
-                                                                                                                Maybe
-                                                                                                                  LoanDatum}
-                                                                                                             (\(arg :
-                                                                                                                  Tuple2
-                                                                                                                    bytestring
-                                                                                                                    bytestring) ->
-                                                                                                                /\dead ->
-                                                                                                                  Maybe_match
-                                                                                                                    {Tuple2
-                                                                                                                       data
-                                                                                                                       (list
-                                                                                                                          data)}
-                                                                                                                    (case
-                                                                                                                       (Maybe
-                                                                                                                          (Tuple2
-                                                                                                                             data
-                                                                                                                             (list
-                                                                                                                                data)))
-                                                                                                                       ds
-                                                                                                                       [ (\(h :
-                                                                                                                              data)
-                                                                                                                           (t :
-                                                                                                                              list
-                                                                                                                                data) ->
-                                                                                                                            Just
-                                                                                                                              {Tuple2
-                                                                                                                                 data
-                                                                                                                                 (list
-                                                                                                                                    data)}
-                                                                                                                              (Tuple2
-                                                                                                                                 {data}
-                                                                                                                                 {list
-                                                                                                                                    data}
-                                                                                                                                 h
-                                                                                                                                 t))
-                                                                                                                       , (Nothing
-                                                                                                                            {Tuple2
-                                                                                                                               data
-                                                                                                                               (list
-                                                                                                                                  data)}) ])
-                                                                                                                    {all dead.
-                                                                                                                       Maybe
-                                                                                                                         LoanDatum}
-                                                                                                                    (\(ds :
-                                                                                                                         Tuple2
-                                                                                                                           data
-                                                                                                                           (list
-                                                                                                                              data)) ->
-                                                                                                                       /\dead ->
-                                                                                                                         Tuple2_match
-                                                                                                                           {data}
-                                                                                                                           {list
-                                                                                                                              data}
-                                                                                                                           ds
-                                                                                                                           {Maybe
-                                                                                                                              LoanDatum}
-                                                                                                                           (\(ds :
-                                                                                                                                data)
-                                                                                                                             (ds :
-                                                                                                                                list
-                                                                                                                                  data) ->
-                                                                                                                              Maybe_match
-                                                                                                                                {integer}
-                                                                                                                                (`$fFromDataInteger_$cfromBuiltinData`
-                                                                                                                                   ds)
-                                                                                                                                {all dead.
-                                                                                                                                   Maybe
-                                                                                                                                     LoanDatum}
-                                                                                                                                (\(arg :
-                                                                                                                                     integer) ->
-                                                                                                                                   /\dead ->
-                                                                                                                                     Maybe_match
-                                                                                                                                       {Tuple2
-                                                                                                                                          data
-                                                                                                                                          (list
-                                                                                                                                             data)}
-                                                                                                                                       (case
-                                                                                                                                          (Maybe
-                                                                                                                                             (Tuple2
-                                                                                                                                                data
-                                                                                                                                                (list
-                                                                                                                                                   data)))
-                                                                                                                                          ds
-                                                                                                                                          [ (\(h :
-                                                                                                                                                 data)
-                                                                                                                                              (t :
-                                                                                                                                                 list
-                                                                                                                                                   data) ->
-                                                                                                                                               Just
-                                                                                                                                                 {Tuple2
-                                                                                                                                                    data
-                                                                                                                                                    (list
-                                                                                                                                                       data)}
-                                                                                                                                                 (Tuple2
-                                                                                                                                                    {data}
-                                                                                                                                                    {list
-                                                                                                                                                       data}
-                                                                                                                                                    h
-                                                                                                                                                    t))
-                                                                                                                                          , (Nothing
-                                                                                                                                               {Tuple2
-                                                                                                                                                  data
-                                                                                                                                                  (list
-                                                                                                                                                     data)}) ])
-                                                                                                                                       {all dead.
-                                                                                                                                          Maybe
-                                                                                                                                            LoanDatum}
-                                                                                                                                       (\(ds :
-                                                                                                                                            Tuple2
-                                                                                                                                              data
-                                                                                                                                              (list
-                                                                                                                                                 data)) ->
-                                                                                                                                          /\dead ->
-                                                                                                                                            Tuple2_match
-                                                                                                                                              {data}
-                                                                                                                                              {list
-                                                                                                                                                 data}
-                                                                                                                                              ds
-                                                                                                                                              {Maybe
-                                                                                                                                                 LoanDatum}
-                                                                                                                                              (\(ds :
-                                                                                                                                                   data)
-                                                                                                                                                (ds :
-                                                                                                                                                   list
-                                                                                                                                                     data) ->
-                                                                                                                                                 Maybe_match
-                                                                                                                                                   {integer}
-                                                                                                                                                   (`$fFromDataInteger_$cfromBuiltinData`
-                                                                                                                                                      ds)
-                                                                                                                                                   {all dead.
-                                                                                                                                                      Maybe
-                                                                                                                                                        LoanDatum}
-                                                                                                                                                   (\(arg :
-                                                                                                                                                        integer) ->
-                                                                                                                                                      /\dead ->
-                                                                                                                                                        Maybe_match
-                                                                                                                                                          {Tuple2
-                                                                                                                                                             data
-                                                                                                                                                             (list
-                                                                                                                                                                data)}
-                                                                                                                                                          (case
-                                                                                                                                                             (Maybe
-                                                                                                                                                                (Tuple2
-                                                                                                                                                                   data
-                                                                                                                                                                   (list
-                                                                                                                                                                      data)))
-                                                                                                                                                             ds
-                                                                                                                                                             [ (\(h :
-                                                                                                                                                                    data)
-                                                                                                                                                                 (t :
-                                                                                                                                                                    list
-                                                                                                                                                                      data) ->
-                                                                                                                                                                  Just
-                                                                                                                                                                    {Tuple2
-                                                                                                                                                                       data
-                                                                                                                                                                       (list
-                                                                                                                                                                          data)}
-                                                                                                                                                                    (Tuple2
-                                                                                                                                                                       {data}
-                                                                                                                                                                       {list
-                                                                                                                                                                          data}
-                                                                                                                                                                       h
-                                                                                                                                                                       t))
-                                                                                                                                                             , (Nothing
-                                                                                                                                                                  {Tuple2
-                                                                                                                                                                     data
-                                                                                                                                                                     (list
-                                                                                                                                                                        data)}) ])
-                                                                                                                                                          {all dead.
-                                                                                                                                                             Maybe
-                                                                                                                                                               LoanDatum}
-                                                                                                                                                          (\(ds :
-                                                                                                                                                               Tuple2
-                                                                                                                                                                 data
-                                                                                                                                                                 (list
-                                                                                                                                                                    data)) ->
-                                                                                                                                                             /\dead ->
-                                                                                                                                                               Tuple2_match
-                                                                                                                                                                 {data}
-                                                                                                                                                                 {list
-                                                                                                                                                                    data}
-                                                                                                                                                                 ds
-                                                                                                                                                                 {Maybe
-                                                                                                                                                                    LoanDatum}
-                                                                                                                                                                 (\(ds :
-                                                                                                                                                                      data)
-                                                                                                                                                                   (ds :
-                                                                                                                                                                      list
-                                                                                                                                                                        data) ->
-                                                                                                                                                                    Maybe_match
-                                                                                                                                                                      {Rational}
-                                                                                                                                                                      (`$fFromDataRational_$cfromBuiltinData`
-                                                                                                                                                                         ds)
-                                                                                                                                                                      {all dead.
-                                                                                                                                                                         Maybe
-                                                                                                                                                                           LoanDatum}
-                                                                                                                                                                      (\(arg :
-                                                                                                                                                                           Rational) ->
-                                                                                                                                                                         /\dead ->
-                                                                                                                                                                           Maybe_match
-                                                                                                                                                                             {Tuple2
-                                                                                                                                                                                data
-                                                                                                                                                                                (list
-                                                                                                                                                                                   data)}
-                                                                                                                                                                             (case
-                                                                                                                                                                                (Maybe
-                                                                                                                                                                                   (Tuple2
-                                                                                                                                                                                      data
-                                                                                                                                                                                      (list
-                                                                                                                                                                                         data)))
-                                                                                                                                                                                ds
-                                                                                                                                                                                [ (\(h :
-                                                                                                                                                                                       data)
-                                                                                                                                                                                    (t :
-                                                                                                                                                                                       list
-                                                                                                                                                                                         data) ->
-                                                                                                                                                                                     Just
-                                                                                                                                                                                       {Tuple2
-                                                                                                                                                                                          data
-                                                                                                                                                                                          (list
-                                                                                                                                                                                             data)}
-                                                                                                                                                                                       (Tuple2
-                                                                                                                                                                                          {data}
-                                                                                                                                                                                          {list
-                                                                                                                                                                                             data}
-                                                                                                                                                                                          h
-                                                                                                                                                                                          t))
-                                                                                                                                                                                , (Nothing
-                                                                                                                                                                                     {Tuple2
-                                                                                                                                                                                        data
-                                                                                                                                                                                        (list
-                                                                                                                                                                                           data)}) ])
-                                                                                                                                                                             {all dead.
-                                                                                                                                                                                Maybe
-                                                                                                                                                                                  LoanDatum}
-                                                                                                                                                                             (\(ds :
-                                                                                                                                                                                  Tuple2
-                                                                                                                                                                                    data
-                                                                                                                                                                                    (list
-                                                                                                                                                                                       data)) ->
-                                                                                                                                                                                /\dead ->
-                                                                                                                                                                                  Tuple2_match
-                                                                                                                                                                                    {data}
-                                                                                                                                                                                    {list
-                                                                                                                                                                                       data}
-                                                                                                                                                                                    ds
-                                                                                                                                                                                    {Maybe
-                                                                                                                                                                                       LoanDatum}
-                                                                                                                                                                                    (\(ds :
-                                                                                                                                                                                         data)
-                                                                                                                                                                                      (ds :
-                                                                                                                                                                                         list
-                                                                                                                                                                                           data) ->
-                                                                                                                                                                                       Maybe_match
-                                                                                                                                                                                         {integer}
-                                                                                                                                                                                         (`$fFromDataInteger_$cfromBuiltinData`
-                                                                                                                                                                                            ds)
-                                                                                                                                                                                         {all dead.
-                                                                                                                                                                                            Maybe
-                                                                                                                                                                                              LoanDatum}
-                                                                                                                                                                                         (\(arg :
-                                                                                                                                                                                              integer) ->
-                                                                                                                                                                                            /\dead ->
-                                                                                                                                                                                              Maybe_match
-                                                                                                                                                                                                {data}
-                                                                                                                                                                                                (case
-                                                                                                                                                                                                   (Maybe
-                                                                                                                                                                                                      data)
-                                                                                                                                                                                                   ds
-                                                                                                                                                                                                   [ (\(h :
-                                                                                                                                                                                                          data)
-                                                                                                                                                                                                       (ds :
-                                                                                                                                                                                                          list
-                                                                                                                                                                                                            data) ->
-                                                                                                                                                                                                        Just
-                                                                                                                                                                                                          {data}
-                                                                                                                                                                                                          h)
-                                                                                                                                                                                                   , (Nothing
-                                                                                                                                                                                                        {data}) ])
-                                                                                                                                                                                                {all dead.
-                                                                                                                                                                                                   Maybe
-                                                                                                                                                                                                     LoanDatum}
-                                                                                                                                                                                                (\(ds :
-                                                                                                                                                                                                     data) ->
-                                                                                                                                                                                                   /\dead ->
-                                                                                                                                                                                                     Maybe_match
-                                                                                                                                                                                                       {List
-                                                                                                                                                                                                          (Tuple2
-                                                                                                                                                                                                             (Tuple2
-                                                                                                                                                                                                                bytestring
-                                                                                                                                                                                                                bytestring)
-                                                                                                                                                                                                             Rational)}
-                                                                                                                                                                                                       (`$fFromDataList_$cfromBuiltinData`
-                                                                                                                                                                                                          {Tuple2
-                                                                                                                                                                                                             (Tuple2
-                                                                                                                                                                                                                bytestring
-                                                                                                                                                                                                                bytestring)
-                                                                                                                                                                                                             Rational}
-                                                                                                                                                                                                          `$dFromData`
-                                                                                                                                                                                                          ds)
-                                                                                                                                                                                                       {all dead.
-                                                                                                                                                                                                          Maybe
-                                                                                                                                                                                                            LoanDatum}
-                                                                                                                                                                                                       (\(arg :
-                                                                                                                                                                                                            List
-                                                                                                                                                                                                              (Tuple2
-                                                                                                                                                                                                                 (Tuple2
-                                                                                                                                                                                                                    bytestring
-                                                                                                                                                                                                                    bytestring)
-                                                                                                                                                                                                                 Rational)) ->
-                                                                                                                                                                                                          /\dead ->
-                                                                                                                                                                                                            Just
-                                                                                                                                                                                                              {LoanDatum}
-                                                                                                                                                                                                              (OfferDatum
-                                                                                                                                                                                                                 arg
-                                                                                                                                                                                                                 arg
-                                                                                                                                                                                                                 arg
-                                                                                                                                                                                                                 arg
-                                                                                                                                                                                                                 arg
-                                                                                                                                                                                                                 arg
-                                                                                                                                                                                                                 arg
-                                                                                                                                                                                                                 arg))
-                                                                                                                                                                                                       (/\dead ->
-                                                                                                                                                                                                          fail
-                                                                                                                                                                                                            ())
-                                                                                                                                                                                                       {all dead.
-                                                                                                                                                                                                          dead})
-                                                                                                                                                                                                (/\dead ->
-                                                                                                                                                                                                   fail
-                                                                                                                                                                                                     ())
-                                                                                                                                                                                                {all dead.
-                                                                                                                                                                                                   dead})
-                                                                                                                                                                                         (/\dead ->
-                                                                                                                                                                                            fail
-                                                                                                                                                                                              ())
-                                                                                                                                                                                         {all dead.
-                                                                                                                                                                                            dead}))
-                                                                                                                                                                             (/\dead ->
-                                                                                                                                                                                fail
-                                                                                                                                                                                  ())
-                                                                                                                                                                             {all dead.
-                                                                                                                                                                                dead})
-                                                                                                                                                                      (/\dead ->
-                                                                                                                                                                         fail
-                                                                                                                                                                           ())
-                                                                                                                                                                      {all dead.
-                                                                                                                                                                         dead}))
-                                                                                                                                                          (/\dead ->
-                                                                                                                                                             fail
-                                                                                                                                                               ())
-                                                                                                                                                          {all dead.
-                                                                                                                                                             dead})
-                                                                                                                                                   (/\dead ->
-                                                                                                                                                      fail
-                                                                                                                                                        ())
-                                                                                                                                                   {all dead.
-                                                                                                                                                      dead}))
-                                                                                                                                       (/\dead ->
-                                                                                                                                          fail
-                                                                                                                                            ())
-                                                                                                                                       {all dead.
-                                                                                                                                          dead})
-                                                                                                                                (/\dead ->
-                                                                                                                                   fail
-                                                                                                                                     ())
-                                                                                                                                {all dead.
-                                                                                                                                   dead}))
-                                                                                                                    (/\dead ->
-                                                                                                                       fail
-                                                                                                                         ())
-                                                                                                                    {all dead.
-                                                                                                                       dead})
-                                                                                                             (/\dead ->
-                                                                                                                fail
-                                                                                                                  ())
-                                                                                                             {all dead.
-                                                                                                                dead}))
-                                                                                                 (/\dead ->
-                                                                                                    fail
-                                                                                                      ())
-                                                                                                 {all dead.
-                                                                                                    dead})
-                                                                                          (/\dead ->
-                                                                                             fail
-                                                                                               ())
-                                                                                          {all dead.
-                                                                                             dead}))
-                                                                              (/\dead ->
-                                                                                 fail
-                                                                                   ())
-                                                                              {all dead.
-                                                                                 dead})
-                                                                       (/\dead ->
-                                                                          fail
-                                                                            ())
-                                                                       {all dead.
-                                                                          dead}))
-                                                           (/\dead -> fail ())
-                                                           {all dead. dead}) ]
-                                                    {all dead. dead}
-                                          in
-                                          case
-                                            (all dead. Maybe LoanDatum)
-                                            (equalsInteger 0 index)
-                                            [ (/\dead -> fail ())
-                                            , (/\dead ->
-                                                 Maybe_match
-                                                   {Tuple2 data (list data)}
-                                                   (case
-                                                      (Maybe
-                                                         (Tuple2
-                                                            data
-                                                            (list data)))
-                                                      args
-                                                      [ (\(h : data)
-                                                          (t : list data) ->
-                                                           Just
+                                    [ (\(l : integer)
+                                        (r : list data) ->
+                                         (\(index : integer)
+                                           (args : list data) ->
+                                            let
+                                              !fail :
+                                                 unit -> Maybe LoanDatum
+                                                = \(ds : unit) ->
+                                                    case
+                                                      (all dead.
+                                                         Maybe LoanDatum)
+                                                      (equalsInteger 2 index)
+                                                      [ (/\dead ->
+                                                           Nothing {LoanDatum})
+                                                      , (/\dead ->
+                                                           Maybe_match
                                                              {Tuple2
                                                                 data
                                                                 (list data)}
-                                                             (Tuple2
-                                                                {data}
-                                                                {list data}
-                                                                h
-                                                                t))
-                                                      , (Nothing
-                                                           {Tuple2
-                                                              data
-                                                              (list data)}) ])
-                                                   {all dead. Maybe LoanDatum}
-                                                   (\(ds :
-                                                        Tuple2
-                                                          data
-                                                          (list data)) ->
-                                                      /\dead ->
-                                                        Tuple2_match
-                                                          {data}
-                                                          {list data}
-                                                          ds
-                                                          {Maybe LoanDatum}
-                                                          (\(ds : data)
-                                                            (ds : list data) ->
-                                                             Maybe_match
-                                                               {Tuple2
-                                                                  bytestring
-                                                                  bytestring}
-                                                               (`$fFromDataTuple2_$cfromBuiltinData`
-                                                                  {bytestring}
-                                                                  {bytestring}
-                                                                  `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                  `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                  ds)
-                                                               {all dead.
-                                                                  Maybe
-                                                                    LoanDatum}
-                                                               (\(arg :
-                                                                    Tuple2
-                                                                      bytestring
-                                                                      bytestring) ->
-                                                                  /\dead ->
-                                                                    Maybe_match
-                                                                      {Tuple2
-                                                                         data
-                                                                         (list
-                                                                            data)}
-                                                                      (case
-                                                                         (Maybe
-                                                                            (Tuple2
-                                                                               data
-                                                                               (list
-                                                                                  data)))
-                                                                         ds
-                                                                         [ (\(h :
-                                                                                data)
-                                                                             (t :
-                                                                                list
-                                                                                  data) ->
-                                                                              Just
+                                                             (case
+                                                                (Maybe
+                                                                   (Tuple2
+                                                                      data
+                                                                      (list
+                                                                         data)))
+                                                                args
+                                                                [ (\(h : data)
+                                                                    (t :
+                                                                       list
+                                                                         data) ->
+                                                                     Just
+                                                                       {Tuple2
+                                                                          data
+                                                                          (list
+                                                                             data)}
+                                                                       (Tuple2
+                                                                          {data}
+                                                                          {list
+                                                                             data}
+                                                                          h
+                                                                          t))
+                                                                , (Nothing
+                                                                     {Tuple2
+                                                                        data
+                                                                        (list
+                                                                           data)}) ])
+                                                             {all dead.
+                                                                Maybe LoanDatum}
+                                                             (\(ds :
+                                                                  Tuple2
+                                                                    data
+                                                                    (list
+                                                                       data)) ->
+                                                                /\dead ->
+                                                                  Tuple2_match
+                                                                    {data}
+                                                                    {list data}
+                                                                    ds
+                                                                    {Maybe
+                                                                       LoanDatum}
+                                                                    (\(ds :
+                                                                         data)
+                                                                      (ds :
+                                                                         list
+                                                                           data) ->
+                                                                       Maybe_match
+                                                                         {Tuple2
+                                                                            bytestring
+                                                                            bytestring}
+                                                                         (`$fFromDataTuple2_$cfromBuiltinData`
+                                                                            {bytestring}
+                                                                            {bytestring}
+                                                                            `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                            `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                            ds)
+                                                                         {all dead.
+                                                                            Maybe
+                                                                              LoanDatum}
+                                                                         (\(arg :
+                                                                              Tuple2
+                                                                                bytestring
+                                                                                bytestring) ->
+                                                                            /\dead ->
+                                                                              Maybe_match
                                                                                 {Tuple2
                                                                                    data
                                                                                    (list
                                                                                       data)}
-                                                                                (Tuple2
-                                                                                   {data}
-                                                                                   {list
-                                                                                      data}
-                                                                                   h
-                                                                                   t))
-                                                                         , (Nothing
-                                                                              {Tuple2
-                                                                                 data
-                                                                                 (list
-                                                                                    data)}) ])
-                                                                      {all dead.
-                                                                         Maybe
-                                                                           LoanDatum}
-                                                                      (\(ds :
-                                                                           Tuple2
-                                                                             data
-                                                                             (list
-                                                                                data)) ->
-                                                                         /\dead ->
-                                                                           Tuple2_match
-                                                                             {data}
-                                                                             {list
-                                                                                data}
-                                                                             ds
-                                                                             {Maybe
-                                                                                LoanDatum}
-                                                                             (\(ds :
-                                                                                  data)
-                                                                               (ds :
-                                                                                  list
-                                                                                    data) ->
-                                                                                Maybe_match
-                                                                                  {Tuple2
-                                                                                     bytestring
-                                                                                     bytestring}
-                                                                                  (`$fFromDataTuple2_$cfromBuiltinData`
-                                                                                     {bytestring}
-                                                                                     {bytestring}
-                                                                                     `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                     `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                     ds)
-                                                                                  {all dead.
-                                                                                     Maybe
-                                                                                       LoanDatum}
-                                                                                  (\(arg :
-                                                                                       Tuple2
-                                                                                         bytestring
-                                                                                         bytestring) ->
-                                                                                     /\dead ->
-                                                                                       Maybe_match
-                                                                                         {Tuple2
-                                                                                            data
-                                                                                            (list
-                                                                                               data)}
-                                                                                         (case
-                                                                                            (Maybe
-                                                                                               (Tuple2
-                                                                                                  data
-                                                                                                  (list
-                                                                                                     data)))
-                                                                                            ds
-                                                                                            [ (\(h :
-                                                                                                   data)
-                                                                                                (t :
-                                                                                                   list
-                                                                                                     data) ->
-                                                                                                 Just
+                                                                                (case
+                                                                                   (Maybe
+                                                                                      (Tuple2
+                                                                                         data
+                                                                                         (list
+                                                                                            data)))
+                                                                                   ds
+                                                                                   [ (\(h :
+                                                                                          data)
+                                                                                       (t :
+                                                                                          list
+                                                                                            data) ->
+                                                                                        Just
+                                                                                          {Tuple2
+                                                                                             data
+                                                                                             (list
+                                                                                                data)}
+                                                                                          (Tuple2
+                                                                                             {data}
+                                                                                             {list
+                                                                                                data}
+                                                                                             h
+                                                                                             t))
+                                                                                   , (Nothing
+                                                                                        {Tuple2
+                                                                                           data
+                                                                                           (list
+                                                                                              data)}) ])
+                                                                                {all dead.
+                                                                                   Maybe
+                                                                                     LoanDatum}
+                                                                                (\(ds :
+                                                                                     Tuple2
+                                                                                       data
+                                                                                       (list
+                                                                                          data)) ->
+                                                                                   /\dead ->
+                                                                                     Tuple2_match
+                                                                                       {data}
+                                                                                       {list
+                                                                                          data}
+                                                                                       ds
+                                                                                       {Maybe
+                                                                                          LoanDatum}
+                                                                                       (\(ds :
+                                                                                            data)
+                                                                                         (ds :
+                                                                                            list
+                                                                                              data) ->
+                                                                                          Maybe_match
+                                                                                            {Tuple2
+                                                                                               bytestring
+                                                                                               bytestring}
+                                                                                            (`$fFromDataTuple2_$cfromBuiltinData`
+                                                                                               {bytestring}
+                                                                                               {bytestring}
+                                                                                               `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                               `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                               ds)
+                                                                                            {all dead.
+                                                                                               Maybe
+                                                                                                 LoanDatum}
+                                                                                            (\(arg :
+                                                                                                 Tuple2
+                                                                                                   bytestring
+                                                                                                   bytestring) ->
+                                                                                               /\dead ->
+                                                                                                 Maybe_match
                                                                                                    {Tuple2
                                                                                                       data
                                                                                                       (list
                                                                                                          data)}
-                                                                                                   (Tuple2
-                                                                                                      {data}
-                                                                                                      {list
-                                                                                                         data}
-                                                                                                      h
-                                                                                                      t))
-                                                                                            , (Nothing
-                                                                                                 {Tuple2
-                                                                                                    data
-                                                                                                    (list
-                                                                                                       data)}) ])
-                                                                                         {all dead.
-                                                                                            Maybe
-                                                                                              LoanDatum}
-                                                                                         (\(ds :
-                                                                                              Tuple2
-                                                                                                data
-                                                                                                (list
-                                                                                                   data)) ->
-                                                                                            /\dead ->
-                                                                                              Tuple2_match
-                                                                                                {data}
-                                                                                                {list
-                                                                                                   data}
-                                                                                                ds
-                                                                                                {Maybe
-                                                                                                   LoanDatum}
-                                                                                                (\(ds :
-                                                                                                     data)
-                                                                                                  (ds :
-                                                                                                     list
-                                                                                                       data) ->
-                                                                                                   Maybe_match
-                                                                                                     {Tuple2
-                                                                                                        bytestring
-                                                                                                        bytestring}
-                                                                                                     (`$fFromDataTuple2_$cfromBuiltinData`
-                                                                                                        {bytestring}
-                                                                                                        {bytestring}
-                                                                                                        `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                                        `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                                        ds)
-                                                                                                     {all dead.
-                                                                                                        Maybe
-                                                                                                          LoanDatum}
-                                                                                                     (\(arg :
-                                                                                                          Tuple2
-                                                                                                            bytestring
-                                                                                                            bytestring) ->
-                                                                                                        /\dead ->
-                                                                                                          Maybe_match
-                                                                                                            {Tuple2
-                                                                                                               data
-                                                                                                               (list
-                                                                                                                  data)}
-                                                                                                            (case
-                                                                                                               (Maybe
-                                                                                                                  (Tuple2
-                                                                                                                     data
-                                                                                                                     (list
-                                                                                                                        data)))
-                                                                                                               ds
-                                                                                                               [ (\(h :
-                                                                                                                      data)
-                                                                                                                   (t :
-                                                                                                                      list
-                                                                                                                        data) ->
-                                                                                                                    Just
+                                                                                                   (case
+                                                                                                      (Maybe
+                                                                                                         (Tuple2
+                                                                                                            data
+                                                                                                            (list
+                                                                                                               data)))
+                                                                                                      ds
+                                                                                                      [ (\(h :
+                                                                                                             data)
+                                                                                                          (t :
+                                                                                                             list
+                                                                                                               data) ->
+                                                                                                           Just
+                                                                                                             {Tuple2
+                                                                                                                data
+                                                                                                                (list
+                                                                                                                   data)}
+                                                                                                             (Tuple2
+                                                                                                                {data}
+                                                                                                                {list
+                                                                                                                   data}
+                                                                                                                h
+                                                                                                                t))
+                                                                                                      , (Nothing
+                                                                                                           {Tuple2
+                                                                                                              data
+                                                                                                              (list
+                                                                                                                 data)}) ])
+                                                                                                   {all dead.
+                                                                                                      Maybe
+                                                                                                        LoanDatum}
+                                                                                                   (\(ds :
+                                                                                                        Tuple2
+                                                                                                          data
+                                                                                                          (list
+                                                                                                             data)) ->
+                                                                                                      /\dead ->
+                                                                                                        Tuple2_match
+                                                                                                          {data}
+                                                                                                          {list
+                                                                                                             data}
+                                                                                                          ds
+                                                                                                          {Maybe
+                                                                                                             LoanDatum}
+                                                                                                          (\(ds :
+                                                                                                               data)
+                                                                                                            (ds :
+                                                                                                               list
+                                                                                                                 data) ->
+                                                                                                             Maybe_match
+                                                                                                               {Tuple2
+                                                                                                                  bytestring
+                                                                                                                  bytestring}
+                                                                                                               (`$fFromDataTuple2_$cfromBuiltinData`
+                                                                                                                  {bytestring}
+                                                                                                                  {bytestring}
+                                                                                                                  `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                                                  `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                                                  ds)
+                                                                                                               {all dead.
+                                                                                                                  Maybe
+                                                                                                                    LoanDatum}
+                                                                                                               (\(arg :
+                                                                                                                    Tuple2
+                                                                                                                      bytestring
+                                                                                                                      bytestring) ->
+                                                                                                                  /\dead ->
+                                                                                                                    Maybe_match
                                                                                                                       {Tuple2
                                                                                                                          data
                                                                                                                          (list
                                                                                                                             data)}
-                                                                                                                      (Tuple2
-                                                                                                                         {data}
-                                                                                                                         {list
-                                                                                                                            data}
-                                                                                                                         h
-                                                                                                                         t))
-                                                                                                               , (Nothing
-                                                                                                                    {Tuple2
-                                                                                                                       data
-                                                                                                                       (list
-                                                                                                                          data)}) ])
-                                                                                                            {all dead.
-                                                                                                               Maybe
-                                                                                                                 LoanDatum}
-                                                                                                            (\(ds :
-                                                                                                                 Tuple2
-                                                                                                                   data
-                                                                                                                   (list
-                                                                                                                      data)) ->
-                                                                                                               /\dead ->
-                                                                                                                 Tuple2_match
-                                                                                                                   {data}
-                                                                                                                   {list
-                                                                                                                      data}
-                                                                                                                   ds
-                                                                                                                   {Maybe
-                                                                                                                      LoanDatum}
-                                                                                                                   (\(ds :
-                                                                                                                        data)
-                                                                                                                     (ds :
-                                                                                                                        list
-                                                                                                                          data) ->
-                                                                                                                      Maybe_match
-                                                                                                                        {integer}
-                                                                                                                        (`$fFromDataInteger_$cfromBuiltinData`
-                                                                                                                           ds)
-                                                                                                                        {all dead.
-                                                                                                                           Maybe
-                                                                                                                             LoanDatum}
-                                                                                                                        (\(arg :
-                                                                                                                             integer) ->
-                                                                                                                           /\dead ->
-                                                                                                                             Maybe_match
-                                                                                                                               {Tuple2
-                                                                                                                                  data
-                                                                                                                                  (list
-                                                                                                                                     data)}
-                                                                                                                               (case
-                                                                                                                                  (Maybe
-                                                                                                                                     (Tuple2
-                                                                                                                                        data
-                                                                                                                                        (list
-                                                                                                                                           data)))
-                                                                                                                                  ds
-                                                                                                                                  [ (\(h :
-                                                                                                                                         data)
-                                                                                                                                      (t :
-                                                                                                                                         list
-                                                                                                                                           data) ->
-                                                                                                                                       Just
+                                                                                                                      (case
+                                                                                                                         (Maybe
+                                                                                                                            (Tuple2
+                                                                                                                               data
+                                                                                                                               (list
+                                                                                                                                  data)))
+                                                                                                                         ds
+                                                                                                                         [ (\(h :
+                                                                                                                                data)
+                                                                                                                             (t :
+                                                                                                                                list
+                                                                                                                                  data) ->
+                                                                                                                              Just
+                                                                                                                                {Tuple2
+                                                                                                                                   data
+                                                                                                                                   (list
+                                                                                                                                      data)}
+                                                                                                                                (Tuple2
+                                                                                                                                   {data}
+                                                                                                                                   {list
+                                                                                                                                      data}
+                                                                                                                                   h
+                                                                                                                                   t))
+                                                                                                                         , (Nothing
+                                                                                                                              {Tuple2
+                                                                                                                                 data
+                                                                                                                                 (list
+                                                                                                                                    data)}) ])
+                                                                                                                      {all dead.
+                                                                                                                         Maybe
+                                                                                                                           LoanDatum}
+                                                                                                                      (\(ds :
+                                                                                                                           Tuple2
+                                                                                                                             data
+                                                                                                                             (list
+                                                                                                                                data)) ->
+                                                                                                                         /\dead ->
+                                                                                                                           Tuple2_match
+                                                                                                                             {data}
+                                                                                                                             {list
+                                                                                                                                data}
+                                                                                                                             ds
+                                                                                                                             {Maybe
+                                                                                                                                LoanDatum}
+                                                                                                                             (\(ds :
+                                                                                                                                  data)
+                                                                                                                               (ds :
+                                                                                                                                  list
+                                                                                                                                    data) ->
+                                                                                                                                Maybe_match
+                                                                                                                                  {Tuple2
+                                                                                                                                     bytestring
+                                                                                                                                     bytestring}
+                                                                                                                                  (`$fFromDataTuple2_$cfromBuiltinData`
+                                                                                                                                     {bytestring}
+                                                                                                                                     {bytestring}
+                                                                                                                                     `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                                                                     `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                                                                     ds)
+                                                                                                                                  {all dead.
+                                                                                                                                     Maybe
+                                                                                                                                       LoanDatum}
+                                                                                                                                  (\(arg :
+                                                                                                                                       Tuple2
+                                                                                                                                         bytestring
+                                                                                                                                         bytestring) ->
+                                                                                                                                     /\dead ->
+                                                                                                                                       Maybe_match
                                                                                                                                          {Tuple2
                                                                                                                                             data
                                                                                                                                             (list
                                                                                                                                                data)}
-                                                                                                                                         (Tuple2
-                                                                                                                                            {data}
-                                                                                                                                            {list
-                                                                                                                                               data}
-                                                                                                                                            h
-                                                                                                                                            t))
-                                                                                                                                  , (Nothing
-                                                                                                                                       {Tuple2
+                                                                                                                                         (case
+                                                                                                                                            (Maybe
+                                                                                                                                               (Tuple2
+                                                                                                                                                  data
+                                                                                                                                                  (list
+                                                                                                                                                     data)))
+                                                                                                                                            ds
+                                                                                                                                            [ (\(h :
+                                                                                                                                                   data)
+                                                                                                                                                (t :
+                                                                                                                                                   list
+                                                                                                                                                     data) ->
+                                                                                                                                                 Just
+                                                                                                                                                   {Tuple2
+                                                                                                                                                      data
+                                                                                                                                                      (list
+                                                                                                                                                         data)}
+                                                                                                                                                   (Tuple2
+                                                                                                                                                      {data}
+                                                                                                                                                      {list
+                                                                                                                                                         data}
+                                                                                                                                                      h
+                                                                                                                                                      t))
+                                                                                                                                            , (Nothing
+                                                                                                                                                 {Tuple2
+                                                                                                                                                    data
+                                                                                                                                                    (list
+                                                                                                                                                       data)}) ])
+                                                                                                                                         {all dead.
+                                                                                                                                            Maybe
+                                                                                                                                              LoanDatum}
+                                                                                                                                         (\(ds :
+                                                                                                                                              Tuple2
+                                                                                                                                                data
+                                                                                                                                                (list
+                                                                                                                                                   data)) ->
+                                                                                                                                            /\dead ->
+                                                                                                                                              Tuple2_match
+                                                                                                                                                {data}
+                                                                                                                                                {list
+                                                                                                                                                   data}
+                                                                                                                                                ds
+                                                                                                                                                {Maybe
+                                                                                                                                                   LoanDatum}
+                                                                                                                                                (\(ds :
+                                                                                                                                                     data)
+                                                                                                                                                  (ds :
+                                                                                                                                                     list
+                                                                                                                                                       data) ->
+                                                                                                                                                   Maybe_match
+                                                                                                                                                     {integer}
+                                                                                                                                                     (`$fFromDataInteger_$cfromBuiltinData`
+                                                                                                                                                        ds)
+                                                                                                                                                     {all dead.
+                                                                                                                                                        Maybe
+                                                                                                                                                          LoanDatum}
+                                                                                                                                                     (\(arg :
+                                                                                                                                                          integer) ->
+                                                                                                                                                        /\dead ->
+                                                                                                                                                          Maybe_match
+                                                                                                                                                            {Tuple2
+                                                                                                                                                               data
+                                                                                                                                                               (list
+                                                                                                                                                                  data)}
+                                                                                                                                                            (case
+                                                                                                                                                               (Maybe
+                                                                                                                                                                  (Tuple2
+                                                                                                                                                                     data
+                                                                                                                                                                     (list
+                                                                                                                                                                        data)))
+                                                                                                                                                               ds
+                                                                                                                                                               [ (\(h :
+                                                                                                                                                                      data)
+                                                                                                                                                                   (t :
+                                                                                                                                                                      list
+                                                                                                                                                                        data) ->
+                                                                                                                                                                    Just
+                                                                                                                                                                      {Tuple2
+                                                                                                                                                                         data
+                                                                                                                                                                         (list
+                                                                                                                                                                            data)}
+                                                                                                                                                                      (Tuple2
+                                                                                                                                                                         {data}
+                                                                                                                                                                         {list
+                                                                                                                                                                            data}
+                                                                                                                                                                         h
+                                                                                                                                                                         t))
+                                                                                                                                                               , (Nothing
+                                                                                                                                                                    {Tuple2
+                                                                                                                                                                       data
+                                                                                                                                                                       (list
+                                                                                                                                                                          data)}) ])
+                                                                                                                                                            {all dead.
+                                                                                                                                                               Maybe
+                                                                                                                                                                 LoanDatum}
+                                                                                                                                                            (\(ds :
+                                                                                                                                                                 Tuple2
+                                                                                                                                                                   data
+                                                                                                                                                                   (list
+                                                                                                                                                                      data)) ->
+                                                                                                                                                               /\dead ->
+                                                                                                                                                                 Tuple2_match
+                                                                                                                                                                   {data}
+                                                                                                                                                                   {list
+                                                                                                                                                                      data}
+                                                                                                                                                                   ds
+                                                                                                                                                                   {Maybe
+                                                                                                                                                                      LoanDatum}
+                                                                                                                                                                   (\(ds :
+                                                                                                                                                                        data)
+                                                                                                                                                                     (ds :
+                                                                                                                                                                        list
+                                                                                                                                                                          data) ->
+                                                                                                                                                                      Maybe_match
+                                                                                                                                                                        {integer}
+                                                                                                                                                                        (`$fFromDataInteger_$cfromBuiltinData`
+                                                                                                                                                                           ds)
+                                                                                                                                                                        {all dead.
+                                                                                                                                                                           Maybe
+                                                                                                                                                                             LoanDatum}
+                                                                                                                                                                        (\(arg :
+                                                                                                                                                                             integer) ->
+                                                                                                                                                                           /\dead ->
+                                                                                                                                                                             Maybe_match
+                                                                                                                                                                               {Tuple2
+                                                                                                                                                                                  data
+                                                                                                                                                                                  (list
+                                                                                                                                                                                     data)}
+                                                                                                                                                                               (case
+                                                                                                                                                                                  (Maybe
+                                                                                                                                                                                     (Tuple2
+                                                                                                                                                                                        data
+                                                                                                                                                                                        (list
+                                                                                                                                                                                           data)))
+                                                                                                                                                                                  ds
+                                                                                                                                                                                  [ (\(h :
+                                                                                                                                                                                         data)
+                                                                                                                                                                                      (t :
+                                                                                                                                                                                         list
+                                                                                                                                                                                           data) ->
+                                                                                                                                                                                       Just
+                                                                                                                                                                                         {Tuple2
+                                                                                                                                                                                            data
+                                                                                                                                                                                            (list
+                                                                                                                                                                                               data)}
+                                                                                                                                                                                         (Tuple2
+                                                                                                                                                                                            {data}
+                                                                                                                                                                                            {list
+                                                                                                                                                                                               data}
+                                                                                                                                                                                            h
+                                                                                                                                                                                            t))
+                                                                                                                                                                                  , (Nothing
+                                                                                                                                                                                       {Tuple2
+                                                                                                                                                                                          data
+                                                                                                                                                                                          (list
+                                                                                                                                                                                             data)}) ])
+                                                                                                                                                                               {all dead.
+                                                                                                                                                                                  Maybe
+                                                                                                                                                                                    LoanDatum}
+                                                                                                                                                                               (\(ds :
+                                                                                                                                                                                    Tuple2
+                                                                                                                                                                                      data
+                                                                                                                                                                                      (list
+                                                                                                                                                                                         data)) ->
+                                                                                                                                                                                  /\dead ->
+                                                                                                                                                                                    Tuple2_match
+                                                                                                                                                                                      {data}
+                                                                                                                                                                                      {list
+                                                                                                                                                                                         data}
+                                                                                                                                                                                      ds
+                                                                                                                                                                                      {Maybe
+                                                                                                                                                                                         LoanDatum}
+                                                                                                                                                                                      (\(ds :
+                                                                                                                                                                                           data)
+                                                                                                                                                                                        (ds :
+                                                                                                                                                                                           list
+                                                                                                                                                                                             data) ->
+                                                                                                                                                                                         Maybe_match
+                                                                                                                                                                                           {Rational}
+                                                                                                                                                                                           (`$fFromDataRational_$cfromBuiltinData`
+                                                                                                                                                                                              ds)
+                                                                                                                                                                                           {all dead.
+                                                                                                                                                                                              Maybe
+                                                                                                                                                                                                LoanDatum}
+                                                                                                                                                                                           (\(arg :
+                                                                                                                                                                                                Rational) ->
+                                                                                                                                                                                              /\dead ->
+                                                                                                                                                                                                Maybe_match
+                                                                                                                                                                                                  {Tuple2
+                                                                                                                                                                                                     data
+                                                                                                                                                                                                     (list
+                                                                                                                                                                                                        data)}
+                                                                                                                                                                                                  (case
+                                                                                                                                                                                                     (Maybe
+                                                                                                                                                                                                        (Tuple2
+                                                                                                                                                                                                           data
+                                                                                                                                                                                                           (list
+                                                                                                                                                                                                              data)))
+                                                                                                                                                                                                     ds
+                                                                                                                                                                                                     [ (\(h :
+                                                                                                                                                                                                            data)
+                                                                                                                                                                                                         (t :
+                                                                                                                                                                                                            list
+                                                                                                                                                                                                              data) ->
+                                                                                                                                                                                                          Just
+                                                                                                                                                                                                            {Tuple2
+                                                                                                                                                                                                               data
+                                                                                                                                                                                                               (list
+                                                                                                                                                                                                                  data)}
+                                                                                                                                                                                                            (Tuple2
+                                                                                                                                                                                                               {data}
+                                                                                                                                                                                                               {list
+                                                                                                                                                                                                                  data}
+                                                                                                                                                                                                               h
+                                                                                                                                                                                                               t))
+                                                                                                                                                                                                     , (Nothing
+                                                                                                                                                                                                          {Tuple2
+                                                                                                                                                                                                             data
+                                                                                                                                                                                                             (list
+                                                                                                                                                                                                                data)}) ])
+                                                                                                                                                                                                  {all dead.
+                                                                                                                                                                                                     Maybe
+                                                                                                                                                                                                       LoanDatum}
+                                                                                                                                                                                                  (\(ds :
+                                                                                                                                                                                                       Tuple2
+                                                                                                                                                                                                         data
+                                                                                                                                                                                                         (list
+                                                                                                                                                                                                            data)) ->
+                                                                                                                                                                                                     /\dead ->
+                                                                                                                                                                                                       Tuple2_match
+                                                                                                                                                                                                         {data}
+                                                                                                                                                                                                         {list
+                                                                                                                                                                                                            data}
+                                                                                                                                                                                                         ds
+                                                                                                                                                                                                         {Maybe
+                                                                                                                                                                                                            LoanDatum}
+                                                                                                                                                                                                         (\(ds :
+                                                                                                                                                                                                              data)
+                                                                                                                                                                                                           (ds :
+                                                                                                                                                                                                              list
+                                                                                                                                                                                                                data) ->
+                                                                                                                                                                                                            Maybe_match
+                                                                                                                                                                                                              {integer}
+                                                                                                                                                                                                              (`$fFromDataInteger_$cfromBuiltinData`
+                                                                                                                                                                                                                 ds)
+                                                                                                                                                                                                              {all dead.
+                                                                                                                                                                                                                 Maybe
+                                                                                                                                                                                                                   LoanDatum}
+                                                                                                                                                                                                              (\(arg :
+                                                                                                                                                                                                                   integer) ->
+                                                                                                                                                                                                                 /\dead ->
+                                                                                                                                                                                                                   Maybe_match
+                                                                                                                                                                                                                     {Tuple2
+                                                                                                                                                                                                                        data
+                                                                                                                                                                                                                        (list
+                                                                                                                                                                                                                           data)}
+                                                                                                                                                                                                                     (case
+                                                                                                                                                                                                                        (Maybe
+                                                                                                                                                                                                                           (Tuple2
+                                                                                                                                                                                                                              data
+                                                                                                                                                                                                                              (list
+                                                                                                                                                                                                                                 data)))
+                                                                                                                                                                                                                        ds
+                                                                                                                                                                                                                        [ (\(h :
+                                                                                                                                                                                                                               data)
+                                                                                                                                                                                                                            (t :
+                                                                                                                                                                                                                               list
+                                                                                                                                                                                                                                 data) ->
+                                                                                                                                                                                                                             Just
+                                                                                                                                                                                                                               {Tuple2
+                                                                                                                                                                                                                                  data
+                                                                                                                                                                                                                                  (list
+                                                                                                                                                                                                                                     data)}
+                                                                                                                                                                                                                               (Tuple2
+                                                                                                                                                                                                                                  {data}
+                                                                                                                                                                                                                                  {list
+                                                                                                                                                                                                                                     data}
+                                                                                                                                                                                                                                  h
+                                                                                                                                                                                                                                  t))
+                                                                                                                                                                                                                        , (Nothing
+                                                                                                                                                                                                                             {Tuple2
+                                                                                                                                                                                                                                data
+                                                                                                                                                                                                                                (list
+                                                                                                                                                                                                                                   data)}) ])
+                                                                                                                                                                                                                     {all dead.
+                                                                                                                                                                                                                        Maybe
+                                                                                                                                                                                                                          LoanDatum}
+                                                                                                                                                                                                                     (\(ds :
+                                                                                                                                                                                                                          Tuple2
+                                                                                                                                                                                                                            data
+                                                                                                                                                                                                                            (list
+                                                                                                                                                                                                                               data)) ->
+                                                                                                                                                                                                                        /\dead ->
+                                                                                                                                                                                                                          Tuple2_match
+                                                                                                                                                                                                                            {data}
+                                                                                                                                                                                                                            {list
+                                                                                                                                                                                                                               data}
+                                                                                                                                                                                                                            ds
+                                                                                                                                                                                                                            {Maybe
+                                                                                                                                                                                                                               LoanDatum}
+                                                                                                                                                                                                                            (\(ds :
+                                                                                                                                                                                                                                 data)
+                                                                                                                                                                                                                              (ds :
+                                                                                                                                                                                                                                 list
+                                                                                                                                                                                                                                   data) ->
+                                                                                                                                                                                                                               Maybe_match
+                                                                                                                                                                                                                                 {List
+                                                                                                                                                                                                                                    (Tuple2
+                                                                                                                                                                                                                                       (Tuple2
+                                                                                                                                                                                                                                          bytestring
+                                                                                                                                                                                                                                          bytestring)
+                                                                                                                                                                                                                                       Rational)}
+                                                                                                                                                                                                                                 (`$fFromDataList_$cfromBuiltinData`
+                                                                                                                                                                                                                                    {Tuple2
+                                                                                                                                                                                                                                       (Tuple2
+                                                                                                                                                                                                                                          bytestring
+                                                                                                                                                                                                                                          bytestring)
+                                                                                                                                                                                                                                       Rational}
+                                                                                                                                                                                                                                    `$dFromData`
+                                                                                                                                                                                                                                    ds)
+                                                                                                                                                                                                                                 {all dead.
+                                                                                                                                                                                                                                    Maybe
+                                                                                                                                                                                                                                      LoanDatum}
+                                                                                                                                                                                                                                 (\(arg :
+                                                                                                                                                                                                                                      List
+                                                                                                                                                                                                                                        (Tuple2
+                                                                                                                                                                                                                                           (Tuple2
+                                                                                                                                                                                                                                              bytestring
+                                                                                                                                                                                                                                              bytestring)
+                                                                                                                                                                                                                                           Rational)) ->
+                                                                                                                                                                                                                                    /\dead ->
+                                                                                                                                                                                                                                      Maybe_match
+                                                                                                                                                                                                                                        {Tuple2
+                                                                                                                                                                                                                                           data
+                                                                                                                                                                                                                                           (list
+                                                                                                                                                                                                                                              data)}
+                                                                                                                                                                                                                                        (case
+                                                                                                                                                                                                                                           (Maybe
+                                                                                                                                                                                                                                              (Tuple2
+                                                                                                                                                                                                                                                 data
+                                                                                                                                                                                                                                                 (list
+                                                                                                                                                                                                                                                    data)))
+                                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                                           [ (\(h :
+                                                                                                                                                                                                                                                  data)
+                                                                                                                                                                                                                                               (t :
+                                                                                                                                                                                                                                                  list
+                                                                                                                                                                                                                                                    data) ->
+                                                                                                                                                                                                                                                Just
+                                                                                                                                                                                                                                                  {Tuple2
+                                                                                                                                                                                                                                                     data
+                                                                                                                                                                                                                                                     (list
+                                                                                                                                                                                                                                                        data)}
+                                                                                                                                                                                                                                                  (Tuple2
+                                                                                                                                                                                                                                                     {data}
+                                                                                                                                                                                                                                                     {list
+                                                                                                                                                                                                                                                        data}
+                                                                                                                                                                                                                                                     h
+                                                                                                                                                                                                                                                     t))
+                                                                                                                                                                                                                                           , (Nothing
+                                                                                                                                                                                                                                                {Tuple2
+                                                                                                                                                                                                                                                   data
+                                                                                                                                                                                                                                                   (list
+                                                                                                                                                                                                                                                      data)}) ])
+                                                                                                                                                                                                                                        {all dead.
+                                                                                                                                                                                                                                           Maybe
+                                                                                                                                                                                                                                             LoanDatum}
+                                                                                                                                                                                                                                        (\(ds :
+                                                                                                                                                                                                                                             Tuple2
+                                                                                                                                                                                                                                               data
+                                                                                                                                                                                                                                               (list
+                                                                                                                                                                                                                                                  data)) ->
+                                                                                                                                                                                                                                           /\dead ->
+                                                                                                                                                                                                                                             Tuple2_match
+                                                                                                                                                                                                                                               {data}
+                                                                                                                                                                                                                                               {list
+                                                                                                                                                                                                                                                  data}
+                                                                                                                                                                                                                                               ds
+                                                                                                                                                                                                                                               {Maybe
+                                                                                                                                                                                                                                                  LoanDatum}
+                                                                                                                                                                                                                                               (\(ds :
+                                                                                                                                                                                                                                                    data)
+                                                                                                                                                                                                                                                 (ds :
+                                                                                                                                                                                                                                                    list
+                                                                                                                                                                                                                                                      data) ->
+                                                                                                                                                                                                                                                  Maybe_match
+                                                                                                                                                                                                                                                    {integer}
+                                                                                                                                                                                                                                                    (`$fFromDataInteger_$cfromBuiltinData`
+                                                                                                                                                                                                                                                       ds)
+                                                                                                                                                                                                                                                    {all dead.
+                                                                                                                                                                                                                                                       Maybe
+                                                                                                                                                                                                                                                         LoanDatum}
+                                                                                                                                                                                                                                                    (\(arg :
+                                                                                                                                                                                                                                                         integer) ->
+                                                                                                                                                                                                                                                       /\dead ->
+                                                                                                                                                                                                                                                         Maybe_match
+                                                                                                                                                                                                                                                           {data}
+                                                                                                                                                                                                                                                           (case
+                                                                                                                                                                                                                                                              (Maybe
+                                                                                                                                                                                                                                                                 data)
+                                                                                                                                                                                                                                                              ds
+                                                                                                                                                                                                                                                              [ (\(h :
+                                                                                                                                                                                                                                                                     data)
+                                                                                                                                                                                                                                                                  (ds :
+                                                                                                                                                                                                                                                                     list
+                                                                                                                                                                                                                                                                       data) ->
+                                                                                                                                                                                                                                                                   Just
+                                                                                                                                                                                                                                                                     {data}
+                                                                                                                                                                                                                                                                     h)
+                                                                                                                                                                                                                                                              , (Nothing
+                                                                                                                                                                                                                                                                   {data}) ])
+                                                                                                                                                                                                                                                           {all dead.
+                                                                                                                                                                                                                                                              Maybe
+                                                                                                                                                                                                                                                                LoanDatum}
+                                                                                                                                                                                                                                                           (\(ds :
+                                                                                                                                                                                                                                                                data) ->
+                                                                                                                                                                                                                                                              /\dead ->
+                                                                                                                                                                                                                                                                Maybe_match
+                                                                                                                                                                                                                                                                  {Rational}
+                                                                                                                                                                                                                                                                  (`$fFromDataRational_$cfromBuiltinData`
+                                                                                                                                                                                                                                                                     ds)
+                                                                                                                                                                                                                                                                  {all dead.
+                                                                                                                                                                                                                                                                     Maybe
+                                                                                                                                                                                                                                                                       LoanDatum}
+                                                                                                                                                                                                                                                                  (\(arg :
+                                                                                                                                                                                                                                                                       Rational) ->
+                                                                                                                                                                                                                                                                     /\dead ->
+                                                                                                                                                                                                                                                                       Just
+                                                                                                                                                                                                                                                                         {LoanDatum}
+                                                                                                                                                                                                                                                                         (ActiveDatum
+                                                                                                                                                                                                                                                                            arg
+                                                                                                                                                                                                                                                                            arg
+                                                                                                                                                                                                                                                                            arg
+                                                                                                                                                                                                                                                                            arg
+                                                                                                                                                                                                                                                                            arg
+                                                                                                                                                                                                                                                                            arg
+                                                                                                                                                                                                                                                                            arg
+                                                                                                                                                                                                                                                                            arg
+                                                                                                                                                                                                                                                                            arg
+                                                                                                                                                                                                                                                                            arg
+                                                                                                                                                                                                                                                                            arg))
+                                                                                                                                                                                                                                                                  (/\dead ->
+                                                                                                                                                                                                                                                                     Nothing
+                                                                                                                                                                                                                                                                       {LoanDatum})
+                                                                                                                                                                                                                                                                  {all dead.
+                                                                                                                                                                                                                                                                     dead})
+                                                                                                                                                                                                                                                           (/\dead ->
+                                                                                                                                                                                                                                                              Nothing
+                                                                                                                                                                                                                                                                {LoanDatum})
+                                                                                                                                                                                                                                                           {all dead.
+                                                                                                                                                                                                                                                              dead})
+                                                                                                                                                                                                                                                    (/\dead ->
+                                                                                                                                                                                                                                                       Nothing
+                                                                                                                                                                                                                                                         {LoanDatum})
+                                                                                                                                                                                                                                                    {all dead.
+                                                                                                                                                                                                                                                       dead}))
+                                                                                                                                                                                                                                        (/\dead ->
+                                                                                                                                                                                                                                           Nothing
+                                                                                                                                                                                                                                             {LoanDatum})
+                                                                                                                                                                                                                                        {all dead.
+                                                                                                                                                                                                                                           dead})
+                                                                                                                                                                                                                                 (/\dead ->
+                                                                                                                                                                                                                                    Nothing
+                                                                                                                                                                                                                                      {LoanDatum})
+                                                                                                                                                                                                                                 {all dead.
+                                                                                                                                                                                                                                    dead}))
+                                                                                                                                                                                                                     (/\dead ->
+                                                                                                                                                                                                                        Nothing
+                                                                                                                                                                                                                          {LoanDatum})
+                                                                                                                                                                                                                     {all dead.
+                                                                                                                                                                                                                        dead})
+                                                                                                                                                                                                              (/\dead ->
+                                                                                                                                                                                                                 Nothing
+                                                                                                                                                                                                                   {LoanDatum})
+                                                                                                                                                                                                              {all dead.
+                                                                                                                                                                                                                 dead}))
+                                                                                                                                                                                                  (/\dead ->
+                                                                                                                                                                                                     Nothing
+                                                                                                                                                                                                       {LoanDatum})
+                                                                                                                                                                                                  {all dead.
+                                                                                                                                                                                                     dead})
+                                                                                                                                                                                           (/\dead ->
+                                                                                                                                                                                              Nothing
+                                                                                                                                                                                                {LoanDatum})
+                                                                                                                                                                                           {all dead.
+                                                                                                                                                                                              dead}))
+                                                                                                                                                                               (/\dead ->
+                                                                                                                                                                                  Nothing
+                                                                                                                                                                                    {LoanDatum})
+                                                                                                                                                                               {all dead.
+                                                                                                                                                                                  dead})
+                                                                                                                                                                        (/\dead ->
+                                                                                                                                                                           Nothing
+                                                                                                                                                                             {LoanDatum})
+                                                                                                                                                                        {all dead.
+                                                                                                                                                                           dead}))
+                                                                                                                                                            (/\dead ->
+                                                                                                                                                               Nothing
+                                                                                                                                                                 {LoanDatum})
+                                                                                                                                                            {all dead.
+                                                                                                                                                               dead})
+                                                                                                                                                     (/\dead ->
+                                                                                                                                                        Nothing
+                                                                                                                                                          {LoanDatum})
+                                                                                                                                                     {all dead.
+                                                                                                                                                        dead}))
+                                                                                                                                         (/\dead ->
+                                                                                                                                            Nothing
+                                                                                                                                              {LoanDatum})
+                                                                                                                                         {all dead.
+                                                                                                                                            dead})
+                                                                                                                                  (/\dead ->
+                                                                                                                                     Nothing
+                                                                                                                                       {LoanDatum})
+                                                                                                                                  {all dead.
+                                                                                                                                     dead}))
+                                                                                                                      (/\dead ->
+                                                                                                                         Nothing
+                                                                                                                           {LoanDatum})
+                                                                                                                      {all dead.
+                                                                                                                         dead})
+                                                                                                               (/\dead ->
+                                                                                                                  Nothing
+                                                                                                                    {LoanDatum})
+                                                                                                               {all dead.
+                                                                                                                  dead}))
+                                                                                                   (/\dead ->
+                                                                                                      Nothing
+                                                                                                        {LoanDatum})
+                                                                                                   {all dead.
+                                                                                                      dead})
+                                                                                            (/\dead ->
+                                                                                               Nothing
+                                                                                                 {LoanDatum})
+                                                                                            {all dead.
+                                                                                               dead}))
+                                                                                (/\dead ->
+                                                                                   Nothing
+                                                                                     {LoanDatum})
+                                                                                {all dead.
+                                                                                   dead})
+                                                                         (/\dead ->
+                                                                            Nothing
+                                                                              {LoanDatum})
+                                                                         {all dead.
+                                                                            dead}))
+                                                             (/\dead ->
+                                                                Nothing
+                                                                  {LoanDatum})
+                                                             {all dead. dead}) ]
+                                                      {all dead. dead}
+                                              !fail :
+                                                 unit -> Maybe LoanDatum
+                                                = \(ds : unit) ->
+                                                    case
+                                                      (all dead.
+                                                         Maybe LoanDatum)
+                                                      (equalsInteger 1 index)
+                                                      [ (/\dead -> fail ())
+                                                      , (/\dead ->
+                                                           Maybe_match
+                                                             {Tuple2
+                                                                data
+                                                                (list data)}
+                                                             (case
+                                                                (Maybe
+                                                                   (Tuple2
+                                                                      data
+                                                                      (list
+                                                                         data)))
+                                                                args
+                                                                [ (\(h : data)
+                                                                    (t :
+                                                                       list
+                                                                         data) ->
+                                                                     Just
+                                                                       {Tuple2
+                                                                          data
+                                                                          (list
+                                                                             data)}
+                                                                       (Tuple2
+                                                                          {data}
+                                                                          {list
+                                                                             data}
+                                                                          h
+                                                                          t))
+                                                                , (Nothing
+                                                                     {Tuple2
+                                                                        data
+                                                                        (list
+                                                                           data)}) ])
+                                                             {all dead.
+                                                                Maybe LoanDatum}
+                                                             (\(ds :
+                                                                  Tuple2
+                                                                    data
+                                                                    (list
+                                                                       data)) ->
+                                                                /\dead ->
+                                                                  Tuple2_match
+                                                                    {data}
+                                                                    {list data}
+                                                                    ds
+                                                                    {Maybe
+                                                                       LoanDatum}
+                                                                    (\(ds :
+                                                                         data)
+                                                                      (ds :
+                                                                         list
+                                                                           data) ->
+                                                                       Maybe_match
+                                                                         {Tuple2
+                                                                            bytestring
+                                                                            bytestring}
+                                                                         (`$fFromDataTuple2_$cfromBuiltinData`
+                                                                            {bytestring}
+                                                                            {bytestring}
+                                                                            `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                            `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                            ds)
+                                                                         {all dead.
+                                                                            Maybe
+                                                                              LoanDatum}
+                                                                         (\(arg :
+                                                                              Tuple2
+                                                                                bytestring
+                                                                                bytestring) ->
+                                                                            /\dead ->
+                                                                              Maybe_match
+                                                                                {Tuple2
+                                                                                   data
+                                                                                   (list
+                                                                                      data)}
+                                                                                (case
+                                                                                   (Maybe
+                                                                                      (Tuple2
+                                                                                         data
+                                                                                         (list
+                                                                                            data)))
+                                                                                   ds
+                                                                                   [ (\(h :
+                                                                                          data)
+                                                                                       (t :
+                                                                                          list
+                                                                                            data) ->
+                                                                                        Just
+                                                                                          {Tuple2
+                                                                                             data
+                                                                                             (list
+                                                                                                data)}
+                                                                                          (Tuple2
+                                                                                             {data}
+                                                                                             {list
+                                                                                                data}
+                                                                                             h
+                                                                                             t))
+                                                                                   , (Nothing
+                                                                                        {Tuple2
+                                                                                           data
+                                                                                           (list
+                                                                                              data)}) ])
+                                                                                {all dead.
+                                                                                   Maybe
+                                                                                     LoanDatum}
+                                                                                (\(ds :
+                                                                                     Tuple2
+                                                                                       data
+                                                                                       (list
+                                                                                          data)) ->
+                                                                                   /\dead ->
+                                                                                     Tuple2_match
+                                                                                       {data}
+                                                                                       {list
+                                                                                          data}
+                                                                                       ds
+                                                                                       {Maybe
+                                                                                          LoanDatum}
+                                                                                       (\(ds :
+                                                                                            data)
+                                                                                         (ds :
+                                                                                            list
+                                                                                              data) ->
+                                                                                          Maybe_match
+                                                                                            {Tuple2
+                                                                                               bytestring
+                                                                                               bytestring}
+                                                                                            (`$fFromDataTuple2_$cfromBuiltinData`
+                                                                                               {bytestring}
+                                                                                               {bytestring}
+                                                                                               `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                               `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                               ds)
+                                                                                            {all dead.
+                                                                                               Maybe
+                                                                                                 LoanDatum}
+                                                                                            (\(arg :
+                                                                                                 Tuple2
+                                                                                                   bytestring
+                                                                                                   bytestring) ->
+                                                                                               /\dead ->
+                                                                                                 Maybe_match
+                                                                                                   {Tuple2
+                                                                                                      data
+                                                                                                      (list
+                                                                                                         data)}
+                                                                                                   (case
+                                                                                                      (Maybe
+                                                                                                         (Tuple2
+                                                                                                            data
+                                                                                                            (list
+                                                                                                               data)))
+                                                                                                      ds
+                                                                                                      [ (\(h :
+                                                                                                             data)
+                                                                                                          (t :
+                                                                                                             list
+                                                                                                               data) ->
+                                                                                                           Just
+                                                                                                             {Tuple2
+                                                                                                                data
+                                                                                                                (list
+                                                                                                                   data)}
+                                                                                                             (Tuple2
+                                                                                                                {data}
+                                                                                                                {list
+                                                                                                                   data}
+                                                                                                                h
+                                                                                                                t))
+                                                                                                      , (Nothing
+                                                                                                           {Tuple2
+                                                                                                              data
+                                                                                                              (list
+                                                                                                                 data)}) ])
+                                                                                                   {all dead.
+                                                                                                      Maybe
+                                                                                                        LoanDatum}
+                                                                                                   (\(ds :
+                                                                                                        Tuple2
+                                                                                                          data
+                                                                                                          (list
+                                                                                                             data)) ->
+                                                                                                      /\dead ->
+                                                                                                        Tuple2_match
+                                                                                                          {data}
+                                                                                                          {list
+                                                                                                             data}
+                                                                                                          ds
+                                                                                                          {Maybe
+                                                                                                             LoanDatum}
+                                                                                                          (\(ds :
+                                                                                                               data)
+                                                                                                            (ds :
+                                                                                                               list
+                                                                                                                 data) ->
+                                                                                                             Maybe_match
+                                                                                                               {Tuple2
+                                                                                                                  bytestring
+                                                                                                                  bytestring}
+                                                                                                               (`$fFromDataTuple2_$cfromBuiltinData`
+                                                                                                                  {bytestring}
+                                                                                                                  {bytestring}
+                                                                                                                  `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                                                  `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                                                  ds)
+                                                                                                               {all dead.
+                                                                                                                  Maybe
+                                                                                                                    LoanDatum}
+                                                                                                               (\(arg :
+                                                                                                                    Tuple2
+                                                                                                                      bytestring
+                                                                                                                      bytestring) ->
+                                                                                                                  /\dead ->
+                                                                                                                    Maybe_match
+                                                                                                                      {Tuple2
+                                                                                                                         data
+                                                                                                                         (list
+                                                                                                                            data)}
+                                                                                                                      (case
+                                                                                                                         (Maybe
+                                                                                                                            (Tuple2
+                                                                                                                               data
+                                                                                                                               (list
+                                                                                                                                  data)))
+                                                                                                                         ds
+                                                                                                                         [ (\(h :
+                                                                                                                                data)
+                                                                                                                             (t :
+                                                                                                                                list
+                                                                                                                                  data) ->
+                                                                                                                              Just
+                                                                                                                                {Tuple2
+                                                                                                                                   data
+                                                                                                                                   (list
+                                                                                                                                      data)}
+                                                                                                                                (Tuple2
+                                                                                                                                   {data}
+                                                                                                                                   {list
+                                                                                                                                      data}
+                                                                                                                                   h
+                                                                                                                                   t))
+                                                                                                                         , (Nothing
+                                                                                                                              {Tuple2
+                                                                                                                                 data
+                                                                                                                                 (list
+                                                                                                                                    data)}) ])
+                                                                                                                      {all dead.
+                                                                                                                         Maybe
+                                                                                                                           LoanDatum}
+                                                                                                                      (\(ds :
+                                                                                                                           Tuple2
+                                                                                                                             data
+                                                                                                                             (list
+                                                                                                                                data)) ->
+                                                                                                                         /\dead ->
+                                                                                                                           Tuple2_match
+                                                                                                                             {data}
+                                                                                                                             {list
+                                                                                                                                data}
+                                                                                                                             ds
+                                                                                                                             {Maybe
+                                                                                                                                LoanDatum}
+                                                                                                                             (\(ds :
+                                                                                                                                  data)
+                                                                                                                               (ds :
+                                                                                                                                  list
+                                                                                                                                    data) ->
+                                                                                                                                Maybe_match
+                                                                                                                                  {integer}
+                                                                                                                                  (`$fFromDataInteger_$cfromBuiltinData`
+                                                                                                                                     ds)
+                                                                                                                                  {all dead.
+                                                                                                                                     Maybe
+                                                                                                                                       LoanDatum}
+                                                                                                                                  (\(arg :
+                                                                                                                                       integer) ->
+                                                                                                                                     /\dead ->
+                                                                                                                                       Maybe_match
+                                                                                                                                         {Tuple2
+                                                                                                                                            data
+                                                                                                                                            (list
+                                                                                                                                               data)}
+                                                                                                                                         (case
+                                                                                                                                            (Maybe
+                                                                                                                                               (Tuple2
+                                                                                                                                                  data
+                                                                                                                                                  (list
+                                                                                                                                                     data)))
+                                                                                                                                            ds
+                                                                                                                                            [ (\(h :
+                                                                                                                                                   data)
+                                                                                                                                                (t :
+                                                                                                                                                   list
+                                                                                                                                                     data) ->
+                                                                                                                                                 Just
+                                                                                                                                                   {Tuple2
+                                                                                                                                                      data
+                                                                                                                                                      (list
+                                                                                                                                                         data)}
+                                                                                                                                                   (Tuple2
+                                                                                                                                                      {data}
+                                                                                                                                                      {list
+                                                                                                                                                         data}
+                                                                                                                                                      h
+                                                                                                                                                      t))
+                                                                                                                                            , (Nothing
+                                                                                                                                                 {Tuple2
+                                                                                                                                                    data
+                                                                                                                                                    (list
+                                                                                                                                                       data)}) ])
+                                                                                                                                         {all dead.
+                                                                                                                                            Maybe
+                                                                                                                                              LoanDatum}
+                                                                                                                                         (\(ds :
+                                                                                                                                              Tuple2
+                                                                                                                                                data
+                                                                                                                                                (list
+                                                                                                                                                   data)) ->
+                                                                                                                                            /\dead ->
+                                                                                                                                              Tuple2_match
+                                                                                                                                                {data}
+                                                                                                                                                {list
+                                                                                                                                                   data}
+                                                                                                                                                ds
+                                                                                                                                                {Maybe
+                                                                                                                                                   LoanDatum}
+                                                                                                                                                (\(ds :
+                                                                                                                                                     data)
+                                                                                                                                                  (ds :
+                                                                                                                                                     list
+                                                                                                                                                       data) ->
+                                                                                                                                                   Maybe_match
+                                                                                                                                                     {integer}
+                                                                                                                                                     (`$fFromDataInteger_$cfromBuiltinData`
+                                                                                                                                                        ds)
+                                                                                                                                                     {all dead.
+                                                                                                                                                        Maybe
+                                                                                                                                                          LoanDatum}
+                                                                                                                                                     (\(arg :
+                                                                                                                                                          integer) ->
+                                                                                                                                                        /\dead ->
+                                                                                                                                                          Maybe_match
+                                                                                                                                                            {Tuple2
+                                                                                                                                                               data
+                                                                                                                                                               (list
+                                                                                                                                                                  data)}
+                                                                                                                                                            (case
+                                                                                                                                                               (Maybe
+                                                                                                                                                                  (Tuple2
+                                                                                                                                                                     data
+                                                                                                                                                                     (list
+                                                                                                                                                                        data)))
+                                                                                                                                                               ds
+                                                                                                                                                               [ (\(h :
+                                                                                                                                                                      data)
+                                                                                                                                                                   (t :
+                                                                                                                                                                      list
+                                                                                                                                                                        data) ->
+                                                                                                                                                                    Just
+                                                                                                                                                                      {Tuple2
+                                                                                                                                                                         data
+                                                                                                                                                                         (list
+                                                                                                                                                                            data)}
+                                                                                                                                                                      (Tuple2
+                                                                                                                                                                         {data}
+                                                                                                                                                                         {list
+                                                                                                                                                                            data}
+                                                                                                                                                                         h
+                                                                                                                                                                         t))
+                                                                                                                                                               , (Nothing
+                                                                                                                                                                    {Tuple2
+                                                                                                                                                                       data
+                                                                                                                                                                       (list
+                                                                                                                                                                          data)}) ])
+                                                                                                                                                            {all dead.
+                                                                                                                                                               Maybe
+                                                                                                                                                                 LoanDatum}
+                                                                                                                                                            (\(ds :
+                                                                                                                                                                 Tuple2
+                                                                                                                                                                   data
+                                                                                                                                                                   (list
+                                                                                                                                                                      data)) ->
+                                                                                                                                                               /\dead ->
+                                                                                                                                                                 Tuple2_match
+                                                                                                                                                                   {data}
+                                                                                                                                                                   {list
+                                                                                                                                                                      data}
+                                                                                                                                                                   ds
+                                                                                                                                                                   {Maybe
+                                                                                                                                                                      LoanDatum}
+                                                                                                                                                                   (\(ds :
+                                                                                                                                                                        data)
+                                                                                                                                                                     (ds :
+                                                                                                                                                                        list
+                                                                                                                                                                          data) ->
+                                                                                                                                                                      Maybe_match
+                                                                                                                                                                        {Rational}
+                                                                                                                                                                        (`$fFromDataRational_$cfromBuiltinData`
+                                                                                                                                                                           ds)
+                                                                                                                                                                        {all dead.
+                                                                                                                                                                           Maybe
+                                                                                                                                                                             LoanDatum}
+                                                                                                                                                                        (\(arg :
+                                                                                                                                                                             Rational) ->
+                                                                                                                                                                           /\dead ->
+                                                                                                                                                                             Maybe_match
+                                                                                                                                                                               {Tuple2
+                                                                                                                                                                                  data
+                                                                                                                                                                                  (list
+                                                                                                                                                                                     data)}
+                                                                                                                                                                               (case
+                                                                                                                                                                                  (Maybe
+                                                                                                                                                                                     (Tuple2
+                                                                                                                                                                                        data
+                                                                                                                                                                                        (list
+                                                                                                                                                                                           data)))
+                                                                                                                                                                                  ds
+                                                                                                                                                                                  [ (\(h :
+                                                                                                                                                                                         data)
+                                                                                                                                                                                      (t :
+                                                                                                                                                                                         list
+                                                                                                                                                                                           data) ->
+                                                                                                                                                                                       Just
+                                                                                                                                                                                         {Tuple2
+                                                                                                                                                                                            data
+                                                                                                                                                                                            (list
+                                                                                                                                                                                               data)}
+                                                                                                                                                                                         (Tuple2
+                                                                                                                                                                                            {data}
+                                                                                                                                                                                            {list
+                                                                                                                                                                                               data}
+                                                                                                                                                                                            h
+                                                                                                                                                                                            t))
+                                                                                                                                                                                  , (Nothing
+                                                                                                                                                                                       {Tuple2
+                                                                                                                                                                                          data
+                                                                                                                                                                                          (list
+                                                                                                                                                                                             data)}) ])
+                                                                                                                                                                               {all dead.
+                                                                                                                                                                                  Maybe
+                                                                                                                                                                                    LoanDatum}
+                                                                                                                                                                               (\(ds :
+                                                                                                                                                                                    Tuple2
+                                                                                                                                                                                      data
+                                                                                                                                                                                      (list
+                                                                                                                                                                                         data)) ->
+                                                                                                                                                                                  /\dead ->
+                                                                                                                                                                                    Tuple2_match
+                                                                                                                                                                                      {data}
+                                                                                                                                                                                      {list
+                                                                                                                                                                                         data}
+                                                                                                                                                                                      ds
+                                                                                                                                                                                      {Maybe
+                                                                                                                                                                                         LoanDatum}
+                                                                                                                                                                                      (\(ds :
+                                                                                                                                                                                           data)
+                                                                                                                                                                                        (ds :
+                                                                                                                                                                                           list
+                                                                                                                                                                                             data) ->
+                                                                                                                                                                                         Maybe_match
+                                                                                                                                                                                           {integer}
+                                                                                                                                                                                           (`$fFromDataInteger_$cfromBuiltinData`
+                                                                                                                                                                                              ds)
+                                                                                                                                                                                           {all dead.
+                                                                                                                                                                                              Maybe
+                                                                                                                                                                                                LoanDatum}
+                                                                                                                                                                                           (\(arg :
+                                                                                                                                                                                                integer) ->
+                                                                                                                                                                                              /\dead ->
+                                                                                                                                                                                                Maybe_match
+                                                                                                                                                                                                  {data}
+                                                                                                                                                                                                  (case
+                                                                                                                                                                                                     (Maybe
+                                                                                                                                                                                                        data)
+                                                                                                                                                                                                     ds
+                                                                                                                                                                                                     [ (\(h :
+                                                                                                                                                                                                            data)
+                                                                                                                                                                                                         (ds :
+                                                                                                                                                                                                            list
+                                                                                                                                                                                                              data) ->
+                                                                                                                                                                                                          Just
+                                                                                                                                                                                                            {data}
+                                                                                                                                                                                                            h)
+                                                                                                                                                                                                     , (Nothing
+                                                                                                                                                                                                          {data}) ])
+                                                                                                                                                                                                  {all dead.
+                                                                                                                                                                                                     Maybe
+                                                                                                                                                                                                       LoanDatum}
+                                                                                                                                                                                                  (\(ds :
+                                                                                                                                                                                                       data) ->
+                                                                                                                                                                                                     /\dead ->
+                                                                                                                                                                                                       Maybe_match
+                                                                                                                                                                                                         {List
+                                                                                                                                                                                                            (Tuple2
+                                                                                                                                                                                                               (Tuple2
+                                                                                                                                                                                                                  bytestring
+                                                                                                                                                                                                                  bytestring)
+                                                                                                                                                                                                               Rational)}
+                                                                                                                                                                                                         (`$fFromDataList_$cfromBuiltinData`
+                                                                                                                                                                                                            {Tuple2
+                                                                                                                                                                                                               (Tuple2
+                                                                                                                                                                                                                  bytestring
+                                                                                                                                                                                                                  bytestring)
+                                                                                                                                                                                                               Rational}
+                                                                                                                                                                                                            `$dFromData`
+                                                                                                                                                                                                            ds)
+                                                                                                                                                                                                         {all dead.
+                                                                                                                                                                                                            Maybe
+                                                                                                                                                                                                              LoanDatum}
+                                                                                                                                                                                                         (\(arg :
+                                                                                                                                                                                                              List
+                                                                                                                                                                                                                (Tuple2
+                                                                                                                                                                                                                   (Tuple2
+                                                                                                                                                                                                                      bytestring
+                                                                                                                                                                                                                      bytestring)
+                                                                                                                                                                                                                   Rational)) ->
+                                                                                                                                                                                                            /\dead ->
+                                                                                                                                                                                                              Just
+                                                                                                                                                                                                                {LoanDatum}
+                                                                                                                                                                                                                (OfferDatum
+                                                                                                                                                                                                                   arg
+                                                                                                                                                                                                                   arg
+                                                                                                                                                                                                                   arg
+                                                                                                                                                                                                                   arg
+                                                                                                                                                                                                                   arg
+                                                                                                                                                                                                                   arg
+                                                                                                                                                                                                                   arg
+                                                                                                                                                                                                                   arg))
+                                                                                                                                                                                                         (/\dead ->
+                                                                                                                                                                                                            fail
+                                                                                                                                                                                                              ())
+                                                                                                                                                                                                         {all dead.
+                                                                                                                                                                                                            dead})
+                                                                                                                                                                                                  (/\dead ->
+                                                                                                                                                                                                     fail
+                                                                                                                                                                                                       ())
+                                                                                                                                                                                                  {all dead.
+                                                                                                                                                                                                     dead})
+                                                                                                                                                                                           (/\dead ->
+                                                                                                                                                                                              fail
+                                                                                                                                                                                                ())
+                                                                                                                                                                                           {all dead.
+                                                                                                                                                                                              dead}))
+                                                                                                                                                                               (/\dead ->
+                                                                                                                                                                                  fail
+                                                                                                                                                                                    ())
+                                                                                                                                                                               {all dead.
+                                                                                                                                                                                  dead})
+                                                                                                                                                                        (/\dead ->
+                                                                                                                                                                           fail
+                                                                                                                                                                             ())
+                                                                                                                                                                        {all dead.
+                                                                                                                                                                           dead}))
+                                                                                                                                                            (/\dead ->
+                                                                                                                                                               fail
+                                                                                                                                                                 ())
+                                                                                                                                                            {all dead.
+                                                                                                                                                               dead})
+                                                                                                                                                     (/\dead ->
+                                                                                                                                                        fail
+                                                                                                                                                          ())
+                                                                                                                                                     {all dead.
+                                                                                                                                                        dead}))
+                                                                                                                                         (/\dead ->
+                                                                                                                                            fail
+                                                                                                                                              ())
+                                                                                                                                         {all dead.
+                                                                                                                                            dead})
+                                                                                                                                  (/\dead ->
+                                                                                                                                     fail
+                                                                                                                                       ())
+                                                                                                                                  {all dead.
+                                                                                                                                     dead}))
+                                                                                                                      (/\dead ->
+                                                                                                                         fail
+                                                                                                                           ())
+                                                                                                                      {all dead.
+                                                                                                                         dead})
+                                                                                                               (/\dead ->
+                                                                                                                  fail
+                                                                                                                    ())
+                                                                                                               {all dead.
+                                                                                                                  dead}))
+                                                                                                   (/\dead ->
+                                                                                                      fail
+                                                                                                        ())
+                                                                                                   {all dead.
+                                                                                                      dead})
+                                                                                            (/\dead ->
+                                                                                               fail
+                                                                                                 ())
+                                                                                            {all dead.
+                                                                                               dead}))
+                                                                                (/\dead ->
+                                                                                   fail
+                                                                                     ())
+                                                                                {all dead.
+                                                                                   dead})
+                                                                         (/\dead ->
+                                                                            fail
+                                                                              ())
+                                                                         {all dead.
+                                                                            dead}))
+                                                             (/\dead -> fail ())
+                                                             {all dead. dead}) ]
+                                                      {all dead. dead}
+                                            in
+                                            case
+                                              (all dead. Maybe LoanDatum)
+                                              (equalsInteger 0 index)
+                                              [ (/\dead -> fail ())
+                                              , (/\dead ->
+                                                   Maybe_match
+                                                     {Tuple2 data (list data)}
+                                                     (case
+                                                        (Maybe
+                                                           (Tuple2
+                                                              data
+                                                              (list data)))
+                                                        args
+                                                        [ (\(h : data)
+                                                            (t : list data) ->
+                                                             Just
+                                                               {Tuple2
+                                                                  data
+                                                                  (list data)}
+                                                               (Tuple2
+                                                                  {data}
+                                                                  {list data}
+                                                                  h
+                                                                  t))
+                                                        , (Nothing
+                                                             {Tuple2
+                                                                data
+                                                                (list data)}) ])
+                                                     {all dead. Maybe LoanDatum}
+                                                     (\(ds :
+                                                          Tuple2
+                                                            data
+                                                            (list data)) ->
+                                                        /\dead ->
+                                                          Tuple2_match
+                                                            {data}
+                                                            {list data}
+                                                            ds
+                                                            {Maybe LoanDatum}
+                                                            (\(ds : data)
+                                                              (ds :
+                                                                 list data) ->
+                                                               Maybe_match
+                                                                 {Tuple2
+                                                                    bytestring
+                                                                    bytestring}
+                                                                 (`$fFromDataTuple2_$cfromBuiltinData`
+                                                                    {bytestring}
+                                                                    {bytestring}
+                                                                    `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                    `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                    ds)
+                                                                 {all dead.
+                                                                    Maybe
+                                                                      LoanDatum}
+                                                                 (\(arg :
+                                                                      Tuple2
+                                                                        bytestring
+                                                                        bytestring) ->
+                                                                    /\dead ->
+                                                                      Maybe_match
+                                                                        {Tuple2
+                                                                           data
+                                                                           (list
+                                                                              data)}
+                                                                        (case
+                                                                           (Maybe
+                                                                              (Tuple2
+                                                                                 data
+                                                                                 (list
+                                                                                    data)))
+                                                                           ds
+                                                                           [ (\(h :
+                                                                                  data)
+                                                                               (t :
+                                                                                  list
+                                                                                    data) ->
+                                                                                Just
+                                                                                  {Tuple2
+                                                                                     data
+                                                                                     (list
+                                                                                        data)}
+                                                                                  (Tuple2
+                                                                                     {data}
+                                                                                     {list
+                                                                                        data}
+                                                                                     h
+                                                                                     t))
+                                                                           , (Nothing
+                                                                                {Tuple2
+                                                                                   data
+                                                                                   (list
+                                                                                      data)}) ])
+                                                                        {all dead.
+                                                                           Maybe
+                                                                             LoanDatum}
+                                                                        (\(ds :
+                                                                             Tuple2
+                                                                               data
+                                                                               (list
+                                                                                  data)) ->
+                                                                           /\dead ->
+                                                                             Tuple2_match
+                                                                               {data}
+                                                                               {list
+                                                                                  data}
+                                                                               ds
+                                                                               {Maybe
+                                                                                  LoanDatum}
+                                                                               (\(ds :
+                                                                                    data)
+                                                                                 (ds :
+                                                                                    list
+                                                                                      data) ->
+                                                                                  Maybe_match
+                                                                                    {Tuple2
+                                                                                       bytestring
+                                                                                       bytestring}
+                                                                                    (`$fFromDataTuple2_$cfromBuiltinData`
+                                                                                       {bytestring}
+                                                                                       {bytestring}
+                                                                                       `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                       `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                       ds)
+                                                                                    {all dead.
+                                                                                       Maybe
+                                                                                         LoanDatum}
+                                                                                    (\(arg :
+                                                                                         Tuple2
+                                                                                           bytestring
+                                                                                           bytestring) ->
+                                                                                       /\dead ->
+                                                                                         Maybe_match
+                                                                                           {Tuple2
+                                                                                              data
+                                                                                              (list
+                                                                                                 data)}
+                                                                                           (case
+                                                                                              (Maybe
+                                                                                                 (Tuple2
+                                                                                                    data
+                                                                                                    (list
+                                                                                                       data)))
+                                                                                              ds
+                                                                                              [ (\(h :
+                                                                                                     data)
+                                                                                                  (t :
+                                                                                                     list
+                                                                                                       data) ->
+                                                                                                   Just
+                                                                                                     {Tuple2
+                                                                                                        data
+                                                                                                        (list
+                                                                                                           data)}
+                                                                                                     (Tuple2
+                                                                                                        {data}
+                                                                                                        {list
+                                                                                                           data}
+                                                                                                        h
+                                                                                                        t))
+                                                                                              , (Nothing
+                                                                                                   {Tuple2
+                                                                                                      data
+                                                                                                      (list
+                                                                                                         data)}) ])
+                                                                                           {all dead.
+                                                                                              Maybe
+                                                                                                LoanDatum}
+                                                                                           (\(ds :
+                                                                                                Tuple2
+                                                                                                  data
+                                                                                                  (list
+                                                                                                     data)) ->
+                                                                                              /\dead ->
+                                                                                                Tuple2_match
+                                                                                                  {data}
+                                                                                                  {list
+                                                                                                     data}
+                                                                                                  ds
+                                                                                                  {Maybe
+                                                                                                     LoanDatum}
+                                                                                                  (\(ds :
+                                                                                                       data)
+                                                                                                    (ds :
+                                                                                                       list
+                                                                                                         data) ->
+                                                                                                     Maybe_match
+                                                                                                       {Tuple2
+                                                                                                          bytestring
+                                                                                                          bytestring}
+                                                                                                       (`$fFromDataTuple2_$cfromBuiltinData`
+                                                                                                          {bytestring}
+                                                                                                          {bytestring}
+                                                                                                          `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                                          `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                                          ds)
+                                                                                                       {all dead.
+                                                                                                          Maybe
+                                                                                                            LoanDatum}
+                                                                                                       (\(arg :
+                                                                                                            Tuple2
+                                                                                                              bytestring
+                                                                                                              bytestring) ->
+                                                                                                          /\dead ->
+                                                                                                            Maybe_match
+                                                                                                              {Tuple2
+                                                                                                                 data
+                                                                                                                 (list
+                                                                                                                    data)}
+                                                                                                              (case
+                                                                                                                 (Maybe
+                                                                                                                    (Tuple2
+                                                                                                                       data
+                                                                                                                       (list
+                                                                                                                          data)))
+                                                                                                                 ds
+                                                                                                                 [ (\(h :
+                                                                                                                        data)
+                                                                                                                     (t :
+                                                                                                                        list
+                                                                                                                          data) ->
+                                                                                                                      Just
+                                                                                                                        {Tuple2
+                                                                                                                           data
+                                                                                                                           (list
+                                                                                                                              data)}
+                                                                                                                        (Tuple2
+                                                                                                                           {data}
+                                                                                                                           {list
+                                                                                                                              data}
+                                                                                                                           h
+                                                                                                                           t))
+                                                                                                                 , (Nothing
+                                                                                                                      {Tuple2
+                                                                                                                         data
+                                                                                                                         (list
+                                                                                                                            data)}) ])
+                                                                                                              {all dead.
+                                                                                                                 Maybe
+                                                                                                                   LoanDatum}
+                                                                                                              (\(ds :
+                                                                                                                   Tuple2
+                                                                                                                     data
+                                                                                                                     (list
+                                                                                                                        data)) ->
+                                                                                                                 /\dead ->
+                                                                                                                   Tuple2_match
+                                                                                                                     {data}
+                                                                                                                     {list
+                                                                                                                        data}
+                                                                                                                     ds
+                                                                                                                     {Maybe
+                                                                                                                        LoanDatum}
+                                                                                                                     (\(ds :
+                                                                                                                          data)
+                                                                                                                       (ds :
+                                                                                                                          list
+                                                                                                                            data) ->
+                                                                                                                        Maybe_match
+                                                                                                                          {integer}
+                                                                                                                          (`$fFromDataInteger_$cfromBuiltinData`
+                                                                                                                             ds)
+                                                                                                                          {all dead.
+                                                                                                                             Maybe
+                                                                                                                               LoanDatum}
+                                                                                                                          (\(arg :
+                                                                                                                               integer) ->
+                                                                                                                             /\dead ->
+                                                                                                                               Maybe_match
+                                                                                                                                 {Tuple2
+                                                                                                                                    data
+                                                                                                                                    (list
+                                                                                                                                       data)}
+                                                                                                                                 (case
+                                                                                                                                    (Maybe
+                                                                                                                                       (Tuple2
                                                                                                                                           data
                                                                                                                                           (list
-                                                                                                                                             data)}) ])
-                                                                                                                               {all dead.
-                                                                                                                                  Maybe
-                                                                                                                                    LoanDatum}
-                                                                                                                               (\(ds :
-                                                                                                                                    Tuple2
-                                                                                                                                      data
-                                                                                                                                      (list
-                                                                                                                                         data)) ->
-                                                                                                                                  /\dead ->
-                                                                                                                                    Tuple2_match
-                                                                                                                                      {data}
-                                                                                                                                      {list
-                                                                                                                                         data}
-                                                                                                                                      ds
-                                                                                                                                      {Maybe
-                                                                                                                                         LoanDatum}
-                                                                                                                                      (\(ds :
+                                                                                                                                             data)))
+                                                                                                                                    ds
+                                                                                                                                    [ (\(h :
                                                                                                                                            data)
-                                                                                                                                        (ds :
+                                                                                                                                        (t :
                                                                                                                                            list
                                                                                                                                              data) ->
-                                                                                                                                         Maybe_match
-                                                                                                                                           {integer}
-                                                                                                                                           (`$fFromDataInteger_$cfromBuiltinData`
-                                                                                                                                              ds)
-                                                                                                                                           {all dead.
-                                                                                                                                              Maybe
-                                                                                                                                                LoanDatum}
-                                                                                                                                           (\(arg :
-                                                                                                                                                integer) ->
-                                                                                                                                              /\dead ->
-                                                                                                                                                Maybe_match
-                                                                                                                                                  {data}
-                                                                                                                                                  (case
-                                                                                                                                                     (Maybe
-                                                                                                                                                        data)
-                                                                                                                                                     ds
-                                                                                                                                                     [ (\(h :
-                                                                                                                                                            data)
-                                                                                                                                                         (ds :
-                                                                                                                                                            list
-                                                                                                                                                              data) ->
-                                                                                                                                                          Just
-                                                                                                                                                            {data}
-                                                                                                                                                            h)
-                                                                                                                                                     , (Nothing
-                                                                                                                                                          {data}) ])
-                                                                                                                                                  {all dead.
-                                                                                                                                                     Maybe
-                                                                                                                                                       LoanDatum}
-                                                                                                                                                  (\(ds :
-                                                                                                                                                       data) ->
-                                                                                                                                                     /\dead ->
-                                                                                                                                                       Maybe_match
-                                                                                                                                                         {List
-                                                                                                                                                            (Tuple2
-                                                                                                                                                               bytestring
-                                                                                                                                                               bytestring)}
-                                                                                                                                                         (`$fFromDataList_$cfromBuiltinData`
-                                                                                                                                                            {Tuple2
-                                                                                                                                                               bytestring
-                                                                                                                                                               bytestring}
-                                                                                                                                                            `$dFromData`
-                                                                                                                                                            ds)
-                                                                                                                                                         {all dead.
-                                                                                                                                                            Maybe
-                                                                                                                                                              LoanDatum}
-                                                                                                                                                         (\(arg :
-                                                                                                                                                              List
-                                                                                                                                                                (Tuple2
-                                                                                                                                                                   bytestring
-                                                                                                                                                                   bytestring)) ->
-                                                                                                                                                            /\dead ->
-                                                                                                                                                              Just
-                                                                                                                                                                {LoanDatum}
-                                                                                                                                                                (AskDatum
-                                                                                                                                                                   arg
-                                                                                                                                                                   arg
-                                                                                                                                                                   arg
-                                                                                                                                                                   arg
-                                                                                                                                                                   arg
-                                                                                                                                                                   arg))
-                                                                                                                                                         (/\dead ->
-                                                                                                                                                            fail
-                                                                                                                                                              ())
-                                                                                                                                                         {all dead.
-                                                                                                                                                            dead})
-                                                                                                                                                  (/\dead ->
-                                                                                                                                                     fail
-                                                                                                                                                       ())
-                                                                                                                                                  {all dead.
-                                                                                                                                                     dead})
-                                                                                                                                           (/\dead ->
-                                                                                                                                              fail
-                                                                                                                                                ())
-                                                                                                                                           {all dead.
-                                                                                                                                              dead}))
-                                                                                                                               (/\dead ->
-                                                                                                                                  fail
-                                                                                                                                    ())
-                                                                                                                               {all dead.
-                                                                                                                                  dead})
-                                                                                                                        (/\dead ->
-                                                                                                                           fail
-                                                                                                                             ())
-                                                                                                                        {all dead.
-                                                                                                                           dead}))
-                                                                                                            (/\dead ->
-                                                                                                               fail
-                                                                                                                 ())
-                                                                                                            {all dead.
-                                                                                                               dead})
-                                                                                                     (/\dead ->
-                                                                                                        fail
-                                                                                                          ())
-                                                                                                     {all dead.
-                                                                                                        dead}))
-                                                                                         (/\dead ->
-                                                                                            fail
-                                                                                              ())
-                                                                                         {all dead.
-                                                                                            dead})
-                                                                                  (/\dead ->
-                                                                                     fail
-                                                                                       ())
-                                                                                  {all dead.
-                                                                                     dead}))
-                                                                      (/\dead ->
-                                                                         fail
-                                                                           ())
-                                                                      {all dead.
-                                                                         dead})
-                                                               (/\dead ->
-                                                                  fail ())
-                                                               {all dead.
-                                                                  dead}))
-                                                   (/\dead -> fail ())
-                                                   {all dead. dead}) ]
-                                            {all dead. dead})
-                                         l
-                                         r))
-                               (\(ds : Unit) -> Nothing {LoanDatum})
-                               (\(ds : Unit) -> Nothing {LoanDatum})
-                               (\(ds : Unit) -> Nothing {LoanDatum})
-                               (\(ds : Unit) -> Nothing {LoanDatum})
-                               Unit)
+                                                                                                                                         Just
+                                                                                                                                           {Tuple2
+                                                                                                                                              data
+                                                                                                                                              (list
+                                                                                                                                                 data)}
+                                                                                                                                           (Tuple2
+                                                                                                                                              {data}
+                                                                                                                                              {list
+                                                                                                                                                 data}
+                                                                                                                                              h
+                                                                                                                                              t))
+                                                                                                                                    , (Nothing
+                                                                                                                                         {Tuple2
+                                                                                                                                            data
+                                                                                                                                            (list
+                                                                                                                                               data)}) ])
+                                                                                                                                 {all dead.
+                                                                                                                                    Maybe
+                                                                                                                                      LoanDatum}
+                                                                                                                                 (\(ds :
+                                                                                                                                      Tuple2
+                                                                                                                                        data
+                                                                                                                                        (list
+                                                                                                                                           data)) ->
+                                                                                                                                    /\dead ->
+                                                                                                                                      Tuple2_match
+                                                                                                                                        {data}
+                                                                                                                                        {list
+                                                                                                                                           data}
+                                                                                                                                        ds
+                                                                                                                                        {Maybe
+                                                                                                                                           LoanDatum}
+                                                                                                                                        (\(ds :
+                                                                                                                                             data)
+                                                                                                                                          (ds :
+                                                                                                                                             list
+                                                                                                                                               data) ->
+                                                                                                                                           Maybe_match
+                                                                                                                                             {integer}
+                                                                                                                                             (`$fFromDataInteger_$cfromBuiltinData`
+                                                                                                                                                ds)
+                                                                                                                                             {all dead.
+                                                                                                                                                Maybe
+                                                                                                                                                  LoanDatum}
+                                                                                                                                             (\(arg :
+                                                                                                                                                  integer) ->
+                                                                                                                                                /\dead ->
+                                                                                                                                                  Maybe_match
+                                                                                                                                                    {data}
+                                                                                                                                                    (case
+                                                                                                                                                       (Maybe
+                                                                                                                                                          data)
+                                                                                                                                                       ds
+                                                                                                                                                       [ (\(h :
+                                                                                                                                                              data)
+                                                                                                                                                           (ds :
+                                                                                                                                                              list
+                                                                                                                                                                data) ->
+                                                                                                                                                            Just
+                                                                                                                                                              {data}
+                                                                                                                                                              h)
+                                                                                                                                                       , (Nothing
+                                                                                                                                                            {data}) ])
+                                                                                                                                                    {all dead.
+                                                                                                                                                       Maybe
+                                                                                                                                                         LoanDatum}
+                                                                                                                                                    (\(ds :
+                                                                                                                                                         data) ->
+                                                                                                                                                       /\dead ->
+                                                                                                                                                         Maybe_match
+                                                                                                                                                           {List
+                                                                                                                                                              (Tuple2
+                                                                                                                                                                 bytestring
+                                                                                                                                                                 bytestring)}
+                                                                                                                                                           (`$fFromDataList_$cfromBuiltinData`
+                                                                                                                                                              {Tuple2
+                                                                                                                                                                 bytestring
+                                                                                                                                                                 bytestring}
+                                                                                                                                                              `$dFromData`
+                                                                                                                                                              ds)
+                                                                                                                                                           {all dead.
+                                                                                                                                                              Maybe
+                                                                                                                                                                LoanDatum}
+                                                                                                                                                           (\(arg :
+                                                                                                                                                                List
+                                                                                                                                                                  (Tuple2
+                                                                                                                                                                     bytestring
+                                                                                                                                                                     bytestring)) ->
+                                                                                                                                                              /\dead ->
+                                                                                                                                                                Just
+                                                                                                                                                                  {LoanDatum}
+                                                                                                                                                                  (AskDatum
+                                                                                                                                                                     arg
+                                                                                                                                                                     arg
+                                                                                                                                                                     arg
+                                                                                                                                                                     arg
+                                                                                                                                                                     arg
+                                                                                                                                                                     arg))
+                                                                                                                                                           (/\dead ->
+                                                                                                                                                              fail
+                                                                                                                                                                ())
+                                                                                                                                                           {all dead.
+                                                                                                                                                              dead})
+                                                                                                                                                    (/\dead ->
+                                                                                                                                                       fail
+                                                                                                                                                         ())
+                                                                                                                                                    {all dead.
+                                                                                                                                                       dead})
+                                                                                                                                             (/\dead ->
+                                                                                                                                                fail
+                                                                                                                                                  ())
+                                                                                                                                             {all dead.
+                                                                                                                                                dead}))
+                                                                                                                                 (/\dead ->
+                                                                                                                                    fail
+                                                                                                                                      ())
+                                                                                                                                 {all dead.
+                                                                                                                                    dead})
+                                                                                                                          (/\dead ->
+                                                                                                                             fail
+                                                                                                                               ())
+                                                                                                                          {all dead.
+                                                                                                                             dead}))
+                                                                                                              (/\dead ->
+                                                                                                                 fail
+                                                                                                                   ())
+                                                                                                              {all dead.
+                                                                                                                 dead})
+                                                                                                       (/\dead ->
+                                                                                                          fail
+                                                                                                            ())
+                                                                                                       {all dead.
+                                                                                                          dead}))
+                                                                                           (/\dead ->
+                                                                                              fail
+                                                                                                ())
+                                                                                           {all dead.
+                                                                                              dead})
+                                                                                    (/\dead ->
+                                                                                       fail
+                                                                                         ())
+                                                                                    {all dead.
+                                                                                       dead}))
+                                                                        (/\dead ->
+                                                                           fail
+                                                                             ())
+                                                                        {all dead.
+                                                                           dead})
+                                                                 (/\dead ->
+                                                                    fail ())
+                                                                 {all dead.
+                                                                    dead}))
+                                                     (/\dead -> fail ())
+                                                     {all dead. dead}) ]
+                                              {all dead. dead})
+                                           l
+                                           r) ])
+                               (\(ds : unit) -> Nothing {LoanDatum})
+                               (\(ds : unit) -> Nothing {LoanDatum})
+                               (\(ds : unit) -> Nothing {LoanDatum})
+                               (\(ds : unit) -> Nothing {LoanDatum})
+                               ())
                             {all dead. LoanDatum}
                             (\(r : LoanDatum) ->
                                /\dead -> trace {LoanDatum} "Parsed Datum" r)
                             (/\dead ->
-                               traceError {LoanDatum} "Failed to parse Datum")
+                               let
+                                 !x : unit
+                                   = trace {unit} "Failed to parse Datum" ()
+                               in
+                               error {LoanDatum})
                             {all dead. dead})
                in
                ScriptContext_match
@@ -11308,11 +11295,11 @@
                                              (ipv : integer) ->
                                               let
                                                 !x :
-                                                   Unit
+                                                   unit
                                                   = trace
-                                                      {Unit}
+                                                      {unit}
                                                       "Wrong kind of staking credential."
-                                                      Unit
+                                                      ()
                                               in
                                               error {bool}))
                                       True))
@@ -11519,17 +11506,17 @@
                             (\(t : integer) -> /\dead -> t)
                             (/\dead ->
                                let
-                                 !x : Unit
-                                   = trace {Unit} "Shouldn't be NegInf." Unit
+                                 !x : unit
+                                   = trace {unit} "Shouldn't be NegInf." ()
                                in
                                error {integer})
                             (/\dead ->
                                let
-                                 !x : Unit
+                                 !x : unit
                                    = trace
-                                       {Unit}
+                                       {unit}
                                        "invalid-hereafter not specified"
-                                       Unit
+                                       ()
                                in
                                error {integer})
                             {all dead. dead}
@@ -11581,7 +11568,12 @@
                         {TxOut}
                         ds
                         {all dead. TxOut}
-                        (/\dead -> fail ())
+                        (/\dead ->
+                           let
+                             !x : unit
+                               = trace {unit} "Missing output to address" ()
+                           in
+                           error {TxOut})
                         (\(x : TxOut) (ds : List TxOut) ->
                            /\dead ->
                              List_match
@@ -11590,7 +11582,15 @@
                                {all dead. TxOut}
                                (/\dead -> x)
                                (\(ipv : TxOut) (ipv : List TxOut) ->
-                                  /\dead -> fail ())
+                                  /\dead ->
+                                    let
+                                      !x : unit
+                                        = trace
+                                            {unit}
+                                            "Missing output to address"
+                                            ()
+                                    in
+                                    error {TxOut})
                                {all dead. dead})
                         {all dead. dead})
                       {bool}
@@ -12755,9 +12755,14 @@
                                 {all dead. dead})
                            (/\dead -> True)
                            {all dead. dead}))))
-             [(/\dead -> traceError {unit} "PT5"), (/\dead -> ())]
+             [ (/\dead -> let !x : unit = trace {unit} "PT5" () in error {unit})
+             , (/\dead -> ()) ]
              {all dead. dead})
-      (/\dead -> traceError {unit} "Failed to parse ScriptContext")
+      (/\dead ->
+         let
+           !x : unit = trace {unit} "Failed to parse ScriptContext" ()
+         in
+         error {unit})
       {all dead. dead})
   (Constr 0
      [ Constr 0

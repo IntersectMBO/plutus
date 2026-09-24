@@ -39,7 +39,10 @@ module PlutusCore.Default.Universe
   , pattern DefaultUniArray
   , pattern DefaultUniPair
   , defaultUniSize
+  , decodeDefaultUniValue
   , noMoreTypeFunctions
+  , caseBuiltinDefault
+  , caseBuiltinNoData
   , module Export -- Re-exporting universes infrastructure for convenience.
   ) where
 
@@ -51,6 +54,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
+import PlutusCore.Data qualified as Data
 import PlutusCore.Default.Universe.Cardano
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
@@ -58,11 +62,16 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , NumBytesCostedAsNumWords (..)
   , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
+  , ValueOuterSize (..)
   , ValueTotalSize (..)
   )
+import PlutusCore.Flat (Flat (decode))
+import PlutusCore.Flat.Decoder (Get, decodeListWith)
+import PlutusCore.FlatInstances ()
 import PlutusCore.Pretty.Extra (juxtRenderContext)
 import PlutusCore.Value (Value)
 
+import Control.Applicative.Lift (Lift (..), unLift)
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
@@ -77,7 +86,8 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Typeable (typeRep)
 import Data.Vector qualified as Vector
-import Data.Vector.Strict qualified as Strict (Vector)
+import Data.Vector.Orphans ()
+import Data.Vector.Strict qualified as Strict (Vector, fromList)
 import Data.Word (Word16, Word32)
 import GHC.Exts (inline, oneShot)
 import Text.PrettyBy.Fixity
@@ -152,6 +162,28 @@ defaultUniSize :: forall k (a :: k). DefaultUni (Esc a) -> Int
 defaultUniSize = \case
   DefaultUniApply uniF uniA -> defaultUniSize uniF + defaultUniSize uniA + 1
   _ -> 1
+
+-- | Build a Flat decoder from the parsed type, sharing all-unit subtrees across values.
+decodeDefaultUniValue :: DefaultUni (Esc a) -> Get a
+decodeDefaultUniValue uni = unLift (compile uni)
+  where
+    compile :: DefaultUni (Esc a) -> Lift Get a
+    compile DefaultUniUnit = pure ()
+    compile (DefaultUniPair a b) =
+      case (compile a, compile b) of
+        -- Deserialiser behave identically without this pattern; however, having this pattern
+        -- makes it run about 40%~60% faster in some cases.
+        (Other dx, Pure y) -> Other ((\x -> (x, y)) <$> dx)
+        (da, db) -> (,) <$> da <*> db
+    compile (DefaultUniList a) =
+      case compile a of
+        Pure value -> Other (decodeListWith (pure value))
+        Other decoder -> Other (decodeListWith decoder)
+    compile (DefaultUniArray a) =
+      case compile a of
+        Pure value -> Other (Strict.fromList <$> decodeListWith (pure value))
+        Other decoder -> Other (Strict.fromList <$> decodeListWith decoder)
+    compile other = Other (bring (Proxy @Flat) other decode)
 
 -- Removing 'LoopBreaker' didn't change anything at the time this comment was written, but we kept
 -- it, because it hopefully provides some additional assurance that 'geqL' will not get elaborated
@@ -764,6 +796,21 @@ instance
   {-# INLINE readKnown #-}
 
 deriving newtype instance
+  KnownTypeAst tyname DefaultUni ValueOuterSize
+instance
+  KnownBuiltinTypeIn DefaultUni term Value
+  => MakeKnownIn DefaultUni term ValueOuterSize
+  where
+  makeKnown = makeKnownCoerce @Value
+  {-# INLINE makeKnown #-}
+instance
+  KnownBuiltinTypeIn DefaultUni term Value
+  => ReadKnownIn DefaultUni term ValueOuterSize
+  where
+  readKnown = readKnownCoerce @Value
+  {-# INLINE readKnown #-}
+
+deriving newtype instance
   KnownTypeAst tyname DefaultUni ValueMaxDepth
 instance
   KnownBuiltinTypeIn DefaultUni term Value
@@ -900,6 +947,10 @@ instance AnnotateCaseBuiltin DefaultUni where
         _ -> Left "Casing on bool requires exactly one branch or two branches"
     TyBuiltin _ (SomeTypeIn DefaultUniInteger) ->
       Right $ map (,[]) branches
+    dataTy@(TyBuiltin ann (SomeTypeIn DefaultUniData)) ->
+      let listDataTy =
+            TyApp ann (TyBuiltin ann $ SomeTypeIn DefaultUniProtoList) dataTy
+       in Right $ map (,[listDataTy]) branches
     listTy@(TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoList)) argTy) ->
       case branches of
         [cons] -> Right [(cons, [argTy, listTy])]
@@ -911,39 +962,79 @@ instance AnnotateCaseBuiltin DefaultUni where
         _ -> Left "Casing on pair requires exactly one branch"
     _ -> Left $ display (void ty) <> " isn't supported in 'case'"
 
+-- | Case on a 'DefaultUni' value, delegating casing on 'Data' to the supplied handler.
+caseBuiltinDefault
+  :: ( Data
+       -> Some (ValueOf DefaultUni)
+       -> Vector.Vector term
+       -> HeadSpine Text term (Some (ValueOf DefaultUni))
+     )
+  -> Some (ValueOf DefaultUni)
+  -> Vector.Vector term
+  -> HeadSpine Text term (Some (ValueOf DefaultUni))
+caseBuiltinDefault caseData someVal@(Some (ValueOf uni x)) branches = case uni of
+  DefaultUniUnit
+    | 1 == len -> HeadOnly $ branches Vector.! 0
+    | otherwise -> HeadError $ outOfBoundsErr someVal branches
+  DefaultUniBool -> case x of
+    -- We allow there to be only one branch as long as the scrutinee is 'False'.
+    -- This is strictly to save size by not having the 'True' branch if it was gonna be
+    -- 'Error' anyway.
+    False | len == 1 || len == 2 -> HeadOnly $ branches Vector.! 0
+    True | len == 2 -> HeadOnly $ branches Vector.! 1
+    _ -> HeadError $ outOfBoundsErr someVal branches
+  DefaultUniInteger
+    | 0 <= x && x < toInteger len -> HeadOnly $ branches Vector.! fromInteger x
+    | otherwise -> HeadError $ outOfBoundsErr someVal branches
+  DefaultUniData -> caseData x someVal branches
+  DefaultUniList ty
+    | len == 1 ->
+        case x of
+          [] -> HeadError "Expected non-empty list, got empty list for casing list"
+          (y : ys) -> headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
+    | len == 2 ->
+        case x of
+          [] -> HeadOnly $ branches Vector.! 1
+          (y : ys) -> headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
+    | otherwise -> HeadError $ outOfBoundsErr someVal branches
+  DefaultUniPair tyL tyR
+    | len == 1 ->
+        case x of
+          (l, r) -> headSpine (branches Vector.! 0) [someValueOf tyL l, someValueOf tyR r]
+    | otherwise -> HeadError $ outOfBoundsErr someVal branches
+  _ -> HeadError $ display uni <> " isn't supported in 'case'"
+  where
+    !len = Vector.length branches
+{-# INLINE caseBuiltinDefault #-}
+
+-- | The built-in caser used when casing is available except on 'Data'.
+caseBuiltinNoData
+  :: Some (ValueOf DefaultUni)
+  -> Vector.Vector term
+  -> HeadSpine Text term (Some (ValueOf DefaultUni))
+caseBuiltinNoData =
+  caseBuiltinDefault $ \_ _ _ -> HeadError "Casing on data is not supported"
+{-# INLINE caseBuiltinNoData #-}
+
+caseBuiltinData
+  :: Data
+  -> Some (ValueOf DefaultUni)
+  -> Vector.Vector term
+  -> HeadSpine Text term (Some (ValueOf DefaultUni))
+caseBuiltinData x someVal branches = case x of
+  Data.Constr tag fields
+    | 0 <= tag && tag < toInteger len ->
+        headSpine
+          (branches Vector.! fromInteger tag)
+          [someValueOf (DefaultUniList DefaultUniData) fields]
+    | otherwise -> HeadError $ outOfBoundsErr someVal branches
+  _ -> HeadError "Casing on data only supports Data.Constr values"
+  where
+    !len = Vector.length branches
+{-# INLINE caseBuiltinData #-}
+
 instance CaseBuiltin DefaultUni where
-  caseBuiltin someVal@(Some (ValueOf uni x)) branches = case uni of
-    DefaultUniUnit
-      | 1 == len -> HeadOnly $ branches Vector.! 0
-      | otherwise -> HeadError $ outOfBoundsErr someVal branches
-    DefaultUniBool -> case x of
-      -- We allow there to be only one branch as long as the scrutinee is 'False'.
-      -- This is strictly to save size by not having the 'True' branch if it was gonna be
-      -- 'Error' anyway.
-      False | len == 1 || len == 2 -> HeadOnly $ branches Vector.! 0
-      True | len == 2 -> HeadOnly $ branches Vector.! 1
-      _ -> HeadError $ outOfBoundsErr someVal branches
-    DefaultUniInteger
-      | 0 <= x && x < toInteger len -> HeadOnly $ branches Vector.! fromInteger x
-      | otherwise -> HeadError $ outOfBoundsErr someVal branches
-    DefaultUniList ty
-      | len == 1 ->
-          case x of
-            [] -> HeadError "Expected non-empty list, got empty list for casing list"
-            (y : ys) -> headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
-      | len == 2 ->
-          case x of
-            [] -> HeadOnly $ branches Vector.! 1
-            (y : ys) -> headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
-      | otherwise -> HeadError $ outOfBoundsErr someVal branches
-    DefaultUniPair tyL tyR
-      | len == 1 ->
-          case x of
-            (l, r) -> headSpine (branches Vector.! 0) [someValueOf tyL l, someValueOf tyR r]
-      | otherwise -> HeadError $ outOfBoundsErr someVal branches
-    _ -> HeadError $ display uni <> " isn't supported in 'case'"
-    where
-      !len = Vector.length branches
+  caseBuiltin = caseBuiltinDefault caseBuiltinData
   {-# INLINE caseBuiltin #-}
 
 {- Note [Stable encoding of tags]

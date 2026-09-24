@@ -107,8 +107,8 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Short qualified as SBS
 import PlutusCore.Version (plcVersion100)
 import PlutusLedgerApi.V1.Address qualified as Address (scriptHashAddress)
-import PlutusLedgerApi.V1.Value qualified as Val
 import PlutusLedgerApi.V2 qualified as Ledger (Address)
+import PlutusLedgerApi.V2 qualified as Val
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Builtins qualified as B

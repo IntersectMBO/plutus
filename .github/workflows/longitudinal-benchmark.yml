@@ -29,7 +29,7 @@ jobs:
     runs-on: [self-hosted, plutus-benchmark]
     steps:
       - name: Checkout 
-        uses: actions/checkout@v6.0.1 
+        uses: actions/checkout@v7.0.1 
 
       - name: Run Benchmarks
         env: 
@@ -43,7 +43,7 @@ jobs:
         run: git config core.hooksPath no-hooks
 
       - name: Deploy Results
-        uses: benchmark-action/github-action-benchmark@v1.22.1
+        uses: benchmark-action/github-action-benchmark@v1.22.2
         with:
           name: Plutus Benchmarks
           tool: 'customSmallerIsBetter'

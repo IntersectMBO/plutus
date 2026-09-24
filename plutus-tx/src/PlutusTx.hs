@@ -20,6 +20,7 @@ module PlutusTx
   , unstableMakeIsData
   , makeIsDataIndexed
   , makeIsDataSchemaIndexed
+  , makeIsDataSchemaAsList
   , Lift
   , Typeable
   , makeLift
@@ -29,7 +30,7 @@ module PlutusTx
   ) where
 
 import PlutusCore.Data (Data (..))
-import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
+import PlutusTx.Blueprint.TH (makeIsDataSchemaAsList, makeIsDataSchemaIndexed)
 import PlutusTx.Builtins (BuiltinData, builtinDataToData, dataToBuiltinData)
 import PlutusTx.Code
   ( CompiledCode

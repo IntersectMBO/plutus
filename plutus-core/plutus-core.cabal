@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               plutus-core
-version:            1.65.0.0
+version:            1.70.0.0
 license:            Apache-2.0
 license-files:
   LICENSE
@@ -59,6 +59,30 @@ flag with-cert
   manual:      True
   default:     False
 
+-- The with-crypto flag (enabled by default) selects Plutus Core's cryptography
+-- backend, and is the single control for building without the system C crypto
+-- libraries.
+--
+-- Enabled: the hash, signature-verification and BLS12-381 builtins are backed by
+-- cardano-crypto-class, which binds the system libraries libsodium, libblst and
+-- libsecp256k1.
+--
+-- Disabled (-with-crypto): Plutus Core links no system cryptography library, so
+-- it builds -- and Plinth/Plutus scripts compile -- where those libraries are
+-- not installed. (Otherwise Cabal cannot even solve, because cardano-crypto-class
+-- declares them as pkgconfig-depends: https://github.com/haskell/cabal/issues/4087.)
+-- In that build the modules under PlutusCore.Crypto are compiled C-free: the
+-- hashes are computed by crypton (which vendors its C sources, needs no system
+-- library, and is byte-identical -- see crypto-hash-parity-test); the BLS12-381
+-- constants stay real hardcoded values; and the signature-verification and
+-- BLS12-381 group/pairing operations become compile-only stubs that error if
+-- evaluated. The components that link cardano-crypto-class directly are disabled
+-- (buildable: False) so the whole package solves C-free. Scripts still COMPILE;
+-- those builtins simply cannot be EVALUATED. The default build is unaffected.
+flag with-crypto
+  manual:  True
+  default: True
+
 common lang
   default-language:   Haskell2010
   default-extensions:
@@ -104,6 +128,7 @@ library
     PlutusCore.Analysis.Usages
     PlutusCore.Annotation
     PlutusCore.Arity
+    PlutusCore.Arrays
     PlutusCore.AstSize
     PlutusCore.Bitwise
     PlutusCore.Builtin
@@ -309,18 +334,18 @@ library
     untyped-plutus-core/src prelude
 
   -- Notes on dependencies:
-  -- * Bound on cardano-crypto-class for the fixed SECP primitives and 9.6 support
-  -- * This bound also includes support for the bls12-381 msm primitives (see CIP-133)
+  -- * cardano-crypto-class is only a dependency of the with-crypto build, see the
+  --   flag(with-crypto) block below. Its lower bound is what keeps GHC 9.6 from
+  --   resolving cardano-crypto-class-2.1.x (cryptonite era), which has no blsMSM.
   -- * The bound on 'dependent-sum' is needed to avoid https://github.com/obsidiansystems/dependent-sum/issues/72
   build-depends:
-    , aeson                       >=2.3
+    , aeson
     , array
     , barbies
     , base                        >=4.9     && <5
     , base64-bytestring
     , bimap
     , bytestring
-    , cardano-crypto-class
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
@@ -328,7 +353,6 @@ library
     , data-default-class
     , deepseq
     , dependent-sum               >=0.7.1.0
-    , deriving-aeson              >=0.2.3
     , deriving-compat
     , dlist
     , exceptions
@@ -368,6 +392,29 @@ library
     , unordered-containers
     , vector                      ^>=0.13.2
 
+  if flag(with-crypto)
+    build-depends: cardano-crypto-class >=2.3.1.0
+    cpp-options:   -DWITH_CRYPTO
+
+  else
+    build-depends:
+      , base16-bytestring  ^>=1.0
+      , crypton            ^>=1.0
+      , memory
+
+test-suite crypto-hash-parity-test
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test-crypto-hash-parity
+  build-depends:
+    , base
+    , base16-bytestring
+    , bytestring
+    , plutus-core
+    , tasty
+    , tasty-golden
+
 test-suite plutus-core-test
   import:           lang
 
@@ -383,6 +430,7 @@ test-suite plutus-core-test
     CBOR.DataStability
     Check.Spec
     CostModelInterface.Spec
+    CostModelJSON.Spec
     CostModelSafety.Spec
     Evaluation.Machines
     Evaluation.Spec
@@ -398,7 +446,10 @@ test-suite plutus-core-test
 
   default-language: Haskell2010
   build-depends:
-    , aeson                            >=2.3
+    , aeson
+    , aeson-diff
+    , aeson-pretty
+    , barbies
     , base                             >=4.9     && <5
     , base16-bytestring                ^>=1.0
     , bytestring
@@ -410,7 +461,7 @@ test-suite plutus-core-test
     , hedgehog
     , mmorph
     , mtl
-    , plutus-core                      ^>=1.65
+    , plutus-core                      ^>=1.70
     , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , prettyprinter
@@ -435,6 +486,9 @@ test-suite untyped-plutus-core-test
   if (os(windows) || arch(wasm32))
     buildable: False
 
+  if !flag(with-crypto)
+    buildable: False
+
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: untyped-plutus-core/test
@@ -453,6 +507,9 @@ library untyped-plutus-core-testlib
 
   -- needs linux 'diff' available
   if (os(windows) || arch(wasm32))
+    buildable: False
+
+  if !flag(with-crypto)
     buildable: False
 
   exposed-modules:
@@ -510,7 +567,7 @@ library untyped-plutus-core-testlib
     , lens
     , megaparsec
     , mtl
-    , plutus-core                      ^>=1.65
+    , plutus-core                      ^>=1.70
     , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , pretty-show
@@ -569,6 +626,7 @@ library plutus-ir
     PlutusIR.Transform.Beta
     PlutusIR.Transform.CaseOfCase
     PlutusIR.Transform.CaseReduce
+    PlutusIR.Transform.CollapseCase
     PlutusIR.Transform.DeadCase
     PlutusIR.Transform.DeadCode
     PlutusIR.Transform.EvaluateBuiltins
@@ -617,7 +675,7 @@ library plutus-ir
     , monoidal-containers
     , mtl
     , parser-combinators   >=0.4.0
-    , plutus-core          ^>=1.65
+    , plutus-core          ^>=1.70
     , plutus-core:flat
     , prettyprinter        >=1.1.0.1
     , profunctors
@@ -685,7 +743,7 @@ test-suite plutus-ir-test
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.65
+    , plutus-core                      ^>=1.70
     , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
@@ -765,7 +823,7 @@ library plutus-core-testlib
     , mmorph
     , mtl
     , multiset
-    , plutus-core                 ^>=1.65
+    , plutus-core                 ^>=1.70
     , plutus-core:plutus-ir
     , pretty-simple
     , prettyprinter               >=1.1.0.1
@@ -803,7 +861,7 @@ library plutus-ir-cert
   exposed-modules:  PlutusIR.Certifier
   build-depends:
     , base
-    , plutus-core            ^>=1.65
+    , plutus-core            ^>=1.70
     , plutus-core:plutus-ir
 
 ----------------------------------------------
@@ -816,6 +874,10 @@ library plutus-ir-cert
 executable cost-model-budgeting-bench
   import:         lang
   main-is:        Main.hs
+
+  if !flag(with-crypto)
+    buildable: False
+
   other-modules:
     Benchmarks.Arrays
     Benchmarks.Bitwise
@@ -847,10 +909,11 @@ executable cost-model-budgeting-bench
     , deepseq
     , directory
     , filepath
+    , ghc-compact
     , hedgehog
     , mtl
     , optparse-applicative
-    , plutus-core            ^>=1.65
+    , plutus-core            ^>=1.70
     , QuickCheck
     , quickcheck-instances
     , random
@@ -889,7 +952,7 @@ executable generate-cost-model
     , directory
     , inline-r              >=1.0.1
     , optparse-applicative
-    , plutus-core           ^>=1.65
+    , plutus-core           ^>=1.70
     , text
 
   --    , exceptions
@@ -933,7 +996,7 @@ benchmark cost-model-test
     , hedgehog
     , inline-r          >=1.0.1
     , mmorph
-    , plutus-core       ^>=1.65
+    , plutus-core       ^>=1.70
     , template-haskell
     , text
 
@@ -947,10 +1010,10 @@ executable print-cost-model
   hs-source-dirs: cost-model/print-cost-model
   other-modules:  Paths_plutus_core
   build-depends:
-    , aeson        >=2.3
+    , aeson
     , base         >=4.9   && <5
     , bytestring
-    , plutus-core  ^>=1.65
+    , plutus-core  ^>=1.70
 
 -- Golden file generator for Flat encoding stability tests.
 ----------------------------------------------
@@ -962,7 +1025,7 @@ library satint
   exposed-modules: Data.SatInt
   hs-source-dirs:  satint/src
   build-depends:
-    , aeson             >=2.3
+    , aeson
     , base              >=4.9 && <5
     , cassava
     , deepseq
@@ -1138,6 +1201,7 @@ test-suite flat-test
     Test.E
     Test.E.Arbitrary
     Test.E.Flat
+    Test.LargeInteger
 
   build-depends:
     , base

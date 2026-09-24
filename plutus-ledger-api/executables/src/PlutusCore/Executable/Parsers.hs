@@ -11,8 +11,10 @@ import PlutusCore.Executable.Types
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Lens ((^.))
+import Data.List (intercalate)
 import Data.Maybe
 import Options.Applicative
+import System.FilePath (takeExtension)
 
 {-| Parser for an input stream. If none is specified,
 default to stdin for ease of use in pipeline. -}
@@ -26,6 +28,7 @@ fileInput =
       ( long "input"
           <> short 'i'
           <> metavar "FILENAME"
+          <> action "file"
           <> help "Input file"
       )
 
@@ -49,6 +52,7 @@ fileOutput =
       ( long "output"
           <> short 'o'
           <> metavar "FILENAME"
+          <> action "file"
           <> help "Output file"
       )
 
@@ -69,27 +73,38 @@ noOutput =
         <> help "Don't output the evaluation result"
     )
 
+-- Reverse lookup in a name/value option table for 'showDefaultWith', so the
+-- displayed default is exactly a string the option's reader accepts. Keyed on
+-- 'show' rather than value equality because not every option value type has
+-- an 'Eq' instance.
+showByTable :: Show a => [(String, a)] -> a -> String
+showByTable table v = fromMaybe "" $ lookup (show v) [(show v', name) | (name, v') <- table]
+
+-- The single source of truth for each format's name, description (shown in
+-- --help), and value; the reader and shell completion are derived from it.
+formatTable :: [(String, Maybe String, Format)]
+formatTable =
+  [ ("textual", Nothing, Textual)
+  , ("serialised", Just "cbor + flat, with de Bruijn indices", Serialised)
+  , ("hex", Just "hex + cbor + flat", Hex)
+  , ("flat-named", Just "names", Flat Named)
+  , ("flat", Just "de Bruijn indices", Flat DeBruijn)
+  , ("flat-deBruijn", Just "alias for flat", Flat DeBruijn)
+  , ("flat-namedDeBruijn", Just "names and de Bruijn indices", Flat NamedDeBruijn)
+  , ("blueprint", Nothing, Blueprint)
+  ]
+
 formatHelp :: String
 formatHelp =
-  "textual, "
-    <> "serialised (cbor + flat, with de Bruijn indices), "
-    <> "hex (hex + cbor + flat), "
-    <> "flat-named (names), flat (de Bruijn indices), "
-    <> "flat-namedDeBruijn (names and de Bruijn indices), "
-    <> "or blueprint."
+  intercalate
+    ", "
+    [maybe name (\d -> name <> " (" <> d <> ")") mdesc | (name, mdesc, _) <- formatTable]
 
 formatReader :: String -> Maybe Format
-formatReader =
-  \case
-    "textual" -> Just Textual
-    "serialised" -> Just Serialised
-    "hex" -> Just Hex
-    "flat-named" -> Just (Flat Named)
-    "flat" -> Just (Flat DeBruijn)
-    "flat-deBruijn" -> Just (Flat DeBruijn)
-    "flat-namedDeBruijn" -> Just (Flat NamedDeBruijn)
-    "blueprint" -> Just Blueprint
-    _ -> Nothing
+formatReader s = listToMaybe [v | (name, _, v) <- formatTable, name == s]
+
+formatNames :: [String]
+formatNames = [name | (name, _, _) <- formatTable]
 
 inputformat :: Parser Format
 inputformat =
@@ -100,8 +115,134 @@ inputformat =
         <> metavar "FORMAT"
         <> value Textual
         <> showDefault
+        <> completeWith formatNames
         <> help ("Input format: " ++ formatHelp)
     )
+
+-- File extensions that imply a non-textual format, common to every language
+-- (UPLC, PLC, PIR all share the same flat/hex/cbor conventions).
+nonTextualExtensionTable :: [(String, Format)]
+nonTextualExtensionTable =
+  [ (".flat", Flat DeBruijn)
+  , (".hex", Hex)
+  , (".cbor", Serialised)
+  ]
+
+{-| Guess the format from a file name's extension, given the extension that
+denotes /this/ language's own textual format (@.uplc@ for UPLC, @.plc@ for
+PLC). Returns 'Nothing' for an unrecognised extension, in which case callers
+fall back to 'Textual'. -}
+formatFromExtension :: String -> FilePath -> Maybe Format
+formatFromExtension textualExt path
+  | takeExtension path == textualExt = Just Textual
+  | otherwise = lookup (takeExtension path) nonTextualExtensionTable
+
+{-| Describe, for the @--if@/@--of@ help text, which extensions are deduced to
+which format for this language's @textualExt@, restricted to the formats in
+the given table (an extension whose format isn't in @table@ is omitted, since
+it falls back to textual instead). -}
+extensionHelp :: String -> [(String, Maybe String, Format)] -> String
+extensionHelp textualExt table =
+  intercalate ", " (mapMaybe describe ((textualExt, Textual) : nonTextualExtensionTable))
+  where
+    describe (ext, fmt) =
+      (\name -> ext <> " -> " <> name) <$> listToMaybe [name | (name, _, fmt') <- table, fmt == fmt']
+
+{-| The shared wording every language's @--if@/@--of@ "default:" help text is
+built from, wrapped around that language's own @ext -> format@ list. -}
+extensionDeductionSentence :: String -> String
+extensionDeductionSentence extList =
+  "deduced from the file extension ("
+    <> extList
+    <> "); any other extension, or reading from stdin/writing to stdout, defaults to textual"
+
+-- The explanation of the default embedded in the @--if@/@--of@ help text,
+-- shared between the input and output variants.
+extensionDeductionNote :: String -> [(String, Maybe String, Format)] -> String
+extensionDeductionNote textualExt table = extensionDeductionSentence (extensionHelp textualExt table)
+
+{-| Build the full @--if@/@--of@ help text for a format option: @kind@ (e.g.
+@"Input"@ or @"Output"@), the list of allowed values, and a note on how the
+default is chosen. Kept as two separate sentences, so the note (e.g. "deduced
+from the file extension") doesn't read as if it's parenthetically attached to
+the last format in the list (e.g. @blueprint@). -}
+formatOptionHelp :: String -> String -> String -> String
+formatOptionHelp kind formats note = kind ++ " format: " ++ formats ++ ". Default: " ++ note ++ "."
+
+-- | The formats named in a format table.
+supportedFormats :: [(String, Maybe String, Format)] -> [Format]
+supportedFormats table = [v | (_, _, v) <- table]
+
+{-| Generic extension-based format deduction, shared by every language's
+input-format resolver: an explicit @--if@ always wins; otherwise look up the
+input file's extension with @fromExt@, falling back to @deflt@ for stdin or an
+extension @fromExt@ doesn't recognise. -}
+deduceInputFormat :: (FilePath -> Maybe fmt) -> fmt -> Maybe fmt -> Input -> fmt
+deduceInputFormat _ _ (Just fmt) _ = fmt
+deduceInputFormat fromExt deflt Nothing (FileInput path) = fromMaybe deflt (fromExt path)
+deduceInputFormat _ deflt Nothing StdInput = deflt
+
+{-| The output-format counterpart of 'deduceInputFormat': an explicit @--of@
+always wins; otherwise look up the output file's extension with @fromExt@,
+falling back to @deflt@ for stdout, the silent sink, or an unrecognised
+extension. -}
+deduceOutputFormat :: (FilePath -> Maybe fmt) -> fmt -> Maybe fmt -> Output -> fmt
+deduceOutputFormat _ _ (Just fmt) _ = fmt
+deduceOutputFormat fromExt deflt Nothing (FileOutput path) = fromMaybe deflt (fromExt path)
+deduceOutputFormat _ deflt Nothing _ = deflt
+
+{-| Work out which input format to use, deducing from the input file's
+extension (using @textualExt@ as this language's own textual extension)
+restricted to @supported@ (eg @.hex@ isn't deduced for the @plc@ command,
+which only handles textual and Flat). -}
+resolveInputFormat :: String -> [Format] -> Maybe Format -> Input -> Format
+resolveInputFormat textualExt supported =
+  deduceInputFormat (supportedFormatFromExtension textualExt supported) Textual
+
+-- | The output-format counterpart of 'resolveInputFormat'.
+resolveOutputFormat :: String -> [Format] -> Maybe Format -> Output -> Format
+resolveOutputFormat textualExt supported =
+  deduceOutputFormat (supportedFormatFromExtension textualExt supported) Textual
+
+-- | 'formatFromExtension', restricted to the formats in @supported@.
+supportedFormatFromExtension :: String -> [Format] -> FilePath -> Maybe Format
+supportedFormatFromExtension textualExt supported path =
+  case formatFromExtension textualExt path of
+    Just fmt | fmt `elem` supported -> Just fmt
+    _ -> Nothing
+
+{-| The @--if@/@--input-format@ option without a default, so we can tell whether
+the user supplied it and deduce the format from the file extension if not. -}
+inputformatOptional :: Parser (Maybe Format)
+inputformatOptional =
+  optional $
+    option
+      (maybeReader formatReader)
+      ( long "if"
+          <> long "input-format"
+          <> metavar "FORMAT"
+          <> completeWith formatNames
+          <> help (formatOptionHelp "Input" formatHelp (extensionDeductionNote ".uplc" formatTable))
+      )
+
+{-| An input stream together with its format, deducing the format from the
+file extension when @--if@ is not given. See 'resolveInputFormat'. -}
+inputWithFormat :: Parser (Input, Format)
+inputWithFormat =
+  (\inp mfmt -> (inp, resolveInputFormat ".uplc" (supportedFormats formatTable) mfmt inp))
+    <$> input
+    <*> inputformatOptional
+
+{-| Like 'inputWithFormat' but for commands taking a list of input files: each
+file is paired with the format to read it with. When @--if@ is given it forces
+that format for every file; otherwise each file's format is deduced
+independently from its own extension. -}
+filesWithFormats :: Parser [(FilePath, Format)]
+filesWithFormats =
+  ( \fs mfmt -> [(f, resolveInputFormat ".uplc" (supportedFormats formatTable) mfmt (FileInput f)) | f <- fs]
+  )
+    <$> files
+    <*> inputformatOptional
 
 outputformat :: Parser Format
 outputformat =
@@ -112,8 +253,32 @@ outputformat =
         <> metavar "FORMAT"
         <> value Textual
         <> showDefault
+        <> completeWith formatNames
         <> help ("Output format: " ++ formatHelp)
     )
+
+{-| The @--of@/@--output-format@ option without a default, so we can tell
+whether the user supplied it and deduce the format from the @-o@ file extension
+if not. -}
+outputformatOptional :: Parser (Maybe Format)
+outputformatOptional =
+  optional $
+    option
+      (maybeReader formatReader)
+      ( long "of"
+          <> long "output-format"
+          <> metavar "FORMAT"
+          <> completeWith formatNames
+          <> help (formatOptionHelp "Output" formatHelp (extensionDeductionNote ".uplc" formatTable))
+      )
+
+{-| An output stream together with its format, deducing the format from the
+file extension when @--of@ is not given. See 'resolveOutputFormat'. -}
+outputWithFormat :: Parser (Output, Format)
+outputWithFormat =
+  (\outp mfmt -> (outp, resolveOutputFormat ".uplc" (supportedFormats formatTable) mfmt outp))
+    <$> output
+    <*> outputformatOptional
 
 tracemode :: Parser TraceMode
 tracemode =
@@ -123,14 +288,27 @@ tracemode =
         <> metavar "MODE"
         <> value None
         <> showDefault
+        <> completeWith (map show [(minBound :: TraceMode) .. maxBound])
         <> help "Mode for trace output."
     )
 
 files :: Parser Files
-files = some (argument str (metavar "[FILES...]"))
+files =
+  some
+    ( argument
+        str
+        ( metavar "[FILES...]"
+            <> action "file"
+            <> help "Input files; each file's format is deduced from its own extension unless --if is given"
+        )
+    )
 
 applyOpts :: Parser ApplyOptions
-applyOpts = ApplyOptions <$> files <*> inputformat <*> output <*> outputformat <*> printmode
+applyOpts =
+  (\fps (outp, ofmt) mode -> ApplyOptions fps outp ofmt mode)
+    <$> filesWithFormats
+    <*> outputWithFormat
+    <*> printmode
 
 printmode :: Parser PrintMode
 printmode =
@@ -140,6 +318,7 @@ printmode =
         <> metavar "MODE"
         <> value Classic
         <> showDefault
+        <> completeWith (map show [(minBound :: PrintMode) .. maxBound])
         <> help
           ( "Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassic, "
               <> "Simple -> plcPrettyClassicSimple, "
@@ -173,7 +352,11 @@ printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> input <*> output <*> printmode
 
 convertOpts :: Parser ConvertOptions
-convertOpts = ConvertOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
+convertOpts =
+  (\(inp, ifmt) (outp, ofmt) mode -> ConvertOptions inp ifmt outp ofmt mode)
+    <$> inputWithFormat
+    <*> outputWithFormat
+    <*> printmode
 
 certifierOutputMode :: Parser CertifierOutputMode
 certifierOutputMode =
@@ -187,6 +370,7 @@ certifierOutputMode =
         <$> strOption
           ( long "certifier-report"
               <> metavar "REPORT_FILE"
+              <> action "file"
               <> help "Certifier writes a report to the given file"
           )
     , flag
@@ -196,6 +380,12 @@ certifierOutputMode =
             <> help "Certifier produces an Agda project that can be type checked (default)"
         )
     ]
+
+cseWhichSubtermsTable :: [(String, UPLC.CseWhichSubterms)]
+cseWhichSubtermsTable =
+  [ ("all", UPLC.AllSubterms)
+  , ("exclude-work-free", UPLC.ExcludeWorkFree)
+  ]
 
 optimizeOpts :: Parser (UPLC.OptimizeOpts name a)
 optimizeOpts = do
@@ -219,18 +409,13 @@ optimizeOpts = do
       )
   _ooCseWhichSubterms <-
     option
-      ( maybeReader
-          ( \case
-              "all" -> Just UPLC.AllSubterms
-              "exclude-work-free" -> Just UPLC.ExcludeWorkFree
-              _ -> Nothing
-          )
-      )
+      (maybeReader (`lookup` cseWhichSubtermsTable))
       ( long "opt-cse-which-subterms"
           <> metavar "MODE"
           <> value UPLC.ExcludeWorkFree
-          <> showDefaultWith (\case UPLC.AllSubterms -> "all"; UPLC.ExcludeWorkFree -> "exclude-work-free")
-          <> help "CSE subterm selection: all | exclude-work-free"
+          <> showDefaultWith (showByTable cseWhichSubtermsTable)
+          <> completeWith (map fst cseWhichSubtermsTable)
+          <> help ("CSE subterm selection: " <> intercalate " | " (map fst cseWhichSubtermsTable))
       )
   _ooConservativeOpts <-
     switch
@@ -295,6 +480,12 @@ optimizeOpts = do
       )
   pure UPLC.OptimizeOpts {..}
 
+evalArgKindTable :: [(String, EvalArgKind)]
+evalArgKindTable =
+  [ ("prog", ArgProg)
+  , ("data", ArgData)
+  ]
+
 optimiseEvalOpts :: Parser OptimiseEvalOpts
 optimiseEvalOpts =
   mkOpts
@@ -312,23 +503,19 @@ optimiseEvalOpts =
       ( strOption
           ( long "eval-apply"
               <> metavar "FILE"
+              <> action "file"
               <> help
                 "Apply program to this argument file before evaluating \
                 \(repeatable).  Implies --eval."
           )
       )
     <*> option
-      ( maybeReader
-          ( \case
-              "prog" -> Just ArgProg
-              "data" -> Just ArgData
-              _ -> Nothing
-          )
-      )
+      (maybeReader (`lookup` evalArgKindTable))
       ( long "eval-arg-kind"
-          <> metavar "prog|data"
+          <> metavar (intercalate "|" (map fst evalArgKindTable))
           <> value ArgData
-          <> showDefaultWith (\case ArgProg -> "prog"; ArgData -> "data")
+          <> showDefaultWith (showByTable evalArgKindTable)
+          <> completeWith (map fst evalArgKindTable)
           <> help
             "Whether --eval-apply arguments are UPLC programs or Data objects"
       )
@@ -336,10 +523,11 @@ optimiseEvalOpts =
       ( strOption
           ( long "eval-args-dir"
               <> metavar "DIR"
+              <> action "directory"
               <> help
                 "Directory with per-validator argument files for blueprint \
                 \optimisation.  For each validator titled T, it looks for \
-                \files DIR/T/1, DIR/T/2, ... containing arguments to apply. \
+                \files DIR/T/0, DIR/T/1, ... containing arguments to apply. \
                 \Implies --eval."
           )
       )
@@ -359,11 +547,11 @@ optimiseEvalOpts =
 
 optimiseOpts :: Parser (OptimiseOptions name a)
 optimiseOpts =
-  OptimiseOptions
-    <$> input
-    <*> inputformat
-    <*> output
-    <*> outputformat
+  ( \(inp, ifmt) (outp, ofmt) mode cert certOut sopts eopts ->
+      OptimiseOptions inp ifmt outp ofmt mode cert certOut sopts eopts
+  )
+    <$> inputWithFormat
+    <*> outputWithFormat
     <*> printmode
     <*> certifier
     <*> certifierOutputMode
@@ -397,25 +585,21 @@ exampleSingle = ExampleSingle <$> exampleName
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
 
+builtinSemanticsVariantTable :: [(String, BuiltinSemanticsVariant DefaultFun)]
+builtinSemanticsVariantTable =
+  [ ("A", DefaultFunSemanticsVariantA)
+  , ("B", DefaultFunSemanticsVariantB)
+  , ("C", DefaultFunSemanticsVariantC)
+  , ("D", DefaultFunSemanticsVariantD)
+  , ("E", DefaultFunSemanticsVariantE)
+  ]
+
 builtinSemanticsVariantReader :: String -> Maybe (BuiltinSemanticsVariant DefaultFun)
-builtinSemanticsVariantReader =
-  \case
-    "A" -> Just DefaultFunSemanticsVariantA
-    "B" -> Just DefaultFunSemanticsVariantB
-    "C" -> Just DefaultFunSemanticsVariantC
-    "D" -> Just DefaultFunSemanticsVariantD
-    "E" -> Just DefaultFunSemanticsVariantE
-    _ -> Nothing
+builtinSemanticsVariantReader = (`lookup` builtinSemanticsVariantTable)
 
 -- This is used to make the help message show you what you actually need to type.
 showBuiltinSemanticsVariant :: BuiltinSemanticsVariant DefaultFun -> String
-showBuiltinSemanticsVariant =
-  \case
-    DefaultFunSemanticsVariantA -> "A"
-    DefaultFunSemanticsVariantB -> "B"
-    DefaultFunSemanticsVariantC -> "C"
-    DefaultFunSemanticsVariantD -> "D"
-    DefaultFunSemanticsVariantE -> "E"
+showBuiltinSemanticsVariant = showByTable builtinSemanticsVariantTable
 
 builtinSemanticsVariant :: Parser (BuiltinSemanticsVariant DefaultFun)
 builtinSemanticsVariant =
@@ -426,61 +610,221 @@ builtinSemanticsVariant =
         <> metavar "VARIANT"
         <> value DefaultFunSemanticsVariantE
         <> showDefaultWith showBuiltinSemanticsVariant
+        <> completeWith (map fst builtinSemanticsVariantTable)
         <> help
-          ( "Builtin semantics variant: A -> DefaultFunSemanticsVariantA, "
-              <> "B -> DefaultFunSemanticsVariantB, "
-              <> "C -> DefaultFunSemanticsVariantC, "
-              <> "D -> DefaultFunSemanticsVariantD, "
-              <> "E -> DefaultFunSemanticsVariantE"
+          ( "Builtin semantics variant: "
+              <> intercalate ", " [name <> " -> " <> show v | (name, v) <- builtinSemanticsVariantTable]
           )
     )
+
+-- Specialised parsers for PLC (TPLC), which only supports textual and Flat
+-- formats. The @serialised@, @hex@ and @blueprint@ formats are not implemented
+-- for TPLC (the 'ProgramLike PlcProg' instance's
+-- 'loadASTfromSerialised'/'loadASTfromHex'/'serialiseAST' are unimplemented, and
+-- 'runErase'/'runOptimisations' reject them), so we must not offer them.
+
+plcFormatTable :: [(String, Maybe String, Format)]
+plcFormatTable =
+  [ ("textual", Nothing, Textual)
+  , ("flat-named", Just "names", Flat Named)
+  , ("flat", Just "de Bruijn indices", Flat DeBruijn)
+  , ("flat-deBruijn", Just "alias for flat", Flat DeBruijn)
+  , ("flat-namedDeBruijn", Just "names and de Bruijn indices", Flat NamedDeBruijn)
+  ]
+
+plcFormatHelp :: String
+plcFormatHelp =
+  intercalate
+    ", "
+    [maybe name (\d -> name <> " (" <> d <> ")") mdesc | (name, mdesc, _) <- plcFormatTable]
+
+plcFormatReader :: String -> Maybe Format
+plcFormatReader s = listToMaybe [v | (name, _, v) <- plcFormatTable, name == s]
+
+plcFormatNames :: [String]
+plcFormatNames = [name | (name, _, _) <- plcFormatTable]
+
+{-| The @--if@ option for @plc@, without a default so the format can be deduced
+from the file extension when it isn't given. -}
+plcInputFormatOptional :: Parser (Maybe Format)
+plcInputFormatOptional =
+  optional $
+    option
+      (maybeReader plcFormatReader)
+      ( long "if"
+          <> long "input-format"
+          <> metavar "FORMAT"
+          <> completeWith plcFormatNames
+          <> help (formatOptionHelp "Input" plcFormatHelp (extensionDeductionNote ".plc" plcFormatTable))
+      )
+
+{-| The @--of@ option for @plc@, without a default so the format can be deduced
+from the file extension when it isn't given. -}
+plcOutputFormatOptional :: Parser (Maybe Format)
+plcOutputFormatOptional =
+  optional $
+    option
+      (maybeReader plcFormatReader)
+      ( long "of"
+          <> long "output-format"
+          <> metavar "FORMAT"
+          <> completeWith plcFormatNames
+          <> help (formatOptionHelp "Output" plcFormatHelp (extensionDeductionNote ".plc" plcFormatTable))
+      )
+
+plcInputWithFormat :: Parser (Input, Format)
+plcInputWithFormat =
+  (\inp mfmt -> (inp, resolveInputFormat ".plc" (supportedFormats plcFormatTable) mfmt inp))
+    <$> input
+    <*> plcInputFormatOptional
+
+plcFilesWithFormats :: Parser [(FilePath, Format)]
+plcFilesWithFormats =
+  ( \fs mfmt -> [(f, resolveInputFormat ".plc" (supportedFormats plcFormatTable) mfmt (FileInput f)) | f <- fs]
+  )
+    <$> files
+    <*> plcInputFormatOptional
+
+plcOutputWithFormat :: Parser (Output, Format)
+plcOutputWithFormat =
+  (\outp mfmt -> (outp, resolveOutputFormat ".plc" (supportedFormats plcFormatTable) mfmt outp))
+    <$> output
+    <*> plcOutputFormatOptional
+
+plcApplyOpts :: Parser ApplyOptions
+plcApplyOpts =
+  (\fps (outp, ofmt) mode -> ApplyOptions fps outp ofmt mode)
+    <$> plcFilesWithFormats
+    <*> plcOutputWithFormat
+    <*> printmode
+
+plcConvertOpts :: Parser ConvertOptions
+plcConvertOpts =
+  (\(inp, ifmt) (outp, ofmt) mode -> ConvertOptions inp ifmt outp ofmt mode)
+    <$> plcInputWithFormat
+    <*> plcOutputWithFormat
+    <*> printmode
+
+-- 'plc optimise' currently applies no optimisations, so it must not accept
+-- the certifier options: accepting '--certify' and then producing no
+-- certificate would be misleading.
+plcOptimiseOpts :: Parser (OptimiseOptions name a)
+plcOptimiseOpts =
+  ( \(inp, ifmt) (outp, ofmt) mode sopts eopts ->
+      OptimiseOptions inp ifmt outp ofmt mode Nothing CertProject sopts eopts
+  )
+    <$> plcInputWithFormat
+    <*> plcOutputWithFormat
+    <*> printmode
+    <*> optimizeOpts
+    <*> optimiseEvalOpts
 
 -- Specialised parsers for PIR, which only supports ASTs over the Textual and
 -- Named types.
 
+pirFormatTable :: [(String, Maybe String, PirFormat)]
+pirFormatTable =
+  [ ("textual", Nothing, TextualPir)
+  , ("flat-named", Just "names", FlatNamed)
+  ]
+
 pirFormatHelp :: String
 pirFormatHelp =
-  "textual or flat-named (names)"
+  intercalate
+    " or "
+    [maybe name (\d -> name <> " (" <> d <> ")") mdesc | (name, mdesc, _) <- pirFormatTable]
 
 pirFormatReader :: String -> Maybe PirFormat
-pirFormatReader =
-  \case
-    "textual" -> Just TextualPir
-    "flat-named" -> Just FlatNamed
-    _ -> Nothing
+pirFormatReader s = listToMaybe [v | (name, _, v) <- pirFormatTable, name == s]
 
-pPirInputFormat :: Parser PirFormat
-pPirInputFormat =
-  option
-    (maybeReader pirFormatReader)
-    ( long "if"
-        <> long "input-format"
-        <> metavar "PIR-FORMAT"
-        <> value TextualPir
-        <> showDefault
-        <> help ("Input format: " ++ pirFormatHelp)
-    )
+pirFormatNames :: [String]
+pirFormatNames = [name | (name, _, _) <- pirFormatTable]
 
-pPirOutputFormat :: Parser PirFormat
-pPirOutputFormat =
-  option
-    (maybeReader pirFormatReader)
-    ( long "of"
-        <> long "output-format"
-        <> metavar "PIR-FORMAT"
-        <> value TextualPir
-        <> showDefault
-        <> help ("Output format: " ++ pirFormatHelp)
-    )
+-- File extensions recognised for PIR: its own textual extension, plus flat
+-- encoding (PIR doesn't support de Bruijn names, so unlike UPLC/PLC there's
+-- only one flat variant to recognise).
+pirExtensionTable :: [(String, PirFormat)]
+pirExtensionTable =
+  [ (".pir", TextualPir)
+  , (".flat", FlatNamed)
+  ]
+
+{-| Guess the PIR format from a file name's extension. Returns 'Nothing' for
+an unrecognised extension, in which case callers fall back to 'TextualPir'. -}
+pirFormatFromExtension :: FilePath -> Maybe PirFormat
+pirFormatFromExtension path = lookup (takeExtension path) pirExtensionTable
+
+-- The parenthetical explanation embedded in the PIR @--if@/@--of@ "default:"
+-- help text, shared between the input and output variants.
+pirExtensionDeductionNote :: String
+pirExtensionDeductionNote =
+  extensionDeductionSentence
+    (intercalate ", " [ext <> " -> " <> show fmt | (ext, fmt) <- pirExtensionTable])
+
+{-| Work out which PIR format to use. An explicit @--if@/@--of@ always wins;
+otherwise the format is deduced from the file's extension, falling back to
+'TextualPir' for stdin/stdout or an unrecognised extension. -}
+resolvePirInputFormat :: Maybe PirFormat -> Input -> PirFormat
+resolvePirInputFormat = deduceInputFormat pirFormatFromExtension TextualPir
+
+-- | The output-format counterpart of 'resolvePirInputFormat'.
+resolvePirOutputFormat :: Maybe PirFormat -> Output -> PirFormat
+resolvePirOutputFormat = deduceOutputFormat pirFormatFromExtension TextualPir
+
+{-| The @--if@ option for @pir@, without a default so the format can be deduced
+from the file extension when it isn't given. -}
+pPirInputFormatOptional :: Parser (Maybe PirFormat)
+pPirInputFormatOptional =
+  optional $
+    option
+      (maybeReader pirFormatReader)
+      ( long "if"
+          <> long "input-format"
+          <> metavar "PIR-FORMAT"
+          <> completeWith pirFormatNames
+          <> help (formatOptionHelp "Input" pirFormatHelp pirExtensionDeductionNote)
+      )
+
+{-| The @--of@ option for @pir@, without a default so the format can be deduced
+from the file extension when it isn't given. -}
+pPirOutputFormatOptional :: Parser (Maybe PirFormat)
+pPirOutputFormatOptional =
+  optional $
+    option
+      (maybeReader pirFormatReader)
+      ( long "of"
+          <> long "output-format"
+          <> metavar "PIR-FORMAT"
+          <> completeWith pirFormatNames
+          <> help (formatOptionHelp "Output" pirFormatHelp pirExtensionDeductionNote)
+      )
+
+{-| An input stream together with its PIR format, deducing the format from the
+file extension when @--if@ is not given. See 'resolvePirInputFormat'. -}
+pPirInputWithFormat :: Parser (Input, PirFormat)
+pPirInputWithFormat =
+  (\inp mfmt -> (inp, resolvePirInputFormat mfmt inp))
+    <$> input
+    <*> pPirInputFormatOptional
+
+{-| An output stream together with its PIR format, deducing the format from
+the file extension when @--of@ is not given. See 'resolvePirOutputFormat'. -}
+pPirOutputWithFormat :: Parser (Output, PirFormat)
+pPirOutputWithFormat =
+  (\outp mfmt -> (outp, resolvePirOutputFormat mfmt outp))
+    <$> output
+    <*> pPirOutputFormatOptional
 
 -- Which language: PLC or UPLC?
 
+languageTable :: [(String, Language)]
+languageTable =
+  [ ("plc", PLC)
+  , ("uplc", UPLC)
+  ]
+
 languageReader :: String -> Maybe Language
-languageReader =
-  \case
-    "plc" -> Just PLC
-    "uplc" -> Just UPLC
-    _ -> Nothing
+languageReader = (`lookup` languageTable)
 
 pLanguage :: Parser Language
 pLanguage =
@@ -490,6 +834,7 @@ pLanguage =
         <> short 'l'
         <> metavar "LANGUAGE"
         <> value UPLC
-        <> showDefaultWith (\case PLC -> "plc"; UPLC -> "uplc")
-        <> help ("Target language: plc or uplc")
+        <> showDefaultWith (showByTable languageTable)
+        <> completeWith (map fst languageTable)
+        <> help ("Target language: " <> intercalate " or " (map fst languageTable))
     )

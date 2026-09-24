@@ -1,0 +1,51 @@
+\(ds :
+    (\k a -> list (pair data data))
+      bytestring
+      ((\k a -> list (pair data data)) bytestring integer))
+ (ds : bytestring)
+ (ds : bytestring) ->
+  letrec
+    !goInner : list (pair data data) -> integer
+      = \(xs : list (pair data data)) ->
+          case
+            integer
+            xs
+            [ (\(hd : pair data data) ->
+                 case
+                   (all dead. list (pair data data) -> integer)
+                   (equalsByteString
+                      ds
+                      (unBData (case data hd [(\(l : data) (r : data) -> l)])))
+                   [ (/\dead -> goInner)
+                   , (/\dead ->
+                        \(ds : list (pair data data)) ->
+                          unIData
+                            (case data hd [(\(l : data) (r : data) -> r)])) ]
+                   {all dead. dead})
+            , 0 ]
+  in
+  letrec
+    !goOuter : list (pair data data) -> integer
+      = \(xs : list (pair data data)) ->
+          case
+            integer
+            xs
+            [ (\(hd : pair data data) ->
+                 case
+                   (all dead. list (pair data data) -> integer)
+                   (equalsByteString
+                      ds
+                      (unBData (case data hd [(\(l : data) (r : data) -> l)])))
+                   [ (/\dead -> goOuter)
+                   , (/\dead ->
+                        \(ds : list (pair data data)) ->
+                          goInner
+                            (unMapData
+                               (case
+                                  data
+                                  hd
+                                  [(\(l : data) (r : data) -> r)]))) ]
+                   {all dead. dead})
+            , 0 ]
+  in
+  goOuter ds

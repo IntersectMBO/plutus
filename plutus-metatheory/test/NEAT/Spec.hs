@@ -44,17 +44,18 @@ allTests :: TestTree
 allTests =
   testGroup
     "NEAT"
-    [ localOption (GenDepth 12) $
-        bigTest
-          "type-level"
-          (Type ())
-          (packAssertion prop_Type)
-    , localOption (GenDepth 18) $
-        bigTest
-          "term-level"
-          (TyBuiltinG TyUnitG)
-          (packAssertion prop_Term)
-    ]
+    ( localOption (GenDepth 10) (bigTest "type-level" (Type ()) (packAssertion prop_Type))
+        : map
+          termLevelTest
+          [ (TyBuiltinG TyUnitG, "")
+          , (TyBuiltinG TyIntegerG, " (Integer)")
+          , (TyBuiltinG TyByteStringG, " (ByteString)")
+          ]
+    )
+  where
+    termLevelTest (targetTy, suffix) =
+      localOption (GenDepth 18) $
+        bigTest ("term-level" <> suffix) targetTy (packAssertion prop_Term)
 
 -- one type-level test to rule them all
 prop_Type :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()

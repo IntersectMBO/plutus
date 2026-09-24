@@ -2,7 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 {-| This module tests compilation of built-in types into UPLC's casing of constants
 the examples also appear in the Plinth guide page about case -}
@@ -11,7 +10,7 @@ module BuiltinCasing.Spec where
 import Test.Tasty.Extras
 
 import PlutusTx (compile)
-import PlutusTx.Builtins (caseInteger, caseList, casePair)
+import PlutusTx.Builtins (caseData, caseInteger, caseList, casePair)
 import PlutusTx.Builtins.Internal (chooseUnit, unitval)
 import PlutusTx.Prelude
 import PlutusTx.Test
@@ -32,6 +31,9 @@ integerABC i = caseInteger i ["a", "b", "c"]
 head :: BuiltinList Bool -> Bool
 head xs = caseList (\_ -> error ()) (\x _ -> x) xs
 
+dataFields :: BuiltinData -> BuiltinList BuiltinData
+dataFields d = caseData d [\xs -> xs]
+
 tests :: TestNested
 tests =
   testNested "BuiltinCasing"
@@ -42,4 +44,5 @@ tests =
       , goldenUPlcReadable "addPair" $$(compile [||addPair||])
       , goldenUPlcReadable "integerABC" $$(compile [||integerABC||])
       , goldenUPlcReadable "head" $$(compile [||head||])
+      , goldenUPlcReadable "dataFields" $$(compile [||dataFields||])
       ]

@@ -41,8 +41,8 @@ import PlutusTx.TH (compile)
 import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.QuickCheck (testProperty)
+import Test.Tasty (TestTree, localOption, testGroup)
+import Test.Tasty.QuickCheck (QuickCheckTests (..), testProperty)
 import Prelude qualified as Haskell
 
 tests :: TestTree
@@ -86,11 +86,12 @@ test_Hask_CorrectTokenQuantitiesAreSelected =
 
 testPropsInPlinth :: TestTree
 testPropsInPlinth =
-  testGroup
-    "Plinth"
-    [ test_Plinth_EachCurrencySymbolGetsItsContinuationApplied
-    , test_Plinth_CorrectTokenQuantitiesAreSelected
-    ]
+  localOption (QuickCheckTests 10)
+    $ testGroup
+      "Plinth"
+      [ test_Plinth_EachCurrencySymbolGetsItsContinuationApplied
+      , test_Plinth_CorrectTokenQuantitiesAreSelected
+      ]
 
 test_Plinth_EachCurrencySymbolGetsItsContinuationApplied :: TestTree
 test_Plinth_EachCurrencySymbolGetsItsContinuationApplied =

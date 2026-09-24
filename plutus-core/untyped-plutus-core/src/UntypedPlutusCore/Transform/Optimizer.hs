@@ -79,7 +79,7 @@ recordOptimization = recordOptimizationWithHints Hints.NoHints
 
 recordOptimizationWithHints
   :: Monad m
-  => Hints.Hints
+  => Hints.Hints (Term name uni fun a)
   -> Term name uni fun a
   -> Trace.OptStage
   -> Term name uni fun a

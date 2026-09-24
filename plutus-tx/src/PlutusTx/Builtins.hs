@@ -50,6 +50,7 @@ module PlutusTx.Builtins
 
     -- * Data
   , BuiltinData
+  , BI.caseData
   , chooseData
   , matchData
   , matchData'
@@ -100,6 +101,7 @@ module PlutusTx.Builtins
   , sopListToArray
   , BI.lengthOfArray
   , BI.indexArray
+  , BI.multiIndexArray
 
     -- * Tracing
   , trace
@@ -166,6 +168,10 @@ module PlutusTx.Builtins
   , BI.mkValue
   , BI.unsafeDataAsValue
   , BI.scaleValue
+  , BI.policies
+  , BI.assetCount
+  , BI.keepPolicies
+  , BI.dropPolicies
   ) where
 
 import Data.Maybe

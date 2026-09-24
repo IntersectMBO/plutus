@@ -5,7 +5,6 @@
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=3 #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-pir=0 #-}

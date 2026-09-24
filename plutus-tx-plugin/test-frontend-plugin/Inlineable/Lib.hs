@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 -- | Verifies that INLINEABLE pragma doesn't need to be written.
 module Inlineable.Lib where

@@ -1,6 +1,6 @@
-CPU:                38_008_843
-Memory:                179_114
-AST Size:                1_656
-Flat Size:               1_883
+CPU:                23_067_605
+Memory:                127_066
+AST Size:                1_220
+Flat Size:               1_442
 
-(constr 0)
+(con unit ())

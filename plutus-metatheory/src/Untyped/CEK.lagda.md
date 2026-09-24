@@ -31,13 +31,16 @@ open Eq using (_≡_; refl)
 open import Untyped using (_⊢)
 open _⊢
 open import Untyped.RenamingSubstitution using (Sub;sub;lifts)
-open import Utils hiding (List;length)
+open import Utils hiding (List;length;Value)
 open import Builtin
 open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
-            using (integer;bool;bytestring;string;pdata;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
+            using (integer;bool;bytestring;string;pdata;value;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯
 open Sig
 open import RawU using (TmCon;tmCon;TyTag;decTyTag;⟦_⟧tag)
+import Builtin.CInteger as CInt
+open CInt using (CInteger; cInt)
+open import Data.Integer using (_≤?_)
 ```
 
 ```
@@ -146,61 +149,86 @@ V-I b {tm = suc tm} bt = V-IΠ b bt
 fullyAppliedBuiltin : ∀ b → Set
 fullyAppliedBuiltin b = BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b)))
 
+mkCInteger : ℤ → Either RuntimeError CInteger
+mkCInteger i with CInt.minBound ≤? i | i ≤? CInt.maxBound
+mkCInteger i | yes p | yes q = return (cInt i p q)
+mkCInteger i | _ | _ = inj₁ userError
+
 {-
 The BUILTIN function provides the semantics of builtin functions.
 -}
 
 BUILTIN : ∀ b → fullyAppliedBuiltin b → Either RuntimeError Value
 BUILTIN addInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> inj₂ (V-con integer (i + i'))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      return (V-con integer (CInt.add i₁ i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN subtractInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> inj₂ (V-con integer (i - i'))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      return (V-con integer (CInt.subtract i₁ i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN multiplyInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> inj₂ (V-con integer (i ** i'))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      return (V-con integer (CInt.multiply i₁ i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN divideInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf
-      (i' ≟ ℤ.pos 0)
-      (inj₁ userError)
-      (inj₂ (V-con integer (div i i')))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      i₁/i₂ ← maybeToEither userError (CInt.div i₁ i₂)
+      return (V-con integer (i₁/i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN quotientInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf
-      (i' ≟ ℤ.pos 0)
-      (inj₁ userError)
-      (inj₂ (V-con integer (quot i i')))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      i₁/i₂ ← maybeToEither userError (CInt.quot i₁ i₂)
+      return (V-con integer (i₁/i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN remainderInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf
-      (i' ≟ ℤ.pos 0)
-      (inj₁ userError)
-      (inj₂ (V-con integer (rem i i')))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      i₁%i₂ ← maybeToEither userError (CInt.rem i₁ i₂)
+      return (V-con integer (i₁%i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN modInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf
-      (i' ≟ ℤ.pos 0)
-      (inj₁ userError)
-      (inj₂ (V-con integer (mod i i')))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      i₁%i₂ ← maybeToEither userError (CInt.mod i₁ i₂)
+      return (V-con integer (i₁%i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN lessThanInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf (i <? i') (inj₂ (V-con bool true)) (inj₂ (V-con bool false))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      return (V-con bool (CInt.lessThan i₁ i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN lessThanEqualsInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf (i ≤? i') (inj₂ (V-con bool true)) (inj₂ (V-con bool false))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      return (V-con bool (CInt.lessThanEquals i₁ i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN equalsInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf (i ≟ i') (inj₂ (V-con bool true)) (inj₂ (V-con bool false))
+  { (app (app base (V-con integer i)) (V-con integer i')) ->
+      decIf (i ≟ i') (inj₂ (V-con bool true)) (inj₂ (V-con bool false))
   ; _ -> inj₁ userError
   }
 BUILTIN appendByteString = λ
@@ -324,6 +352,41 @@ BUILTIN serialiseData = λ
   { (app base (V-con pdata d)) -> inj₂ (V-con bytestring (serialiseDATA d))
   ; _ -> inj₁ userError
   }
+BUILTIN insertCoin
+  (app (app (app (app base (V-con bytestring b)) (V-con bytestring b')) (V-con integer n)) (V-con value v))
+  with insertCOIN b b' n v
+... | just v' = inj₂ (V-con value v')
+... | nothing = inj₁ userError
+BUILTIN insertCoin _ = inj₁ userError
+BUILTIN lookupCoin = λ
+  { (app (app (app base (V-con bytestring b)) (V-con bytestring b')) (V-con value v)) -> inj₂ (V-con integer (lookupCOIN b b' v))
+  ; _ -> inj₁ userError
+  }
+BUILTIN unionValue (app (app base (V-con value v1)) (V-con value v2))
+  with unionVALUE v1 v2
+... | just v' = inj₂ (V-con value v')
+... | nothing = inj₁ userError
+BUILTIN unionValue _ = inj₁ userError
+BUILTIN valueContains (app (app base (V-con value v1)) (V-con value v2))
+  with (valueCONTAINS v1 v2)
+... | just b = inj₂ (V-con bool b)
+... | nothing = inj₁ userError
+BUILTIN valueContains _ =  inj₁ userError
+BUILTIN scaleValue (app (app base (V-con integer n)) (V-con value v))
+  with scaleVALUE n v
+... | just v' = inj₂ (V-con value v')
+... | nothing = inj₁ userError
+BUILTIN scaleValue _ = inj₁ userError
+BUILTIN valueData (app base (V-con value v))
+  with valueDATA v
+... | just d = inj₂ (V-con pdata d)
+... | nothing = inj₁ userError
+BUILTIN valueData _ = inj₁ userError
+BUILTIN unValueData (app base (V-con pdata d))
+  with unValueDATA d
+... | (just v) = inj₂ (V-con value v)
+... | nothing  = inj₁ userError
+BUILTIN unValueData _ = inj₁ userError
 BUILTIN chooseUnit = λ
   { (app (app (app⋆ base) (V-con unit tt)) v) -> inj₂ v
   ; _ -> inj₁ userError
@@ -651,6 +714,23 @@ lookup?-deterministic : {A : Set} {x₁ x₂ : A} → (n : ℕ) → (xs : List A
 lookup?-deterministic n xs p₁ p₂ with trans (sym p₁) p₂
 ... | refl = refl
 
+-- Casing on a constant of a builtin type, mirroring the Haskell
+-- 'CaseBuiltin DefaultUni' instance: the number of branches must match the
+-- type exactly (except for integer, which selects among any number of
+-- branches), and list/pair components are passed to the selected branch as
+-- already-evaluated constants. Any other combination fails.
+caseCon : ∀{Γ} → Stack Frame → Env Γ → (ty : TyTag) → ⟦ ty ⟧tag → List (Γ ⊢) → State
+caseCon s ρ unit tt (t ∷ []) = s ; ρ ▻ t
+caseCon s ρ bool false (t ∷ []) = s ; ρ ▻ t
+caseCon s ρ bool false (t ∷ _ ∷ []) = s ; ρ ▻ t
+caseCon s ρ bool true (_ ∷ t ∷ []) = s ; ρ ▻ t
+caseCon s ρ integer (ℤ.pos n) ts = maybe (s ; ρ ▻_) ◆ (lookup? n ts)
+caseCon s ρ (list ty) (x ∷ xs) (t ∷ []) = pushValueFrames s ((ε , V-con ty x) , V-con (list ty) xs) ; ρ ▻ t
+caseCon s ρ (list ty) (x ∷ xs) (t ∷ _ ∷ []) = pushValueFrames s ((ε , V-con ty x) , V-con (list ty) xs) ; ρ ▻ t
+caseCon s ρ (list ty) [] (_ ∷ t ∷ []) = s ; ρ ▻ t
+caseCon s ρ (pair ty₁ ty₂) (x , y) (t ∷ []) = pushValueFrames s ((ε , V-con ty₁ x) , V-con ty₂ y) ; ρ ▻ t
+caseCon s ρ _ _ _ = ◆
+
 step : State → State
 step (s ; ρ ▻ ` x)               = s ◅ lookup ρ x
 step (s ; ρ ▻ ƛ t)               = s ◅ V-ƛ ρ t
@@ -682,7 +762,7 @@ step ((s , constr- i vs ρ []) ◅ v)         = s ◅ V-constr i (vs , v)
 step ((s , constr- i vs ρ (t ∷ ts)) ◅ v)   = (s , constr- i (vs , v) ρ ts); ρ ▻ t
 step ((s , case- ρ ts) ◅ V-constr i vs)    = maybe (pushValueFrames s vs ; ρ ▻_) ◆ (lookup? i ts)
 step ((s , case- ρ ts) ◅ V-ƛ _ _)          = ◆ -- case of lambda
-step ((s , case- ρ ts) ◅ V-con _ _)        = ◆ -- case of constant
+step ((s , case- ρ ts) ◅ V-con ty v)       = caseCon s ρ ty v ts
 step ((s , case- ρ ts) ◅ V-delay _ _)      = ◆ -- case of delay
 step ((s , case- ρ ts) ◅ V-I⇒ _ _)         = ◆ -- case of builtin value
 step ((s , case- ρ ts) ◅ V-IΠ _ _)         = ◆ -- case of delayed builtin

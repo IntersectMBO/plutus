@@ -1,6 +1,5 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE StrictData #-}
@@ -57,13 +56,12 @@ import PlutusPrelude hiding (toList)
 
 import PlutusCore.Evaluation.Machine.CostingFun.Core
 import PlutusCore.Evaluation.Machine.CostingFun.JSON ()
-import PlutusCore.Evaluation.Machine.ExBudget
 
 import Barbies
 import Data.Aeson
 import Data.Kind qualified as Kind
+import Data.List (stripPrefix)
 import Data.Monoid
-import Deriving.Aeson
 import Language.Haskell.TH.Syntax hiding (Name, newName)
 
 type BuiltinCostModel = BuiltinCostModelBase CostingFun
@@ -199,22 +197,29 @@ data BuiltinCostModelBase f
   , paramInsertCoin :: f ModelFourArguments
   , paramUnionValue :: f ModelTwoArguments
   , paramScaleValue :: f ModelTwoArguments
+  , -- Batch 7
+    paramMultiIndexArray :: f ModelTwoArguments
+  , paramAssetCount :: f ModelOneArgument
+  , paramPolicies :: f ModelOneArgument
   }
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)
 
-deriving via
-  CustomJSON
-    '[FieldLabelModifier (StripPrefix "param", LowerInitialCharacter)]
-    (BuiltinCostModelBase CostingFun)
-  instance
-    ToJSON (BuiltinCostModelBase CostingFun)
-deriving via
-  CustomJSON
-    '[FieldLabelModifier (StripPrefix "param", LowerInitialCharacter)]
-    (BuiltinCostModelBase CostingFun)
-  instance
-    FromJSON (BuiltinCostModelBase CostingFun)
+{-| JSON options for 'BuiltinCostModelBase': drop the @param@ prefix and lower the initial
+character, so that the names of the JSON fields are exactly the same as the names of the
+builtins. -}
+builtinCostModelOptions :: Options
+builtinCostModelOptions =
+  defaultOptions {fieldLabelModifier = lowerInitialChar . dropPrefix "param"}
+  where
+    dropPrefix prefix s = fromMaybe s (stripPrefix prefix s)
+
+instance ToJSON (BuiltinCostModelBase CostingFun) where
+  toJSON = genericToJSON builtinCostModelOptions
+  toEncoding = genericToEncoding builtinCostModelOptions
+
+instance FromJSON (BuiltinCostModelBase CostingFun) where
+  parseJSON = genericParseJSON builtinCostModelOptions
 
 {-| Same as 'CostingFun' but maybe missing.
 We could use 'Compose Maybe CostinFun' instead but we would then need an orphan ToJSON instance. -}
@@ -223,12 +228,12 @@ newtype MCostingFun a = MCostingFun (Maybe (CostingFun a))
   deriving (Semigroup, Monoid) via (Alt Maybe (CostingFun a)) -- for mempty == MCostingFun Nothing
 
 -- Omit generating JSON for any costing functions that have not been set (are missing).
-deriving via
-  CustomJSON
-    '[OmitNothingFields, FieldLabelModifier (StripPrefix "param", LowerInitialCharacter)]
-    (BuiltinCostModelBase MCostingFun)
-  instance
-    ToJSON (BuiltinCostModelBase MCostingFun)
+instance ToJSON (BuiltinCostModelBase MCostingFun) where
+  toJSON = genericToJSON mBuiltinCostModelOptions
+  toEncoding = genericToEncoding mBuiltinCostModelOptions
+
+mBuiltinCostModelOptions :: Options
+mBuiltinCostModelOptions = builtinCostModelOptions {omitNothingFields = True}
 
 -- Needed to help derive various instances for BuiltinCostModelBase
 type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =

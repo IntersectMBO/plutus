@@ -25,6 +25,7 @@ import PlutusCore.Executable.AstIO
 import PlutusCore.Executable.Blueprint
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Eval
+import PlutusCore.Executable.Help qualified as Help
 import PlutusCore.Executable.OptimizerReport
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
@@ -82,6 +83,7 @@ import System.Exit
 import System.FilePath
 import System.IO
   ( hPrint
+  , hPutStrLn
   , stderr
   )
 import System.Mem (performGC)
@@ -98,6 +100,28 @@ uplcHelpText = helpText "Untyped Plutus Core"
 
 uplcInfoCommand :: ParserInfo Command
 uplcInfoCommand = plutus uplcHelpText
+
+topLevelExamples :: [Help.Example]
+topLevelExamples =
+  [ Help.eg
+      "Evaluate a textual UPLC program on the CEK machine"
+      "uplc evaluate -i program.uplc"
+  , Help.eg
+      "Evaluate a hex-encoded script (format deduced from the .hex extension) and report the CPU/memory budget used"
+      "uplc evaluate -i script.hex --counting"
+  , Help.eg
+      "Pretty-print a hex-encoded script as textual UPLC (input format deduced from .hex)"
+      "uplc convert -i script.hex --of textual"
+  , Help.eg
+      "Optimise a script (formats deduced from the .uplc extensions)"
+      "uplc optimize -i program.uplc -o program-opt.uplc"
+  , Help.eg
+      "List the built-in example programs"
+      "uplc example -a"
+  , Help.eg
+      "Enable bash completion for the current shell"
+      "source <(uplc --bash-completion-script $(command -v uplc))"
+  ]
 
 data BudgetMode
   = Silent
@@ -173,9 +197,8 @@ cekmodel =
 
 benchmarkOpts :: Parser BenchmarkOptions
 benchmarkOpts =
-  BenchmarkOptions
-    <$> input
-    <*> inputformat
+  uncurry BenchmarkOptions
+    <$> inputWithFormat
     <*> builtinSemanticsVariant
     <*> option
       auto
@@ -189,9 +212,8 @@ benchmarkOpts =
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions
-    <$> input
-    <*> inputformat
+  uncurry EvalOptions
+    <$> inputWithFormat
     <*> printmode
     <*> nameformat
     <*> budgetmode
@@ -202,9 +224,8 @@ evalOpts =
 
 timeOpts :: Parser TimeEvalOptions
 timeOpts =
-  TimeEvalOptions
-    <$> input
-    <*> inputformat
+  uncurry TimeEvalOptions
+    <$> inputWithFormat
     <*> builtinSemanticsVariant
     <*> option
       auto
@@ -222,9 +243,8 @@ timeOpts =
 
 dbgOpts :: Parser DbgOptions
 dbgOpts =
-  DbgOptions
-    <$> input
-    <*> inputformat
+  uncurry DbgOptions
+    <$> inputWithFormat
     <*> cekmodel
     <*> builtinSemanticsVariant
 
@@ -297,7 +317,11 @@ plutus
 plutus langHelpText =
   info
     (plutusOpts <**> versioner <**> helper)
-    (fullDesc <> header "Untyped Plutus Core Tool" <> progDesc langHelpText)
+    ( fullDesc
+        <> header "Untyped Plutus Core Tool"
+        <> progDesc langHelpText
+        <> Help.examplesFooter topLevelExamples
+    )
 
 plutusOpts :: Parser Command
 plutusOpts =
@@ -306,40 +330,56 @@ plutusOpts =
       "apply"
       ( info
           (Apply <$> applyOpts)
-          ( progDesc $
-              "Given a list of input files f g1 g2 ... gn "
-                <> "containing Untyped Plutus Core scripts, "
-                <> "output a script consisting of (... ((f g1) g2) ... gn); "
-                <> "for example, 'uplc apply --if flat Validator.flat "
-                <> "Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'."
+          ( progDesc
+              ( "Given a list of input files f g1 g2 ... gn "
+                  <> "containing Untyped Plutus Core scripts, "
+                  <> "output a script consisting of (... ((f g1) g2) ... gn)."
+              )
+              <> Help.examplesFooter
+                [ Help.eg
+                    "Apply a flat-encoded validator to its arguments (each file's format deduced from its extension)"
+                    "uplc apply Validator.flat Datum.flat Redeemer.flat Context.flat -o Script.flat"
+                , Help.eg
+                    "Input files may mix formats: a textual script applied to flat-encoded arguments"
+                    "uplc apply script.uplc arg1.flat arg2.flat -o Script.flat"
+                , Help.eg
+                    "Force one input format for every file with --if (overriding extension deduction)"
+                    "uplc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat"
+                ]
           )
       )
       <> command
         "apply-to-flat-data"
         ( info
             (ApplyToFlatData <$> applyOpts)
-            ( progDesc $
-                "Given a list f d1 d2 ... dn where f is an "
-                  <> "Untyped Plutus Core script and d1,...,dn are files "
-                  <> "containing flat-encoded data ojbects, output a script "
-                  <> "consisting of f applied to the data objects; "
-                  <> "for example, 'uplc apply-to-flat-data --if "
-                  <> "flat Validator.flat Datum.flat Redeemer.flat Context.flat "
-                  <> "--of flat -o Script.flat'."
+            ( progDesc
+                ( "Given a list f d1 d2 ... dn where f is an "
+                    <> "Untyped Plutus Core script and d1,...,dn are files "
+                    <> "containing flat-encoded data objects, output a script "
+                    <> "consisting of f applied to the data objects."
+                )
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Apply a script to flat-encoded Data arguments (program format deduced from the .flat extension)"
+                      "uplc apply-to-flat-data Validator.flat Datum.flat Redeemer.flat Context.flat -o Script.flat"
+                  ]
             )
         )
       <> command
         "apply-to-cbor-data"
         ( info
             (ApplyToCborData <$> applyOpts)
-            ( progDesc $
-                "Given a list f d1 d2 ... dn where f is an "
-                  <> "Untyped Plutus Core script and d1,...,dn are files "
-                  <> "containing CBOR-encoded data ojbects, output a script "
-                  <> "consisting of f applied to the data objects; "
-                  <> "for example, 'uplc apply-to-cbor-data --if "
-                  <> "flat Validator.flat Datum.cbor Redeemer.cbor Context.cbor "
-                  <> "--of flat -o Script.flat'."
+            ( progDesc
+                ( "Given a list f d1 d2 ... dn where f is an "
+                    <> "Untyped Plutus Core script and d1,...,dn are files "
+                    <> "containing CBOR-encoded data objects, output a script "
+                    <> "consisting of f applied to the data objects."
+                )
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Apply a script to CBOR-encoded Data arguments (program format deduced from the .flat extension)"
+                      "uplc apply-to-cbor-data Validator.flat Datum.cbor Redeemer.cbor Context.cbor -o Script.flat"
+                  ]
             )
         )
       <> command
@@ -352,7 +392,19 @@ plutusOpts =
         "convert"
         ( info
             (Convert <$> convertOpts)
-            (progDesc "Convert a program between various formats.")
+            ( progDesc "Convert a program between various formats."
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Flat-encode a textual UPLC program (formats deduced from the .uplc and .flat extensions)"
+                      "uplc convert -i program.uplc -o program.flat"
+                  , Help.eg
+                      "Convert a hex-encoded script to a textual file (both formats deduced from the extensions)"
+                      "uplc convert -i script.hex -o script.uplc"
+                  , Help.eg
+                      "Pretty-print a hex-encoded script to stdout; --if/--of override the deduced formats"
+                      "uplc convert --if hex --of textual -i script.hex"
+                  ]
+            )
         )
       <> command "optimise" (optimise "Run the UPLC optimisation pipeline on the input.")
       <> command "optimize" (optimise "Same as 'optimise'.")
@@ -371,13 +423,34 @@ plutusOpts =
         "benchmark"
         ( info
             (Benchmark <$> benchmarkOpts)
-            (progDesc "Benchmark an untyped Plutus Core program on the CEK machine using Criterion.")
+            ( progDesc "Benchmark an untyped Plutus Core program on the CEK machine using Criterion."
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Benchmark evaluation with a 20-second time limit"
+                      "uplc benchmark -i program.uplc --time-limit 20"
+                  ]
+            )
         )
       <> command
         "evaluate"
         ( info
             (Eval <$> evalOpts)
-            (progDesc "Evaluate an untyped Plutus Core program using the CEK machine.")
+            ( progDesc "Evaluate an untyped Plutus Core program using the CEK machine."
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Evaluate a textual UPLC program (format deduced from the .uplc extension)"
+                      "uplc evaluate -i program.uplc"
+                  , Help.eg
+                      "Evaluate a hex-encoded script (format deduced from .hex) and report the budget used"
+                      "uplc evaluate -i script.hex --counting"
+                  , Help.eg
+                      "The same, forcing the input format explicitly with --if instead of deducing it"
+                      "uplc evaluate --if hex -i script.hex --counting"
+                  , Help.eg
+                      "Evaluate a program piped in on stdin (defaults to textual)"
+                      "echo '(program 1.1.0 (con integer 42))' | uplc evaluate"
+                  ]
+            )
         )
       <> command
         "time"
@@ -392,7 +465,13 @@ plutusOpts =
         "debug"
         ( info
             (Dbg <$> dbgOpts)
-            (progDesc "Debug an untyped Plutus Core program using the CEK machine.")
+            ( progDesc "Debug an untyped Plutus Core program using the CEK machine."
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Step through a program interactively"
+                      "uplc debug -i program.uplc"
+                  ]
+            )
         )
       <> command
         "dump-cost-model"
@@ -407,7 +486,17 @@ plutusOpts =
             (progDesc "Print the signatures of the built-in functions.")
         )
   where
-    optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
+    optimise desc =
+      info (Optimise <$> optimiseOpts) $
+        progDesc desc
+          <> Help.examplesFooter
+            [ Help.eg
+                "Optimise a textual UPLC script (formats deduced from the .uplc extensions)"
+                "uplc optimize -i program.uplc -o program-opt.uplc"
+            , Help.eg
+                "Optimise every validator in a CIP-57 blueprint (blueprint isn't deduced from .json, so give it explicitly)"
+                "uplc optimize --if blueprint --of blueprint -i bp.json -o bp-opt.json"
+            ]
 
 ---------------- Optimisation ----------------
 
@@ -522,8 +611,18 @@ execCertifier optimizerTrace cert out costs = do
         InvalidCertificate _ _ -> exitWith $ ExitFailure 1
         InvalidCompilerOutput -> exitWith $ ExitFailure 2
         ValidationError _ -> exitWith $ ExitFailure 3
-    -- TODO: Only Right True is success
-    Right _ -> pure ()
+    Right True ->
+      hPutStrLn stderr "The compilation was successfully certified."
+    Right False -> do
+      -- In project output mode a rejected certification is reported as
+      -- 'InvalidCertificate' above, so this only happens in basic and
+      -- report output modes.
+      hPutStrLn stderr $
+        "The compilation was not successfully certified."
+          <> case out of
+            ReportOutput file -> " See the certifier report in " <> file <> "."
+            _ -> ""
+      exitWith $ ExitFailure 1
 
 ---------------- Load script arguments for evaluation ----------------
 
@@ -615,8 +714,11 @@ loadArgsIfEval opts
 {-| Apply one script to a list of others and output the result.  All of the
 scripts must be UPLC.Program objects. -}
 runApply :: ApplyOptions -> IO ()
-runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((readProgram ifmt :: Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
+runApply (ApplyOptions inputfiles outp ofmt mode) = do
+  scripts <-
+    mapM
+      (\(file, ifmt) -> readProgram ifmt (FileInput file) :: IO (UplcProg SrcSpan))
+      inputfiles
   let appliedScript =
         case void <$> scripts of
           [] -> errorWithoutStackTrace "No input files"
@@ -627,12 +729,12 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 {-| Apply a UPLC program to script to a list of flat-encoded Data objects and
 output the result. -}
 runApplyToFlatData :: ApplyOptions -> IO ()
-runApplyToFlatData (ApplyOptions inputfiles ifmt outp ofmt mode) =
+runApplyToFlatData (ApplyOptions inputfiles outp ofmt mode) =
   case inputfiles of
     [] -> errorWithoutStackTrace "No input files"
-    p : ds -> do
+    (p, ifmt) : ds -> do
       prog@(UPLC.Program _ version _) :: UplcProg SrcSpan <- readProgram ifmt (FileInput p)
-      args <- mapM (getDataObject version) ds
+      args <- mapM (getDataObject version . fst) ds
       let prog' = void prog
           appliedScript = foldl1 (unsafeFromRight .* UPLC.applyProgram) (prog' : args)
       writeProgram outp ofmt mode appliedScript
@@ -647,12 +749,12 @@ runApplyToFlatData (ApplyOptions inputfiles ifmt outp ofmt mode) =
 {-| Apply a UPLC program to script to a list of CBOR-encoded flat-encoded Data
 objects and output the result. -}
 runApplyToCborData :: ApplyOptions -> IO ()
-runApplyToCborData (ApplyOptions inputfiles ifmt outp ofmt mode) =
+runApplyToCborData (ApplyOptions inputfiles outp ofmt mode) =
   case inputfiles of
     [] -> errorWithoutStackTrace "No input files"
-    p : ds -> do
+    (p, ifmt) : ds -> do
       prog@(UPLC.Program _ version _) :: UplcProg SrcSpan <- readProgram ifmt (FileInput p)
-      args <- mapM (getCborDataObject version) ds
+      args <- mapM (getCborDataObject version . fst) ds
       let prog' = void prog
           appliedScript = foldl1 (unsafeFromRight .* UPLC.applyProgram) (prog' : args)
       writeProgram outp ofmt mode appliedScript

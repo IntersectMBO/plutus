@@ -6,7 +6,8 @@ let
     = `$fToDataInteger_$ctoBuiltinData`
   !unsafeDataAsI : data -> integer = unIData
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
-  !head : all a. list a -> a = headList
+  !droppableUnsafeCaseList : all a r. (a -> list a -> r) -> list a -> r
+    = /\a r -> \(f : a -> list a -> r) (xs : list a) -> case r xs [f]
   !snd : all a b. pair a b -> b
     = /\a b -> \(x : pair a b) -> case b x [(\(l : a) (r : b) -> r)]
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
@@ -19,10 +20,12 @@ let
          (ds : (\a -> data) a) ->
           let
             !nt : data = ds
-            !l : list data
-              = snd {integer} {list data} (wrapUnsafeDataAsConstr nt)
           in
-          `$dUnsafeFromData` (head {data} l)
+          droppableUnsafeCaseList
+            {data}
+            {a}
+            (\(ds : data) (ds : list data) -> `$dUnsafeFromData` ds)
+            (snd {integer} {list data} (wrapUnsafeDataAsConstr nt))
 in
 \(r : (\a -> data) integer) ->
   let

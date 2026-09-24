@@ -38,7 +38,7 @@ prop_quot_rem_compatible (biginteger -> a) (NonZero (biginteger -> b)) =
   let t = addInteger (multiplyInteger b (quotientInteger a b)) (remainderInteger a b)
    in evalOkEq t a
 
--- (k*b) `quot` b = b and (k*b) `rem` b = 0 for all k
+-- (k*b) `quot` b = k and (k*b) `rem` b = 0 for all k
 prop_quot_rem_multiple :: BigInteger -> NonZero BigInteger -> Property
 prop_quot_rem_multiple (biginteger -> k) (NonZero (biginteger -> b)) =
   let t1 = quotientInteger (multiplyInteger k b) b

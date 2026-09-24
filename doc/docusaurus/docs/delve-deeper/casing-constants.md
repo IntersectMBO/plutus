@@ -22,16 +22,8 @@ developers can benefit from the improved performance.
 
 ## Usage from Plinth
 
-:::info
-
-The Plinth compiler option will change from `datatypes=BuiltinCasing` to
-`datatypes=SumsOfProducts` in the future.
-
-:::
-
-
 Plinth developers can benefit from the performance of `case` by enabling the
-compiler [option](./plinth-compiler-options) `datatypes=BuiltinCasing`, and
+compiler [option](./plinth-compiler-options) `datatypes=SumsOfProducts` (enabled by default), and
 using standard library functions such as `caseList`, `fstPair`.
 Note that Plinth's `case ... of ...` syntax is not generally compiled to UPLC,
 as it can be more expressive.
@@ -58,7 +50,7 @@ assert False = error ()
 assert True = unitval
 ```
 
-With `datatypes=BuiltinCasing`, it is compiled to the new casing on builtins:
+With `datatypes=SumsOfProducts`, it is compiled to casing on builtins:
 
 ```uplc
 \b -> case b [error, ()]
@@ -85,7 +77,7 @@ delaying impacts the size and execution cost.
 ### BuiltinUnit
 
 The built-in unit type can be used in a trivial way with `case` in UPLC, which
-takes exactly one branch. With `datatypes=BuiltinCasing`, Plinth will compile
+takes exactly one branch. With `datatypes=SumsOfProducts`, Plinth will compile
 `chooseUnit` from `PlutusTx.Builtins.Internal` into `case`. For example:
 
 ```haskell
@@ -120,7 +112,7 @@ This compiles into `case` in UPLC, which expects a single branch:
 
 :::info
 
-When compiling without `datatypes=BuiltinCasing`, Plinth's `choosePair` is
+When compiling with `datatypes=ScottEncoding`, Plinth's `choosePair` is
 compiled into multiple built-in function calls to project out the pair's
 components, impacting size and execution cost:
 
@@ -160,7 +152,7 @@ fail. Note that there is no way to provide a "catch-all" case for integers.
 
 :::info
 
-When not using `datatypes=BuiltinCasing`, Plinth's `caseInteger` is compiled
+When using `datatypes=ScottEncoding`, Plinth's `caseInteger` is compiled
 into a much less efficient implementation that turns the second argument in a
 list (of which the representation depends on the chosen `datatypes=` flag), and
 does a recursive lookup in that list. The above Plinth code is compiled to:
@@ -213,7 +205,7 @@ head xs = caseList (\x _ -> x) (\_ -> error ()) xs
 
 :::info
 
-When compiling without `datatypes=BuiltinCasing`, compilation falls back on
+When compiling with `datatypes=ScottEncoding`, compilation falls back on
 using multiple built-ins, such as `chooseList`, `headList` and `tailList`.
 Similarly to booleans, the branches are thunked, impacting script size and
 execution cost:

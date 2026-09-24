@@ -124,8 +124,6 @@
       Fc : Algorithm
     !equalsInteger : integer -> integer -> bool
       = \(x : integer) (y : integer) -> equalsInteger x y
-    data Unit | Unit_match where
-      Unit : Unit
   in
   letrec
     !deleteBy : all a. (a -> a -> bool) -> a -> List a -> List a
@@ -280,10 +278,10 @@
                                , (/\dead -> cs) ]
                                {all dead. dead})
                         (/\dead ->
-                           let
-                             !defaultBody : List integer = error {List integer}
-                           in
-                           Unit_match (error {Unit}) {List integer} defaultBody)
+                           case
+                             (List integer)
+                             (error {unit})
+                             [(error {List integer})])
                         {all dead. dead}))
             {all dead. dead}
   in
@@ -531,9 +529,6 @@
             {all dead. dead}
   in
   let
-    !traceError : all a. string -> a
-      = /\a ->
-          \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
     !zipWith : all a b c. (a -> b -> c) -> List a -> List b -> List c
       = /\a b c ->
           \(f : a -> b -> c) ->
@@ -593,7 +588,10 @@
                                  tbl
                                  {all dead. List (List ConflictSet)}
                                  (/\dead ->
-                                    traceError {List (List ConflictSet)} "PT9")
+                                    let
+                                      !x : unit = trace {unit} "PT9" ()
+                                    in
+                                    error {List (List ConflictSet)})
                                  (\(ds : List ConflictSet)
                                    (as : List (List ConflictSet)) ->
                                     /\dead -> as)
@@ -873,10 +871,10 @@
                       /\dead ->
                         unionBy {integer} equalsInteger cs (collect css))
                    (/\dead ->
-                      let
-                        !defaultBody : List integer = error {List integer}
-                      in
-                      Unit_match (error {Unit}) {List integer} defaultBody)
+                      case
+                        (List integer)
+                        (error {unit})
+                        [(error {List integer})])
                    {all dead. dead})
             {all dead. dead}
   in
@@ -961,7 +959,11 @@
             {ConflictSet}
             ds
             {all dead. ConflictSet}
-            (/\dead -> traceError {ConflictSet} "PT7")
+            (/\dead ->
+               let
+                 !x : unit = trace {unit} "PT7" ()
+               in
+               error {ConflictSet})
             (\(x : ConflictSet) (xs : List ConflictSet) ->
                /\dead ->
                  case
@@ -1030,9 +1032,11 @@
                                             tbl
                                             {all dead. List ConflictSet}
                                             (/\dead ->
-                                               traceError
-                                                 {List ConflictSet}
-                                                 "PT8")
+                                               let
+                                                 !x : unit
+                                                   = trace {unit} "PT8" ()
+                                               in
+                                               error {List ConflictSet})
                                             (\(x : List ConflictSet)
                                               (ds : List (List ConflictSet)) ->
                                                /\dead -> x)
@@ -1052,7 +1056,10 @@
                                       (lessThanInteger n 0)
                                       [ (/\dead -> go n ds)
                                       , (/\dead ->
-                                           traceError {ConflictSet} "PT6") ]
+                                           let
+                                             !x : unit = trace {unit} "PT6" ()
+                                           in
+                                           error {ConflictSet}) ]
                                       {all dead. dead}
                                 in
                                 Tuple2
@@ -1509,9 +1516,14 @@
                                                     wipedDomains
                                                     {all dead. List ConflictSet}
                                                     (/\dead ->
-                                                       traceError
-                                                         {List ConflictSet}
-                                                         "PT8")
+                                                       let
+                                                         !x : unit
+                                                           = trace
+                                                               {unit}
+                                                               "PT8"
+                                                               ()
+                                                       in
+                                                       error {List ConflictSet})
                                                     (\(x : List ConflictSet)
                                                       (ds :
                                                          List

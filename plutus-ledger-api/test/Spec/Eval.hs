@@ -19,6 +19,7 @@ import PlutusLedgerApi.Test.V1.EvaluationContext qualified as V1
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3
+import PlutusLedgerApi.V4 qualified as V4
 import PlutusPrelude
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Test.DeBruijn.Bad
@@ -31,6 +32,7 @@ import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe (fromJust)
 import NoThunks.Class
+import PlutusCore.Data qualified as Data
 import Test.Tasty
 import Test.Tasty.Extras (ignoreTestWhenHpcEnabled)
 import Test.Tasty.HUnit
@@ -51,15 +53,35 @@ testAPI :: TestTree
 testAPI = "v1-api" `testWith` evalAPI vasilPV
 
 evalAPI :: MajorProtocolVersion -> T -> Bool
-evalAPI pv t =
+evalAPI = evalAPIWithVersion PLC.plcVersion100
+
+evalAPIWithVersion :: PLC.Version -> MajorProtocolVersion -> T -> Bool
+evalAPIWithVersion version pv t =
   -- handcraft a serialised script
-  let ss :: V1.SerialisedScript = V1.serialiseUPLC $ Program () PLC.plcVersion100 t
+  let ss :: V1.SerialisedScript = V1.serialiseUPLC $ Program () version t
       s :: V1.ScriptForEvaluation = either (Prelude.error . show) id $ deserialiseScript PlutusV1 pv ss
       ec :: V1.EvaluationContext =
         fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationContext $ fmap snd V1.costModelParamsForTesting
    in isRight $
         snd $
           V1.evaluateScriptRestricting pv V1.Quiet ec (unExRestrictingBudget enormousBudget) s []
+
+dataCaseTerm :: T
+dataCaseTerm =
+  Case
+    ()
+    (mkConstant @Data.Data () $ Data.Constr 0 [])
+    (pure $ LamAbs () (DeBruijn 0) $ mkConstant @Integer () 42)
+
+unitCaseTerm :: T
+unitCaseTerm = Case () (mkConstant @() () ()) (pure $ mkConstant @Integer () 42)
+
+dataCaseIsDijkstraOnly :: TestTree
+dataCaseIsDijkstraOnly = testCase "case on Data.Constr is available from Dijkstra" $ do
+  let evalCase pv = evalAPIWithVersion PLC.plcVersion110 pv
+  evalCase vanRossemPV unitCaseTerm @?= True
+  evalCase vanRossemPV dataCaseTerm @?= False
+  evalCase dijkstraPV dataCaseTerm @?= True
 
 {-| Test a given eval function against the expected results.
 These tests are modified from untyped-plutus-core-test:Evaluation.FreeVars
@@ -100,6 +122,7 @@ lengthParamNamesV :: PlutusLedgerLanguage -> Int
 lengthParamNamesV PlutusV1 = length $ enumerate @V1.ParamName
 lengthParamNamesV PlutusV2 = length $ enumerate @V2.ParamName
 lengthParamNamesV PlutusV3 = length $ enumerate @V3.ParamName
+lengthParamNamesV PlutusV4 = length $ enumerate @V4.ParamName
 
 mkEvaluationContextV :: PlutusLedgerLanguage -> IO EvaluationContext
 mkEvaluationContextV ll =
@@ -108,6 +131,7 @@ mkEvaluationContextV ll =
       PlutusV1 -> V1.mkEvaluationContext
       PlutusV2 -> V2.mkEvaluationContext
       PlutusV3 -> V3.mkEvaluationContext
+      PlutusV4 -> V4.mkEvaluationContext
 
 -- | Ensure that 'toMachineParameters' never throws for all language and protocol versions.
 evaluationContextCacheIsComplete :: TestTree
@@ -136,6 +160,7 @@ tests =
   testGroup
     "eval"
     [ testAPI
+    , dataCaseIsDijkstraOnly
     , --    , testUnlifting
       evaluationContextCacheIsComplete
     , ignoreTestWhenHpcEnabled evaluationContextNoThunks

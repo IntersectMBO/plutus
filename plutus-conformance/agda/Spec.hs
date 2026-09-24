@@ -5,7 +5,7 @@
 module Main (main) where
 
 import Control.Monad.Trans.Except
-  ( ExceptT
+  ( runExcept
   , runExceptT
   , withExceptT
   )
@@ -16,7 +16,8 @@ import MAlonzo.Code.Evaluator.Term
   )
 
 import PlutusConformance.Common
-  ( UplcEvaluator (..)
+  ( EvaluationResult (..)
+  , UplcEvaluator (..)
   , runUplcEvalTests
   )
 import PlutusCore (Error (..))
@@ -46,6 +47,11 @@ import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
 import PlutusCore.Quote
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
+  ( FreeVariableError
+  , NamedDeBruijn
+  , deBruijnTerm
+  , unDeBruijnTerm
+  )
 
 import Data.Aeson
   ( Result (Error, Success)
@@ -87,6 +93,12 @@ toRawCostModel params =
    to turn the costing off, for example if the Haskell costing implementation
    has changed and the Agda implementation has not yet caught up: to do this,
    change `WithCosting` to `WithoutCosting` in `main`.
+
+   Since `main` only ever calls `agdaEvalUplcProg WithCosting`, the
+   `WithoutCosting` case below is never exercised by any test run in CI: it only
+   actually runs when someone edits `main` by hand as described above.  Keep the
+   two cases in sync by inspection when editing either of them, since nothing
+   else will notice if they diverge.
 -}
 data CostOrNot = WithCosting | WithoutCosting
 
@@ -95,330 +107,104 @@ agdaEvalUplcProg :: CostOrNot -> UplcEvaluator
 agdaEvalUplcProg WithCosting =
   UplcEvaluatorWithCosting $ \modelParams (UPLC.Program () version tmU) ->
     let
-      -- turn the body of the program into an untyped de Bruijn term
-      tmUDB
-        :: ExceptT
-             FreeVariableError
-             Quote
-             (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
-      tmUDB = deBruijnTerm tmU
+      -- turn the body of the program into an untyped de Bruijn term.  No
+      -- `Quote` is needed here (unlike the `unDeBruijnTerm` conversion
+      -- below): `deBruijnTerm` never invents fresh names, only `Either`'s
+      -- `MonadError` instance is required.
+      tmUDB :: Either FreeVariableError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+      tmUDB = runExcept (deBruijnTerm tmU)
      in
-      case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
-        -- if there's an exception, evaluation failed, should return `Nothing`.
-        Left _ -> Nothing
+      case tmUDB of
+        Left _ -> DecodeError
         -- evaluate the untyped term with the CEK evaluator
         Right tmUDBSuccess ->
           case runUCountingAgda (toRawCostModel modelParams) tmUDBSuccess of
-            Left _ -> Nothing
+            Left _ -> EvalFailure
             Right (tmEvaluated, (cpuCost, memCost)) ->
               -- turn it back into a named term
               case runQuote $
                 runExceptT $
                   withExceptT FreeVariableErrorE $
                     unDeBruijnTerm tmEvaluated of
-                Left _ -> Nothing
+                -- Shouldn't happen unless there's something wrong with the Agda code.
+                Left (err :: Error DefaultUni DefaultFun ()) ->
+                  error $ "deBruijnTerm (agdaEvalUplcProg WithCosting): " <> show err
                 Right namedTerm ->
                   let cost =
                         ExBudget
                           (ExCPU (fromInteger cpuCost))
                           (ExMemory (fromInteger memCost))
-                   in Just (UPLC.Program () version namedTerm, cost)
+                   in EvalSuccess (UPLC.Program () version namedTerm, cost)
 agdaEvalUplcProg WithoutCosting =
   UplcEvaluatorWithoutCosting $ \(UPLC.Program () version tmU) ->
-    let tmUDB
-          :: ExceptT
-               FreeVariableError
-               Quote
-               (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
-        tmUDB = deBruijnTerm tmU
-     in case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
-          Left _ -> Nothing
-          Right tmUDBSuccess ->
-            case runUAgda tmUDBSuccess of
-              Left _ -> Nothing
-              Right tmEvaluated ->
-                case runQuote $
-                  runExceptT $
-                    withExceptT FreeVariableErrorE $
-                      unDeBruijnTerm tmEvaluated of
-                  Left _ -> Nothing
-                  Right namedTerm -> Just $ UPLC.Program () version namedTerm
-
-{-| A list of evaluation tests which are currently expected to fail.  Once a fix
- for a test is pushed, the test will succeed and should be removed from the
- list.  The entries of the list are paths from the root of plutus-conformance to
- the directory containing the test, eg
- "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1" -}
-failingEvaluationTests :: [FilePath]
-failingEvaluationTests =
-  [ -- These "constant casing" tests fail because Agda metatheory does not yet
-    -- implement casing on constant values.
-    -- TODO: remove these tests once casing on constant is added to Agda metatheory.
-    "test-cases/uplc/evaluation/term/constant-case/bool/bool-01"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-02"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-03"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-04"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-05"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-06"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-07"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-01"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-02"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-03"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-04"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-01"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-02"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-03"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-04"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-05"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-06"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-07"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-01"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-02"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-03"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-04"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-05"
-  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-01"
-  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-02"
-  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-03"
-  , -- The following are failing because the metatheory needs to be updated with
-    -- Value built-in functions
-    "test-cases/uplc/evaluation/builtin/constant/value/empty-value"
-  , "test-cases/uplc/evaluation/builtin/constant/value/max-currencyID-length"
-  , "test-cases/uplc/evaluation/builtin/constant/value/max-tokenID-length"
-  , "test-cases/uplc/evaluation/builtin/constant/value/no-overflow"
-  , "test-cases/uplc/evaluation/builtin/constant/value/no-underflow"
-  , "test-cases/uplc/evaluation/builtin/constant/value/value-ok-1"
-  , "test-cases/uplc/evaluation/builtin/constant/value/value-ok-2"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-nonempty"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-token"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/negative-empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-nonempty"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/zero-positive"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/no-overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/no-underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/long-key-zero-1"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/long-key-zero-2"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/key-too-long-1"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/key-too-long-2"
-  , "test-cases/uplc/evaluation/builtin/semantics/lookupCoin/absent"
-  , "test-cases/uplc/evaluation/builtin/semantics/lookupCoin/present"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/cancel-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/cancel-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/combine"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/unitl"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/unitr"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/no-overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/no-underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/ccy-missing"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-insufficient"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-sufficient"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-eq"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-gt"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-lt"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-pos"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-neg"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-zero"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/no-overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/no-underflow"
-  , -- valueData and unValueData builtins
-    "test-cases/uplc/evaluation/builtin/semantics/valueData/empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueData/single-entry"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueData/multi-token"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueData/multi-currency"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueData/negative-quantity"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueData/roundtrip-from-value"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/single-entry"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/multi-token"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/multi-currency"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/negative-quantity"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/max-key-len"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/roundtrip-from-data"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-tokens"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-currencies"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-currencies-cancel"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-currencies-merge"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-zero-quantity"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-zero-sum"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-empty-tokens"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-unordered-currencies"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-unordered-tokens"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-integer"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-constr"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-list"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-bytes"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/currency-key-too-long"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/token-key-too-long"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/quantity-overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/quantity-underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-bytestring-currency"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-bytestring-token"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-integer-quantity"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-tokens"
-  ]
+    let
+      -- See the comment on the analogous binding in the `WithCosting` case
+      -- above for why no `Quote` is needed here.
+      tmUDB :: Either FreeVariableError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+      tmUDB = runExcept (deBruijnTerm tmU)
+     in
+      case tmUDB of
+        Left _ -> DecodeError
+        Right tmUDBSuccess ->
+          case runUAgda tmUDBSuccess of
+            Left _ -> EvalFailure
+            Right tmEvaluated ->
+              case runQuote $
+                runExceptT $
+                  withExceptT FreeVariableErrorE $
+                    unDeBruijnTerm tmEvaluated of
+                -- Shouldn't happen unless there's something wrong with the Agda code.
+                Left (err :: Error DefaultUni DefaultFun ()) ->
+                  error $ "deBruijnTerm (agdaEvalUplcProg WithoutCosting): " <> show err
+                Right namedTerm -> EvalSuccess $ UPLC.Program () version namedTerm
 
 {-| A list of budget tests which are currently expected to fail.  Once a fix for
  a test is pushed, the test will succeed and should be removed from the list.
  The entries of the list are paths from the root of plutus-conformance to the
  directory containing the test, eg
- "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1" -}
+ "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1".
+
+ Every test in `failingEvaluationTests` also fails its budget test (the budget
+ test evaluates the same program, so a failing evaluation makes the budget test
+ fail too), so this is built on top of that list rather than including copies of
+ all of the entries here. -}
 failingBudgetTests :: [FilePath]
 failingBudgetTests =
-  -- These currently fail because the Agda code doesn't know about the
-  -- IntegerCostedLiterally size measure used by `replicateByte` and `dropList`.
-  [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
-  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-03"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-04"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-05"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-06"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-07"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-08"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-09"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-10"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-11"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-13"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
-  , "test-cases/uplc/evaluation/builtin/semantics/appendString"
-  , "test-cases/uplc/evaluation/builtin/semantics/encodeUtf8"
-  , "test-cases/uplc/evaluation/builtin/semantics/equalsString/equalsString-02"
-  , -- These "constant casing" tests fail because Agda metatheory does not yet
-    -- implement casing on constant values.
-    -- TODO: remove these tests once casing on constant is added to Agda metatheory.
-    "test-cases/uplc/evaluation/term/constant-case/bool/bool-01"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-02"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-03"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-04"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-05"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-06"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-07"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-01"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-02"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-03"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-04"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-01"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-02"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-03"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-04"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-05"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-06"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-07"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-01"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-02"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-03"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-04"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-05"
-  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-01"
-  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-02"
-  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-03"
-  , -- The following are failing because the metatheory needs to be updated with
-    -- Value built-in functions
-    "test-cases/uplc/evaluation/builtin/constant/value/empty-value"
-  , "test-cases/uplc/evaluation/builtin/constant/value/max-currencyID-length"
-  , "test-cases/uplc/evaluation/builtin/constant/value/max-tokenID-length"
-  , "test-cases/uplc/evaluation/builtin/constant/value/no-overflow"
-  , "test-cases/uplc/evaluation/builtin/constant/value/no-underflow"
-  , "test-cases/uplc/evaluation/builtin/constant/value/value-ok-1"
-  , "test-cases/uplc/evaluation/builtin/constant/value/value-ok-2"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-nonempty"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-token"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/negative-empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-nonempty"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/zero-positive"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/no-overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/no-underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/long-key-zero-1"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/long-key-zero-2"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/key-too-long-1"
-  , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/key-too-long-2"
-  , "test-cases/uplc/evaluation/builtin/semantics/lookupCoin/absent"
-  , "test-cases/uplc/evaluation/builtin/semantics/lookupCoin/present"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/cancel-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/cancel-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/combine"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/unitl"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/unitr"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/no-overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/unionValue/no-underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/ccy-missing"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-insufficient"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-sufficient"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-eq"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-gt"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-neg-lt"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-pos"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-neg"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-zero"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/no-overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/scaleValue/no-underflow"
-  , -- valueData and unValueData builtins
-    "test-cases/uplc/evaluation/builtin/semantics/valueData/empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueData/single-entry"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueData/multi-token"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueData/multi-currency"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueData/negative-quantity"
-  , "test-cases/uplc/evaluation/builtin/semantics/valueData/roundtrip-from-value"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/empty"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/single-entry"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/multi-token"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/multi-currency"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/negative-quantity"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/max-key-len"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/roundtrip-from-data"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-tokens"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-currencies"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-currencies-cancel"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-currencies-merge"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-zero-quantity"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-zero-sum"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-empty-tokens"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-unordered-currencies"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/data-unordered-tokens"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-integer"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-constr"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-list"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-bytes"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/currency-key-too-long"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/token-key-too-long"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/quantity-overflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/quantity-underflow"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-bytestring-currency"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-bytestring-token"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-integer-quantity"
-  , "test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-tokens"
+  failingEvaluationTests
+    <>
+    -- These fail their budget test only (evaluation succeeds), currently
+    -- because the Agda code doesn't know about the IntegerCostedLiterally
+    -- size measure used by `replicateByte` and `dropList`.
+    [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
+    , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-02"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-03"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-04"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-05"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-06"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-07"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-08"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-09"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-10"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-11"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-13"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
+    , "test-cases/uplc/evaluation/builtin/semantics/appendString"
+    , "test-cases/uplc/evaluation/builtin/semantics/encodeUtf8"
+    , "test-cases/uplc/evaluation/builtin/semantics/equalsString/equalsString-02"
+    ]
+
+{-| A list of evaluation tests which are currently expected to fail.  Once a fix
+for a test is pushed, the test will succeed and should be removed from the list. -}
+failingEvaluationTests :: [FilePath]
+failingEvaluationTests =
+  -- The Agda caser does not support casing on Data yet.
+  [ "test-cases/uplc/evaluation/term/constant-case/data/data-01"
+  , "test-cases/uplc/evaluation/term/constant-case/data/data-02"
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.

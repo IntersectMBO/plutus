@@ -34,10 +34,10 @@ open import Relation.Binary using (DecidableEquality)
 open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
-open import Utils using (ByteString;Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
+open import Utils using (ByteString;Maybe;DATA;Value;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
 import Utils as U
 open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;Args)
-                 using (integer;string;bytestring;unit;bool;pdata;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
+                 using (integer;string;bytestring;unit;bool;pdata;value;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯ renaming (pair to bpair; list to blist; array to barray)
 open _/_⊢⋆
 open import Builtin.Constant.AtomicType
@@ -99,9 +99,9 @@ data Builtin : Set where
   tailList                        : Builtin
   nullList                        : Builtin
   -- Arrays
-  lengthOfArray             : Builtin
-  listToArray                  : Builtin
-  indexArray                  : Builtin
+  lengthOfArray                   : Builtin
+  listToArray                     : Builtin
+  indexArray                      : Builtin
   -- Data
   chooseData                      : Builtin
   constrData                      : Builtin
@@ -116,6 +116,14 @@ data Builtin : Set where
   unBData                         : Builtin
   equalsData                      : Builtin
   serialiseData                   : Builtin
+  -- Value
+  insertCoin                      : Builtin
+  lookupCoin                      : Builtin
+  unionValue                      : Builtin
+  valueContains                   : Builtin
+  scaleValue                      : Builtin
+  valueData                       : Builtin
+  unValueData                     : Builtin
   -- Misc constructors
   mkPairData                      : Builtin
   mkNilData                       : Builtin
@@ -296,7 +304,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature encodeUtf8                      = ∙ [ string ↑ ]⟶ bytestring ↑
     signature decodeUtf8                      = ∙ [ bytestring ↑ ]⟶ string ↑
     signature ifThenElse                      = ∀A [ bool ↑ , A , A ]⟶ A
-    signature chooseUnit                      = ∀A [ A , unit ↑ ]⟶ A
+    signature chooseUnit                      = ∀A [ unit ↑ , A ]⟶ A
     signature trace                           = ∀A [ string ↑ , A ]⟶ A
     signature fstPair                         = ∀b,a [ pair b a ]⟶ b ↑
     signature sndPair                         = ∀b,a [ pair b a ]⟶ a ↑
@@ -305,9 +313,9 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature headList                        = ∀a [ list a ]⟶ a ↑
     signature tailList                        = ∀a [ list a ]⟶ list a
     signature nullList                        = ∀a [ list a ]⟶ bool ↑
-    signature lengthOfArray              = ∀a [ array a ]⟶ integer ↑
-    signature listToArray                   = ∀a [ list a ]⟶ array a
-    signature indexArray                    = ∀a [ array a , integer ↑ ]⟶ a ↑
+    signature lengthOfArray                   = ∀a [ array a ]⟶ integer ↑
+    signature listToArray                     = ∀a [ list a ]⟶ array a
+    signature indexArray                      = ∀a [ array a , integer ↑ ]⟶ a ↑
     signature chooseData                      = ∀A [ pdata ↑ , A , A , A , A , A ]⟶ A
     signature constrData                      = ∙ [ integer ↑ , list pdata ]⟶ pdata ↑
     signature mapData                         = ∙ [ list (bpair pdata pdata) ]⟶ pdata ↑
@@ -324,6 +332,13 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature mkPairData                      = ∙ [ pdata ↑ , pdata ↑ ]⟶ pair pdata pdata
     signature mkNilData                       = ∙ [ unit ↑ ]⟶ list pdata
     signature mkNilPairData                   = ∙ [ unit ↑ ]⟶ list (bpair pdata pdata)
+    signature insertCoin                      = ∙ [ bytestring ↑ , bytestring ↑ , integer ↑ , value ↑ ]⟶ value ↑
+    signature lookupCoin                      = ∙ [ bytestring ↑ , bytestring ↑ , value ↑ ]⟶ integer ↑
+    signature unionValue                      = ∙ [ value ↑ , value ↑ ]⟶ value ↑
+    signature valueContains                   = ∙ [ value ↑ , value ↑ ]⟶ bool ↑
+    signature scaleValue                      = ∙ [ integer ↑ , value ↑ ]⟶ value ↑
+    signature valueData                       = ∙ [ value ↑ ]⟶ pdata ↑
+    signature unValueData                     = ∙ [ pdata ↑ ]⟶ value ↑
     signature bls12-381-G1-add                = ∙ [ bls12-381-g1-element ↑ , bls12-381-g1-element ↑ ]⟶ bls12-381-g1-element ↑
     signature bls12-381-G1-neg                = ∙ [ bls12-381-g1-element ↑ ]⟶ bls12-381-g1-element ↑
     signature bls12-381-G1-scalarMul          = ∙ [ integer ↑ , bls12-381-g1-element ↑ ]⟶ bls12-381-g1-element ↑
@@ -432,6 +447,13 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | UnBData
                                           | EqualsData
                                           | SerialiseData
+                                          | InsertCoin
+                                          | LookupCoin
+                                          | UnionValue
+                                          | ValueContains
+                                          | ScaleValue
+                                          | ValueData
+                                          | UnValueData
                                           | MkPairData
                                           | MkNilData
                                           | MkNilPairData
@@ -484,12 +506,7 @@ whose semantics are provided by a Haskell function.
 postulate
   lengthBS                    : ByteString → Int
   index                       : ByteString → Int → Int
-  div                         : Int → Int → Int
-  quot                        : Int → Int → Int
-  rem                         : Int → Int → Int
-  mod                         : Int → Int → Int
 
-  TRACE                       : {a : Set} → String → a → a
 
   concat                      : ByteString → ByteString → ByteString
   cons                        : Int → ByteString → Maybe ByteString
@@ -506,6 +523,13 @@ postulate
   ENCODEUTF8                  : String → ByteString
   DECODEUTF8                  : ByteString → Maybe String
   serialiseDATA               : DATA → ByteString
+  insertCOIN                  : ByteString → ByteString → Int → Value → Maybe Value
+  lookupCOIN                  : ByteString → ByteString → Value → Int
+  unionVALUE                  : Value → Value → Maybe Value
+  valueCONTAINS               : Value → Value → Maybe Bool
+  scaleVALUE                  : Int → Value → Maybe Value
+  valueDATA                   : Value → Maybe DATA
+  unValueDATA                 : DATA → Maybe Value
   BLS12-381-G1-add            : Bls12-381-G1-Element → Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-neg            : Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-scalarMul      : Int → Bls12-381-G1-Element → Bls12-381-G1-Element
@@ -575,18 +599,14 @@ postulate
 -- no binding needed for addition
 -- no binding needed for subtract
 -- no binding needed for multiply
-
-{-# COMPILE GHC div  = div  #-}
-{-# COMPILE GHC quot = quot #-}
-{-# COMPILE GHC rem  = rem  #-}
-{-# COMPILE GHC mod  = mod  #-}
-
+-- no binding needed for divide
+-- no binding needed for quotient
+-- no binding needed for remainder
+-- no binding needed for mod
 -- no binding needed for lessthan
 -- no binding needed for lessthaneq
 -- no binding needed for equals
 
-
-{-# COMPILE GHC TRACE = \_ s -> trace (Text.unpack s) #-}
 {-# COMPILE GHC concat = BS.append #-}
 {-# COMPILE GHC SHA2-256 = Hash.sha2_256 #-}
 {-# COMPILE GHC SHA3-256 = Hash.sha3_256 #-}
@@ -619,6 +639,20 @@ postulate
 
 {-# COMPILE GHC ENCODEUTF8 = encodeUtf8 #-}
 {-# COMPILE GHC DECODEUTF8 = eitherToMaybe . decodeUtf8' #-}
+
+{-# FOREIGN GHC import Codec.Serialise (serialise) #-}
+{-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
+{-# COMPILE GHC serialiseDATA = BSL.toStrict . serialise #-}
+
+{-# FOREIGN GHC import PlutusCore.Value as Value #-}
+
+{-# COMPILE GHC insertCOIN = \ccy tok x v -> builtinResultToMaybe $ Value.insertCoin ccy tok x v #-}
+{-# COMPILE GHC lookupCOIN = Value.lookupCoin #-}
+{-# COMPILE GHC unionVALUE = \v1 v2 -> builtinResultToMaybe $ Value.unionValue v1 v2 #-}
+{-# COMPILE GHC valueCONTAINS = \v1 v2 -> builtinResultToMaybe $ Value.valueContains v1 v2 #-}
+{-# COMPILE GHC scaleVALUE = \n v -> builtinResultToMaybe $ Value.scaleValue n v #-}
+{-# COMPILE GHC valueDATA = \v -> builtinResultToMaybe $ Value.valueData v #-}
+{-# COMPILE GHC unValueDATA = \d -> builtinResultToMaybe $ Value.unValueData d #-}
 
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G1 qualified as G1 #-}
 {-# COMPILE GHC BLS12-381-G1-add = G1.add #-}

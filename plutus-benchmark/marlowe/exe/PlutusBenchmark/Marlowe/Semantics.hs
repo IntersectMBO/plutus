@@ -23,7 +23,6 @@ import PlutusBenchmark.Marlowe.Util
   , makeOutput
   , makeRedeemerMap
   )
-import PlutusLedgerApi.V1.Value (TokenName (TokenName))
 import PlutusLedgerApi.V2
   ( Credential (PubKeyCredential, ScriptCredential)
   , CurrencySymbol (..)
@@ -35,6 +34,7 @@ import PlutusLedgerApi.V2
   , ScriptHash
   , ScriptPurpose (Spending)
   , SerialisedScript
+  , TokenName (TokenName)
   , TxInfo
     ( TxInfo
     , txInfoDCert

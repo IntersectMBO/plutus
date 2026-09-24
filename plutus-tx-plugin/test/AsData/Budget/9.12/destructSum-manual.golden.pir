@@ -1,12 +1,4 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
-  !fail : unit -> data
-    = \(ds : unit) ->
-        let
-          !defaultBody : data = error {data}
-        in
-        Unit_match (error {Unit}) {data} defaultBody
   !`$mInts` :
      all r.
        data ->
@@ -17,20 +9,26 @@ let
         \(scrut : data)
          (cont : integer -> integer -> integer -> integer -> r)
          (fail : unit -> r) ->
-          let
-            !l : list data
-              = case
-                  (list data)
-                  (unConstrData scrut)
-                  [(\(l : integer) (r : list data) -> r)]
-            !l : list data = tailList {data} l
-            !l : list data = tailList {data} l
-          in
-          cont
-            (unIData (headList {data} l))
-            (unIData (headList {data} l))
-            (unIData (headList {data} l))
-            (unIData (headList {data} (tailList {data} l)))
+          case
+            r
+            (case
+               (list data)
+               (unConstrData scrut)
+               [(\(l : integer) (r : list data) -> r)])
+            [ (\(ds : data) (ds : list data) ->
+                 case
+                   r
+                   ds
+                   [ (\(ds : data) (ds : list data) ->
+                        case
+                          r
+                          ds
+                          [ (\(ds : data) (ds : list data) ->
+                               cont
+                                 (unIData ds)
+                                 (unIData ds)
+                                 (unIData ds)
+                                 (unIData (headList {data} ds))) ]) ]) ]
 in
 \(d : data) ->
   let
@@ -57,7 +55,7 @@ in
                   (equalsInteger
                      2
                      (case integer tup [(\(l : integer) (r : list data) -> l)]))
-                  [ (/\dead -> fail ())
+                  [ (/\dead -> case data (error {unit}) [(error {data})])
                   , (/\dead ->
                        let
                          !args : list data
@@ -97,8 +95,10 @@ in
                                                {data}
                                                (iData (addInteger w w))
                                                [])))))
-                              (\(void : unit) -> fail ()))
-                         (\(void : unit) -> fail ())) ]
+                              (\(void : unit) ->
+                                 case data (error {unit}) [(error {data})]))
+                         (\(void : unit) ->
+                            case data (error {unit}) [(error {data})])) ]
                   {all dead. dead})
            , (/\dead ->
                 headList
