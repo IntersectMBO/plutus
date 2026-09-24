@@ -1,5 +1,5 @@
--- | Tests for the CLI UX of uplc/plc/pir: @--help@ examples, completion-script
--- generation, completion queries, and the shared @Examples@ footer renderer.
+{-| Tests for the CLI UX of uplc/plc/pir: @--help@ examples, completion-script
+generation, completion queries, and the shared @Examples@ footer renderer. -}
 module Main (main) where
 
 import PlutusCore.Executable.Help (Example, eg, examplesDoc)
@@ -127,6 +127,36 @@ runnableExampleTests =
         assertInfix "succInteger" out
     ]
 
+constantCaseTests :: TestTree
+constantCaseTests =
+  testGroup
+    "case on constants uses the program version"
+    [ testCase "UPLC 1.1.0 rejects Data.Constr" $ do
+        (code, _, err) <- readProcessWithExitCode "uplc" ["evaluate"] (dataCase "1.1.0")
+        assertBool "expected evaluation failure" (code /= ExitSuccess)
+        assertInfix "Casing on data is not supported" err
+    , testCase "UPLC 1.2.0 accepts Data.Constr" $ do
+        out <- runOkIn "uplc" ["evaluate"] (dataCase "1.2.0")
+        assertInfix "42" out
+    , testCase "UPLC 1.1.0 still accepts other constants" $ do
+        out <- runOkIn "uplc" ["evaluate"] "(program 1.1.0 (case (con unit ()) (con integer 42)))"
+        assertInfix "42" out
+    , testCase "PLC 1.1.0 rejects Data.Constr" $ do
+        (code, _, err) <- readProcessWithExitCode "plc" ["evaluate"] (typedDataCase "1.1.0")
+        assertBool "expected evaluation failure" (code /= ExitSuccess)
+        assertInfix "Casing on data is not supported" err
+    , testCase "PLC 1.2.0 accepts Data.Constr" $ do
+        out <- runOkIn "plc" ["evaluate"] (typedDataCase "1.2.0")
+        assertInfix "42" out
+    ]
+  where
+    dataCase version =
+      "(program " <> version <> " (case (con data (Constr 0 [])) (lam fields (con integer 42))))"
+    typedDataCase version =
+      "(program "
+        <> version
+        <> " (case (con integer) (con data (Constr 0 [])) (lam fields (con (list data)) (con integer 42))))"
+
 render :: [Example] -> Maybe String
 render = fmap (renderString . layoutPretty defaultLayoutOptions) . examplesDoc
 
@@ -161,4 +191,5 @@ main =
       , completionScriptTests
       , completionQueryTests
       , runnableExampleTests
+      , constantCaseTests
       ]

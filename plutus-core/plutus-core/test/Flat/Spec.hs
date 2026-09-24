@@ -83,7 +83,7 @@ test_flatRoundtrip =
         let ndb = NamedDeBruijn "x" (Index 42)
          in Flat.unflat (Flat.flat ndb) @?= Right ndb
     , testCase "Version" $
-        let v = Version 1 1 0
+        let v = Version 1 2 0
          in Flat.unflat (Flat.flat v) @?= Right v
     , testCase "Name" $
         let n = Name "x" (Unique 0)

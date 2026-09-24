@@ -121,8 +121,9 @@ SOP is cheaper and results in smaller scripts compared to Scott encoding, since 
 This is true both in terms of constant factors and asymptotically.
 For example, pattern matching on a data type with _k_ constructors costs _O(k)_ since it involves _k_ applications, whereas it incurs constant cost with SOP.
 
-SOP is available as of Plutus Core 1.1.0, and is what the Plinth compiler uses when targeting Plutus Core 1.1.0.
-At the moment, Plutus Core 1.1.0 is only supported in Plutus V3 and cannot be used in V1 or V2.
+SOP is available as of Plutus Core 1.1.0, and is what the Plinth compiler uses when targeting Plutus Core 1.1.0 or later.
+Plinth targets Plutus Core 1.2.0 by default. This version is available in Plutus V1–V4 starting at protocol version 12; use an older target version for earlier protocol versions.
+Casing on `Data.Constr` constants requires both Plutus Core 1.2.0 and protocol version 12. Casing on other constants remains available in Plutus Core 1.1.0 at protocol versions that support builtin casing.
 
 ## Data Objects
 

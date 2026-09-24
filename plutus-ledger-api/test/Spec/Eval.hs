@@ -26,7 +26,7 @@ import UntypedPlutusCore.Test.DeBruijn.Bad
 import UntypedPlutusCore.Test.DeBruijn.Good
 
 import Control.Exception (evaluate)
-import Control.Monad.Extra (whenJust)
+import Control.Monad.Extra (when, whenJust)
 import Control.Monad.Writer
 import Data.Int (Int64)
 import Data.Map qualified as Map
@@ -71,17 +71,40 @@ dataCaseTerm =
   Case
     ()
     (mkConstant @Data.Data () $ Data.Constr 0 [])
-    (pure $ LamAbs () (DeBruijn 0) $ mkConstant @Integer () 42)
+    (pure $ LamAbs () (DeBruijn 0) $ mkConstant @() () ())
 
 unitCaseTerm :: T
-unitCaseTerm = Case () (mkConstant @() () ()) (pure $ mkConstant @Integer () 42)
+unitCaseTerm = Case () (mkConstant @() () ()) (pure $ mkConstant @() () ())
 
-dataCaseIsDijkstraOnly :: TestTree
-dataCaseIsDijkstraOnly = testCase "case on Data.Constr is available from Dijkstra" $ do
-  let evalCase pv = evalAPIWithVersion PLC.plcVersion110 pv
-  evalCase vanRossemPV unitCaseTerm @?= True
-  evalCase vanRossemPV dataCaseTerm @?= False
-  evalCase dijkstraPV dataCaseTerm @?= True
+dataCaseRequiresCore120 :: TestTree
+dataCaseRequiresCore120 =
+  testGroup "case on Data.Constr requires PV12 and Core 1.2.0" $
+    enumerate <&> \ll -> testCase (show ll) $ do
+      evalCtx <- mkEvaluationContextV ll
+      let evalCase plcVersion pv term =
+            let script = serialiseUPLC $ Program () plcVersion term
+             in case deserialiseScript ll pv script of
+                  Left _ -> (False, False)
+                  Right decoded ->
+                    ( isRight $ snd $ evaluateScriptCounting ll pv Quiet evalCtx decoded []
+                    , isRight $
+                        snd $
+                          evaluateScriptRestricting
+                            ll
+                            pv
+                            Quiet
+                            evalCtx
+                            (unExRestrictingBudget enormousBudget)
+                            decoded
+                            []
+                    )
+      evalCase PLC.plcVersion110 dijkstraPV unitCaseTerm @?= (True, True)
+      evalCase PLC.plcVersion110 dijkstraPV dataCaseTerm @?= (False, False)
+      evalCase PLC.plcVersion120 dijkstraPV dataCaseTerm @?= (True, True)
+      when (ll /= PlutusV4) $ do
+        evalCase PLC.plcVersion110 vanRossemPV unitCaseTerm @?= (True, True)
+        evalCase PLC.plcVersion110 vanRossemPV dataCaseTerm @?= (False, False)
+        evalCase PLC.plcVersion120 vanRossemPV dataCaseTerm @?= (False, False)
 
 {-| Test a given eval function against the expected results.
 These tests are modified from untyped-plutus-core-test:Evaluation.FreeVars
@@ -140,7 +163,7 @@ evaluationContextCacheIsComplete =
     enumerate <&> \ll -> testCase (show ll) $ do
       evalCtx <- mkEvaluationContextV ll
       for_ (futurePV : knownPVs) $ \pv ->
-        evaluate $ toMachineParameters pv evalCtx
+        evaluate $ toMachineParameters pv PLC.latestVersion evalCtx
 
 failIfThunk :: Show a => Maybe a -> IO ()
 failIfThunk mbThunkInfo =
@@ -160,7 +183,7 @@ tests =
   testGroup
     "eval"
     [ testAPI
-    , dataCaseIsDijkstraOnly
+    , dataCaseRequiresCore120
     , --    , testUnlifting
       evaluationContextCacheIsComplete
     , ignoreTestWhenHpcEnabled evaluationContextNoThunks

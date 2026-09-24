@@ -9,14 +9,16 @@ import PlutusCore.Evaluation.Machine.MachineParameters
   , mkMachineVariantParameters
   )
 import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachineParameters)
+import PlutusCore.Version (Version)
 
 machineParametersFor
   :: PlutusLedgerLanguage
   -> MajorProtocolVersion
+  -> Version
   -> DefaultMachineParameters
-machineParametersFor ledgerLang majorPV =
+machineParametersFor ledgerLang majorPV plcVersion =
   MachineParameters
-    (defaultCaserBuiltinFor majorPV)
+    (defaultCaserBuiltinFor majorPV plcVersion)
     (mkMachineVariantParameters builtinSemVar $ cekCostModelForVariant builtinSemVar)
   where
     -- See Note [Mapping of protocol versions and ledger languages to semantics variants].

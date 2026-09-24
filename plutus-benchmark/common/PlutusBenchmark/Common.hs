@@ -107,7 +107,7 @@ mkEvalCtx ll semvar =
       let errOrCtx =
             LedgerApi.mkDynEvaluationContext
               ll
-              (\_ -> PLC.CaserBuiltin PLC.caseBuiltin)
+              (\_ _ -> PLC.CaserBuiltin PLC.caseBuiltin)
               [semvar]
               (const semvar)
               p
@@ -134,7 +134,7 @@ evaluateCekLikeInProd evalCtx term =
     pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
    in
     Cek.cekResultToEither . Cek._cekReportResult $
-      LedgerApi.evaluateTerm UPLC.restrictingEnormous pv LedgerApi.Quiet evalCtx term
+      LedgerApi.evaluateTerm UPLC.restrictingEnormous pv PLC.latestVersion LedgerApi.Quiet evalCtx term
 
 {-| Evaluate a term and either throw if evaluation fails or discard the result and return '()'.
 Useful for benchmarking. -}

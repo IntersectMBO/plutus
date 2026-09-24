@@ -44,7 +44,7 @@ import Codec.Serialise.Class (Serialise)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import NoThunks.Class (NoThunks)
-import PlutusCore.Version (plcVersion100, plcVersion110)
+import PlutusCore.Version (plcVersion100, plcVersion110, plcVersion120)
 import Prettyprinter
 
 {- Note [New builtins/language versions and protocol versions]
@@ -366,19 +366,22 @@ plcVersionsIntroducedIn =
       Map.fromList
         [ (alonzoPV, Set.fromList [plcVersion100])
         , (vanRossemPV, Set.fromList [plcVersion110])
+        , (dijkstraPV, Set.fromList [plcVersion120])
         ]
     PlutusV2 ->
       Map.fromList
         [ (vasilPV, Set.fromList [plcVersion100])
         , (vanRossemPV, Set.fromList [plcVersion110])
+        , (dijkstraPV, Set.fromList [plcVersion120])
         ]
     PlutusV3 ->
       Map.fromList
         [ (changPV, Set.fromList [plcVersion100, plcVersion110])
+        , (dijkstraPV, Set.fromList [plcVersion120])
         ]
     PlutusV4 ->
       Map.fromList
-        [ (dijkstraPV, Set.fromList [plcVersion100, plcVersion110])
+        [ (dijkstraPV, Set.fromList [plcVersion100, plcVersion110, plcVersion120])
         ]
 
 {-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'

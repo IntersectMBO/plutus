@@ -7,9 +7,10 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Transform.Certify.Trace
 
-import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Builtin (CaserBuiltin)
 import PlutusCore.Default (BuiltinSemanticsVariant)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
+import PlutusCore.Version qualified as PLC
 import PlutusPrelude (unsafeFromRight)
 import UntypedPlutusCore.DeBruijn (FreeVariableError)
 
@@ -21,18 +22,22 @@ import Data.Functor (void)
 evalCounting
   :: EvaluationContext
   -> MajorProtocolVersion
+  -> PLC.Version
   -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
   -> ( Either
          (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
          (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
      , ExBudget
      )
-evalCounting evalCtx pv term =
+evalCounting evalCtx pv plcVersion term =
   ( cekResultToEither (_cekReportResult report)
   , let CountingSt cost = _cekReportCost report in cost
   )
   where
-    report = evaluateTerm counting pv Quiet evalCtx term
+    report = evaluateTerm counting pv plcVersion Quiet evalCtx term
+
+standaloneCaserBuiltin :: PLC.Version -> CaserBuiltin UPLC.DefaultUni
+standaloneCaserBuiltin = defaultCaserBuiltinFor newestPV
 
 -- | Build a default evaluation context for a given semantics variant.
 mkDefaultEvalCtx
@@ -43,7 +48,7 @@ mkDefaultEvalCtx semvar =
       either (error . show) id $
         mkDynEvaluationContext
           PlutusV3
-          (\_ -> PLC.CaserBuiltin PLC.caseBuiltin)
+          defaultCaserBuiltinFor
           [semvar]
           (const semvar)
           p
@@ -54,6 +59,7 @@ mkDefaultEvalCtx semvar =
 in counting mode. Returns @(Maybe error, budget)@. -}
 evalOptimizerTrace
   :: EvaluationContext
+  -> PLC.Version
   -> OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
   -> [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()]
   -- ^ Arguments to apply to each AST before evaluation
@@ -62,8 +68,8 @@ evalOptimizerTrace
        , ExBudget
        )
      ]
-evalOptimizerTrace evalCtx trace args =
-  first (either Just (const Nothing)) . evalCounting evalCtx newestPV
+evalOptimizerTrace evalCtx plcVersion trace args =
+  first (either Just (const Nothing)) . evalCounting evalCtx newestPV plcVersion
     <$> appliedTerms
   where
     appliedTerms :: [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()]
@@ -86,18 +92,20 @@ at the most recent protocol version with restrictingEnormous budget mode
 (no budget tracking overhead). Suitable for timing. -}
 evaluateCekLikeInProd
   :: EvaluationContext
+  -> PLC.Version
   -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
   -> Either
        (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
        (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
-evaluateCekLikeInProd evalCtx term =
+evaluateCekLikeInProd evalCtx plcVersion term =
   cekResultToEither . _cekReportResult $
-    evaluateTerm restrictingEnormous newestPV Quiet evalCtx term
+    evaluateTerm restrictingEnormous newestPV plcVersion Quiet evalCtx term
 
 {-| Evaluate a single program term applied to arguments in counting mode.
 Returns @(Maybe error, budget)@. -}
 evalCountingWithArgs
   :: EvaluationContext
+  -> PLC.Version
   -> UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
   -- ^ Main program
   -> [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()]
@@ -106,9 +114,9 @@ evalCountingWithArgs
          (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
      , ExBudget
      )
-evalCountingWithArgs evalCtx term args =
+evalCountingWithArgs evalCtx plcVersion term args =
   let dbTerm =
         unsafeFromRight @FreeVariableError $
           UPLC.deBruijnTerm term
       applied = F.foldl' UPLC.applyTerm dbTerm args
-   in first (either Just (const Nothing)) $ evalCounting evalCtx newestPV applied
+   in first (either Just (const Nothing)) $ evalCounting evalCtx newestPV plcVersion applied

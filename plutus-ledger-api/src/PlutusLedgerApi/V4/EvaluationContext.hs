@@ -12,7 +12,6 @@ module PlutusLedgerApi.V4.EvaluationContext
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V4.ParamName as V4
 
-import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin)
 import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantE))
 
 import Control.Monad
@@ -40,8 +39,7 @@ mkEvaluationContext =
     >=> pure . toCostModelParams
     >=> mkDynEvaluationContext
       PlutusV4
-      -- 'PlutusV4' is introduced at the Dijkstra HF, so casing on builtins is always available.
-      (\_ -> CaserBuiltin caseBuiltin)
+      defaultCaserBuiltinFor
       [DefaultFunSemanticsVariantE]
       -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
       (\_ -> DefaultFunSemanticsVariantE)
