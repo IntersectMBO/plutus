@@ -1,5 +1,5 @@
 (program
-   1.1.0
+   1.2.0
    ((\forced ->
        (\go xs -> go xs xs)
          ((\s -> s s)

@@ -1,5 +1,5 @@
 (program
-   1.1.0
+   1.2.0
    ((\forced ->
        (\take xs -> case (constr 0 [[], 5, xs]) [(force take)])
          ((\s -> s s (delay (\x -> x)))

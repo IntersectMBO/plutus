@@ -1,1 +1,1 @@
-(program 1.1.0 ((\forced xs -> (\x -> error) (forced "PT21" ())) (force trace)))
+(program 1.2.0 ((\forced xs -> (\x -> error) (forced "PT21" ())) (force trace)))
