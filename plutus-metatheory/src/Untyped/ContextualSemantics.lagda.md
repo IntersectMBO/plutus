@@ -34,101 +34,106 @@ open import Relation.Binary.PropositionalEquality using (_≡_)
 ```
 variable
   n : ℕ
+  M N L : n ⊢
 
-data B : n ⊢ → Set 
+-- TODO: merge A and PAB?
+-- PAB : partially (value) applied builtins
+data PAB : n ⊢ → Set 
 data Value : n ⊢ → Set
-β : {X : n ⊢} → B X → Builtin
--- the signature of the builtin underlying the spine 'b'
-sigOf : {X : n ⊢} → B X → Sig
--- the type of a term argument expected by the 'b' builtin
-ArgTy : {X : n ⊢} → B X → Set
-data A : {X : n ⊢} → (b : B X) → ℕ → NE.List⁺ (ArgTy b) → Set
+ArgTy : PAB M → Set
+data A : (pab : PAB M) → ℕ → NE.List⁺ (ArgTy pab) → Set 
 
-data B where
-  builtinB
+variable
+  fl : ℕ 
+  pab : PAB M
+
+data PAB where
+  builtin
     : (b : Builtin)
-    → B {n} (builtin b)
-  appB
-    : {t₁ t₂ : n ⊢}
-    → B t₁
-    → Value t₂
-    → B (t₁ · t₂)
-  forceB
-    : {t : n ⊢}
-    → B t
-    → B (force t)
+    → PAB {n} (builtin b)
+  _·_
+    : PAB M
+    → Value N
+    → PAB (M · N)
+  force
+    : PAB M
+    → PAB (force M)
 
-β (builtinB b) = b
-β (appB b v) = β b
-β (forceB b) = β b
+-- the signature of the builtin underlying the spine 'b'
+β : PAB M → Builtin
+β (builtin b) = b
+β (pab · v) = β pab
+β (force pab) = β pab
 
-sigOf b = signature (β b)
+-- the type of a term argument expected by the 'b' builtin
+sigOf : PAB M → Sig
+sigOf pab = signature (β pab)
 
-ArgTy b = Sig.fv⋆ (sigOf b) / Sig.fv♯ (sigOf b) ⊢⋆
+||_|| : PAB M → ℕ
+||_|| (builtin b) = 0 
+||_|| (pab · v) = 1 + || pab ||
+||_|| (force pab) = 1 + || pab ||
 
-||_|| : {X : n ⊢} → B X → ℕ
-||_|| (builtinB b) = 0 
-||_|| (appB b v) = 1 + || b ||
-||_|| (forceB b) = 1 + || b ||
+ArgTy pab = Sig.fv⋆ (sigOf pab) / Sig.fv♯ (sigOf pab) ⊢⋆
 
 data A where
-  builtinA
+  builtin
     : (b : Builtin)
-    → A (builtinB {n} b) (fv (signature b)) (Sig.args (signature b))
-  forceA
-    : {t : n ⊢} {b : B t} {fl : ℕ}
-      {al : NE.List⁺ (ArgTy b)}
+    → A (builtin {n} b) (fv (signature b)) (Sig.args (signature b))
+  force
     -- a force is still expected: consume it, leaving the argument list suffix untouched
-    → A b (suc fl) al
-    → A (forceB b) fl al
-  appA
-    : {t₁ t₂ : n ⊢} {b : B t₁}
-      {τ : ArgTy b}
-      {as : NE.List⁺ (ArgTy b)}
+    : {al : NE.List⁺ (ArgTy pab)}
+    → A pab (suc fl) al
+    → A (force pab) fl al
+  _·_
+    : {τ : ArgTy pab}
+      {as : NE.List⁺ (ArgTy pab)}
     -- all forces done: consume the head argument τ, non-empty suffix 'as' remains
-    → A b zero (τ NE.∷⁺ as)
-    → (v : Value t₂)
-    → A (appB b v) zero as
+    → A pab zero (τ NE.∷⁺ as)
+    → (v : Value N)
+    → A (pab · v) zero as
 
-βᴬ : {t : n ⊢} {b : B t} {fl : ℕ}
-     {al : NE.List⁺ (ArgTy b)}
-   → A b fl al → Builtin
-βᴬ {b = b} _ = β b
+βᴬ : {al : NE.List⁺ (ArgTy pab)} → A pab fl al → Builtin
+βᴬ {pab = pab} _ = β pab
 
 -- number of forces performed so far: total type variables minus those still expected
 ||_||ᶠᴬ
-  : {t : n ⊢} {b : B t} {fl : ℕ} {al : NE.List⁺ (ArgTy b)}
-  → A b fl al
+  : {al : NE.List⁺ (ArgTy pab)}
+  → A pab fl al
   → ℕ
-||_||ᶠᴬ {b = b} {fl = fl} _ = fv (sigOf b) ∸ fl
+||_||ᶠᴬ {pab = pab} {fl = fl} _ = fv (sigOf pab) ∸ fl
 
 -- number of forces + applications performed so far
 ||_||ᴬ
-  : {t : n ⊢} {b : B t} {fl : ℕ} {al : NE.List⁺ (ArgTy b)}
-  → A b fl al
+  : {pab : PAB M} {fl : ℕ} {al : NE.List⁺ (ArgTy pab)}
+  → A pab fl al
   → ℕ
-||_||ᴬ {b = b} {fl = fl} {al = al} a =
-  || a ||ᶠᴬ + (args♯ (sigOf b) ∸ NE.length al)
+||_||ᴬ {pab = pab} {fl = fl} {al = al} a =
+  || a ||ᶠᴬ + (args♯ (sigOf pab) ∸ NE.length al)
 
 -- The type of the next argument the partial application expects:
 --   - nothing if the next expected argument is a type argument (a force)
 --   - just τ if the next expected argument is a term argument of type τ
 nextᴬ
-  : {t : n ⊢} {b : B t} {fl : ℕ} {al : NE.List⁺ (ArgTy b)}
-  → A b fl al
-  → Maybe (ArgTy b)
+  : {pab : PAB M} {fl : ℕ} {al : NE.List⁺ (ArgTy pab)}
+  → A pab fl al
+  → Maybe (ArgTy pab)
 nextᴬ {fl = suc _} _ = nothing
 nextᴬ {fl = zero} {al = al} _ = just (NE.head al)
 
+-- TODO: rename t's to M's
 data Value where
   conᵥ : (t : TmCon) → Value {n} (con t)
   delayᵥ : (t : n ⊢) → Value (delay t)
   ƛᵥ : (t : suc n ⊢) → Value (ƛ t)
   constrᵥ : (i : ℕ) (ts : List (n ⊢)) → All Value ts → Value (constr i ts)
   bAppᵥ
-    : {t : n ⊢} {b : B t} {fl : ℕ} {al : NE.List⁺ (ArgTy b)}
-    → A b fl al
-    → Value t
+    : {al : NE.List⁺ (ArgTy pab)}
+    → A pab fl al
+    → Value M
+
+variable
+  al : {pab : PAB M} → NE.List⁺ (ArgTy pab)
 
 data Frame : n ⊢ → Set where
   □
@@ -174,11 +179,11 @@ data _⟶_ : n ⊢ → n ⊢ → Set where
   forcedelay
     : {t : n ⊢}
     → (force (delay t)) ⟶ t
-  caseconstr
-    : {i l : ℕ} {vs ts : List (n ⊢)} {f : n ⊢} 
-    → All Value vs
-    -- TODO: lookup i in ts, we need to deal with empty ts's and index out of bounds
-    → (case (constr i vs) ts) ⟶ (multiApp {!   !} vs)
+  -- caseconstr
+  --   : {i l : ℕ} {vs ts : List (n ⊢)} {f : n ⊢} 
+  --   → All Value vs
+  --   -- TODO: lookup i in ts, we need to deal with empty ts's and index out of bounds
+  --   → (case (constr i vs) ts) ⟶ (multiApp {!   !} vs)
 
 
 ```
