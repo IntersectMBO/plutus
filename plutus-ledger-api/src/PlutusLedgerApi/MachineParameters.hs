@@ -9,7 +9,6 @@ import PlutusCore.Evaluation.Machine.MachineParameters
   , mkMachineVariantParameters
   )
 import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachineParameters)
-import PlutusCore.Version (Version)
 
 machineParametersFor
   :: PlutusLedgerLanguage
