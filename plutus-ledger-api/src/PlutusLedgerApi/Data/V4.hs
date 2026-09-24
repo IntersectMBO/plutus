@@ -150,7 +150,7 @@ module PlutusLedgerApi.Data.V4
   , Contexts.ttisValidRange
   , Contexts.ttisGuards
   , Contexts.ttisRequiredTopLevelGuards
-  , Contexts.ttisScriptPurposes
+  , Contexts.ttisRedeemerHashes
   , Contexts.ttisData
   , Contexts.ttisVotes
   , Contexts.ttisProposalProcedures

@@ -142,7 +142,7 @@ module PlutusLedgerApi.V4.Data.Contexts
   , ttisValidRange
   , ttisGuards
   , ttisRequiredTopLevelGuards
-  , ttisScriptPurposes
+  , ttisRedeemerHashes
   , ttisData
   , ttisVotes
   , ttisProposalProcedures
@@ -502,10 +502,11 @@ PlutusTx.asDataAsList
       , -- \^ Deduplicated set of required top level guards. It is impossible to keep the range of
         -- the Map due to potential presence of duplicates in the domain between different
         -- sub-transactions, therefore the range is eliminated.
-        ttisScriptPurposes :: List ScriptPurpose
-      , -- \^ Union of all of the `Redeemer`s. Note that it is not possible to preserve actual
-        -- `Redeemer`s upon `union` operation due to potential duplicates in the domain. Therefore it
-        -- is collapsed to a Set of `ScriptPurpose`s only with duplicates removed.
+        ttisRedeemerHashes :: List V2.ScriptHash
+      , -- \^ Union of all of the `ScriptHash`es from all of the `Redeemer`s. Note that it is
+        -- not possible to preserve actual `Redeemer`s or `ScriptPurpose`s
+        -- upon `union` operation due to potential duplicates in the domain. Therefore it is collapsed to
+        -- a list of `ScriptHash`s with duplicates removed.
         ttisData :: Map V2.DatumHash V2.Datum
       , -- \^ Union of all `txInfoData`. Duplicates are simply removed, since domain and range are
         -- a one-to-one mapping.
