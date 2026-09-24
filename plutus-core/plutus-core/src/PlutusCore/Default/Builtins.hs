@@ -32,6 +32,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , NumBytesCostedAsNumWords (..)
   , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
+  , ValueOuterDepth (..)
   , ValueOuterSize (..)
   , ValueTotalSize (..)
   , memoryUsage
@@ -2511,19 +2512,19 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           assetCountDenotation
           (runCostingFunOneArgument . paramAssetCount)
   toBuiltinMeaning _semvar KeepPolicies =
-    let keepPoliciesDenotation :: [ByteString] -> Value -> Value
-        keepPoliciesDenotation = Value.keepPolicies
+    let keepPoliciesDenotation :: [ByteString] -> ValueOuterDepth -> BuiltinResult Value
+        keepPoliciesDenotation ps (ValueOuterDepth v) = Value.keepPolicies ps v
         {-# INLINE keepPoliciesDenotation #-}
      in makeBuiltinMeaning
           keepPoliciesDenotation
-          (runCostingFunTwoArguments . unimplementedCostingFun)
+          (runCostingFunTwoArguments . paramKeepPolicies)
   toBuiltinMeaning _semvar DropPolicies =
-    let dropPoliciesDenotation :: [ByteString] -> Value -> Value
-        dropPoliciesDenotation = Value.dropPolicies
+    let dropPoliciesDenotation :: [ByteString] -> ValueOuterDepth -> BuiltinResult Value
+        dropPoliciesDenotation ps (ValueOuterDepth v) = Value.dropPolicies ps v
         {-# INLINE dropPoliciesDenotation #-}
      in makeBuiltinMeaning
           dropPoliciesDenotation
-          (runCostingFunTwoArguments . unimplementedCostingFun)
+          (runCostingFunTwoArguments . paramDropPolicies)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 

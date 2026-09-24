@@ -77,15 +77,17 @@ number of unique (currency symbol, token name) pairs, based on worst-case alloca
 
 Structurally, a 'Value' consists of:
   - A nested 'Data.Map.Map': Map CurrencySymbol (Map TokenName Integer)
-  - Bookkeeping data: two unboxed 'Int's and a 'Data.IntMap.IntMap Int'
+  - Bookkeeping data: two unboxed 'Int's, a 'Data.IntMap.IntMap Int' and a
+    'Data.Map.Map CurrencySymbol Int'
 
 Based on the [ghc runtime memory layout](https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/rts/storage/heap-objects),
 we can model the top-level memory allocation for a 'Value' as:
   - 1 word for the 'Value' constructor
   - 1 word for each of the two unboxed 'Int's
   - 1 word for the pointer to the 'IntMap'
+  - 1 word for the pointer to the per-currency negative counts
   - 1 word for the pointer to the nested 'Map'
-  - The allocations for the 'IntMap' and nested 'Map' themselves
+  - The allocations for the 'IntMap', the negative counts and the nested 'Map' themselves
 
 ## Memory Analysis Assumptions
 
@@ -137,11 +139,39 @@ In our worst-case flat scenario (all inner maps have size 1), the footprint is c
 
 \**Total for IntMap: 7 words (constant)**
 
+## Per-Currency Negative Counts
+
+A 'Value' also carries a 'Map CurrencySymbol Int' holding, for each currency with a negative
+amount, how many it has. Every operation that builds a 'Value' builds this map too, so its
+allocation is an addend on the figures above rather than a change to them.
+
+Its keys are shared with the outer map, so a node is cheaper than an outer-map node:
+  - 1 word for the 'Bin' closure
+  - 1 word for the unboxed 'Int#'
+  - 1 word for the pointer to the shared 'CurrencySymbol'
+  - 1 word for the pointer to the value
+  - 2 words for the pointers to the two children
+  - 2 words for the boxed 'Int' value
+
+\**Total per currency holding a negative amount: 8 words**
+
+This analysis assumes one token per currency, so a 'Value' has as many currencies as pairs
+and the worst case adds one such node per pair. Two more words are fixed: the shared 'Tip'
+and the pointer to this map in the 'Value' closure.
+
+The decoders and 'unValueData' build the map from a descending association list, since they
+have each currency's count in hand as they walk their input and would otherwise have to
+revisit the amounts. That list is transient, but allocation is what is being budgeted here:
+  - 3 words for the ':' closure
+  - 3 words for the pair closure
+
+\**Total per currency, when built from a list: 14 words**
+
 ## Final formulas for calculating each builtin's memory usage
 
 Combining per-pair and bookkeeping allocations:
 
-    Memory = 21*n + 12
+    Memory = (21 + 8)*n + 12 + 2 = 29*n + 14
 
 where 'n' is the number of unique (currency symbol, token name) pairs in the 'Value'.
 
@@ -149,19 +179,21 @@ This formula is used for the cost models of 'insertCoin', 'unionValue' and 'scal
 
 For 'insertCoin', the worst-case allocation occurs when a new pair is inserted into the map.
 Given the balanced tree representation, the memory allocation is based on 'ValueMaxDepth'
-which calculates the logarithmic depth of the tree. Thus, for 'insertCoin':
+which calculates the logarithmic depth of the tree. The negative counts add a rebuilt search
+path of their own, at 6 words per level plus 2 for the boxed value. Only the outer map's
+levels are rebuilt there, so charging it against the sum of both depths is conservative:
 
-    Memory = 21*log(n) + 12 + 21 + 12 = 21*log(n) + 45
+    Memory = 27*log(n) + 45 + 2 = 27*log(n) + 47
 
 For 'unionValue', worst-case assumes disjoint sets of pairs in both 'Value's being united:
 
-    Memory = 21*n + 12 + 21*m + 12 = 21*(n + m) + 24
+    Memory = 29*n + 12 + 29*m + 12 + 2 = 29*(n + m) + 26
   where 'n' and 'm' are the total sizes of each input 'Value'.
 
 For 'scaleValue', since every quantity in the 'Value' is modified, a new 'Value' of the same
 size must be allocated:
 
-    Memory = 21*n + 12
+    Memory = 29*n + 14
 
 where 'n' is the total size of the input 'Value'.
 
@@ -243,16 +275,17 @@ we obtain the following mapping:
 @
 From this we can derive that the memory allocated for the resulting 'Value' is:
 
-    Memory = 21*((n - 3)/2) + 12 = 10.5*n - 19.5 --approx--> 11*n - 19
+    Memory = 35*((n - 3)/2) + 14 = 17.5*n - 38.5 --approx--> 18*n - 38
 
-where 'n' is the number of 'Data' nodes in the input structure.
+where 'n' is the number of 'Data' nodes in the input structure, and the per-pair figure is
+21 for the 'Value' plus 14 for a list-built negative-counts entry.
 
-However, this formula can yield negative results for small 'n' (specifically n < 4).
+However, this formula can yield negative results for small 'n' (specifically n < 3).
 Due to limitations in our costing framework, we cannot case on the value of 'n' to handle
 such situations. To ensure non-negative memory costs, we further overapproximate the formula
 to remove the negative intercept:
 
-    Memory = 21*(n/2) + 12 = 10.5*n + 12 --approx--> 11*n + 1
+    Memory = 35*(n/2) + 14 = 17.5*n + 14 --approx--> 18*n + 14
 
 where 'n' is the number of 'Data' nodes in the input structure. -}
 
@@ -371,13 +404,13 @@ builtinMemoryModels =
     , -- See Note [Memory model for Value builtins]
       paramValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 2 22
     , -- See Note [Memory model for Value builtins]
-      paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 1 11
+      paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 14 18
     , -- See Note [Memory model for Value builtins]
-      paramInsertCoin = Id $ ModelFourArgumentsLinearInU $ OneVariableLinearFunction 45 21
+      paramInsertCoin = Id $ ModelFourArgumentsLinearInU $ OneVariableLinearFunction 47 27
     , -- See Note [Memory model for Value builtins]
-      paramUnionValue = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 24 21
+      paramUnionValue = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 26 29
     , -- See Note [Memory model for Value builtins]
-      paramScaleValue = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 12 21
+      paramScaleValue = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 14 29
     , -- The result is a list of length y (the index list) whose elements are shared with
       -- the array; only the spine is new, at three words per cons cell. The nonzero
       -- intercept keeps the cost nonzero for the empty index list.
@@ -387,6 +420,12 @@ builtinMemoryModels =
       -- `Value`, so only the list spine is new, at three words per cons cell (as for
       -- `multiIndexArray`). The size measure is the number of policies (`ValueOuterSize`).
       paramPolicies = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 3
+    , -- Both builtins share the `Value`'s inner maps and policy ids by pointer, so what they
+      -- allocate is spine: each element of the list rebuilds at most one search path, of one
+      -- node per level, which is why both charge on the product of the list length and the
+      -- depth. The slopes are those words per level, worst at a depth of one, rounded up.
+      paramKeepPolicies = Id $ ModelTwoArgumentsMultipliedSizes $ OneVariableLinearFunction 32 32
+    , paramDropPolicies = Id $ ModelTwoArgumentsMultipliedSizes $ OneVariableLinearFunction 32 36
     }
   where
     identityFunction = OneVariableLinearFunction 0 1

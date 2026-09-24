@@ -18,6 +18,7 @@ module PlutusCore.Value
   , zeroQuantity
   , addQuantity
   , negativeAmounts
+  , negativesByPolicy
   , NestedMap
   , unpack
   , pack
@@ -38,6 +39,7 @@ module PlutusCore.Value
   , unionValue
   , valueData
   , valueDataMaxSize
+  , policyFilterMaxSize
   , unValueData
   , buildValueWith
   ) where
@@ -64,9 +66,7 @@ import Data.List qualified as List
 import Data.Map.Merge.Strict qualified as M
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
-import Data.Maybe (mapMaybe)
-import Data.Set (Set)
-import Data.Set qualified as Set
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
 import GHC.Stack
@@ -198,6 +198,12 @@ data Value
       the total size during the costing of operations like `unionValue`. -}
       {-# UNPACK #-} !Int
       -- ^ The number of negative amounts it contains.
+      !(Map K Int)
+      {-^ Map from a currency symbol to the number of negative amounts it holds, so that
+      `keepPolicies`, `dropPolicies` and `dropPolicy` can update the previous field without
+      recounting the amounts of the currencies they remove.
+
+      Invariant: all counts are positive. -}
   deriving stock (Eq, Show, Generic)
   deriving anyclass (NFData)
 
@@ -208,7 +214,7 @@ instance Hashable Value where
   {-# INLINE hashWithSalt #-}
 
 instance CBOR.Serialise Value where
-  encode (Value v _ _ _) = CBOR.encode v
+  encode (Value v _ _ _ _) = CBOR.encode v
   {-# INLINE encode #-}
   decode = do
     outerLen <- CBOR.decodeMapLen
@@ -221,7 +227,7 @@ instance CBOR.Serialise Value where
   {-# INLINE decode #-}
 
 instance Flat.Flat Value where
-  encode (Value v _ _ _) = Flat.encode v
+  encode (Value v _ _ _ _) = Flat.encode v
   {-# INLINE encode #-}
   decode = do
     outer <- Flat.decodeListWith $ do
@@ -230,14 +236,14 @@ instance Flat.Flat Value where
       pure (currency, inner)
     buildValueWith "Value Flat decoder" pure pure outer
   {-# INLINE decode #-}
-  size (Value v _ _ _) = Flat.size v
+  size (Value v _ _ _ _) = Flat.size v
   {-# INLINE size #-}
 
 {-| Unpack a `Value` into a map from (currency symbol, token name) to quantity.
 
 The map is guaranteed to not contain empty inner map or zero quantity. -}
 unpack :: Value -> NestedMap
-unpack (Value v _ _ _) = v
+unpack (Value v _ _ _ _) = v
 {-# INLINE unpack #-}
 
 {-| Pack a map from (currency symbol, token name) to quantity into a `Value`.
@@ -249,47 +255,78 @@ pack = pack' . normalize
 
 -- | Like `pack` but does not normalize.
 pack' :: NestedMap -> Value
-pack' v = Value v sizes total neg
+pack' v = Value v sizes total neg negs
   where
-    Caches sizes total neg = Map.foldl' alg (Caches mempty 0 0) v
-    alg (Caches ss t n) inner =
-      let innerSize = Map.size inner
-       in Caches
-            (IntMap.insertWith (+) innerSize 1 ss)
-            (t + innerSize)
-            (n + countNegative inner)
+    Sizes sizes total = sizeCaches v
+    negs = Map.mapMaybe nonZeroNegatives v
+    !neg = Map.foldl' (+) 0 negs
 {-# INLINEABLE pack' #-}
 
-{-| The three cached fields of a `Value`, as an accumulator for `pack'`.
+-- | How many inner maps have each size, and the total size, in \(O(m)\).
+sizeCaches :: NestedMap -> Sizes
+sizeCaches = Map.foldl' alg (Sizes mempty 0)
+  where
+    alg (Sizes ss t) inner =
+      let innerSize = Map.size inner
+       in Sizes (IntMap.insertWith (+) innerSize 1 ss) (t + innerSize)
+{-# INLINEABLE sizeCaches #-}
 
-A tuple with bang patterns looks like it would do the same job. It does not: forcing a field
-is not the same as storing it inline, so every step still allocates the tuple and a box per
-`Int`. The `UNPACK`ed fields here hold the machine words themselves, which is 40 bytes per
-currency against 168 for the banged tuple. -}
-data Caches = Caches !(IntMap Int) {-# UNPACK #-} !Int {-# UNPACK #-} !Int
+{-| The two size caches, as an accumulator for `sizeCaches`.
+
+A tuple with bang patterns does not compile to the same thing. Worker-wrapper does get rid
+of the tuple itself, but a bang makes a field strict rather than unpacked, so the `Int` stays
+boxed and the fold unwraps and rewraps it on every step. The `UNPACK`ed field here is an
+`Int#` the whole way through. -}
+data Sizes = Sizes !(IntMap Int) {-# UNPACK #-} !Int
 
 -- | Number of negative quantities in an inner map.
 countNegative :: Map K Quantity -> Int
 countNegative = Map.foldl' (\ !acc q -> if q < zeroQuantity then acc + 1 else acc) 0
 {-# INLINE countNegative #-}
 
+-- | The count, or `Nothing` when it is zero: the per-currency negative counts store no zeros.
+nonZero :: Int -> Maybe Int
+nonZero n = if n == 0 then Nothing else Just n
+{-# INLINE nonZero #-}
+
+-- | The number of negative amounts in an inner map, or `Nothing` when it holds none.
+nonZeroNegatives :: Map K Quantity -> Maybe Int
+nonZeroNegatives = nonZero . countNegative
+{-# INLINE nonZeroNegatives #-}
+
+-- | Record one more negative amount for a currency.
+bumpNegative :: K -> Map K Int -> Map K Int
+bumpNegative currency = Map.insertWith (+) currency 1
+{-# INLINE bumpNegative #-}
+
+-- | Record one fewer negative amount for a currency, dropping the entry at zero.
+dropNegative :: K -> Map K Int -> Map K Int
+dropNegative = Map.update \n -> if n <= 1 then Nothing else Just (n - 1)
+{-# INLINE dropNegative #-}
+
 {-| Total size, i.e., the number of distinct `(currency symbol, token name)` pairs
 contained in the `Value`. -}
 totalSize :: Value -> Int
-totalSize (Value _ _ total _) = total
+totalSize (Value _ _ total _ _) = total
 {-# INLINE totalSize #-}
 
 -- | Size of the largest inner map.
 maxInnerSize :: Value -> Int
-maxInnerSize (Value _ sizes _ _) = maybe 0 fst (IntMap.lookupMax sizes)
+maxInnerSize (Value _ sizes _ _ _) = maybe 0 fst (IntMap.lookupMax sizes)
 {-# INLINE maxInnerSize #-}
 
 negativeAmounts :: Value -> Int
-negativeAmounts (Value _ _ _ neg) = neg
+negativeAmounts (Value _ _ _ neg _) = neg
 {-# INLINE negativeAmounts #-}
 
+{-| Map from a currency symbol to the number of negative amounts it holds; its sum is
+`negativeAmounts`. Exposed for the bookkeeping tests. -}
+negativesByPolicy :: Value -> Map K Int
+negativesByPolicy (Value _ _ _ _ negs) = negs
+{-# INLINE negativesByPolicy #-}
+
 empty :: Value
-empty = Value mempty mempty 0 0
+empty = Value mempty mempty 0 0 mempty
 {-# INLINE empty #-}
 
 toList :: Value -> [(K, [(K, Quantity)])]
@@ -343,7 +380,7 @@ instance Pretty Value where
 {-| \(O(\log \max(m, k))\), where \(m\) is the size of the outer map, and \(k\) is
 the size of the largest inner map. -}
 insertCoin :: ByteString -> ByteString -> Integer -> Value -> BuiltinResult Value
-insertCoin unsafeCurrency unsafeToken unsafeAmount v@(Value outer sizes total neg)
+insertCoin unsafeCurrency unsafeToken unsafeAmount v@(Value outer sizes total neg negs)
   | unsafeAmount == 0 = pure $ deleteCoin unsafeCurrency unsafeToken v
   | otherwise = case (k unsafeCurrency, k unsafeToken, quantity unsafeAmount) of
       (Nothing, _, _) -> fail $ "insertCoin: invalid currency: " <> show (B.unpack unsafeCurrency)
@@ -364,38 +401,41 @@ insertCoin unsafeCurrency unsafeToken unsafeAmount v@(Value outer sizes total ne
                       Map.insertLookupWithKey (\_ _ _ -> qty) token qty inner
                  in (maybe (Left (Map.size inner)) Right mOldQuantity, Just inner')
             (res, outer') = Map.alterF f currency outer
-            (sizes', total', neg') = case res of
-              Left oldSize ->
-                ( updateSizes oldSize (oldSize + 1) sizes
-                , total + 1
-                , if qty < zeroQuantity then neg + 1 else neg
-                )
-              Right oldQuantity ->
-                ( sizes
-                , total
-                , if oldQuantity < zeroQuantity && qty > zeroQuantity
-                    then neg - 1
-                    else
-                      if oldQuantity > zeroQuantity && qty < zeroQuantity
-                        then neg + 1
-                        else neg
-                )
-         in pure $ Value outer' sizes' total' neg'
+            (sizes', total', neg', negs') = case res of
+              Left oldSize
+                | qty < zeroQuantity ->
+                    ( updateSizes oldSize (oldSize + 1) sizes
+                    , total + 1
+                    , neg + 1
+                    , bumpNegative currency negs
+                    )
+                | otherwise ->
+                    (updateSizes oldSize (oldSize + 1) sizes, total + 1, neg, negs)
+              Right oldQuantity
+                | oldQuantity < zeroQuantity && qty > zeroQuantity ->
+                    (sizes, total, neg - 1, dropNegative currency negs)
+                | oldQuantity > zeroQuantity && qty < zeroQuantity ->
+                    (sizes, total, neg + 1, bumpNegative currency negs)
+                | otherwise -> (sizes, total, neg, negs)
+         in pure $ Value outer' sizes' total' neg' negs'
 {-# INLINEABLE insertCoin #-}
 
 -- | \(O(\log \max(m, k))\)
 deleteCoin :: ByteString -> ByteString -> Value -> Value
-deleteCoin (UnsafeK -> currency) (UnsafeK -> token) (Value outer sizes total neg) =
-  Value outer' sizes' total' neg'
+deleteCoin (UnsafeK -> currency) (UnsafeK -> token) (Value outer sizes total neg negs) =
+  Value outer' sizes' total' neg' negs'
   where
     (mold, outer') = Map.alterF f currency outer
-    (sizes', total', neg') = case mold of
-      Just (oldSize, oldQuantity) ->
-        ( updateSizes oldSize (oldSize - 1) sizes
-        , total - 1
-        , if oldQuantity < zeroQuantity then neg - 1 else neg
-        )
-      Nothing -> (sizes, total, neg)
+    (sizes', total', neg', negs') = case mold of
+      Just (oldSize, oldQuantity)
+        | oldQuantity < zeroQuantity ->
+            ( updateSizes oldSize (oldSize - 1) sizes
+            , total - 1
+            , neg - 1
+            , dropNegative currency negs
+            )
+        | otherwise -> (updateSizes oldSize (oldSize - 1) sizes, total - 1, neg, negs)
+      Nothing -> (sizes, total, neg, negs)
     f
       :: Maybe (Map K Quantity)
       -> ( -- Just (old size of inner map, old quantity) if the total size shrinks by 1,
@@ -423,58 +463,63 @@ policies :: Value -> [ByteString]
 policies = map unK . Map.keys . unpack
 {-# INLINEABLE policies #-}
 
-{-| The `Value` restricted to the given currency symbols.
+{-| The most policies `keepPolicies` and `dropPolicies` accept in their `Value`; both fail
+on more.  It is the largest outer size of depth 13. -}
+policyFilterMaxSize :: Int
+policyFilterMaxSize = 8191
 
-\(O(p \log p + m + n')\), where \(p\) is the length of the policy list, \(m\) is the size of
-the outer map and \(n'\) is the total size of the result.
+-- | The failure both policy filters raise on a `Value` with too many policies.
+policyFilterOverflow :: String -> BuiltinResult a
+policyFilterOverflow name =
+  fail $ name <> ": maximum number of policies (" <> show policyFilterMaxSize <> ") exceeded"
+{-# INLINE policyFilterOverflow #-}
 
-Ids the `Value` does not have, including any longer than `maxKeyLen`, are ignored.
-Restricting the outer map can neither empty an inner map nor zero a quantity, so the result
-is already normalized and this can use `pack'` rather than `pack`. -}
-keepPolicies :: [ByteString] -> Value -> Value
-keepPolicies ps (unpack -> outer) = pack' (Map.restrictKeys outer (policySet ps))
+{-| The `Value` restricted to the given currency symbols, in \(O(p \log m)\) for a list of
+\(p\) ids and an outer map of size \(m\).  Ids the `Value` does not have, including any
+longer than `maxKeyLen`, are ignored.  Fails if the `Value` holds more than
+`policyFilterMaxSize` policies. -}
+keepPolicies :: [ByteString] -> Value -> BuiltinResult Value
+keepPolicies ps (Value outer _ _ _ negs)
+  | Map.size outer > policyFilterMaxSize = policyFilterOverflow "keepPolicies"
+  | otherwise =
+      let outer' = List.foldl' keep Map.empty (mapMaybe k ps)
+          keep acc currency = case Map.lookup currency outer of
+            Nothing -> acc
+            Just inner -> Map.insert currency inner acc
+          negs' = Map.intersection negs outer'
+          !neg = Map.foldl' (+) 0 negs'
+          Sizes sizes total = sizeCaches outer'
+       in pure $ Value outer' sizes total neg negs'
 {-# INLINEABLE keepPolicies #-}
 
-{-| The `Value` with the given currency symbols removed.
-
-\(O(p \log m + d)\), where \(p\) is the length of the policy list, \(m\) is the size of the
-outer map and \(d\) is the total size of the dropped currencies.
-
-Ids the `Value` does not have, including any longer than `maxKeyLen`, are ignored.
-
-`keepPolicies` rebuilds the caches by folding its result. This subtracts each dropped
-currency's contribution instead, so the currencies that stay are never looked at: dropping
-two of them from a huge `Value` costs the two, not the whole `Value`. -}
-dropPolicies :: [ByteString] -> Value -> Value
-dropPolicies ps v = List.foldl' dropPolicy v (mapMaybe k ps)
+{-| The `Value` with the given currency symbols removed, in \(O(p \log m)\) for a list of
+\(p\) ids and an outer map of size \(m\).  Ids the `Value` does not have, including any
+longer than `maxKeyLen`, are ignored.  Fails if the `Value` holds more than
+`policyFilterMaxSize` policies. -}
+dropPolicies :: [ByteString] -> Value -> BuiltinResult Value
+dropPolicies ps v@(Value outer _ _ _ _)
+  | Map.size outer > policyFilterMaxSize = policyFilterOverflow "dropPolicies"
+  | otherwise = pure $ List.foldl' dropPolicy v (mapMaybe k ps)
 {-# INLINEABLE dropPolicies #-}
 
-{-| Remove one currency and subtract its contribution from the three cached fields.
+{-| Remove one currency and subtract its contribution from the cached fields.
 
 A currency the `Value` does not have is a no-op. That is also why a repeated id in
 `dropPolicies` does no harm: the first occurrence removes it, and later ones find nothing. -}
 dropPolicy :: Value -> K -> Value
-dropPolicy v@(Value outer sizes total neg) currency =
+dropPolicy v@(Value outer sizes total neg negs) currency =
   case Map.updateLookupWithKey (\_ _ -> Nothing) currency outer of
     (Nothing, _) -> v
     (Just inner, outer') ->
       let innerSize = Map.size inner
+          (mInnerNeg, negs') = Map.updateLookupWithKey (\_ _ -> Nothing) currency negs
        in Value
             outer'
             (updateSizes innerSize 0 sizes)
             (total - innerSize)
-            (neg - countNegative inner)
+            (neg - fromMaybe 0 mInnerNeg)
+            negs'
 {-# INLINE dropPolicy #-}
-
-{-| The ids that can name a currency, as a `Set` for `keepPolicies` to restrict against.
-
-Ids longer than `maxKeyLen` are dropped. They match no key of a well-formed `Value`, and the
-cost model cannot see how long they are: it sizes a list by its element count. Without the
-filter a caller could pass a few very long ids, be charged for a few elements, and have
-`Set.fromList` compare them byte by byte for free. -}
-policySet :: [ByteString] -> Set K
-policySet = Set.fromList . mapMaybe k
-{-# INLINE policySet #-}
 
 {-| \(O(n_{2}\log \max(m_{1}, k_{1}))\), where \(n_{2}\) is the total size of the second
 `Value`, \(m_{1}\) is the size of the outer map in the first `Value` and \(k_{1}\) is
@@ -602,15 +647,15 @@ updateSizes old new = dec . inc
 
 -- | \(O(n)\). Scale each token by the given constant factor.
 scaleValue :: Integer -> Value -> BuiltinResult Value
-scaleValue c (Value outer sizes size neg)
+scaleValue c (Value outer sizes size neg negs)
   -- When scaling by positive factor, no need to change sizes and number of negative amounts.
   | c > 0 = do
       outer' <- go outer
-      BuiltinSuccess $ Value outer' sizes size neg
+      BuiltinSuccess $ Value outer' sizes size neg negs
   -- When scaling by negative factor, only need to "flip" negative amounts.
   | c < 0 = do
       outer' <- go outer
-      BuiltinSuccess $ Value outer' sizes size (size - neg)
+      BuiltinSuccess $ Value outer' sizes size (size - neg) (flipNegatives outer negs)
   -- Scaling by 0 is always empty value
   | otherwise = BuiltinSuccess empty
   where
@@ -626,6 +671,16 @@ scaleValue c (Value outer sizes size neg)
               <> " * "
               <> show (unQuantity x)
         Just q -> pure q
+
+{-| The per-currency negative counts after every amount in the `Value` has flipped sign: a
+currency's new count is its size minus its old count. -}
+flipNegatives :: NestedMap -> Map K Int -> Map K Int
+flipNegatives =
+  M.merge
+    (M.mapMaybeMissing \_ inner -> nonZero (Map.size inner))
+    M.dropMissing
+    (M.zipWithMaybeMatched \_ inner old -> nonZero (Map.size inner - old))
+{-# INLINEABLE flipNegatives #-}
 
 {-| Build a `Value` from a list of entries. It fails unless the following
 conditions are met:
@@ -645,8 +700,14 @@ buildValueWith
   -> [a]
   -> m Value
 buildValueWith ctx fouter finner cs = do
-  (outerDescList, sizes, total, neg) <- goOuter Nothing mempty mempty 0 0 cs
-  pure $ Value (Map.fromDistinctDescList outerDescList) sizes total neg
+  (outerDescList, sizes, total, neg, negsDescList) <- goOuter Nothing mempty mempty 0 0 [] cs
+  pure $
+    Value
+      (Map.fromDistinctDescList outerDescList)
+      sizes
+      total
+      neg
+      (Map.fromDistinctDescList negsDescList)
   where
     goOuter
       :: Maybe K
@@ -654,10 +715,11 @@ buildValueWith ctx fouter finner cs = do
       -> IntMap Int
       -> Int
       -> Int
+      -> [(K, Int)]
       -> [a]
-      -> m ([(K, Map K Quantity)], IntMap Int, Int, Int)
-    goOuter !prev !acc !sizes !total !neg = \case
-      [] -> pure (acc, sizes, total, neg)
+      -> m ([(K, Map K Quantity)], IntMap Int, Int, Int, [(K, Int)])
+    goOuter !prev !acc !sizes !total !neg !negs = \case
+      [] -> pure (acc, sizes, total, neg, negs)
       x : xs -> do
         (!c, !innerEntries) <- fouter x
         whenJust
@@ -672,7 +734,8 @@ buildValueWith ctx fouter finner cs = do
         let !inner = Map.fromDistinctDescList innerDescList
             !innerSize = Map.size inner
             !sizes' = IntMap.alter (maybe (Just 1) (Just . (+ 1))) innerSize sizes
-        goOuter (Just c) ((c, inner) : acc) sizes' (total + innerSize) (neg + innerNeg) xs
+            !negs' = if innerNeg == 0 then negs else (c, innerNeg) : negs
+        goOuter (Just c) ((c, inner) : acc) sizes' (total + innerSize) (neg + innerNeg) negs' xs
 
     goInner :: Maybe K -> [(K, Quantity)] -> Int -> [b] -> m ([(K, Quantity)], Int)
     goInner !prev !acc !neg = \case

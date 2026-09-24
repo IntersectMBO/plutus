@@ -2335,6 +2335,11 @@ test_KeepPolicies =
           @?= expectedValue (unsafeMkValue [("bbb", "t1", 1), ("bbb", "t2", 3)])
     , testCase "oversized policy id matches nothing" do
         evalKeepPolicies [pack (replicate 33 0)] mixedValue @?= expectedValue Value.empty
+    , testCase "accepts a Value at the policy bound" do
+        evalKeepPolicies [] (manyPolicies Value.policyFilterMaxSize) @?= expectedValue Value.empty
+    , testCase "refuses a Value above the policy bound" do
+        evalKeepPolicies [] (manyPolicies (Value.policyFilterMaxSize + 1))
+          @?= Right EvaluationFailure
     ]
   where
     evalKeepPolicies = evalPolicyFilter KeepPolicies
@@ -2367,6 +2372,12 @@ test_DropPolicies =
           @?= expectedValue (unsafeMkValue [("bbb", "t1", 1), ("bbb", "t2", 3)])
     , testCase "oversized policy id matches nothing" do
         evalDropPolicies [pack (replicate 33 0)] mixedValue @?= expectedValue mixedValue
+    , testCase "accepts a Value at the policy bound" do
+        let v = manyPolicies Value.policyFilterMaxSize
+        evalDropPolicies [] v @?= expectedValue v
+    , testCase "refuses a Value above the policy bound" do
+        evalDropPolicies [] (manyPolicies (Value.policyFilterMaxSize + 1))
+          @?= Right EvaluationFailure
     ]
   where
     evalDropPolicies = evalPolicyFilter DropPolicies
@@ -2380,6 +2391,12 @@ evalPolicyFilter fun ps v =
     mkIterAppNoAnn
       (builtin () fun)
       [mkConstant @[ByteString] () ps, mkConstant @Value () v]
+
+-- | A `Value` of @m@ policies holding one token each.
+manyPolicies :: Int -> Value
+manyPolicies m =
+  unsafeMkValue
+    [(pack [fromIntegral (i `div` 256), fromIntegral (i `mod` 256)], "t", 1) | i <- [1 .. m]]
 
 -- | The expected result of a successful `evalPolicyFilter` evaluation.
 expectedFilteredValue :: Value -> Either PlcError (EvaluationResult UplcTerm)
