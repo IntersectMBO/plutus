@@ -4,12 +4,18 @@
 
 module PlutusTx.Plugin.Unsupported where
 
+import PlutusTx.Applicative qualified
 import PlutusTx.Compiler.Compat qualified as Compat
 import PlutusTx.Compiler.Expr
 import PlutusTx.Compiler.Type (splitGhcName)
 import PlutusTx.Eq qualified
+import PlutusTx.Foldable qualified
+import PlutusTx.Functor qualified
+import PlutusTx.Monoid qualified
 import PlutusTx.Ord qualified
 import PlutusTx.Plugin.Utils qualified
+import PlutusTx.Semigroup qualified
+import PlutusTx.Traversable qualified
 
 import GHC.Builtin.Names qualified as GHC
 import GHC.Core.TyCo.Rep qualified as GHC
@@ -90,6 +96,12 @@ unsupportedBaseClasses =
       )
     $ [ (''Prelude.Eq, Just ''PlutusTx.Eq.Eq)
       , (''Prelude.Ord, Just ''PlutusTx.Ord.Ord)
+      , (''Prelude.Semigroup, Just ''PlutusTx.Semigroup.Semigroup)
+      , (''Prelude.Monoid, Just ''PlutusTx.Monoid.Monoid)
+      , (''Prelude.Functor, Just ''PlutusTx.Functor.Functor)
+      , (''Prelude.Applicative, Just ''PlutusTx.Applicative.Applicative)
+      , (''Prelude.Foldable, Just ''PlutusTx.Foldable.Foldable)
+      , (''Prelude.Traversable, Just ''PlutusTx.Traversable.Traversable)
       ]
 
 unsupportedMarkerModule, unsupportedMarkerName :: String
