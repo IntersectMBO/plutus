@@ -449,7 +449,7 @@ modelFun <- function(path) {
             v[["x_mem"]] <- envelope
         }
         names (v) <- c("(Intercept)", "I(x_mem * y_mem)")
-        ## ^ The space after the comma is important.
+        ## ^ The name must match what `CreateBuiltinCostModel` looks up, spaces around `*` included.
         m2 <- lm (t ~ I(x_mem * y_mem), filtered)
         m2$coefficients <- v
         ## ^ The rest of the data in the model now becomes nonsensical, but we don't use it.
