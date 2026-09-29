@@ -451,6 +451,8 @@ share a row name and the fit reads them as one point measured twice.
 
 The grid stops at `maxPolicies`, the most policies either builtin accepts. If that bound
 goes up, rerun the benchmarks and refit both models on the larger sizes.
+
+A list longer than the map has a different worst case for each builtin, see `Filler`.
 -}
 
 keepPoliciesBenchmark :: StdGen -> Benchmark
@@ -459,7 +461,7 @@ keepPoliciesBenchmark gen =
     (id, ValueOuterDepth)
     KeepPolicies
     []
-    (runBenchGen gen keepDropArgs)
+    (runBenchGen gen (keepDropArgs Repeats))
 
 dropPoliciesBenchmark :: StdGen -> Benchmark
 dropPoliciesBenchmark gen =
@@ -467,7 +469,19 @@ dropPoliciesBenchmark gen =
     (id, ValueOuterDepth)
     DropPolicies
     []
-    (runBenchGen gen keepDropArgs)
+    (runBenchGen gen (keepDropArgs Misses))
+
+{-| What fills a policy list once every policy of the `Value` is named. `keepPolicies` inserts
+each element that names a policy into its result, the same policy again included, and a
+repeat decoded from a script is a fresh object, so the insert rebuilds its path: a repeat
+costs it as much as a first hit. `dropPolicies` removes a policy the first time it is named,
+so a repeat is a miss to it. -}
+data Filler
+  = {-| Ids the `Value` does not have, before the hits: `dropPolicies` empties the map as it
+    goes, and a miss costs most against the full map. -}
+    Misses
+  | -- | The `Value`'s own policies named over again, each a fresh copy, after the first hits.
+    Repeats
 
 {-| One benchmark point for `keepPolicies` and `dropPolicies`, as the sizes it is built
 from rather than the arguments themselves. -}
@@ -498,11 +512,11 @@ worstCase numPolicies numTokens listLen =
     }
 
 -- | See Note [Benchmarking keepPolicies and dropPolicies]
-keepDropArgs :: forall g m. StatefulGen g m => g -> m [([ByteString], Value)]
-keepDropArgs g = do
+keepDropArgs :: forall g m. StatefulGen g m => Filler -> g -> m [([ByteString], Value)]
+keepDropArgs filler g = do
   randoms <- randomShapes g
   shaped <-
-    traverse (buildShape g) $
+    traverse (buildShape filler g) $
       randoms <> linearGrid <> depthSweep <> shapeSweep <> hitSweep <> signSweep <> listOnly
   -- Lovelace: the empty bytestring is a valid policy id, and both builtins keep it.
   lovelace <- do
@@ -561,15 +575,22 @@ signSweep =
 listOnly :: [Shape]
 listOnly = [worstCase 0 0 listLen | listLen <- [0, maxValueTotalSize]]
 
-{-| Build the arguments a `Shape` describes. Misses come first: `dropPolicies` empties the
-map as it goes. -}
-buildShape :: StatefulGen g m => g -> Shape -> m ([ByteString], Value)
-buildShape g shape = do
+{-| Build the arguments a `Shape` describes. The list beyond its hits is filled as the `Filler`
+says once the hits name every policy, and with misses otherwise, as in `hitSweep`. -}
+buildShape :: StatefulGen g m => Filler -> g -> Shape -> m ([ByteString], Value)
+buildShape filler g shape = do
   policyIds <- replicateM (shapePolicies shape) (generateKey g)
   tokenNames <- replicateM (shapeTokens shape) (generateKey g)
   let numHits = min (shapeHits shape) (min (shapePolicies shape) (shapeListLen shape))
-  misses <- replicateM (shapeListLen shape - numHits) (generateKey g)
-  let ps = Value.unK <$> (misses <> take numHits policyIds)
+      hits = Value.unK <$> take numHits policyIds
+      rest = shapeListLen shape - numHits
+  ps <- case filler of
+    Repeats
+      | numHits > 0 && numHits == shapePolicies shape ->
+          pure (hits <> take rest (BS.copy <$> cycle hits))
+    _ -> do
+      misses <- replicateM rest (generateKey g)
+      pure ((Value.unK <$> misses) <> hits)
   pure (ps, buildSignedValue (shapeNegative shape) policyIds tokenNames)
 
 -- | A `Value` whose first @numNegative@ policies hold negative amounts.
