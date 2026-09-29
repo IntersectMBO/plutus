@@ -1,4 +1,12 @@
 
+<a id='changelog-1.71.0.0'></a>
+# 1.71.0.0 — 2026-09-29
+
+## Changed
+
+- Plinth now targets Plutus Core 1.2.0 by default. Use `target-version=1.1.0`
+  when compiling scripts for protocol versions before 12.
+
 <a id='changelog-1.68.0.0'></a>
 # 1.68.0.0 — 2026-08-21
 
