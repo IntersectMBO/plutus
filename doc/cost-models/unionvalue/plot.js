@@ -132,7 +132,7 @@ function renderPlot() {
       bordercolor: '#BDC3C7',
       borderwidth: 1
     },
-    paper_bgcolor: 'rgba(0,0,0,0)'
+    paper_bgcolor: '#FAFAFA'
   };
 
   // Set Z-axis range based on mode, the model included.

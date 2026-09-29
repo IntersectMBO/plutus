@@ -626,7 +626,7 @@ function setupPolicyFilterPage({ slug, functionName, costModelName }) {
       },
       margin: { t: 60, b: 10, l: 10, r: 10 },
       height: 700,
-      paper_bgcolor: 'rgba(0,0,0,0)'
+      paper_bgcolor: '#FAFAFA'
     }, plotConfig);
   }
 
