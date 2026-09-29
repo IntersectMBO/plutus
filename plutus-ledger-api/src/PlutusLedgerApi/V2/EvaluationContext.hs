@@ -19,6 +19,7 @@ import PlutusCore.Default
       ( DefaultFunSemanticsVariantA
       , DefaultFunSemanticsVariantB
       , DefaultFunSemanticsVariantD
+      , DefaultFunSemanticsVariantF
       )
   )
 
@@ -48,11 +49,16 @@ mkEvaluationContext =
     >=> mkDynEvaluationContext
       PlutusV2
       defaultCaserBuiltinFor
-      [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB, DefaultFunSemanticsVariantD]
+      [ DefaultFunSemanticsVariantA
+      , DefaultFunSemanticsVariantB
+      , DefaultFunSemanticsVariantD
+      , DefaultFunSemanticsVariantF
+      ]
       -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
       ( \pv ->
           if
             | pv < changPV -> DefaultFunSemanticsVariantA
             | pv < vanRossemPV -> DefaultFunSemanticsVariantB
-            | otherwise -> DefaultFunSemanticsVariantD
+            | pv < dijkstraPV -> DefaultFunSemanticsVariantD
+            | otherwise -> DefaultFunSemanticsVariantF
       )

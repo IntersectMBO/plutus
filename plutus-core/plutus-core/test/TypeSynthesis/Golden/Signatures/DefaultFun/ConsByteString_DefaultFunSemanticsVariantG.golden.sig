@@ -1,0 +1,1 @@
+Word8 -> CByteString -> ByteString
