@@ -2401,8 +2401,7 @@ evalPolicyFilter fun ps v =
 -- | A `Value` of @m@ policies holding one token each.
 manyPolicies :: Int -> Value
 manyPolicies m =
-  unsafeMkValue
-    [(pack [fromIntegral (i `div` 256), fromIntegral (i `mod` 256)], "t", 1) | i <- [1 .. m]]
+  unsafeMkValue [(fromString (show i), "t", 1) | i <- [1 .. m]]
 
 -- | The expected result of a successful `evalPolicyFilter` evaluation.
 expectedFilteredValue :: Value -> Either PlcError (EvaluationResult UplcTerm)
