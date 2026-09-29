@@ -18,6 +18,7 @@ import PlutusCore.Evaluation.Machine.ExMemory
   ( ExCPU (..)
   , ExMemory (..)
   )
+import PlutusCore.Evaluation.Machine.MachineParameters (MachineParameters (..))
 import PlutusCore.Executable.AstIO
   ( UplcTermNDB
   , toDeBruijnTermUPLC
@@ -527,7 +528,7 @@ runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput sopts eopts = do
         Nothing -> []
         Just args ->
           let evalCtx = mkDefaultEvalCtx def
-           in evalOptimizerTrace evalCtx optimizerTrace args
+           in evalOptimizerTrace evalCtx (prog ^. UPLC.progVer) optimizerTrace args
   printReport stderr (buildReport optimizerTrace costs)
   whenJust mcert $ \cert -> do
     time <- systemNanoseconds <$> getSystemTime
@@ -564,7 +565,7 @@ runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
         margs <- loadBlueprintArgs eopts validatorName
         let costs = case margs of
               Nothing -> []
-              Just args -> evalOptimizerTrace evalCtx optTrace args
+              Just args -> evalOptimizerTrace evalCtx (bvCode validator ^. UPLC.progVer) optTrace args
         T.hPutStrLn stderr ("\n--- " <> bvTitle validator <> " ---")
         printReport stderr (buildReport optTrace costs)
         whenJust mcert $ \cert -> do
@@ -775,7 +776,7 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
       evalCtx = mkDefaultEvalCtx semvar
       -- Evaluate the term the same way the 'time' subcommand (and production)
       -- does, erroring on an unexpected failure.
-      cekEval = either (error . show) (const ()) . evaluateCekLikeInProd evalCtx
+      cekEval = either (error . show) (const ()) . evaluateCekLikeInProd evalCtx (prog ^. UPLC.progVer)
       -- readProgam throws away De Bruijn indices and returns an AST with Names;
       -- we have to put them back to get an AST with NamedDeBruijn names.
       term =
@@ -821,6 +822,8 @@ runEval
           -- AST nodes are charged one unit each, so we can see how many times each node
           -- type is encountered.  This is useful for calibrating the budgeting code
           Unit -> PLC.unitCekParameters
+        versionedCekparams =
+          cekparams {machineCaserBuiltin = standaloneCaserBuiltin (prog ^. UPLC.progVer)}
     let emitM = case traceMode of
           None -> Cek.noEmitter
           Logs -> Cek.logEmitter
@@ -833,7 +836,7 @@ runEval
           Verbose bm -> bm
     case budgetM of
       SomeBudgetMode bm -> do
-        report <- evaluate (Cek.runCek cekparams bm emitM term)
+        report <- evaluate (Cek.runCek versionedCekparams bm emitM term)
         let Cek.CekReport res budget logs = report
         case Cek.cekResultToEither res of
           Left err -> hPrint stderr err
@@ -886,7 +889,7 @@ runTimeEval (TimeEvalOptions inp ifmt semvar n raw) = do
       loop k !total = do
         term' <- readIORef termRef
         t0 <- getCPUTime
-        r <- evaluate (evaluateCekLikeInProd evalCtx term')
+        r <- evaluate (evaluateCekLikeInProd evalCtx (prog ^. UPLC.progVer) term')
         t1 <- getCPUTime
         case r of
           Right _ -> loop (k - 1) (total + t1 - t0)
@@ -917,6 +920,8 @@ runDbg (DbgOptions inp ifmt cekModel semvar) = do
         -- AST nodes are charged one unit each, so we can see how many times each node
         -- type is encountered.  This is useful for calibrating the budgeting code
         Unit -> PLC.unitCekParameters
+      versionedCekparams =
+        cekparams {machineCaserBuiltin = standaloneCaserBuiltin (prog ^. UPLC.progVer)}
       replSettings =
         Repl.Settings
           { Repl.complete = Repl.noCompletion
@@ -924,7 +929,8 @@ runDbg (DbgOptions inp ifmt cekModel semvar) = do
           , Repl.autoAddHistory = False
           }
   -- nilSlippage is important so as to get correct live up-to-date budget
-  cekTrans <- fst <$> D.mkCekTrans cekparams Cek.restrictingEnormous Cek.noEmitter D.nilSlippage
+  cekTrans <-
+    fst <$> D.mkCekTrans versionedCekparams Cek.restrictingEnormous Cek.noEmitter D.nilSlippage
   Repl.runInputT replSettings $
     D.iterTM (handleDbg cekTrans) $
       D.runDriverT nterm

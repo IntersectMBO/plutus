@@ -4,17 +4,25 @@
 -- | Golden tests pinning the user-visible text of `PlutusTx.Options.ParseError`s.
 module Options.Spec where
 
-import PlutusTx.Options (parsePluginOptions)
+import PlutusTx.Options (parsePluginOptions, posPlcTargetVersion)
 
+import Control.Lens (view)
 import Data.Either.Validation (Validation (..))
 import Data.Text qualified as Text
-import Test.Tasty.Extras (TestNested, nestedGoldenVsTextM, testNested)
+import PlutusCore.Version (plcVersion120)
+import Test.Tasty.Extras (TestNested, embed, nestedGoldenVsTextM, testNested)
+import Test.Tasty.HUnit (testCase, (@?=))
 
 tests :: TestNested
 tests =
   testNested
     "Options"
-    [ testParseErrorGolden "plcParserOptionMalformed" ["target-version=notaversion"]
+    [ embed $
+        testCase "default target is 1.2.0" $
+          case parsePluginOptions [] of
+            Success opts -> view posPlcTargetVersion opts @?= plcVersion120
+            Failure errs -> error $ show errs
+    , testParseErrorGolden "plcParserOptionMalformed" ["target-version=notaversion"]
     , testParseErrorGolden "readOptionMalformed" ["context-level=abc"]
     , testParseErrorGolden "fromReadOptionMalformed" ["verbosity=abc"]
     ]

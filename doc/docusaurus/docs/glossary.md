@@ -179,9 +179,8 @@ For more details, see [CIP-33](https://cips.cardano.org/cip/CIP-33).
 
 Scott encoding is a method for encoding datatypes in lambda calculus.
 The Plinth compiler adopts Scott encoding for Plinth datatypes when compiling to Plutus Core 1.0.0.
-When compiling to Plutus Core 1.1.0, sums of products is used instead, which makes scripts smaller and cheaper compared to Scott encoding.
-Currently, Plutus V1 and V2 are only compatible with Plutus Core 1.0.0, whereas Plutus V3 is also compatible with Plutus Core 1.1.0.
-However, we plan to make all Plutus ledger language versions compatible with all Plutus Core versions in the future.
+When compiling to Plutus Core 1.1.0 or later, sums of products is used instead, which makes scripts smaller and cheaper compared to Scott encoding.
+Plutus Core 1.1.0 is supported in Plutus V1–V4 at protocol versions where each language version is available. Plutus Core 1.2.0 is supported in Plutus V1–V4 starting at protocol version 12.
 
 For more details, see the [Wikipedia page](https://en.wikipedia.org/wiki/Mogensen%E2%80%93Scott_encoding) on Scott encoding.
 
@@ -195,7 +194,7 @@ Additionally, since a transaction may do multiple things, each of which needs to
 
 Sums of products is an alternative method to Scott encoding for encoding datatypes.
 The Plutus Core language supports sums of products since version 1.1.0.
-Currently, Plutus Core 1.1.0 is only compatible with Plutus V3, but we plan to make it compatible with Plutus V1 and V2 in the future.
+Plutus Core 1.1.0 is compatible with Plutus V1–V4 at supported protocol versions. Plutus Core 1.2.0 additionally permits casing on `Data.Constr` constants from protocol version 12.
 
 For more details, see [CIP-85](https://cips.cardano.org/cip/CIP-0085).
 
