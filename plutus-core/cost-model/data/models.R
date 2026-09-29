@@ -430,7 +430,7 @@ modelFun <- function(path) {
    ## intercept is raised to cover it; the slope is then raised to the smallest value that
    ## covers every other row.  The coefficients are rounded up to whole picoseconds when the
    ## Haskell side reads them (`microToPico`).
-   multipliedSizesFan <- function (fname) {
+   multipliedSizesViaFan <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
             discard.overhead ()
@@ -899,8 +899,8 @@ modelFun <- function(path) {
 
     ## X is the policy list, Y wrapped with `ValueOuterDepth`.
     ## See Note [Benchmarking keepPolicies and dropPolicies].
-    keepPoliciesModel <- multipliedSizesFan ("KeepPolicies")
-    dropPoliciesModel <- multipliedSizesFan ("DropPolicies")
+    keepPoliciesModel <- multipliedSizesViaFan ("KeepPolicies")
+    dropPoliciesModel <- multipliedSizesViaFan ("DropPolicies")
 
     ## Values
 
