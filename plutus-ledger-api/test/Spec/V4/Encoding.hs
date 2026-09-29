@@ -646,7 +646,7 @@ tests =
         , V4.ttisValidRange = timeRange
         , V4.ttisGuards = [credential]
         , V4.ttisRequiredTopLevelGuards = [scriptCredential]
-        , V4.ttisScriptPurposes = [purpose]
+        , V4.ttisRedeemerHashes = [scriptHash]
         , V4.ttisData = AssocMap.singleton datumHash datum
         , V4.ttisVotes = votes
         , V4.ttisProposalProcedures = [proposal]
@@ -667,7 +667,7 @@ tests =
         , DataV4.ttisValidRange = dataTimeRange
         , DataV4.ttisGuards = DataList.fromSOP [dataCredential]
         , DataV4.ttisRequiredTopLevelGuards = DataList.fromSOP [dataScriptCredential]
-        , DataV4.ttisScriptPurposes = DataList.fromSOP [dataPurpose]
+        , DataV4.ttisRedeemerHashes = DataList.fromSOP [scriptHash]
         , DataV4.ttisData = DataMap.singleton datumHash datum
         , DataV4.ttisVotes = dataVotes
         , DataV4.ttisProposalProcedures = DataList.fromSOP [dataProposal]
@@ -687,7 +687,7 @@ tests =
       , timeRangeData
       , V4.List [credentialData]
       , V4.List [scriptCredentialData]
-      , V4.List [purposeData]
+      , V4.List [scriptHashData]
       , V4.Map [(V4.B "datum", datumData)]
       , votesData
       , V4.List [proposalData]

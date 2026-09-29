@@ -16,6 +16,7 @@ import PlutusCore.Default
   ( BuiltinSemanticsVariant
       ( DefaultFunSemanticsVariantC
       , DefaultFunSemanticsVariantE
+      , DefaultFunSemanticsVariantG
       )
   )
 
@@ -45,10 +46,13 @@ mkEvaluationContext =
     >=> mkDynEvaluationContext
       PlutusV3
       defaultCaserBuiltinFor
-      [DefaultFunSemanticsVariantC, DefaultFunSemanticsVariantE]
+      [DefaultFunSemanticsVariantC, DefaultFunSemanticsVariantE, DefaultFunSemanticsVariantG]
       -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
       ( \pv ->
           if pv < vanRossemPV
             then DefaultFunSemanticsVariantC
-            else DefaultFunSemanticsVariantE
+            else
+              if pv < dijkstraPV
+                then DefaultFunSemanticsVariantE
+                else DefaultFunSemanticsVariantG
       )
