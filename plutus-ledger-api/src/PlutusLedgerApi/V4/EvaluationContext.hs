@@ -12,7 +12,7 @@ module PlutusLedgerApi.V4.EvaluationContext
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V4.ParamName as V4
 
-import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantE))
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantG))
 
 import Control.Monad
 import Control.Monad.Writer.Strict
