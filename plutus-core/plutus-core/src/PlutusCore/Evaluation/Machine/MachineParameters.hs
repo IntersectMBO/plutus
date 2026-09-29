@@ -36,8 +36,8 @@ makeLenses ''CostModel
 
 {-| The part of 'MachineParameters' that is individual for each semantics variant of 'DefaultFun'.
 
-'CaserBuiltin' isn't included, because it depends on the protocol and Plutus Core versions, not
-the built-in semantics variant. -}
+'CaserBuiltin' isn't included, because it depends on the protocol version and the Plutus Core language
+version, not the built-in semantics variant. -}
 data MachineVariantParameters machineCosts fun val
   = MachineVariantParameters
   { machineCosts :: machineCosts
