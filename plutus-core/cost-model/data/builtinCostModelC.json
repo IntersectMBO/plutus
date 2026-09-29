@@ -1387,7 +1387,7 @@
     "cpu": {
       "arguments": {
         "intercept": 315357,
-        "slope": 49013
+        "slope": 45187
       },
       "type": "multiplied_sizes"
     },
@@ -1403,7 +1403,7 @@
     "cpu": {
       "arguments": {
         "intercept": 356925,
-        "slope": 57953
+        "slope": 39755
       },
       "type": "multiplied_sizes"
     },

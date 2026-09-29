@@ -427,9 +427,8 @@ modelFun <- function(path) {
    ## `fit.fan` fits a line in one size, so it gets the product of the two sizes instead of
    ## one of them; the result is the intercept and slope of `multiplied_sizes`.  A row whose
    ## product is zero is charged the intercept alone, so it is left out of the line and the
-   ## intercept is raised to cover it; the slope is then raised to the smallest value that
-   ## covers every other row.  The coefficients are rounded up to whole picoseconds when the
-   ## Haskell side reads them (`microToPico`).
+   ## intercept is raised to cover it.  The coefficients are rounded up to whole picoseconds
+   ## when the Haskell side reads them (`microToPico`).
    multipliedSizesViaFan <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
@@ -441,12 +440,6 @@ modelFun <- function(path) {
         v <- coefficients (m)
         if (nrow (zero) > 0) {
             v[["(Intercept)"]] <- max (v[["(Intercept)"]], max (zero$t))
-        }
-        envelope <- max ((working$t - v[["(Intercept)"]]) / working$x_mem)
-        if (envelope > v[["x_mem"]]) {
-            cat (sprintf ("# INFO [%s]: slope raised from %.0f to %.0f ps so that no row is underestimated; the figures above are for the slope before the raise.\n",
-                          fname, v[["x_mem"]] * 1e6, envelope * 1e6))
-            v[["x_mem"]] <- envelope
         }
         names (v) <- c("(Intercept)", "I(x_mem * y_mem)")
         ## ^ The name must match what `CreateBuiltinCostModel` looks up, spaces around `*` included.
