@@ -1,4 +1,18 @@
 
+<a id='changelog-1.71.0.0'></a>
+# 1.71.0.0 — 2026-09-29
+
+## Changed
+
+- Plutus Core 1.2.0 is available in Plutus V1–V4 from protocol version 12. Casing on
+  `Data.Constr` requires both protocol version 12 and Plutus Core 1.2.0; casing
+  on other constants is unchanged.
+- `defaultCaserBuiltinFor`, `toMachineParameters`, `evaluateTerm`, and
+  `machineParametersFor` now take a Plutus Core version. Custom casers passed to
+  `mkDynEvaluationContext` now receive that version too.
+
+- Add new semantic variants for Dijkstra
+
 <a id='changelog-1.70.0.0'></a>
 # 1.70.0.0 — 2026-09-22
 
