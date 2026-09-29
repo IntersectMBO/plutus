@@ -27,6 +27,14 @@ let
           }];
         };
         ghc912.compiler-nix-name = "ghc912";
+        ghc914-profiled = {
+          compiler-nix-name = "ghc914";
+          modules = [{
+            enableProfiling = true;
+            enableLibraryProfiling = true;
+          }];
+        };
+        ghc914.compiler-nix-name = "ghc914";
         ghc96-coverage.modules = [{
           packages.plutus-metatheory.doCoverage = true;
           packages.plutus-core.doCoverage = true;

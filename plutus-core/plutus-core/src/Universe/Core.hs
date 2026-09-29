@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -57,6 +58,10 @@ import Control.DeepSeq
 import Control.Monad
 import Control.Monad.Trans.State.Strict
 import Data.Dependent.Sum
+#if MIN_VERSION_some(1,1,0)
+import Data.EqP
+import Data.OrdP
+#endif
 import Data.GADT.Compare
 import Data.GADT.DeepSeq
 import Data.GADT.Show
@@ -752,6 +757,12 @@ instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (ValueOf uni a) 
 
 -------------------- 'Eq' / 'GEq'
 
+#if MIN_VERSION_some(1,1,0)
+-- Since some-1.1, 'EqP' is a superclass of 'GEq'.
+instance (GEq uni, Closed uni, uni `Everywhere` Eq) => EqP (ValueOf uni) where
+  eqp = defaultEq
+#endif
+
 instance (GEq uni, Closed uni, uni `Everywhere` Eq) => GEq (ValueOf uni) where
   ValueOf uni1 x1 `geq` ValueOf uni2 x2 = do
     Refl <- uni1 `geq` uni2
@@ -765,6 +776,15 @@ instance (GEq uni, Closed uni, uni `Everywhere` Eq) => Eq (ValueOf uni a) where
   (==) = defaultEq
 
 -------------------- 'Compare' / 'GCompare'
+
+#if MIN_VERSION_some(1,1,0)
+-- Since some-1.1, 'OrdP' is a superclass of 'GCompare'.
+instance
+  (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq)
+  => OrdP (ValueOf uni)
+  where
+  comparep = defaultCompare
+#endif
 
 instance
   (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq)

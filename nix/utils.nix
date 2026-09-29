@@ -25,7 +25,7 @@ rec {
     let
       clean-jobs =
         lib.filterAttrsRecursive (name: _: name != "recurseForDerivations")
-          (removeAttrs self.hydraJobs.${pkgs.system} [ "required" ]);
+          (removeAttrs self.hydraJobs.${pkgs.stdenv.hostPlatform.system} [ "required" ]);
     in
     pkgs.releaseTools.aggregate {
       name = "required";

@@ -8,9 +8,14 @@ let
     pname = "plutus-metatheory";
     src = lib.cleanSource (self + /plutus-metatheory);
     buildInputs = [ agda-tools.agda-stdlib ];
-    # The everythingFile is the compilation target for Agda, and is assumed
-    # to transitively reference all other .agda files in the project.
-    everythingFile = "./src/index.lagda.md";
+    # The default buildPhase runs `agda --build-library`, which checks every
+    # file in the library. We only want to check index.lagda.md and the files
+    # it transitively references.
+    buildPhase = ''
+      runHook preBuild
+      agda src/index.lagda.md
+      runHook postBuild
+    '';
     meta = { };
   };
 
@@ -83,7 +88,7 @@ let
     {
       buildInputs = [
         pkgs.jekyll
-        inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
+        inputs.nixpkgs-2405.legacyPackages.${pkgs.stdenv.hostPlatform.system}.linkchecker
       ];
     } ''
     mkdir "$out"

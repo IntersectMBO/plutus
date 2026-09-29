@@ -35,11 +35,11 @@ following types:
   selfApply s = unself s s
 \end{code}
 
-\noindent The first thing we defined was $\Fix0 : (\Type \kindArrow \Type)
+\noindent The first thing we defined was $\FixZero : (\Type \kindArrow \Type)
 \kindArrow \Type$, which is a fixpoint operator that only works at kind $\Type$.
 We won't need the full power of $\ifix$ for this section, so the techniques
 here should be applicable for other recursive variants of \FOM{}, provided
-they are able to define $\Fix0$.
+they are able to define $\FixZero$.
 
 Now we can define the Y combinator and its $\eta$-expanded version, the Z combinator.
 
@@ -75,7 +75,7 @@ a non-strict and strict setting. We will present the steps
 using recursive definitions for clarity, but all of these can be implemented
 with the Z combinator.
 
-Let us start with the function $\fix2$ which takes the fixpoint of a function
+Let us start with the function $\fixTwo$ which takes the fixpoint of a function
 of 2-tuples.
 \begin{code}
   fix₂ : ∀ {A B} → (A × B → A × B) → A × B
