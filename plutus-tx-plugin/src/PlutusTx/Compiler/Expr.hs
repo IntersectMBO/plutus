@@ -864,7 +864,8 @@ compileHaskellList
    . CompilingDefault uni fun m ann
   => GHC.CoreExpr
   -> m [PIRTerm uni fun]
-compileHaskellList = buildList . strip
+compileHaskellList listExpression =
+  buildList Set.empty listExpression >>= traverse (compileExpr Nothing)
   where
     err =
       throwPlain $
@@ -876,29 +877,35 @@ compileHaskellList = buildList . strip
     -- Form 1 is used when GHC inlines 'build' (e.g. for recursive types with
     -- many constructors).  Form 2 is used when build/foldr fusion is possible.
 
-    -- Form 1: explicit (:) chain.  Walk the spine, collecting elements.
-    buildList expr@(GHC.App (GHC.App (GHC.App (GHC.Var con) _ty) _e) _rest)
-      | GHC.isDataConWorkId con =
-          let consumeCons = \case
-                GHC.App (GHC.App (GHC.App (GHC.Var _con) _ty') e) rest ->
-                  (e :) <$> consumeCons (strip rest)
-                GHC.App (GHC.Var _nil) _ty' -> pure [] -- [] @ty
-                _ -> err
-           in consumeCons expr >>= traverse (compileExpr Nothing)
-    -- Form 2: build-based list.
-    buildList (GHC.App (GHC.App _build _ty) (GHC.Lam _tyArg (GHC.Lam con (GHC.Lam nil li)))) =
-      let
-        consume :: GHC.CoreExpr -> m [GHC.CoreExpr]
-        consume (GHC.App (GHC.App (GHC.Var con') e) rest)
-          | con' == con = (e :) <$> consume rest
-          | otherwise = err
-        consume (GHC.Var nil')
-          | nil' == nil = pure []
-          | otherwise = err
-        consume _ = err
-       in
-        consume li >>= traverse (compileExpr Nothing)
-    buildList _ = err
+    buildList :: Set.Set GHC.Name -> GHC.CoreExpr -> m [GHC.CoreExpr]
+    buildList seen expression = case strip expression of
+      GHC.Var variable
+        | let name = GHC.getName variable
+        , Set.notMember name seen
+        , -- Set membership check prevents this function infinite looping on definitions like
+          -- foo = 10 : foo
+          Just unfolding <- GHC.maybeUnfoldingTemplate (GHC.realIdUnfolding variable) ->
+            buildList (Set.insert name seen) unfolding
+      -- Form 1: explicit (:) chain.  Walk the spine, collecting elements.
+      GHC.App (GHC.App (GHC.App (GHC.Var constructor) _ty) listElement) rest
+        | constructor == GHC.dataConWorkId GHC.consDataCon ->
+            (listElement :) <$> buildList seen rest
+      GHC.App (GHC.Var constructor) _ty
+        | constructor == GHC.dataConWorkId GHC.nilDataCon -> pure []
+      -- Form 2: build-based list.
+      GHC.App (GHC.App _build _ty) (GHC.Lam _tyArg (GHC.Lam constructor (GHC.Lam nil body))) ->
+        let
+          consume :: GHC.CoreExpr -> m [GHC.CoreExpr]
+          consume (GHC.App (GHC.App (GHC.Var constructor') listElement) rest)
+            | constructor' == constructor = (listElement :) <$> consume rest
+            | otherwise = err
+          consume (GHC.Var nil')
+            | nil' == nil = pure []
+            | otherwise = err
+          consume _ = err
+         in
+          consume body
+      _ -> err
 
 traceExprMsg :: Maybe GHC.RealSrcSpan -> GHC.SDoc
 traceExprMsg = \case
