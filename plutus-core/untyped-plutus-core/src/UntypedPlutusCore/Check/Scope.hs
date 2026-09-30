@@ -3,7 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module UntypedPlutusCore.Check.Scope (checkScope) where
+module UntypedPlutusCore.Check.Scope (checkScope, ScopeCheckMode (..)) where
 
 import Control.Lens hiding (index)
 import UntypedPlutusCore.Core.Type as UPLC
@@ -11,6 +11,12 @@ import UntypedPlutusCore.DeBruijn as UPLC
 
 import Control.Monad (unless)
 import Control.Monad.Except (MonadError, throwError)
+
+{- The scope check used to have a bug where it didn't traverse the subterms of
+ - case and constr -}
+data ScopeCheckMode
+  = NoCaseConstr
+  | Full
 
 {-| A pass to check that the input term:
 1) does not contain free variables and
@@ -28,9 +34,10 @@ That then means that GHC can optimize go locally in a completely monomorphic set
 checkScope
   :: forall m name uni fun a
    . (HasIndex name, MonadError FreeVariableError m)
-  => UPLC.Term name uni fun a
+  => ScopeCheckMode
+  -> UPLC.Term name uni fun a
   -> m ()
-checkScope = go 0
+checkScope mode = go 0
   where
     -- the current level as a reader value
     go :: Word -> UPLC.Term name uni fun a -> m ()
@@ -52,8 +59,14 @@ checkScope = go 0
       Apply _ t1 t2 -> go lvl t1 >> go lvl t2
       Force _ t -> go lvl t
       Delay _ t -> go lvl t
-      Constr _ _i ts -> mapM_ (go lvl) ts
-      Case _ t ts -> go lvl t >> mapM_ (go lvl) ts
+      Constr _ _i ts ->
+        case mode of
+          Full -> mapM_ (go lvl) ts
+          NoCaseConstr -> pure ()
+      Case _ t ts ->
+        case mode of
+          Full -> go lvl t >> mapM_ (go lvl) ts
+          NoCaseConstr -> pure ()
       Constant _ _ -> pure ()
       Error _ -> pure ()
       Builtin _ _ -> pure ()
