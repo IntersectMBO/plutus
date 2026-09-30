@@ -59,7 +59,7 @@ checkScope mode = go 0
       Apply _ t1 t2 -> go lvl t1 >> go lvl t2
       Force _ t -> go lvl t
       Delay _ t -> go lvl t
-      Constr _ _i ts ->
+      Constr _ _ ts ->
         case mode of
           Full -> mapM_ (go lvl) ts
           NoCaseConstr -> pure ()
