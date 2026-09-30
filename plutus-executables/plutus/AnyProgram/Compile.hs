@@ -276,8 +276,8 @@ uplcTypecheck sngN sngA ast = case sngN of
       withA @Ord sngA $
         UPLC.checkProgram (const True) (ast ^. _Wrapped)
   -- TODO: deduplicate
-  SDeBruijn -> modifyError PLC.FreeVariableErrorE $ UPLC.checkScope Full (ast ^. _Wrapped . UPLC.progTerm)
-  SNamedDeBruijn -> modifyError PLC.FreeVariableErrorE $ UPLC.checkScope Full (ast ^. _Wrapped . UPLC.progTerm)
+  SDeBruijn -> modifyError PLC.FreeVariableErrorE $ UPLC.checkScope UPLC.Full (ast ^. _Wrapped . UPLC.progTerm)
+  SNamedDeBruijn -> modifyError PLC.FreeVariableErrorE $ UPLC.checkScope UPLC.Full (ast ^. _Wrapped . UPLC.progTerm)
 
 -- | Placed here just for uniformity, not really needed
 pirToOutName
