@@ -137,6 +137,11 @@ let
           packages.plutus-benchmark.components.tests.uplc-evaluator-integration-tests.doCheck = false;
         }
         ({ lib, pkgs, ... }: lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
+          packages.plutus-core.components.library.ghcOptions = [
+            "-fbyte-code-and-object-code"
+            "-fprefer-byte-code"
+          ];
+
           # This fixed basement compilation error on Windows (ref: https://ci.iog.io/build/8529222/nixlog/1)
           # ```
           # Preprocessing library for basement-0.0.16...
