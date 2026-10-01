@@ -54,4 +54,4 @@ test_scope =
 
     testThrows t = isLeft (runScope t) @? "scope checking passed unexpectedly"
 
-    runScope = runExcept @FreeVariableError . checkScope
+    runScope = runExcept @FreeVariableError . checkScope Full
