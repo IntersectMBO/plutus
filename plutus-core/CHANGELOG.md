@@ -1,4 +1,20 @@
 
+<a id='changelog-1.71.0.0'></a>
+# 1.71.0.0 — 2026-09-29
+
+## Added
+
+- Cost models for the `keepPolicies` and `dropPolicies` builtins ([CIP-0168](https://cips.cardano.org/cip/CIP-0168)), with eight new cost model parameters. Both are proportional to the length of the policy list times the depth of the `Value`'s outer map.
+
+- Plutus Core version 1.2.0, which supports casing on `Data.Constr` constants.
+
+## Changed
+
+- `Value` now caches the number of negative amounts per currency, not only in total, which makes `keepPolicies` and `dropPolicies` logarithmic in the `Value` rather than linear in its size. The CPU and memory models of `insertCoin`, `unionValue`, `scaleValue` and `unValueData` account for maintaining it.
+- `keepPolicies` and `dropPolicies` fail on a `Value` with more than 8191 policies (`policyFilterMaxSize`).
+
+- Added builtin semantics variants F and G for Dijkstra era
+
 <a id='changelog-1.69.0.0'></a>
 # 1.69.0.0 — 2026-09-11
 

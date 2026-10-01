@@ -1,4 +1,29 @@
 
+<a id='changelog-1.71.0.0'></a>
+# 1.71.0.0 — 2026-09-29
+
+## Changed
+
+- Plutus Core 1.2.0 is available in Plutus V1–V4 from protocol version 12. Casing on
+  `Data.Constr` requires both protocol version 12 and Plutus Core 1.2.0; casing
+  on other constants is unchanged.
+- `defaultCaserBuiltinFor`, `toMachineParameters`, `evaluateTerm`, and
+  `machineParametersFor` now take a Plutus Core version. Custom casers passed to
+  `mkDynEvaluationContext` now receive that version too.
+
+- Add new semantic variants for Dijkstra
+
+<a id='changelog-1.70.0.0'></a>
+# 1.70.0.0 — 2026-09-22
+
+## Removed
+
+- `plc optimise` no longer accepts the `--certify` and `--certifier-*` options. It never ran the certifier (or any optimisation), so accepting the flags and silently producing no certificate was misleading.
+
+## Added
+
+- Added some helper functions for dealing with V4 script context.
+
 <a id='changelog-1.69.0.0'></a>
 # 1.69.0.0 — 2026-09-11
 

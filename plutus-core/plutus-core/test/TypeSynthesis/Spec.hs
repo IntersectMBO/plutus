@@ -252,6 +252,8 @@ test_dumpTypeRepDefaultFuns =
                     [ DefaultFunSemanticsVariantC
                     , DefaultFunSemanticsVariantD
                     , DefaultFunSemanticsVariantE
+                    , DefaultFunSemanticsVariantF
+                    , DefaultFunSemanticsVariantG
                     ]
                   )
                 ,
@@ -267,7 +269,9 @@ test_dumpTypeRepDefaultFuns =
                   , [DefaultFunSemanticsVariantD]
                   )
                 ]
-           in [test_dumpTypeRepAllFun @DefaultFun "DefaultFun" semVarChanges DefaultFunSemanticsVariantE]
+           in [ test_dumpTypeRepAllFun @DefaultFun "DefaultFun" semVarChanges DefaultFunSemanticsVariantF
+              , test_dumpTypeRepAllFun @DefaultFun "DefaultFun" semVarChanges DefaultFunSemanticsVariantG
+              ]
         , let semVarChanges =
                 -- Keep the inner lists sorted.
                 [

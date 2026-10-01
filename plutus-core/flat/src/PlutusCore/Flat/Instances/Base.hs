@@ -624,7 +624,8 @@ instance (Integral a, Flat a) => Flat (Ratio a) where
 This instance and other similar ones are declared as @OVERLAPPABLE@, because for better encoding/decoding
 performance it can be useful to declare instances of concrete types, such as @[Char]@ (not provided out of the box).
 -}
-instance {-# OVERLAPPABLE #-} Flat a => Flat [a]
+instance {-# OVERLAPPABLE #-} Flat a => Flat [a] where
+    decode = decodeListWith decode
 
 {-
 >>> import Weigh

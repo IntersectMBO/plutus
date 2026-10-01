@@ -53,12 +53,15 @@ module PlutusLedgerApi.V4.Contexts
   , findContinuingOutputs
   , getContinuingOutputs
   , txSignedBy
+  , txGuardedBy
   , pubKeyOutputsAt
   , valuePaidTo
   , valueSpent
   , valueProduced
   , ownCurrencySymbol
   , spendsOutput
+  , isTopLevelTx
+  , guardingTopTxInfo
   ) where
 
 import Data.Function ((&))
@@ -420,10 +423,11 @@ data TopTxInfoSimplified = TopTxInfoSimplified
   {-^ Deduplicated set of required top level guards. It is impossible to keep the range of the Map
   due to potential presence of duplicates in the domain between different sub-transactions,
   therefore the range is eliminated. -}
-  , ttisScriptPurposes :: [ScriptPurpose]
-  {-^ Union of all of the `Redeemer`s. Note that it is not possible to preserve actual `Redeemer`s
+  , ttisRedeemerHashes :: [V2.ScriptHash]
+  {-^ Union of all of the `ScriptHash`es from all of the `Redeemer`s. Note that it is
+  not possible to preserve actual `Redeemer`s or `ScriptPurpose`s
   upon `union` operation due to potential duplicates in the domain. Therefore it is collapsed to
-  a Set of `ScriptPurpose`s only with duplicates removed. -}
+  a list of `ScriptHash`s with duplicates removed. -}
   , ttisData :: Map V2.DatumHash V2.Datum
   {-^ Union of all `txInfoData`. Duplicates are simply removed, since domain and range are
   a one-to-one mapping. -}
@@ -561,9 +565,13 @@ getContinuingOutputs _ = PlutusTx.traceError "Lf"
 {-# INLINEABLE getContinuingOutputs #-}
 
 txSignedBy :: TxInfo -> V2.PubKeyHash -> Haskell.Bool
-txSignedBy TxInfo {txInfoGuards} keyHash =
-  List.any ((PlutusTx.==) (V2.PubKeyCredential keyHash)) txInfoGuards
+txSignedBy txInfo keyHash = txGuardedBy txInfo (V2.PubKeyCredential keyHash)
 {-# INLINEABLE txSignedBy #-}
+
+txGuardedBy :: TxInfo -> V2.Credential -> Haskell.Bool
+txGuardedBy TxInfo {txInfoGuards} credential =
+  List.any ((PlutusTx.==) credential) txInfoGuards
+{-# INLINEABLE txGuardedBy #-}
 
 pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> [V2.Value]
 pubKeyOutputsAt pk txInfo =
@@ -598,6 +606,15 @@ spendsOutput txInfo txId outputIndex =
     )
     (txInfoInputs txInfo)
 {-# INLINEABLE spendsOutput #-}
+
+isTopLevelTx :: TxInfo -> Haskell.Bool
+isTopLevelTx TxInfo {txInfoSubTxIx} = PlutusTx.isNothing txInfoSubTxIx
+{-# INLINEABLE isTopLevelTx #-}
+
+guardingTopTxInfo :: ScriptContext -> Haskell.Maybe TopTxInfo
+guardingTopTxInfo ScriptContext {scriptContextScriptInfo = GuardingScript _ topTxInfo} = topTxInfo
+guardingTopTxInfo _ = Haskell.Nothing
+{-# INLINEABLE guardingTopTxInfo #-}
 
 $(makeLift ''AccountBalanceIntervals)
 

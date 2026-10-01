@@ -1,27 +1,27 @@
-CPU:               109_597_990
-Memory:                322_032
-AST Size:                  647
-Flat Size:                 697
+CPU:                74_297_330
+Memory:                231_178
+AST Size:                  542
+Flat Size:                 588
 
 (constr
   1
-  (constr 0 (con integer 103) (con integer 33))
+  (constr 0 (con integer 101) (con integer 1))
   (constr
     1
-    (constr 0 (con integer 104) (con integer 44))
+    (constr 0 (con integer 102) (con integer 2))
     (constr
       1
-      (constr 0 (con integer 106) (con integer 60))
+      (constr 0 (con integer 103) (con integer 33))
       (constr
         1
-        (constr 0 (con integer 107) (con integer 70))
+        (constr 0 (con integer 104) (con integer 44))
         (constr
           1
           (constr 0 (con integer 105) (con integer 5))
           (constr
             1
-            (constr 0 (con integer 102) (con integer 2))
-            (constr 1 (constr 0 (con integer 101) (con integer 1)) (constr 0))
+            (constr 0 (con integer 106) (con integer 60))
+            (constr 1 (constr 0 (con integer 107) (con integer 70)) (constr 0))
           )
         )
       )

@@ -142,7 +142,7 @@ module PlutusLedgerApi.V4.Data.Contexts
   , ttisValidRange
   , ttisGuards
   , ttisRequiredTopLevelGuards
-  , ttisScriptPurposes
+  , ttisRedeemerHashes
   , ttisData
   , ttisVotes
   , ttisProposalProcedures
@@ -178,12 +178,15 @@ module PlutusLedgerApi.V4.Data.Contexts
   , findContinuingOutputs
   , getContinuingOutputs
   , txSignedBy
+  , txGuardedBy
   , pubKeyOutputsAt
   , valuePaidTo
   , valueSpent
   , valueProduced
   , ownCurrencySymbol
   , spendsOutput
+  , isTopLevelTx
+  , guardingTopTxInfo
   ) where
 
 import GHC.Generics (Generic)
@@ -499,10 +502,11 @@ PlutusTx.asDataAsList
       , -- \^ Deduplicated set of required top level guards. It is impossible to keep the range of
         -- the Map due to potential presence of duplicates in the domain between different
         -- sub-transactions, therefore the range is eliminated.
-        ttisScriptPurposes :: List ScriptPurpose
-      , -- \^ Union of all of the `Redeemer`s. Note that it is not possible to preserve actual
-        -- `Redeemer`s upon `union` operation due to potential duplicates in the domain. Therefore it
-        -- is collapsed to a Set of `ScriptPurpose`s only with duplicates removed.
+        ttisRedeemerHashes :: List V2.ScriptHash
+      , -- \^ Union of all of the `ScriptHash`es from all of the `Redeemer`s. Note that it is
+        -- not possible to preserve actual `Redeemer`s or `ScriptPurpose`s
+        -- upon `union` operation due to potential duplicates in the domain. Therefore it is collapsed to
+        -- a list of `ScriptHash`s with duplicates removed.
         ttisData :: Map V2.DatumHash V2.Datum
       , -- \^ Union of all `txInfoData`. Duplicates are simply removed, since domain and range are
         -- a one-to-one mapping.
@@ -658,13 +662,12 @@ getContinuingOutputs _ = PlutusTx.traceError "Lf"
 
 {-# INLINEABLE txSignedBy #-}
 txSignedBy :: TxInfo -> V2.PubKeyHash -> Haskell.Bool
-txSignedBy TxInfo {txInfoGuards} keyHash =
-  case Data.List.find isSigner txInfoGuards of
-    Haskell.Just _ -> Haskell.True
-    Haskell.Nothing -> Haskell.False
-  where
-    isSigner (V2.PubKeyCredential guardKeyHash) = guardKeyHash PlutusTx.== keyHash
-    isSigner _ = Haskell.False
+txSignedBy txInfo keyHash = txGuardedBy txInfo (V2.PubKeyCredential keyHash)
+
+{-# INLINEABLE txGuardedBy #-}
+txGuardedBy :: TxInfo -> V2.Credential -> Haskell.Bool
+txGuardedBy TxInfo {txInfoGuards} credential =
+  Data.List.any ((PlutusTx.==) credential) txInfoGuards
 
 {-# INLINEABLE pubKeyOutputsAt #-}
 pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> List V2.Value
@@ -701,6 +704,15 @@ spendsOutput txInfo txId i =
               PlutusTx.&& i
               PlutusTx.== V4.txOutRefIdx outRef
    in Data.List.any spendsOutRef (txInfoInputs txInfo)
+
+{-# INLINEABLE isTopLevelTx #-}
+isTopLevelTx :: TxInfo -> Haskell.Bool
+isTopLevelTx TxInfo {txInfoSubTxIx} = PlutusTx.isNothing txInfoSubTxIx
+
+{-# INLINEABLE guardingTopTxInfo #-}
+guardingTopTxInfo :: ScriptContext -> Haskell.Maybe TopTxInfo
+guardingTopTxInfo ScriptContext {scriptContextScriptInfo = GuardingScript _ topTxInfo} = topTxInfo
+guardingTopTxInfo _ = Haskell.Nothing
 
 instance Pretty TxInfo where
   pretty TxInfo {..} =

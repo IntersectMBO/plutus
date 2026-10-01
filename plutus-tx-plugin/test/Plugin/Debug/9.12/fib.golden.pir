@@ -1,6 +1,6 @@
 (program
   { no-src-span }
-  1.1.0
+  1.2.0
   (let
     { no-src-span }
     (nonrec)
