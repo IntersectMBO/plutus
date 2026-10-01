@@ -389,20 +389,8 @@ and 'MajorProtocolVersion'? -}
 plcVersionsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set Version
 plcVersionsAvailableIn = collectUpTo . plcVersionsIntroducedIn
 
-{-| The maximum size (in bits) of a constant type tag header that a script
-is allowed to contain. Checked when deserialising a script.
-
-This bound was introduced at protocol version 11 ('vanRossemPV') and used to be
-unbounded before that. It was verified that no script ever submitted on-chain
-exceeds this bound, so it now applies unconditionally. -}
 maxHeaderSize :: Int
 maxHeaderSize = 32
 
-{-| The maximum number of fields a @constr@ term is allowed to have.
-Checked when deserialising a script.
-
-This bound was introduced at protocol version 11 ('vanRossemPV') and used to be
-unbounded before that. It was verified that no script ever submitted on-chain
-exceeds this bound, so it now applies unconditionally. -}
 maxConstrFields :: Int
 maxConstrFields = 1024
