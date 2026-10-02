@@ -30,6 +30,8 @@ open import Data.Maybe using (Maybe; just; nothing; maybe)
 open import Data.Unit using (⊤)
 open import Level using (_⊔_)
 
+open import Data.Bool using (_∧_)
+
 {-# FOREIGN GHC import Raw #-}
 
 ```
@@ -204,18 +206,83 @@ data RuntimeError : Set where
 
 {-# COMPILE GHC RuntimeError = data RuntimeError (GasError | UserError | RuntimeTypeError) #-}
 
-postulate ByteString : Set
-{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
+data Byte : Set where
+  byte : (b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈ : Bool) → Byte
+
+{-# COMPILE GHC Byte = data Byte (Byte) #-}
+
+ᵇproj₁ : Byte → Bool
+ᵇproj₂ : Byte → Bool
+ᵇproj₃ : Byte → Bool
+ᵇproj₄ : Byte → Bool
+ᵇproj₅ : Byte → Bool
+ᵇproj₆ : Byte → Bool
+ᵇproj₇ : Byte → Bool
+ᵇproj₈ : Byte → Bool
+ᵇproj₁ (byte b₁ _ _ _ _ _ _ _) = b₁
+ᵇproj₂ (byte _ b₂ _ _ _ _ _ _) = b₂
+ᵇproj₃ (byte _ _ b₃ _ _ _ _ _) = b₃
+ᵇproj₄ (byte _ _ _ b₄ _ _ _ _) = b₄
+ᵇproj₅ (byte _ _ _ _ b₅ _ _ _) = b₅
+ᵇproj₆ (byte _ _ _ _ _ b₆ _ _) = b₆
+ᵇproj₇ (byte _ _ _ _ _ _ b₇ _) = b₇
+ᵇproj₈ (byte _ _ _ _ _ _ _ b₈) = b₈
+
+buildByte : (n : ℤ) → (b : Bool) → Byte
+buildByte 0 False = byteZero
+buildByte 0 True = byteOne
+buildByte n b = plusByte (buildByte (n - 1) b) ?
+
+data ByteString : Set where
+  []  : ByteString
+  _∷_ : Byte → ByteString → ByteString
+
+{-# COMPILE GHC ByteString = data ByteString (BSNil | BSCons) #-}
 
 postulate
   mkByteString : String → ByteString
 
--- Agda implementation should only be used as part of deciding builtin equality.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+eqByte : Byte → Byte → Bool
+eqByte (byte b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈) (byte c₁ c₂ c₃ c₄ c₅ c₆ c₇ c₈) =
+    does (b₁ ≟ c₁)
+  ∧ does (b₂ ≟ c₂)
+  ∧ does (b₃ ≟ c₃)
+  ∧ does (b₄ ≟ c₄)
+  ∧ does (b₅ ≟ c₅)
+  ∧ does (b₆ ≟ c₆)
+  ∧ does (b₇ ≟ c₇)
+  ∧ does (b₈ ≟ c₈)
+  where
+    open import Data.Bool using (_≟_)
+    open import Relation.Nullary.Decidable using (does)
+
 eqByteString : ByteString → ByteString → Bool
-eqByteString _ _ = Bool.true
-{-# COMPILE GHC eqByteString = (==) #-}
+eqByteString [] [] = true
+eqByteString (x ∷ xs) (y ∷ ys) = eqByte x y ∧ eqByteString xs ys
+eqByteString _ _ = false
+
+{-# FOREIGN GHC import Data.ByteString qualified as Haskell #-}
+
+-- TODO: this is how we'll use it in an FFI module
+-- {-# FOREIGN GHC
+-- 
+-- data Byte = Byte Bool Bool Bool Bool Bool Bool Bool Bool
+-- 
+-- data ByteString = BSNil | BSCons Byte ByteString
+-- 
+-- toHS :: ByteString -> Haskell.ByteString
+-- toHS = undefined
+-- 
+-- fromHS :: Haskell.ByteString -> ByteString
+-- fromHS = undefined
+-- 
+-- actualHash :: Haskell.ByteString -> Haskell.ByteString
+-- actualHash = undefined
+-- 
+-- hash :: ByteString -> ByteString
+-- hash bs = fromHS (actualHash (toHS bs))
+-- 
+-- #-}
 
 ```
 ## Record Types
@@ -326,8 +393,29 @@ data DATA : Set where
   iDATA : I.ℤ → DATA
   bDATA : ByteString → DATA
 
-{-# FOREIGN GHC import PlutusCore.Data as D #-}
-{-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
+{-# COMPILE GHC DATA = data Data (Constr | Map | List | I | B) #-}
+
+{-# FOREIGN GHC import PlutusCore.Data as Haskell #-}
+
+-- TODO: this is how we'll use it in an FFI module
+-- {-# FOREIGN GHC
+-- 
+-- data Data
+--   = Constr Integer
+--   | Map [(Data, Data)]
+--   | List [Data]
+--   | I Integer
+--   | B ByteString
+-- 
+-- dataToHSData :: Data -> Haskell.Data
+-- dataToHSData = undefined
+-- 
+-- dataFromHSData :: Haskell.Data -> Data
+-- dataFromHSData = undefined
+-- 
+-- 
+-- #-}
+
 
 -- Agda implementation should only be used as part of deciding builtin equality.
 -- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
@@ -366,10 +454,7 @@ eqDATA (bDATA x) (ConstrDATA x₁ x₂) = Bool.false
 eqDATA (bDATA x) (MapDATA x₁) = Bool.false
 eqDATA (bDATA x) (ListDATA x₁) = Bool.false
 eqDATA (bDATA x) (iDATA x₁) = Bool.false
--- Warning: eqByteString is always trivially true at the Agda level.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
 eqDATA (bDATA b₁) (bDATA b₂) = eqByteString b₁ b₂
-{-# COMPILE GHC eqDATA = (==) #-}
 
 postulate Bls12-381-G1-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G1 as G1 #-}
