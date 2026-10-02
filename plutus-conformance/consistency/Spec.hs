@@ -38,6 +38,12 @@ skippedConsistencyTests =
          -- because free variables are detected by deBruijnTerm, which we call
          -- before executing the textual test cases.
          "test-cases/uplc/evaluation/term/var"
+       , -- These tests also have free variables, decoding the .flat versions
+         -- fails because it implicitly performs a scope check, because it
+         -- converts de Bruijn to names.
+         "test-cases/uplc/evaluation/term/free-vars/constr-free-var"
+       , "test-cases/uplc/evaluation/term/free-vars/unused-free-var"
+       , "test-cases/uplc/evaluation/term/free-vars/var"
        ]
 
 {-| Check that a `.flat` file decodes to the same AST as the textual UPLC
