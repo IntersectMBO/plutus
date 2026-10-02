@@ -128,7 +128,10 @@ mkTermToEvaluate ll pv script args = do
       PlutusCoreLanguageNotAvailableError v ll pv
 
   -- make sure that term is closed, i.e. well-scoped
-  through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
+  let mode
+        | pv < dijkstraPV = UPLC.NoCaseConstr
+        | otherwise = UPLC.Full
+  through (liftEither . first DeBruijnError . UPLC.checkScope mode) appliedT
 
 toMachineParameters
   :: MajorProtocolVersion -> Version -> EvaluationContext -> DefaultMachineParameters

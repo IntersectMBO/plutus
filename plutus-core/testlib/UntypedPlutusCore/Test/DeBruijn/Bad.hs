@@ -13,6 +13,8 @@ module UntypedPlutusCore.Test.DeBruijn.Bad
   , deepMix0_1
   , deepMix1_0
   , deepOutMix1_0
+  , freeCase
+  , freeConstr
   , manyFree01
   , iteStrict0
   , iteLazy0
@@ -25,6 +27,7 @@ module UntypedPlutusCore.Test.DeBruijn.Bad
   , illOverAppFun
   ) where
 
+import Data.Vector (fromList)
 import PlutusCore.Default
 import PlutusCore.MkPlc
 import PlutusCore.StdLib.Data.Bool
@@ -138,6 +141,16 @@ manyFree01 =
         DeBruijn 1
   where
     forceDelay = Force () . Delay ()
+
+-- | Free variables under a constr expression
+freeConstr :: Term DeBruijn DefaultUni DefaultFun ()
+freeConstr =
+  Constr () 0 [Var () (DeBruijn 42)]
+
+-- | Free variables under a case expression
+freeCase :: Term DeBruijn DefaultUni DefaultFun ()
+freeCase =
+  Case () unitval (fromList [var0])
 
 -- * Examples will ill-typed terms
 
