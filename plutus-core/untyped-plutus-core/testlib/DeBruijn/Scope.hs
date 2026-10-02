@@ -41,6 +41,8 @@ testsFail =
   , ("deepMix0_1", deepMix0_1 10)
   , ("deepOutMix1_0", deepOutMix1_0 10)
   , ("manyFree01", manyFree01)
+  , ("freeconstr", freeConstr)
+  , ("freecase", freeCase)
   ]
 
 test_scope :: TestNested
