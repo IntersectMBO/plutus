@@ -2,13 +2,11 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
+-- appears in the generated instances:
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
--- appears in the generated instances
 
 module PlutusCore.Error
   ( ParserError (..)
@@ -52,6 +50,7 @@ data ParserError
   = BuiltinTypeNotAStar !T.Text !SourcePos
   | UnknownBuiltinFunction !T.Text !SourcePos ![T.Text]
   | InvalidBuiltinConstant !T.Text !T.Text !SourcePos
+  | MalformedUniqueSuffix !T.Text !T.Text !SourcePos
   deriving stock (Eq, Ord, Generic)
   deriving anyclass (NFData)
 
@@ -192,6 +191,22 @@ instance Pretty ParserError where
       <+> squotes (pretty s)
       <+> "at"
       <+> pretty loc
+  pretty (MalformedUniqueSuffix base suffix loc) =
+    "Malformed unique suffix"
+      <+> squotes (pretty suffix)
+      <+> "for name"
+      <+> squotes (pretty base)
+      <+> "at"
+      <+> pretty loc
+      <> "."
+      <> hardline
+      <> "A unique suffix must be a non-empty sequence of digits"
+      <+> "(e.g."
+      <+> squotes "-123"
+      <> ")."
+      <> hardline
+      <> "To use this text as a name verbatim, quote it with backticks:"
+      <+> pretty ("`" <> base <> "-" <> suffix <> "`")
 
 instance ShowErrorComponent ParserError where
   showErrorComponent = show . pretty
