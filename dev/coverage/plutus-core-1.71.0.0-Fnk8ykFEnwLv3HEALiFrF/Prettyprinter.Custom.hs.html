@@ -1,0 +1,87 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module Prettyprinter.Custom
+<span class="lineno">    4 </span>  ( brackets'
+<span class="lineno">    5 </span>  , braces'
+<span class="lineno">    6 </span>  , parens'
+<span class="lineno">    7 </span>  , sexp
+<span class="lineno">    8 </span>  , (&lt;?&gt;)
+<span class="lineno">    9 </span>  , vcatHard
+<span class="lineno">   10 </span>  ) where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Prettyprinter
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>{-| An area bracketed by two delimiters. When on multiple lines the delimiters are not
+<span class="lineno">   15 </span>indented but the content is. -}
+<span class="lineno">   16 </span>section' :: Doc a -&gt; Doc a -&gt; Doc a -&gt; Doc a
+<span class="lineno">   17 </span>-- The subtlety here is that the nest call surrounds the first delimiter and the content, but not
+<span class="lineno">   18 </span>-- the final one. This is because of how nest behaves, where it doesn't indent until it hits
+<span class="lineno">   19 </span>-- the first line break. So we need to include the first delimiter so that the main content gets
+<span class="lineno">   20 </span>-- indented, but not the final delimiter.
+<span class="lineno">   21 </span><span class="decl"><span class="istickedoff">section' c1 c2 d = group $ nest 2 (c1 &lt;&gt; d) &lt;&gt; c2</span></span>
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>{-| An area bracketed by two delimiters. When on one line, there are spaces between the delimiters
+<span class="lineno">   24 </span>and the content, when on multiple lines the delimiters are not indented but the content is. -}
+<span class="lineno">   25 </span>section :: Doc a -&gt; Doc a -&gt; Doc a -&gt; Doc a
+<span class="lineno">   26 </span><span class="decl"><span class="istickedoff">section c1 c2 = section' (c1 &lt;&gt; line) (line &lt;&gt; c2)</span></span>
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>{-| This prints a document enclosed by brackets, possibly indenting the output on
+<span class="lineno">   29 </span>a new line if it does not fit. -}
+<span class="lineno">   30 </span>brackets' :: Doc a -&gt; Doc a
+<span class="lineno">   31 </span><span class="decl"><span class="istickedoff">brackets' = section &quot;[&quot; &quot;]&quot;</span></span>
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>{-| This prints a document enclosed by braces, possibly indenting the output on
+<span class="lineno">   34 </span>a new line if it does not fit. -}
+<span class="lineno">   35 </span>braces' :: Doc a -&gt; Doc a
+<span class="lineno">   36 </span><span class="decl"><span class="istickedoff">braces' = section &quot;{&quot; &quot;}&quot;</span></span>
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>{-| This prints a document enclosed by parentheses, aligning the opening and
+<span class="lineno">   39 </span>closing parentheses. -}
+<span class="lineno">   40 </span>parens' :: Doc a -&gt; Doc a
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">parens' = section &quot;(&quot; &quot;)&quot;</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>-- | Print a &quot;sexp&quot;, i.e. something like &quot;(keyword arg1 ... argN)&quot;.
+<span class="lineno">   44 </span>sexp :: Doc a -&gt; [Doc a] -&gt; Doc a
+<span class="lineno">   45 </span><span class="decl"><span class="istickedoff">sexp a es =</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">-- This is a bit funny, because we want the keyword to &quot;stick&quot; to the opening parenthesis</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">-- when it's split over multiple lines. So we include it in the &quot;initial&quot; segment. But then</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">-- we also have to have a space after that rather than no space. So we start with &quot;(keyword&quot;</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">-- and a line-or-space, but end with a line-or-nothing and &quot;)&quot;.</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff">-- However if @es@ is empty, then we don't want to insert a space right before @)@, so in that</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">-- case we use line-or-nothing as well.</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">section' (&quot;(&quot; &lt;&gt; a &lt;&gt; if null es then line' else line) (line' &lt;&gt; &quot;)&quot;) (sep es)</span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>{-| Lay out a sequence of documents vertically with forced lines between documents. Useful
+<span class="lineno">   55 </span>for prettyprinting layout-sensitive things like let-bindings. -}
+<span class="lineno">   56 </span>vcatHard :: [Doc ann] -&gt; Doc ann
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">vcatHard = concatWith (\x y -&gt; x &lt;&gt; hardline &lt;&gt; y)</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>{-| Separate two documents `p` and `q` and increase indentation if `q` has to be put on a new
+<span class="lineno">   60 </span>line. Useful to e.g. pretty-print function application like `fun &lt;?&gt; sep arguments`. -}
+<span class="lineno">   61 </span>(&lt;?&gt;) :: Doc ann -&gt; Doc ann -&gt; Doc ann
+<span class="lineno">   62 </span><span class="decl"><span class="istickedoff">p &lt;?&gt; q = align . nest 2 $ sep [p, q]</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>infixr 6 &lt;?&gt;
+
+</pre>
+</body>
+</html>

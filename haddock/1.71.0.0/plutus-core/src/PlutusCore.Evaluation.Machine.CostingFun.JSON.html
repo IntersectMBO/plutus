@@ -1,0 +1,6099 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -O0 #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A separate module for JSON instances, so that we can stick @-O0@ on it and avoid spending
+a lot of time optimizing loads of Core whose performance doesn't matter. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.CostingFun.JSON</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.html"
+	><span class="hs-identifier"
+	  >Data.Aeson</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.html"
+	><span class="hs-identifier"
+	  >Data.List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.OldList.html#stripPrefix"
+	><span class="hs-identifier"
+	  >stripPrefix</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html"
+	><span class="hs-identifier"
+	  >Data.Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#fromMaybe"
+	><span class="hs-identifier"
+	  >fromMaybe</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.CostingFun.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Drop a prefix from a name, leaving the name unchanged if the prefix doesn't match.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#dropPrefix"
+	><span class="hs-identifier hs-type"
+	  >dropPrefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span id="dropPrefix"
+      ><span class="annot"
+	><span class="annottext"
+	  >dropPrefix :: String -&gt; String -&gt; String
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#dropPrefix"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dropPrefix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681214789"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681214789"
+	  ><span class="hs-identifier hs-var"
+	    >prefix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681214790"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681214790"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Maybe String -&gt; String
+forall a. a -&gt; Maybe a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#fromMaybe"
+	><span class="hs-identifier hs-var"
+	  >fromMaybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681214790"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; Maybe String
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Maybe [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.OldList.html#stripPrefix"
+	><span class="hs-identifier hs-var"
+	  >stripPrefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681214789"
+	><span class="hs-identifier hs-var"
+	  >prefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681214790"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| JSON options for the record types describing the shapes of costing functions: drop the
+type-name prefix from the field names and convert the rest to snake_case. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-type"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.Internal.html#Options"
+	><span class="hs-identifier hs-type"
+	  >Options</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span id="modelOptions"
+      ><span class="annot"
+	><span class="annottext"
+	  >modelOptions :: String -&gt; Options
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >modelOptions</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681214792"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681214792"
+	  ><span class="hs-identifier hs-var"
+	    >prefix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.Internal.html#defaultOptions"
+	><span class="hs-identifier hs-var"
+	  >defaultOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.Internal.html#fieldLabelModifier"
+	><span class="hs-identifier hs-var"
+	  >fieldLabelModifier</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.Internal.html#camelTo2"
+	><span class="hs-identifier hs-type"
+	  >camelTo2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-char"
+	>'_'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-type"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#dropPrefix"
+	><span class="hs-identifier hs-type"
+	  >dropPrefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681214792"
+	><span class="hs-identifier hs-type"
+	  >prefix</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| JSON options for the sum types of costing function shapes.
+Without 'tagSingleConstructors' the format can change unexpectedly if
+you add/remove constructors because you don't get the tags if there's
+only one constructor but you do if there's more than one. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-type"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.Internal.html#Options"
+	><span class="hs-identifier hs-type"
+	  >Options</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span id="modelArgumentOptions"
+      ><span class="annot"
+	><span class="annottext"
+	  >modelArgumentOptions :: String -&gt; Options
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >modelArgumentOptions</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681214799"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681214799"
+	  ><span class="hs-identifier hs-var"
+	    >prefix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.Internal.html#defaultOptions"
+	><span class="hs-identifier hs-var"
+	  >defaultOptions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.Internal.html#constructorTagModifier"
+	><span class="hs-identifier hs-var"
+	  >constructorTagModifier</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.Internal.html#camelTo2"
+	><span class="hs-identifier hs-type"
+	  >camelTo2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-char"
+	>'_'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-type"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#dropPrefix"
+	><span class="hs-identifier hs-type"
+	  >dropPrefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681214799"
+	><span class="hs-identifier hs-type"
+	  >prefix</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.Internal.html#sumEncoding"
+	><span class="hs-identifier hs-var"
+	  >sumEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.Internal.html#TaggedObject"
+	><span class="hs-identifier hs-type"
+	  >TaggedObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;type&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;arguments&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.Internal.html#tagSingleConstructors"
+	><span class="hs-identifier hs-var"
+	  >tagSingleConstructors</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-type"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681214482"
+      ><span id="local-6989586621681214806"
+	><span id="local-6989586621681214810"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681214482"
+	      ><span class="hs-identifier hs-type"
+		>model</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+	      ><span class="hs-identifier hs-type"
+		>CostingFun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681214482"
+	      ><span class="hs-identifier hs-type"
+		>model</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681214892"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser (CostingFun model)
+</span
+	  ><a href="#local-6989586621681214892"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser (CostingFun model)
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;costingFun&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681214583"
+      ><span id="local-6989586621681214899"
+	><span id="local-6989586621681214903"
+	  ><span id="local-6989586621681214906"
+	    ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681214583"
+		><span class="hs-identifier hs-type"
+		  >model</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#CostingFun"
+		><span class="hs-identifier hs-type"
+		  >CostingFun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681214583"
+		><span class="hs-identifier hs-type"
+		  >model</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681214988"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: CostingFun model -&gt; Value
+</span
+	  ><a href="#local-6989586621681214988"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; CostingFun model -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;costingFun&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681215057"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: CostingFun model -&gt; Encoding
+</span
+	  ><a href="#local-6989586621681215057"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; CostingFun model -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;costingFun&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="local-6989586621681215061"
+      ><span id="local-6989586621681215066"
+	><span id="local-6989586621681215070"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Intercept"
+	      ><span class="hs-identifier hs-type"
+		>Intercept</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="local-6989586621681215075"
+      ><span id="local-6989586621681215080"
+	><span id="local-6989586621681215084"
+	  ><span id="local-6989586621681215088"
+	    ><span id="local-6989586621681215092"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Intercept"
+		  ><span class="hs-identifier hs-type"
+		    >Intercept</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="local-6989586621681215097"
+      ><span id="local-6989586621681215101"
+	><span id="local-6989586621681215105"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Slope"
+	      ><span class="hs-identifier hs-type"
+		>Slope</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="local-6989586621681215110"
+      ><span id="local-6989586621681215114"
+	><span id="local-6989586621681215118"
+	  ><span id="local-6989586621681215122"
+	    ><span id="local-6989586621681215126"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Slope"
+		  ><span class="hs-identifier hs-type"
+		    >Slope</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span id="local-6989586621681215131"
+      ><span id="local-6989586621681215135"
+	><span id="local-6989586621681215139"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient0"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient0</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="local-6989586621681215144"
+      ><span id="local-6989586621681215148"
+	><span id="local-6989586621681215152"
+	  ><span id="local-6989586621681215156"
+	    ><span id="local-6989586621681215160"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient0"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient0</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="local-6989586621681215165"
+      ><span id="local-6989586621681215169"
+	><span id="local-6989586621681215173"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient1"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient1</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span id="local-6989586621681215178"
+      ><span id="local-6989586621681215182"
+	><span id="local-6989586621681215186"
+	  ><span id="local-6989586621681215190"
+	    ><span id="local-6989586621681215194"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient1"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient1</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="local-6989586621681215199"
+      ><span id="local-6989586621681215203"
+	><span id="local-6989586621681215207"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient2"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient2</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="local-6989586621681215212"
+      ><span id="local-6989586621681215216"
+	><span id="local-6989586621681215220"
+	  ><span id="local-6989586621681215224"
+	    ><span id="local-6989586621681215228"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient2"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient2</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="local-6989586621681215233"
+      ><span id="local-6989586621681215237"
+	><span id="local-6989586621681215241"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient00"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient00</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span id="local-6989586621681215246"
+      ><span id="local-6989586621681215250"
+	><span id="local-6989586621681215254"
+	  ><span id="local-6989586621681215258"
+	    ><span id="local-6989586621681215262"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient00"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient00</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span id="local-6989586621681215267"
+      ><span id="local-6989586621681215271"
+	><span id="local-6989586621681215275"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient10"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient10</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="local-6989586621681215280"
+      ><span id="local-6989586621681215284"
+	><span id="local-6989586621681215288"
+	  ><span id="local-6989586621681215292"
+	    ><span id="local-6989586621681215296"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient10"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient10</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="local-6989586621681215301"
+      ><span id="local-6989586621681215305"
+	><span id="local-6989586621681215309"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient01"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient01</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="local-6989586621681215314"
+      ><span id="local-6989586621681215318"
+	><span id="local-6989586621681215322"
+	  ><span id="local-6989586621681215326"
+	    ><span id="local-6989586621681215330"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient01"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient01</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span id="local-6989586621681215335"
+      ><span id="local-6989586621681215339"
+	><span id="local-6989586621681215343"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient20"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient20</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="local-6989586621681215348"
+      ><span id="local-6989586621681215352"
+	><span id="local-6989586621681215356"
+	  ><span id="local-6989586621681215360"
+	    ><span id="local-6989586621681215364"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient20"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient20</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="local-6989586621681215369"
+      ><span id="local-6989586621681215373"
+	><span id="local-6989586621681215377"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient11"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient11</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="local-6989586621681215382"
+      ><span id="local-6989586621681215386"
+	><span id="local-6989586621681215390"
+	  ><span id="local-6989586621681215394"
+	    ><span id="local-6989586621681215398"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient11"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient11</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="local-6989586621681215403"
+      ><span id="local-6989586621681215407"
+	><span id="local-6989586621681215411"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient02"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient02</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span id="local-6989586621681215416"
+      ><span id="local-6989586621681215420"
+	><span id="local-6989586621681215424"
+	  ><span id="local-6989586621681215428"
+	    ><span id="local-6989586621681215432"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient02"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient02</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span id="local-6989586621681215437"
+      ><span id="local-6989586621681215441"
+	><span id="local-6989586621681215445"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-keyword"
+	      >newtype</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	      ><span class="hs-identifier hs-type"
+		>FromJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient12"
+	      ><span class="hs-identifier hs-type"
+		>Coefficient12</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="local-6989586621681215450"
+      ><span id="local-6989586621681215454"
+	><span id="local-6989586621681215458"
+	  ><span id="local-6989586621681215462"
+	    ><span id="local-6989586621681215466"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-keyword"
+		  >newtype</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+		  ><span class="hs-identifier hs-type"
+		    >ToJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#Coefficient12"
+		  ><span class="hs-identifier hs-type"
+		    >Coefficient12</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681215472"
+      ><span id="local-6989586621681215476"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	    ><span class="hs-identifier hs-type"
+	      >ModelOneArgument</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681215564"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ModelOneArgument
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser ModelOneArgument
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelOneArgument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681215568"
+      ><span id="local-6989586621681215572"
+	><span id="local-6989586621681215575"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelOneArgument"
+	      ><span class="hs-identifier hs-type"
+		>ModelOneArgument</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681215671"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ModelOneArgument -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelOneArgument -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelOneArgument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681215760"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: ModelOneArgument -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelOneArgument -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelOneArgument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681215763"
+      ><span id="local-6989586621681215767"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	    ><span class="hs-identifier hs-type"
+	      >ModelTwoArguments</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681216138"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ModelTwoArguments
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser ModelTwoArguments
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelTwoArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681216142"
+      ><span id="local-6989586621681216146"
+	><span id="local-6989586621681216149"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelTwoArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelTwoArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681216617"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ModelTwoArguments -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelTwoArguments -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelTwoArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681217078"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: ModelTwoArguments -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelTwoArguments -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelTwoArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681217081"
+      ><span id="local-6989586621681217085"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	    ><span class="hs-identifier hs-type"
+	      >ModelThreeArguments</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681217294"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ModelThreeArguments
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser ModelThreeArguments
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelThreeArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681217298"
+      ><span id="local-6989586621681217302"
+	><span id="local-6989586621681217305"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelThreeArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelThreeArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681217567"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ModelThreeArguments -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelThreeArguments -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelThreeArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681217828"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: ModelThreeArguments -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelThreeArguments -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelThreeArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681217831"
+      ><span id="local-6989586621681217835"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFourArguments"
+	    ><span class="hs-identifier hs-type"
+	      >ModelFourArguments</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681217887"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ModelFourArguments
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser ModelFourArguments
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelFourArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681217891"
+      ><span id="local-6989586621681217895"
+	><span id="local-6989586621681217898"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFourArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelFourArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681217959"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ModelFourArguments -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelFourArguments -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelFourArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218020"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: ModelFourArguments -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelFourArguments -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelFourArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218023"
+      ><span id="local-6989586621681218027"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFiveArguments"
+	    ><span class="hs-identifier hs-type"
+	      >ModelFiveArguments</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218058"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ModelFiveArguments
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser ModelFiveArguments
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelFiveArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218062"
+      ><span id="local-6989586621681218066"
+	><span id="local-6989586621681218069"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelFiveArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelFiveArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218101"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ModelFiveArguments -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelFiveArguments -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelFiveArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218133"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: ModelFiveArguments -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelFiveArguments -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelFiveArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218136"
+      ><span id="local-6989586621681218140"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSixArguments"
+	    ><span class="hs-identifier hs-type"
+	      >ModelSixArguments</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218171"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ModelSixArguments
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser ModelSixArguments
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelSixArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218175"
+      ><span id="local-6989586621681218179"
+	><span id="local-6989586621681218182"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSixArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelSixArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218214"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ModelSixArguments -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelSixArguments -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelSixArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218246"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: ModelSixArguments -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelSixArguments -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelArgumentOptions"
+	><span class="hs-identifier hs-var"
+	  >modelArgumentOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ModelSixArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218249"
+      ><span id="local-6989586621681218252"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSubtractedSizes"
+	    ><span class="hs-identifier hs-type"
+	      >ModelSubtractedSizes</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218313"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ModelSubtractedSizes
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser ModelSubtractedSizes
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelSubtractedSizes&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218317"
+      ><span id="local-6989586621681218320"
+	><span id="local-6989586621681218323"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelSubtractedSizes"
+	      ><span class="hs-identifier hs-type"
+		>ModelSubtractedSizes</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218407"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ModelSubtractedSizes -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelSubtractedSizes -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelSubtractedSizes&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218486"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: ModelSubtractedSizes -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelSubtractedSizes -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelSubtractedSizes&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218489"
+      ><span id="local-6989586621681218492"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableLinearFunction"
+	    ><span class="hs-identifier hs-type"
+	      >OneVariableLinearFunction</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218544"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser OneVariableLinearFunction
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser OneVariableLinearFunction
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;oneVariableLinearFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218548"
+      ><span id="local-6989586621681218551"
+	><span id="local-6989586621681218554"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableLinearFunction"
+	      ><span class="hs-identifier hs-type"
+		>OneVariableLinearFunction</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218620"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: OneVariableLinearFunction -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; OneVariableLinearFunction -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;oneVariableLinearFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218684"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: OneVariableLinearFunction -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; OneVariableLinearFunction -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;oneVariableLinearFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218687"
+      ><span id="local-6989586621681218690"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableLinearFunction"
+	    ><span class="hs-identifier hs-type"
+	      >TwoVariableLinearFunction</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218750"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser TwoVariableLinearFunction
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser TwoVariableLinearFunction
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;twoVariableLinearFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218754"
+      ><span id="local-6989586621681218757"
+	><span id="local-6989586621681218760"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableLinearFunction"
+	      ><span class="hs-identifier hs-type"
+		>TwoVariableLinearFunction</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218839"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: TwoVariableLinearFunction -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; TwoVariableLinearFunction -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;twoVariableLinearFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218914"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: TwoVariableLinearFunction -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; TwoVariableLinearFunction -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;twoVariableLinearFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218917"
+      ><span id="local-6989586621681218920"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableQuadraticFunction"
+	    ><span class="hs-identifier hs-type"
+	      >OneVariableQuadraticFunction</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681218981"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser OneVariableQuadraticFunction
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser OneVariableQuadraticFunction
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;oneVariableQuadraticFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681218985"
+      ><span id="local-6989586621681218988"
+	><span id="local-6989586621681218991"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#OneVariableQuadraticFunction"
+	      ><span class="hs-identifier hs-type"
+		>OneVariableQuadraticFunction</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681219073"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: OneVariableQuadraticFunction -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; OneVariableQuadraticFunction -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;oneVariableQuadraticFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681219151"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: OneVariableQuadraticFunction -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; OneVariableQuadraticFunction -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;oneVariableQuadraticFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681219154"
+      ><span id="local-6989586621681219157"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableQuadraticFunction"
+	    ><span class="hs-identifier hs-type"
+	      >TwoVariableQuadraticFunction</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681219256"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser TwoVariableQuadraticFunction
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser TwoVariableQuadraticFunction
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;twoVariableQuadraticFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681219260"
+      ><span id="local-6989586621681219263"
+	><span id="local-6989586621681219266"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableQuadraticFunction"
+	      ><span class="hs-identifier hs-type"
+		>TwoVariableQuadraticFunction</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681219414"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: TwoVariableQuadraticFunction -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; TwoVariableQuadraticFunction -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;twoVariableQuadraticFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681219550"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: TwoVariableQuadraticFunction -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; TwoVariableQuadraticFunction -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;twoVariableQuadraticFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681219553"
+      ><span id="local-6989586621681219556"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ExpModCostingFunction"
+	    ><span class="hs-identifier hs-type"
+	      >ExpModCostingFunction</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681219617"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ExpModCostingFunction
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser ExpModCostingFunction
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;expModCostingFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681219621"
+      ><span id="local-6989586621681219624"
+	><span id="local-6989586621681219627"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ExpModCostingFunction"
+	      ><span class="hs-identifier hs-type"
+		>ExpModCostingFunction</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681219709"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ExpModCostingFunction -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ExpModCostingFunction -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;expModCostingFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681219787"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: ExpModCostingFunction -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ExpModCostingFunction -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;expModCostingFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681219790"
+      ><span id="local-6989586621681219793"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrOneArgument"
+	    ><span class="hs-identifier hs-type"
+	      >ModelConstantOrOneArgument</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681219845"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ModelConstantOrOneArgument
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser ModelConstantOrOneArgument
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelConstantOrOneArgument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681219849"
+      ><span id="local-6989586621681219852"
+	><span id="local-6989586621681219855"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrOneArgument"
+	      ><span class="hs-identifier hs-type"
+		>ModelConstantOrOneArgument</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681219921"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ModelConstantOrOneArgument -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelConstantOrOneArgument -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelConstantOrOneArgument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681219985"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: ModelConstantOrOneArgument -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelConstantOrOneArgument -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelConstantOrOneArgument&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681219988"
+      ><span id="local-6989586621681219991"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrTwoArguments"
+	    ><span class="hs-identifier hs-type"
+	      >ModelConstantOrTwoArguments</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681220043"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ModelConstantOrTwoArguments
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser ModelConstantOrTwoArguments
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelConstantOrTwoArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681220047"
+      ><span id="local-6989586621681220050"
+	><span id="local-6989586621681220053"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrTwoArguments"
+	      ><span class="hs-identifier hs-type"
+		>ModelConstantOrTwoArguments</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681220119"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ModelConstantOrTwoArguments -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelConstantOrTwoArguments -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelConstantOrTwoArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681220183"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: ModelConstantOrTwoArguments -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelConstantOrTwoArguments -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelConstantOrTwoArguments&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Backward compatibility for costing functions] for ModelConstantOrLinear</span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681220186"
+      ><span id="local-6989586621681220189"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrLinear"
+	    ><span class="hs-identifier hs-type"
+	      >ModelConstantOrLinear</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681220250"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser ModelConstantOrLinear
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser ModelConstantOrLinear
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelConstantOrLinear&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681220254"
+      ><span id="local-6989586621681220257"
+	><span id="local-6989586621681220260"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#ModelConstantOrLinear"
+	      ><span class="hs-identifier hs-type"
+		>ModelConstantOrLinear</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681220342"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ModelConstantOrLinear -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelConstantOrLinear -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelConstantOrLinear&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681220420"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: ModelConstantOrLinear -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; ModelConstantOrLinear -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;modelConstantOrLinear&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681220423"
+      ><span id="local-6989586621681220426"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#FromJSON"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableWithInteractionFunction"
+	    ><span class="hs-identifier hs-type"
+	      >TwoVariableWithInteractionFunction</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681220498"
+      ><span class="annot"
+	><span class="annottext"
+	  >parseJSON :: Value -&gt; Parser TwoVariableWithInteractionFunction
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#parseJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >parseJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; Value -&gt; Parser TwoVariableWithInteractionFunction
+forall a.
+(Generic a, GFromJSON Zero (Rep a)) =&gt;
+Options -&gt; Value -&gt; Parser a
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.FromJSON.html#genericParseJSON"
+	><span class="hs-identifier hs-var"
+	  >genericParseJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;twoVariableWithInteractionFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681220502"
+      ><span id="local-6989586621681220505"
+	><span id="local-6989586621681220508"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#ToJSON"
+	      ><span class="hs-identifier hs-type"
+		>ToJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostingFun.Core.html#TwoVariableWithInteractionFunction"
+	      ><span class="hs-identifier hs-type"
+		>TwoVariableWithInteractionFunction</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681220608"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: TwoVariableWithInteractionFunction -&gt; Value
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toJSON"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; TwoVariableWithInteractionFunction -&gt; Value
+forall a.
+(Generic a, GToJSON' Value Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Value
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToJSON"
+	><span class="hs-identifier hs-var"
+	  >genericToJSON</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;twoVariableWithInteractionFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681220702"
+      ><span class="annot"
+	><span class="annottext"
+	  >toEncoding :: TwoVariableWithInteractionFunction -&gt; Encoding
+</span
+	  ><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#toEncoding"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toEncoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Options -&gt; TwoVariableWithInteractionFunction -&gt; Encoding
+forall a.
+(Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
+Options -&gt; a -&gt; Encoding
+</span
+	><a href="https://hackage.haskell.org/package/aeson-2.2.5.0/docs/src/Data.Aeson.Types.ToJSON.html#genericToEncoding"
+	><span class="hs-identifier hs-var"
+	  >genericToEncoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Options
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostingFun.JSON.html#modelOptions"
+	><span class="hs-identifier hs-var"
+	  >modelOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;twoVariableWithInteractionFunction&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
