@@ -51,12 +51,8 @@ let
     uplc-evaluator-integration-tests = project.flake'.packages."plutus-benchmark:test:uplc-evaluator-integration-tests"; # editorconfig-checker-disable-line
   };
 
-  static-haskell-packages = {
-    musl64-pir = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.pir;
-    musl64-plc = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.plc;
-    musl64-uplc = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.uplc;
-    musl64-plutus = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.plutus;
-  };
+  static-haskell-packages = import ./static-executables.nix
+    { inherit pkgs lib project system; };
 
   windows-hydra-jobs = {
     ghc96-mingsW64 = removeAttrs
@@ -94,7 +90,7 @@ let
   };
 
   packages =
-    lib.optionalAttrs pkgs.stdenv.isLinux static-haskell-packages //
+    static-haskell-packages //
     exposed-haskell-packages //
     extra-artifacts;
 
@@ -135,6 +131,7 @@ let
       { };
     "aarch64-darwin" =
       (project-variants-roots-and-plan-nix) //
+      { inherit (static-haskell-packages) release-executables; } //
       { devShells.ghc96 = devShells.ghc96; } //
       { devShells.ghc912 = devShells.ghc912; } //
       { devShells.ghc96-profiled = devShells.ghc96-profiled; } //
