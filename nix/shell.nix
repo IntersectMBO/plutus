@@ -169,11 +169,16 @@ let
 
 
   # Select shell by compiler used in the project variant.
+  # ghc9123 gets the quick shell: the full shell's tooling (HLS, stylish-haskell,
+  # fourmolu, ...) has no GHC-9.12.3-compatible releases yet. This shell only
+  # evaluates under `--override-input haskell-nix <rev-with-ghc9123>` (see
+  # scripts/windows-th-crash-stress.sh); the pinned haskell.nix has no ghc9123.
   shell = {
     ghc96 = full-shell;
     ghc912 = full-shell;
     ghc96-profiled = full-shell;
     ghc912-profiled = full-shell;
+    ghc9123 = quick-shell;
   }.${ghc};
 
 in

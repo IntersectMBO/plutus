@@ -115,6 +115,13 @@ let
     ghc96-profiled = mkShell "ghc96-profiled";
     ghc912-profiled = mkShell "ghc912-profiled";
     metatheory-jailbreak = metatheory-jailbreak-shell;
+  }
+  # The ghc9123 shell exists only when the haskell-nix input actually ships
+  # GHC 9.12.3, i.e. under `--override-input haskell-nix <rev-with-ghc9123>`
+  # (see scripts/windows-th-crash-stress.sh). Gating on the compiler keeps
+  # `nix flake check`/`show` working under the pinned haskell.nix.
+  // lib.optionalAttrs (pkgs.haskell-nix.compiler ? ghc9123) {
+    ghc9123 = mkShell "ghc9123";
   };
 
   nested-ci-jobs = {
