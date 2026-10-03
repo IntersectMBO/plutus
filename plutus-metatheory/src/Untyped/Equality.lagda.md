@@ -41,7 +41,7 @@ open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Relation.Nullary.Decidable.Core using (isYes)
 open import Data.Product using (_,_)
 open import Relation.Nullary using (_×-dec_)
-open import Utils as U using (Either; _×_; _,_)
+open import Utils as U using (Either; _×_; _,_; ByteString)
 import Data.List.Properties as LP using (≡-dec)
 open import Builtin.Constant.AtomicType using (decAtomicTyCon)
 open import Agda.Builtin.TrustMe using (primTrustMe)
@@ -292,7 +292,9 @@ At type-checking time, if the two bytestrings are definitionally equal unificati
 and the function will return `yes refl`.
 
 ```
-_ : isYes (builtinEq (U.mkByteString "") (U.mkByteString "")) ≡ true
+open ByteString
+
+_ : isYes (builtinEq [] []) ≡ true
 _ = refl
 ```
 

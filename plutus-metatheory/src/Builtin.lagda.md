@@ -31,10 +31,10 @@ open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse;length)
 open import Data.Product using (Σ;proj₁;proj₂)
 open import Relation.Binary using (DecidableEquality)
 
-open import Data.Bool using (Bool)
+open import Data.Bool using (Bool; _∧_; if_then_else_)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
-open import Utils using (ByteString;Maybe;DATA;Value;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
+open import Utils using (ByteString;Maybe;DATA;Value;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯;Byte)
 import Utils as U
 open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;Args)
                  using (integer;string;bytestring;unit;bool;pdata;value;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
@@ -504,22 +504,16 @@ whose semantics are provided by a Haskell function.
 
 ```
 postulate
-  lengthBS                    : ByteString → Int
   index                       : ByteString → Int → Int
 
 
-  concat                      : ByteString → ByteString → ByteString
-  cons                        : Int → ByteString → Maybe ByteString
   slice                       : Int → Int → ByteString → ByteString
-  B<                          : ByteString → ByteString → Bool
-  B<=                         : ByteString → ByteString → Bool
   SHA2-256                    : ByteString → ByteString
   SHA3-256                    : ByteString → ByteString
   BLAKE2B-256                 : ByteString → ByteString
   verifyEd25519Sig            : ByteString → ByteString → ByteString → Maybe Bool
   verifyEcdsaSecp256k1Sig     : ByteString → ByteString → ByteString → Maybe Bool
   verifySchnorrSecp256k1Sig   : ByteString → ByteString → ByteString → Maybe Bool
-  equals                      : ByteString → ByteString → Bool
   ENCODEUTF8                  : String → ByteString
   DECODEUTF8                  : ByteString → Maybe String
   serialiseDATA               : DATA → ByteString
@@ -594,7 +588,16 @@ postulate
 {-# FOREIGN GHC import Data.Either.Extra (eitherToMaybe) #-}
 {-# FOREIGN GHC import Data.Word (Word8) #-}
 {-# FOREIGN GHC import Data.Bits (toIntegralSized) #-}
-{-# COMPILE GHC lengthBS = toInteger . BS.length #-}
+
+open ByteString
+open Byte
+open import Data.Integer.Base 
+open import Relation.Nullary.Decidable using (does)
+
+lengthBS : ByteString → Int
+lengthBS [] = + 0
+lengthBS (_ ∷ xs) = (+ 1) + lengthBS xs
+
 
 -- no binding needed for addition
 -- no binding needed for subtract
@@ -607,16 +610,50 @@ postulate
 -- no binding needed for lessthaneq
 -- no binding needed for equals
 
-{-# COMPILE GHC concat = BS.append #-}
+concat : ByteString → ByteString → ByteString
+concat [] ys = ys
+concat (x ∷ xs) ys = x ∷ concat xs ys
+
 {-# COMPILE GHC SHA2-256 = Hash.sha2_256 #-}
 {-# COMPILE GHC SHA3-256 = Hash.sha3_256 #-}
 {-# COMPILE GHC BLAKE2B-256 = Hash.blake2b_256 #-}
-{-# COMPILE GHC equals = (==) #-}
-{-# COMPILE GHC B< = (<) #-}
-{-# COMPILE GHC B<= = (<=) #-}
+
+equals : ByteString → ByteString → Bool
+equals = U.eqByteString
+
+-- TODO: this is definitely not more readable than the PDF spec :(
+B<= : ByteString → ByteString → Bool
+B<= [] _ = true
+B<= _ [] = false
+B<= bs₁@(b₁ ∷ tail₁) bs₂@(b₂ ∷ tail₂) with
+    ((+ 1) ≤ᵇ lengthBS bs₁) ∧ ((+ 1) ≤ᵇ lengthBS bs₂)
+  ∧ (does (U.ᵇproj₁ b₁ Data.Bool.≤? U.ᵇproj₁ b₂))
+... | true = true
+... | false with 
+    ((+ 1) ≤ᵇ lengthBS bs₁) ∧ ((+ 1) ≤ᵇ lengthBS bs₂)
+  ∧ (does (U.ᵇproj₁ b₁ Data.Bool.≟ U.ᵇproj₁ b₂))
+... | true = B<= tail₁ tail₂
+... | false = false
+
+B< : ByteString → ByteString → Bool
+B< bs₁ bs₂ = B<= bs₁ bs₂ ∧ Data.Bool.not (equals bs₁ bs₂)
+
 -- V1 of consByteString
 -- {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
--- Other versions of consByteString
+-- The argument must be a valid byte value, i.e. in [0, 255]; otherwise the
+-- builtin fails.
+
+open import Data.Integer using (_≤?_)
+open import Relation.Nullary.Decidable using (yes; no)
+
+cons : Int → ByteString → Maybe ByteString
+cons i xs with (+ 0) ≤? i
+... | yes p = 
+        if i ≤ᵇ (+ 255) then just (U.ℤToByte i ∷ xs) else nothing
+    where
+      instance _ = nonNegative p
+... | no _ = nothing
+
 {-# COMPILE GHC cons = \n xs -> fmap (\w8 -> BS.cons w8 xs) (toIntegralSized n) #-}
 {-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
 {-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
