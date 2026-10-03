@@ -638,25 +638,20 @@ B<= bs₁@(b₁ ∷ tail₁) bs₂@(b₂ ∷ tail₂) with
 B< : ByteString → ByteString → Bool
 B< bs₁ bs₂ = B<= bs₁ bs₂ ∧ Data.Bool.not (equals bs₁ bs₂)
 
+-- V1 of consByteString
+-- {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
+-- The argument must be a valid byte value, i.e. in [0, 255]; otherwise the
+-- builtin fails.
+
 open import Data.Integer using (_≤?_)
 open import Relation.Nullary.Decidable using (yes; no)
 
--- V1 of consByteString
--- {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
--- Other versions of consByteString
--- TODO: from Claude:
--- - ⌊log₂ 0 ⌋ = 0 and ⌈log₂ 0 ⌉ = 0. Total, but junk at zero — matters if you're using it as a size or cost measure where you'd want NonZero in the signature instead.
--- - It's defined by well-founded recursion (⌊log2⌋ : ∀ n → Acc _<_ n → ℕ in Data.Nat.Logarithm.Core, fed <-wellFounded). Closed terms compute fine — ⌊log₂ 8 ⌋ ≡ 3 typechecks by refl. Open terms do not: ∀ n → ⌊log₂ (2 * suc n) ⌋ ≡ suc ⌊log₂ (suc n) ⌋ by refl fails, with the Acc argument stuck in the unequal-terms message. So reason via the lemmas, never by computation.
 cons : Int → ByteString → Maybe ByteString
-cons i xs with ((+ 0) ≤? i)
-... | yes p = if (i ≤ᵇ (+ 255)) then just (toBinaryNum i ∷ xs) else nothing
-  where
-    instance _ = nonNegative p
-    open import Data.Nat.Logarithm using (⌈log₂_⌉)
-    toBinaryNum : Int → Byte
-    toBinaryNum i with Data.Nat.parity ⌈log₂ i ⌉
-    ... | 0ℙ = buildByte ⌈log₂ i ⌉ 0
-    ... | 1ℙ = buildByte ⌈log₂ i ⌉ 1
+cons i xs with (+ 0) ≤? i
+... | yes p = 
+        if i ≤ᵇ (+ 255) then just (U.ℤToByte i ∷ xs) else nothing
+    where
+      instance _ = nonNegative p
 ... | no _ = nothing
 
 {-# COMPILE GHC cons = \n xs -> fmap (\w8 -> BS.cons w8 xs) (toIntegralSized n) #-}

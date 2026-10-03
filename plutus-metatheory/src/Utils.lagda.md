@@ -22,7 +22,7 @@ import Data.Bool.ListAction as ListAction
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Nullary using (Dec;yes;no;¬_)
 open import Data.Empty using (⊥;⊥-elim)
-open import Data.Integer using (ℤ; +_)
+open import Data.Integer using (ℤ; +_; -[1+_])
 open import Data.String using (String)
 open import Data.Bool using (Bool; true; false)
 open import Data.Maybe using (Maybe; just; nothing; maybe)
@@ -30,7 +30,7 @@ open import Data.Maybe using (Maybe; just; nothing; maybe)
 open import Data.Unit using (⊤)
 open import Level using (_⊔_)
 
-open import Data.Bool using (_∧_)
+open import Data.Bool using (_∧_; _∨_; _xor_; not)
 
 {-# FOREIGN GHC import Raw #-}
 
@@ -228,10 +228,59 @@ data Byte : Set where
 ᵇproj₇ (byte _ _ _ _ _ _ b₇ _) = b₇
 ᵇproj₈ (byte _ _ _ _ _ _ _ b₈) = b₈
 
-buildByte : (n : ℤ) → (b : Bool) → Byte
-buildByte 0 False = byteZero
-buildByte 0 True = byteOne
-buildByte n b = plusByte (buildByte (n - 1) b) ?
+pattern 0B = byte false false false false false false false false
+
+pattern 1B = byte false false false false false false false true
+
+pattern 2B = byte false false false false false false true false
+
+pattern 3B = byte false false false false false false true true
+
+pattern 4B = byte false false false false false true false false
+
+pattern 256B = byte true true true true true true true true
+
+open import Data.Vec.Base using (Vec; _∷_; []) renaming (map to vmap)
+open import Data.Nat.Base using (⌊_/2⌋; parity)
+open import Data.Parity.Base using (Parity; 0ℙ; 1ℙ)
+
+Bits : ℕ → Set
+Bits n = Vec Bool n
+
+byteToBits : Byte → Bits 8
+byteToBits (byte b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈) =
+  b₈ ∷ b₇ ∷ b₆ ∷ b₅ ∷ b₄ ∷ b₃ ∷ b₂ ∷ b₁ ∷ []
+
+bitsToByte : Bits 8 → Byte
+bitsToByte (b₈ ∷ b₇ ∷ b₆ ∷ b₅ ∷ b₄ ∷ b₃ ∷ b₂ ∷ b₁ ∷ []) =
+  byte b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈
+
+-- Using "ripple-carry addition" since implementing via suc/pred is not
+-- structurally recursive and Agda can't prove termination.
+-- The addition is modulo 256.
+addBits : ∀ {n} → Bool → Bits n → Bits n → Bits n
+addBits c [] [] = []
+addBits c (x ∷ xs) (y ∷ ys) =
+  (c xor (x xor y)) ∷ addBits ((x ∧ y) ∨ (c ∧ (x xor y))) xs ys
+
+plusByte : Byte → Byte → Byte
+plusByte x y = bitsToByte (addBits false (byteToBits x) (byteToBits y))
+
+ℕToBits : (n : ℕ) → ℕ → Bits n
+ℕToBits zero    _ = []
+ℕToBits (suc n) k = lsb (parity k) ∷ ℕToBits n ⌊ k /2⌋
+  where
+    lsb : Parity → Bool
+    lsb 0ℙ = false
+    lsb 1ℙ = true
+
+-- Conversion modulo 256
+ℕToByte : ℕ → Byte
+ℕToByte k = bitsToByte (ℕToBits 8 k)
+
+ℤToByte : (z : ℤ) .{{_ : Data.Integer.NonNegative z}} → Byte
+ℤToByte (+ n) = ℕToByte n
+
 
 data ByteString : Set where
   []  : ByteString
