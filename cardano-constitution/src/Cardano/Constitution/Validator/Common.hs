@@ -54,7 +54,25 @@ validateParamValue = \case
   ParamList paramValues -> validateParamValues paramValues . BI.unsafeDataAsList
   -- accept the actual proposed value without examining it
   ParamAny -> const True
+  -- See Note [Optional parameter values]
+  ParamMaybe paramValue -> validateMaybeParamValue paramValue . BI.unsafeDataAsConstr
   where
+    validateMaybeParamValue
+      :: ParamValue -> BI.BuiltinPair Integer (BI.BuiltinList BuiltinData) -> Bool
+    validateMaybeParamValue paramValue constr =
+      let constrIx = BI.fst constr
+          constrArgs = BI.snd constr
+       in if constrIx `B.equalsInteger` 0
+            then
+              -- `Just v`: validate v (if constrArgs is empty, `BI.head` will error),
+              -- and ensure that there are no extra fields
+              validateParamValue paramValue (BI.head constrArgs)
+                && B.fromOpaque (BI.null (BI.tail constrArgs))
+            else
+              -- `Nothing`: the proposal un-sets the parameter, which is always accepted,
+              -- but we still require the encoding to be exact (no fields)
+              constrIx `B.equalsInteger` 1 && B.fromOpaque (BI.null constrArgs)
+
     validateParamValues :: [ParamValue] -> BI.BuiltinList BuiltinData -> Bool
     validateParamValues = \case
       (paramValueHd : paramValueTl) -> \actualValueData ->

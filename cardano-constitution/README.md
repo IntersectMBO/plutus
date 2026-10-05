@@ -76,6 +76,12 @@ maxValue configValue proposedValue = configValue Tx.>= proposedValue
 notEqual configValue proposedValue = configValue Tx./= proposedValue
 ```
 
+A parameter whose value is optional on the ledger side (a `Maybe`-like value, which a proposal
+may also *un-set*) is expressed in the `Config` by wrapping its rules with `ParamMaybe`
+(or, in JSON, by adding `"optional": true` next to its `type`).
+The predicates of such a parameter only apply when the proposal *sets* the value;
+a proposal that *un-sets* the value is always accepted (see clause S12).
+
 An alternative & preferred method than constructing a `Config` inside Haskell, is to
 edit a configuration file that contains the "constitution rules" laid out in JSON.
 Its default location is at `data/defaultConstitution.json`,
@@ -105,9 +111,13 @@ ChangedSingleValueData =
    | List[I Integer, I Integer] -- a proposed numerator,denominator (ratio value)
    -- ^ a 2-exact element list; *BE CAREFUL* because this can be alternatively (ambiguously) interpreted
    -- as a many-value data (sub-parameter) of two integer single-value data.
+   | Constr 0 [ChangedSingleValueData] -- a proposed *optional* value that is set (`Just`)
+   | Constr 1 []                       -- a proposed *optional* value that is un-set (`Nothing`)
+   -- ^ only for parameters whose value is optional on the ledger side (a `StrictMaybe`);
+   -- this is the encoding of PlutusTx's `Maybe` (and of the ledger's `StrictMaybe`).
 ```
 
-, where Map,I,List are the constructors of `PlutusCore.Data`
+, where Map,I,List,Constr are the constructors of `PlutusCore.Data`
 and `Integer` is the usual arbitrary-precision PlutusTx/Haskell `Integer`.
 There is no other type of a changed parameter (e.g. nested-list parameter), so the script implementations will fail on any other format.
 
@@ -133,6 +143,10 @@ Otherwise, set the next `proposedParam` in the list as the current one and conti
 - S10. In all other cases of `{type: integer/unit_interval/list}`, decode the `proposedParam` value according to the expected type (see "ChangedParameters Format"). If
 the encoding of the `proposedParam` value does not match the expected encoding of that type, `FAIL`.
 - S11. In case of expected type `list`, if more or less than the expected length of the list elements are proposed, `FAIL`.
+- S12. If the `Config` says `{optional: true}` under a given `proposedParam` (i.e. `ParamMaybe`), then the `proposedParam` value must be encoded either
+as `Constr 1 []` (the parameter is being un-set), in which case `PASS` without decoding or testing anything else for this `proposedParam`,
+or as `Constr 0 [value]` (the parameter is being set), in which case continue checking `value` against the wrapped rules as per S09-S11.
+Any other encoding (other constructor index, missing or extra constructor fields, a non-`Constr` value) => `FAIL`.
 
 ### Legend
 

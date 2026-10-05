@@ -12,7 +12,13 @@
         "type": "object",
         "properties": {
             "$comment": { "type": "string" },
-            "type": {"type": "string", "enum": ["integer","unit_interval", "any"]},
+            "type": {"type": "string", "enum": ["integer", "rational", "any", "coin", "uint", "uint.size2", "uint.size4", "epoch_interval", "unit_interval", "nonnegative_interval", "costMdls"]},
+            "optional": { "type": "boolean"
+                        , "$comment": "Only for parameters whose value is optional on the ledger side (a `Maybe`-like value). Defaults to false."
+                        , "$comment": "If true, the proposed value may be un-set (encoded as `Constr 1 []`), in which case it is accepted without checking any predicates;"
+                        , "$comment": "or set (encoded as `Constr 0 [value]`), in which case `value` is checked against the type and predicates as usual."
+                        , "$comment": "If false (the default), the proposed value must be encoded directly (not wrapped in a `Constr`), as is the case for all non-optional parameters."
+                        },
             "predicates": { "type": "array"
                             , "items": { "$ref": "#/$defs/predKeyValue" }
                             , "$comment": "Unknown Parameters and Parameters with no restrictions are treated differently:"
@@ -71,6 +77,15 @@
             "type": "any"
             , "$comment": "An example of a known parameter that can take any value"
             , "$comment": "This is different than specifying the type with predicates==[], since there is not going to be any de-serialization done for the proposed parameter's type"
+        }},
+        {"0": {
+            "type": "integer"
+            , "optional": true
+            , "predicates": [{ "minValue": 1 }, { "maxValue": 100 }]
+            , "$comment": "An example of an optional parameter: the proposal may un-set the parameter (always accepted),"
+            , "$comment": "or set it to an integer value, which must then be between 1 and 100."
+            , "$comment": "The ledger encodes an un-set value as `Constr 1 []` and a set value `v` as `Constr 0 [v]` (the same encoding as PlutusTx's Maybe)."
+            , "$comment": "Without `optional: true`, a proposal that un-sets the parameter (or wraps its value in a `Constr`) would fail."
         }},
         {"0": {
             "type": "integer"

@@ -6,6 +6,7 @@ import Cardano.Constitution.Validator.Data.GoldenTests qualified as Data.GoldenT
 import Cardano.Constitution.Validator.Data.PropTests qualified as Data.PropTests
 import Cardano.Constitution.Validator.Data.UnitTests qualified as Data.UnitTests
 import Cardano.Constitution.Validator.GoldenTests qualified as GoldenTests
+import Cardano.Constitution.Validator.OptionalParamTests qualified as OptionalParamTests
 import Cardano.Constitution.Validator.PropTests qualified as PropTests
 import Cardano.Constitution.Validator.UnitTests qualified as UnitTests
 import Control.Exception
@@ -50,6 +51,7 @@ main = do
           , Data.PropTests.tests
           , Data.GoldenTests.tests
           , Data.UnitTests.singleParamTests
+          , OptionalParamTests.tests
           , testGroup'
               "Multiple Parameter Changes"
               [ testProperty' "Proposal with all parameters at their current (or default value if new)" $
@@ -57,11 +59,11 @@ main = do
               , testProperty' "Proposals with one parameter missing, and all the other ones within their ranges" $
                   multiParamProp 2 (allValidAndOneMissing allParams) expectTrue
               , testProperty'
-                  "Proposals with one parameter lower than its lower bound, and all the other ones within their ranges" $
-                  multiParamProp 3 (allValidAndOneLessThanLower allParams) expectFalse
+                  "Proposals with one parameter lower than its lower bound, and all the other ones within their ranges"
+                  $ multiParamProp 3 (allValidAndOneLessThanLower allParams) expectFalse
               , testProperty'
-                  "Proposals with one parameter greater than its upper bound, and all the other ones within their ranges" $
-                  multiParamProp 4 (allValidAndOneGreaterThanUpper allParams) expectFalse
+                  "Proposals with one parameter greater than its upper bound, and all the other ones within their ranges"
+                  $ multiParamProp 4 (allValidAndOneGreaterThanUpper allParams) expectFalse
               , testProperty' "Proposals with one parameter unknown and all the other ones within their ranges" $
                   multiParamProp 5 (allValidAndOneUnknown allParams) expectFalse
               , testProperty' "Proposals with all parameters but one, all within their ranges, plus one unknown" $ -- To see if they don't do a trick on proposal length
@@ -77,8 +79,8 @@ main = do
               , testProperty' "Proposals with a selection of parameters within their ranges + costModels" $
                   multiParamProp' 11 (someValidParams allParams) ((: []) <$> costModelsParamGen) expectTrue
               , testProperty'
-                  "Proposals with a selection of parameters, some within their ranges, some outside + costModels" $
-                  multiParamProp'
+                  "Proposals with a selection of parameters, some within their ranges, some outside + costModels"
+                  $ multiParamProp'
                     12
                     (someInvalidAndSomeValidParams allParams)
                     ((: []) <$> costModelsParamGen)

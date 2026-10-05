@@ -306,6 +306,8 @@ mkChangedParamsFromMinValues = Haskell.fmap (Haskell.second getLargestMinValue) 
           $ List.lookup MinValue
           $ unPredicates preds
       ParamList values -> toBuiltinData $ Haskell.fmap getLargestMinValue values
+      -- optional parameter: propose to *set* the value, so that the inner predicates are exercised
+      ParamMaybe value -> toBuiltinData $ Just $ getLargestMinValue value
       -- Currently we only have param 18 as "any". So this generation applies only for 18.
       -- Here we try to generate an 1000-integer-list for the 18 parameter.
       -- Note: This is not the correct encoding of the 18 parameter, it is only for simulating a large size of proposal.

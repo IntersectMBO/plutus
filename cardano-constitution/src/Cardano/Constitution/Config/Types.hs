@@ -68,7 +68,27 @@ data ParamValue
   | ParamRational (Predicates Tx.Rational)
   | ParamList [ParamValue]
   | ParamAny
+  | -- | An optional (`Maybe`-like) parameter value. See Note [Optional parameter values]
+    ParamMaybe ParamValue
   deriving stock (Haskell.Eq, Haskell.Show, TH.Lift)
+
+{- Note [Optional parameter values]
+
+Some protocol parameters have an optional value on the ledger side (e.g. a `StrictMaybe Word32`).
+The ledger encodes such a proposed value as `BuiltinData` using the same encoding
+as PlutusTx's `Maybe` (and as the ledger's own `StrictMaybe`):
+
+- `Constr 1 []`  : the proposal un-sets the parameter (`Nothing`)
+- `Constr 0 [v]` : the proposal sets the parameter to `v` (`Just v`)
+
+A `ParamMaybe inner` config value accepts the first form unconditionally
+(no predicates can be meaningfully applied to an absent value), and validates `v` against
+`inner` in the second form. Any other encoding is rejected.
+
+This is different from a parameter being altogether absent from a proposal:
+that is already handled by the ledger (and the engines) and applies to every parameter.
+In the JSON config format, `ParamMaybe` is expressed by the `"optional": true` flag.
+-}
 
 type Param = (ParamKey, ParamValue)
 

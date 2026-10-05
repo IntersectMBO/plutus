@@ -30,6 +30,7 @@ data RawParamValue
   | RawParamRational (Predicates Tx.Rational)
   | RawParamList (M.Map Integer RawParamValue)
   | RawParamAny
+  | RawParamMaybe RawParamValue
 
 newtype RawConstitutionConfig = RawConstitutionConfig (M.Map Integer RawParamValue)
 
@@ -100,6 +101,7 @@ fromRaw (RawConstitutionConfig rc) = ConstitutionConfig . M.toAscList <$> traver
       RawParamInteger x -> pure $ ParamInteger x
       RawParamRational x -> pure $ ParamRational x
       RawParamAny -> pure ParamAny
+      RawParamMaybe x -> ParamMaybe <$> flattenParamValue x
 
 -- MAYBE: use instead attoparsec-aeson.jsonWith/jsonNoDup to fail on parsing duplicate Keys,
 -- because right now Aeson silently ignores duplicated param entries (arbitrarily picks the last of duplicates)
@@ -126,7 +128,9 @@ parseParamValue = \case
     parseTypedParamValue :: Value -> Parser RawParamValue
     parseTypedParamValue = withObject "RawParamValue" $ \o -> do
       ty <- o .: typeKey
-      parseSynonymType ty o
+      -- See Note [Optional parameter values]
+      isOptional <- o .:? optionalKey .!= False
+      (if isOptional then RawParamMaybe else id) <$> parseSynonymType ty o
 
     -- the base types we support
     parseBaseType :: Key -> Object -> Parser RawParamValue
@@ -162,7 +166,8 @@ mergeParamValues _ = \case
   -- , which default aeson and json allow
   _ -> fail "this should not happen"
 
-predicatesKey, typeKey, commentKey :: Aeson.Key
+predicatesKey, typeKey, optionalKey, commentKey :: Aeson.Key
 predicatesKey = "predicates"
 typeKey = "type"
+optionalKey = "optional"
 commentKey = "$comment"
