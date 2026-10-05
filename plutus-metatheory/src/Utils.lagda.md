@@ -274,12 +274,25 @@ plusByte x y = bitsToByte (addBits false (byteToBits x) (byteToBits y))
     lsb 0ℙ = false
     lsb 1ℙ = true
 
+open import Data.Bool using (if_then_else_)
+
+bitsToℕ : ∀ n → Bits n → ℕ
+bitsToℕ zero _ = 0
+bitsToℕ (suc n) (b ∷ xs) =
+  (if b then 1 else 0) + 2 Data.Nat.* bitsToℕ n xs
+
 -- Conversion modulo 256
 ℕToByte : ℕ → Byte
 ℕToByte k = bitsToByte (ℕToBits 8 k)
 
+byteToℕ : Byte → ℕ
+byteToℕ b = bitsToℕ 8 (byteToBits b)
+
 ℤToByte : (z : ℤ) .{{_ : Data.Integer.NonNegative z}} → Byte
 ℤToByte (+ n) = ℕToByte n
+
+byteToℤ : Byte → ℤ
+byteToℤ b = + (byteToℕ b)
 
 
 data ByteString : Set where
@@ -309,6 +322,30 @@ eqByteString : ByteString → ByteString → Bool
 eqByteString [] [] = true
 eqByteString (x ∷ xs) (y ∷ ys) = eqByte x y ∧ eqByteString xs ys
 eqByteString _ _ = false
+
+open import Data.Bool using (if_then_else_)
+open import Function.Base using (case_of_)
+
+take : ℤ → ByteString → ByteString
+take z bs =
+  if z Data.Integer.≤ᵇ Data.Integer.0ℤ
+  then []
+  else
+    case bs of λ {
+        [] → []
+      ; (x ∷ xs) → x ∷ take (z Data.Integer.- Data.Integer.1ℤ) xs
+      }
+
+dropB : ℤ → ByteString → ByteString
+dropB z bs =
+  if z Data.Integer.≤ᵇ Data.Integer.0ℤ
+  then bs
+  else
+    case bs of λ {
+        [] → []
+      ; (_ ∷ xs) → dropB (z Data.Integer.- Data.Integer.1ℤ) xs
+      }
+        
 
 {-# FOREIGN GHC import Data.ByteString qualified as Haskell #-}
 

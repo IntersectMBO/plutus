@@ -504,10 +504,6 @@ whose semantics are provided by a Haskell function.
 
 ```
 postulate
-  index                       : ByteString → Int → Int
-
-
-  slice                       : Int → Int → ByteString → ByteString
   SHA2-256                    : ByteString → ByteString
   SHA3-256                    : ByteString → ByteString
   BLAKE2B-256                 : ByteString → ByteString
@@ -654,9 +650,19 @@ cons i xs with (+ 0) ≤? i
       instance _ = nonNegative p
 ... | no _ = nothing
 
-{-# COMPILE GHC cons = \n xs -> fmap (\w8 -> BS.cons w8 xs) (toIntegralSized n) #-}
-{-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
-{-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
+slice : Int → Int → ByteString → ByteString
+slice s k bs = U.take k (U.dropB s bs)
+
+index : ByteString → Int → Maybe Int
+index bs ix = Data.Maybe.map U.byteToℤ (go 0ℤ bs)
+  where
+    go : Int → ByteString → Maybe Byte
+    go _ [] = nothing
+    go n (x ∷ xs) =
+      if does (n Data.Integer.≟ ix)
+      then just x
+      else go (n + 1ℤ) xs
+
 {-# FOREIGN GHC import PlutusCore.Crypto.Ed25519 #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.Secp256k1 #-}
 
