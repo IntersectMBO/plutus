@@ -16,7 +16,7 @@ import PlutusIR.Compiler.Provenance qualified as PIR
 import UntypedPlutusCore qualified as UPLC
 
 import Control.DeepSeq (NFData, rnf)
-import Data.Foldable (foldl')
+import Data.Foldable qualified as Foldable
 import Data.Generics.Uniplate.Data (universeBi)
 import GHC.Hs qualified as GHC
 import GHC.Plugins qualified as GHC
@@ -24,8 +24,8 @@ import GHC.Tc.Types qualified as GHC
 
 forceSourceBinds :: GHC.TcGblEnv -> ()
 forceSourceBinds environment =
-  foldl' (\() expression -> expression `seq` ()) () expressions `seq`
-    foldl' (\() binder -> GHC.idInlinePragma binder `seq` ()) () binders
+  Foldable.foldl' (\() expression -> expression `seq` ()) () expressions `seq`
+    Foldable.foldl' (\() binder -> GHC.idInlinePragma binder `seq` ()) () binders
   where
     expressions = universeBi (GHC.tcg_binds environment) :: [GHC.HsExpr GHC.GhcTc]
     binders = GHC.collectHsBindsBinders GHC.CollWithDictBinders (GHC.tcg_binds environment)
@@ -44,7 +44,7 @@ forceProvenance = \case
   PIR.MultipleSources provenances -> forceAll forceProvenance provenances
 
 forceAll :: Foldable collection => (value -> ()) -> collection value -> ()
-forceAll forceValue = foldl' (\() value -> forceValue value) ()
+forceAll forceValue = Foldable.foldl' (\() value -> forceValue value) ()
 
 forcePirProgram
   :: (annotation -> ())
