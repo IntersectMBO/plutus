@@ -252,7 +252,6 @@ test-suite timing-tests
     , tasty
     , tasty-hunit
     , temporary
-    , transformers
 
 test-suite frontend-plugin-tests
   import:         lang, ghc-version-support, os-support
