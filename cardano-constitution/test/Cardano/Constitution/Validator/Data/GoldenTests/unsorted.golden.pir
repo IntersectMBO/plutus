@@ -1,6 +1,15 @@
 program
   1.1.0
   (let
+    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+      Tuple2 : a -> b -> Tuple2 a b
+  in
+  letrec
+    data (List :: * -> *) a | List_match where
+      Nil : List a
+      Cons : a -> List a -> List a
+  in
+  let
     data Ordering | Ordering_match where
       EQ : Ordering
       GT : Ordering
@@ -20,15 +29,6 @@ program
       MaxValue : PredKey
       MinValue : PredKey
       NotEqual : PredKey
-    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-      Tuple2 : a -> b -> Tuple2 a b
-  in
-  letrec
-    data (List :: * -> *) a | List_match where
-      Nil : List a
-      Cons : a -> List a -> List a
-  in
-  let
     !validatePreds :
        all a. Ord a -> (\v -> List (Tuple2 PredKey (List v))) a -> a -> bool
       = /\a ->
@@ -409,3937 +409,1648 @@ program
               [ (\(ds : list data) ->
                    Just {a} (`$dUnsafeFromData` (headList {data} ds)))
               , (\(ds : list data) -> Nothing {a}) ]
-  in
-  letrec
-    ~matchData_go : list (pair data data) -> List (Tuple2 data data)
+    !fun : list (pair data data) -> bool
       = (let
             a = pair data data
           in
-          /\r ->
-            \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z])
-          {List (Tuple2 data data)}
-          (Nil {Tuple2 data data})
-          (\(x : pair data data) (xs : list (pair data data)) ->
-             Cons
-               {Tuple2 data data}
-               ((let
-                    r = Tuple2 data data
+          \(p : a -> bool) ->
+            letrec
+              !go : list a -> bool
+                = \(xs : list a) ->
+                    case
+                      bool
+                      xs
+                      [ (\(x : a) (xs : list a) ->
+                           case
+                             (all dead. bool)
+                             (p x)
+                             [(/\dead -> False), (/\dead -> go xs)]
+                             {all dead. dead})
+                      , True ]
+            in
+            go)
+          (let
+            !ds : List (Tuple2 integer ParamValue)
+              = (let
+                    a = Tuple2 integer ParamValue
                   in
-                  \(p : pair data data) (f : data -> data -> r) -> case r p [f])
-                  x
-                  (\(l : data) (r : data) -> Tuple2 {data} {data} l r))
-               (matchData_go xs))
-  in
-  let
-    !cfg : List (Tuple2 integer ParamValue)
-      = (let
-            a = Tuple2 integer ParamValue
-          in
-          \(g : all b. (a -> b -> b) -> b -> b) ->
-            g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a}))
-          (/\a ->
-             \(c : Tuple2 integer ParamValue -> a -> a) (n : a) ->
-               c
-                 (Tuple2
-                    {integer}
-                    {ParamValue}
-                    0
-                    (ParamInteger
-                       ((let
-                            a = Tuple2 PredKey (List integer)
-                          in
-                          \(g : all b. (a -> b -> b) -> b -> b) ->
-                            g
-                              {List a}
-                              (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                              (Nil {a}))
-                          (/\a ->
-                             \(c : Tuple2 PredKey (List integer) -> a -> a)
-                              (n : a) ->
-                               c
-                                 (Tuple2
-                                    {PredKey}
-                                    {List integer}
-                                    MinValue
-                                    ((let
-                                         a = List integer
-                                       in
-                                       \(c : integer -> a -> a) (n : a) ->
-                                         c 30 (c 0 n))
-                                       (\(ds : integer) (ds : List integer) ->
-                                          Cons {integer} ds ds)
-                                       (Nil {integer})))
-                                 (c
-                                    (Tuple2
-                                       {PredKey}
-                                       {List integer}
-                                       MaxValue
-                                       ((let
-                                            a = List integer
-                                          in
-                                          \(c : integer -> a -> a) (n : a) ->
-                                            c 1000 n)
-                                          (\(ds : integer)
-                                            (ds : List integer) ->
-                                             Cons {integer} ds ds)
-                                          (Nil {integer})))
-                                    n)))))
-                 (c
-                    (Tuple2
-                       {integer}
-                       {ParamValue}
-                       1
-                       (ParamInteger
-                          ((let
-                               a = Tuple2 PredKey (List integer)
-                             in
-                             \(g : all b. (a -> b -> b) -> b -> b) ->
-                               g
-                                 {List a}
-                                 (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                                 (Nil {a}))
-                             (/\a ->
-                                \(c : Tuple2 PredKey (List integer) -> a -> a)
-                                 (n : a) ->
-                                  c
-                                    (Tuple2
-                                       {PredKey}
-                                       {List integer}
-                                       MinValue
-                                       ((let
-                                            a = List integer
-                                          in
-                                          \(c : integer -> a -> a) (n : a) ->
-                                            c 100000 (c 0 n))
-                                          (\(ds : integer)
-                                            (ds : List integer) ->
-                                             Cons {integer} ds ds)
-                                          (Nil {integer})))
-                                    (c
-                                       (Tuple2
-                                          {PredKey}
-                                          {List integer}
-                                          MaxValue
-                                          ((let
-                                               a = List integer
-                                             in
-                                             \(c : integer -> a -> a) (n : a) ->
-                                               c 10000000 n)
-                                             (\(ds : integer)
-                                               (ds : List integer) ->
-                                                Cons {integer} ds ds)
-                                             (Nil {integer})))
-                                       n)))))
-                    (c
-                       (Tuple2
-                          {integer}
-                          {ParamValue}
-                          2
-                          (ParamInteger
-                             ((let
-                                  a = Tuple2 PredKey (List integer)
-                                in
-                                \(g : all b. (a -> b -> b) -> b -> b) ->
-                                  g
-                                    {List a}
-                                    (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                                    (Nil {a}))
-                                (/\a ->
-                                   \(c :
-                                       Tuple2 PredKey (List integer) -> a -> a)
-                                    (n : a) ->
-                                     c
-                                       (Tuple2
-                                          {PredKey}
-                                          {List integer}
-                                          MinValue
-                                          ((let
-                                               a = List integer
-                                             in
-                                             \(c : integer -> a -> a) (n : a) ->
-                                               c 24576 n)
-                                             (\(ds : integer)
-                                               (ds : List integer) ->
-                                                Cons {integer} ds ds)
-                                             (Nil {integer})))
-                                       (c
-                                          (Tuple2
-                                             {PredKey}
-                                             {List integer}
-                                             MaxValue
-                                             ((let
-                                                  a = List integer
-                                                in
-                                                \(c : integer -> a -> a)
-                                                 (n : a) ->
-                                                  c 122880 n)
-                                                (\(ds : integer)
-                                                  (ds : List integer) ->
-                                                   Cons {integer} ds ds)
-                                                (Nil {integer})))
-                                          n)))))
-                       (c
-                          (Tuple2
-                             {integer}
-                             {ParamValue}
-                             3
-                             (ParamInteger
-                                ((let
-                                     a = Tuple2 PredKey (List integer)
-                                   in
-                                   \(g : all b. (a -> b -> b) -> b -> b) ->
-                                     g
-                                       {List a}
-                                       (\(ds : a) (ds : List a) ->
-                                          Cons {a} ds ds)
-                                       (Nil {a}))
-                                   (/\a ->
-                                      \(c :
-                                          Tuple2 PredKey (List integer) ->
-                                          a ->
-                                          a)
-                                       (n : a) ->
-                                        c
-                                          (Tuple2
-                                             {PredKey}
-                                             {List integer}
-                                             MinValue
-                                             ((let
-                                                  a = List integer
-                                                in
-                                                \(c : integer -> a -> a)
-                                                 (n : a) ->
-                                                  c 0 n)
-                                                (\(ds : integer)
-                                                  (ds : List integer) ->
-                                                   Cons {integer} ds ds)
-                                                (Nil {integer})))
-                                          (c
-                                             (Tuple2
-                                                {PredKey}
-                                                {List integer}
-                                                MaxValue
-                                                ((let
-                                                     a = List integer
-                                                   in
-                                                   \(c : integer -> a -> a)
-                                                    (n : a) ->
-                                                     c 32768 n)
-                                                   (\(ds : integer)
-                                                     (ds : List integer) ->
-                                                      Cons {integer} ds ds)
-                                                   (Nil {integer})))
-                                             n)))))
-                          (c
-                             (Tuple2
-                                {integer}
-                                {ParamValue}
-                                4
-                                (ParamInteger
-                                   ((let
-                                        a = Tuple2 PredKey (List integer)
-                                      in
-                                      \(g : all b. (a -> b -> b) -> b -> b) ->
-                                        g
-                                          {List a}
-                                          (\(ds : a) (ds : List a) ->
-                                             Cons {a} ds ds)
-                                          (Nil {a}))
-                                      (/\a ->
-                                         \(c :
-                                             Tuple2 PredKey (List integer) ->
-                                             a ->
-                                             a)
-                                          (n : a) ->
-                                           c
-                                             (Tuple2
-                                                {PredKey}
-                                                {List integer}
-                                                MinValue
-                                                ((let
-                                                     a = List integer
-                                                   in
-                                                   \(c : integer -> a -> a)
-                                                    (n : a) ->
-                                                     c 0 n)
-                                                   (\(ds : integer)
-                                                     (ds : List integer) ->
-                                                      Cons {integer} ds ds)
-                                                   (Nil {integer})))
-                                             (c
-                                                (Tuple2
-                                                   {PredKey}
-                                                   {List integer}
-                                                   MaxValue
-                                                   ((let
-                                                        a = List integer
-                                                      in
-                                                      \(c : integer -> a -> a)
-                                                       (n : a) ->
-                                                        c 5000 n)
-                                                      (\(ds : integer)
-                                                        (ds : List integer) ->
-                                                         Cons {integer} ds ds)
-                                                      (Nil {integer})))
-                                                n)))))
-                             (c
-                                (Tuple2
-                                   {integer}
-                                   {ParamValue}
-                                   5
-                                   (ParamInteger
-                                      ((let
-                                           a = Tuple2 PredKey (List integer)
-                                         in
-                                         \(g :
-                                             all b. (a -> b -> b) -> b -> b) ->
-                                           g
-                                             {List a}
-                                             (\(ds : a) (ds : List a) ->
-                                                Cons {a} ds ds)
-                                             (Nil {a}))
-                                         (/\a ->
-                                            \(c :
-                                                Tuple2 PredKey (List integer) ->
-                                                a ->
-                                                a)
-                                             (n : a) ->
-                                              c
-                                                (Tuple2
-                                                   {PredKey}
-                                                   {List integer}
-                                                   MinValue
-                                                   ((let
-                                                        a = List integer
-                                                      in
-                                                      \(c : integer -> a -> a)
-                                                       (n : a) ->
-                                                        c 1000000 (c 0 n))
-                                                      (\(ds : integer)
-                                                        (ds : List integer) ->
-                                                         Cons {integer} ds ds)
-                                                      (Nil {integer})))
-                                                (c
-                                                   (Tuple2
-                                                      {PredKey}
-                                                      {List integer}
-                                                      MaxValue
-                                                      ((let
-                                                           a = List integer
-                                                         in
-                                                         \(c :
-                                                             integer -> a -> a)
-                                                          (n : a) ->
-                                                           c 5000000 n)
-                                                         (\(ds : integer)
-                                                           (ds :
-                                                              List integer) ->
-                                                            Cons
-                                                              {integer}
-                                                              ds
-                                                              ds)
-                                                         (Nil {integer})))
-                                                   n)))))
-                                (c
-                                   (Tuple2
-                                      {integer}
-                                      {ParamValue}
-                                      6
-                                      (ParamInteger
-                                         ((let
-                                              a = Tuple2 PredKey (List integer)
-                                            in
-                                            \(g :
-                                                all b.
-                                                  (a -> b -> b) -> b -> b) ->
-                                              g
-                                                {List a}
-                                                (\(ds : a) (ds : List a) ->
-                                                   Cons {a} ds ds)
-                                                (Nil {a}))
-                                            (/\a ->
-                                               \(c :
-                                                   Tuple2
-                                                     PredKey
-                                                     (List integer) ->
-                                                   a ->
-                                                   a)
-                                                (n : a) ->
-                                                 c
-                                                   (Tuple2
-                                                      {PredKey}
-                                                      {List integer}
-                                                      MinValue
-                                                      ((let
-                                                           a = List integer
-                                                         in
-                                                         \(c :
-                                                             integer -> a -> a)
-                                                          (n : a) ->
-                                                           c 250000000 (c 0 n))
-                                                         (\(ds : integer)
-                                                           (ds :
-                                                              List integer) ->
-                                                            Cons
-                                                              {integer}
-                                                              ds
-                                                              ds)
-                                                         (Nil {integer})))
-                                                   (c
-                                                      (Tuple2
-                                                         {PredKey}
-                                                         {List integer}
-                                                         MaxValue
-                                                         ((let
-                                                              a = List integer
-                                                            in
-                                                            \(c :
-                                                                integer ->
-                                                                a ->
-                                                                a)
-                                                             (n : a) ->
-                                                              c 500000000 n)
-                                                            (\(ds : integer)
-                                                              (ds :
-                                                                 List
-                                                                   integer) ->
-                                                               Cons
-                                                                 {integer}
-                                                                 ds
-                                                                 ds)
-                                                            (Nil {integer})))
-                                                      n)))))
-                                   (c
-                                      (Tuple2
-                                         {integer}
-                                         {ParamValue}
-                                         7
-                                         (ParamInteger
-                                            ((let
-                                                 a
-                                                   = Tuple2
-                                                       PredKey
-                                                       (List integer)
-                                               in
-                                               \(g :
-                                                   all b.
-                                                     (a -> b -> b) -> b -> b) ->
-                                                 g
-                                                   {List a}
-                                                   (\(ds : a) (ds : List a) ->
-                                                      Cons {a} ds ds)
-                                                   (Nil {a}))
-                                               (/\a ->
-                                                  \(c :
-                                                      Tuple2
-                                                        PredKey
-                                                        (List integer) ->
-                                                      a ->
-                                                      a)
-                                                   (n : a) ->
-                                                    c
-                                                      (Tuple2
-                                                         {PredKey}
-                                                         {List integer}
-                                                         MinValue
-                                                         ((let
-                                                              a = List integer
-                                                            in
-                                                            \(c :
-                                                                integer ->
-                                                                a ->
-                                                                a)
-                                                             (n : a) ->
-                                                              c 0 n)
-                                                            (\(ds : integer)
-                                                              (ds :
-                                                                 List
-                                                                   integer) ->
-                                                               Cons
-                                                                 {integer}
-                                                                 ds
-                                                                 ds)
-                                                            (Nil {integer})))
-                                                      n))))
-                                      (c
+                  \(g : all b. (a -> b -> b) -> b -> b) ->
+                    g
+                      {List a}
+                      (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                      (Nil {a}))
+                  (/\a ->
+                     \(c : Tuple2 integer ParamValue -> a -> a) (n : a) ->
+                       c
+                         (Tuple2
+                            {integer}
+                            {ParamValue}
+                            0
+                            (ParamInteger
+                               ((let
+                                    a = Tuple2 PredKey (List integer)
+                                  in
+                                  \(g : all b. (a -> b -> b) -> b -> b) ->
+                                    g
+                                      {List a}
+                                      (\(ds : a) (ds : List a) ->
+                                         Cons {a} ds ds)
+                                      (Nil {a}))
+                                  (/\a ->
+                                     \(c :
+                                         Tuple2 PredKey (List integer) ->
+                                         a ->
+                                         a)
+                                      (n : a) ->
+                                       c
                                          (Tuple2
-                                            {integer}
-                                            {ParamValue}
-                                            8
-                                            (ParamInteger
-                                               ((let
-                                                    a
-                                                      = Tuple2
-                                                          PredKey
-                                                          (List integer)
-                                                  in
-                                                  \(g :
-                                                      all b.
-                                                        (a -> b -> b) ->
-                                                        b ->
-                                                        b) ->
-                                                    g
-                                                      {List a}
-                                                      (\(ds : a)
-                                                        (ds : List a) ->
-                                                         Cons {a} ds ds)
-                                                      (Nil {a}))
-                                                  (/\a ->
-                                                     \(c :
-                                                         Tuple2
-                                                           PredKey
-                                                           (List integer) ->
-                                                         a ->
-                                                         a)
-                                                      (n : a) ->
-                                                       c
-                                                         (Tuple2
-                                                            {PredKey}
-                                                            {List integer}
-                                                            MinValue
-                                                            ((let
-                                                                 a
-                                                                   = List
-                                                                       integer
-                                                               in
-                                                               \(c :
-                                                                   integer ->
-                                                                   a ->
-                                                                   a)
-                                                                (n : a) ->
-                                                                 c 250 (c 0 n))
-                                                               (\(ds : integer)
-                                                                 (ds :
-                                                                    List
-                                                                      integer) ->
-                                                                  Cons
-                                                                    {integer}
-                                                                    ds
-                                                                    ds)
-                                                               (Nil {integer})))
-                                                         (c
-                                                            (Tuple2
-                                                               {PredKey}
-                                                               {List integer}
-                                                               MaxValue
-                                                               ((let
-                                                                    a
-                                                                      = List
-                                                                          integer
-                                                                  in
-                                                                  \(c :
-                                                                      integer ->
-                                                                      a ->
-                                                                      a)
-                                                                   (n : a) ->
-                                                                    c 2000 n)
-                                                                  (\(ds :
-                                                                       integer)
-                                                                    (ds :
-                                                                       List
-                                                                         integer) ->
-                                                                     Cons
-                                                                       {integer}
-                                                                       ds
-                                                                       ds)
-                                                                  (Nil
-                                                                     {integer})))
-                                                            (c
-                                                               (Tuple2
-                                                                  {PredKey}
-                                                                  {List integer}
-                                                                  NotEqual
-                                                                  ((let
-                                                                       a
-                                                                         = List
-                                                                             integer
-                                                                     in
-                                                                     \(c :
-                                                                         integer ->
-                                                                         a ->
-                                                                         a)
-                                                                      (n : a) ->
-                                                                       c 0 n)
-                                                                     (\(ds :
-                                                                          integer)
-                                                                       (ds :
-                                                                          List
-                                                                            integer) ->
-                                                                        Cons
-                                                                          {integer}
-                                                                          ds
-                                                                          ds)
-                                                                     (Nil
-                                                                        {integer})))
-                                                               n))))))
+                                            {PredKey}
+                                            {List integer}
+                                            MinValue
+                                            ((let
+                                                 a = List integer
+                                               in
+                                               \(c : integer -> a -> a)
+                                                (n : a) ->
+                                                 c 30 (c 0 n))
+                                               (\(ds : integer)
+                                                 (ds : List integer) ->
+                                                  Cons {integer} ds ds)
+                                               (Nil {integer})))
                                          (c
                                             (Tuple2
-                                               {integer}
-                                               {ParamValue}
-                                               9
-                                               (ParamRational
-                                                  ((let
-                                                       a
-                                                         = Tuple2
-                                                             PredKey
-                                                             (List Rational)
-                                                     in
-                                                     \(g :
-                                                         all b.
-                                                           (a -> b -> b) ->
-                                                           b ->
-                                                           b) ->
-                                                       g
-                                                         {List a}
-                                                         (\(ds : a)
-                                                           (ds : List a) ->
-                                                            Cons {a} ds ds)
-                                                         (Nil {a}))
-                                                     (/\a ->
-                                                        \(c :
-                                                            Tuple2
-                                                              PredKey
-                                                              (List Rational) ->
-                                                            a ->
-                                                            a)
-                                                         (n : a) ->
-                                                          c
-                                                            (Tuple2
-                                                               {PredKey}
-                                                               {List Rational}
-                                                               MinValue
-                                                               ((let
-                                                                    a
-                                                                      = List
-                                                                          Rational
-                                                                  in
-                                                                  \(c :
-                                                                      Rational ->
-                                                                      a ->
-                                                                      a)
-                                                                   (n : a) ->
-                                                                    c
-                                                                      (unsafeRatio
-                                                                         1
-                                                                         10)
-                                                                      (c
-                                                                         (unsafeRatio
-                                                                            0
-                                                                            1)
-                                                                         n))
-                                                                  (\(ds :
-                                                                       Rational)
-                                                                    (ds :
-                                                                       List
-                                                                         Rational) ->
-                                                                     Cons
-                                                                       {Rational}
-                                                                       ds
-                                                                       ds)
-                                                                  (Nil
-                                                                     {Rational})))
-                                                            (c
-                                                               (Tuple2
-                                                                  {PredKey}
-                                                                  {List
-                                                                     Rational}
-                                                                  MaxValue
-                                                                  ((let
-                                                                       a
-                                                                         = List
-                                                                             Rational
-                                                                     in
-                                                                     \(c :
-                                                                         Rational ->
-                                                                         a ->
-                                                                         a)
-                                                                      (n : a) ->
-                                                                       c
-                                                                         (unsafeRatio
-                                                                            1
-                                                                            1)
-                                                                         n)
-                                                                     (\(ds :
-                                                                          Rational)
-                                                                       (ds :
-                                                                          List
-                                                                            Rational) ->
-                                                                        Cons
-                                                                          {Rational}
-                                                                          ds
-                                                                          ds)
-                                                                     (Nil
-                                                                        {Rational})))
-                                                               n)))))
+                                               {PredKey}
+                                               {List integer}
+                                               MaxValue
+                                               ((let
+                                                    a = List integer
+                                                  in
+                                                  \(c : integer -> a -> a)
+                                                   (n : a) ->
+                                                    c 1000 n)
+                                                  (\(ds : integer)
+                                                    (ds : List integer) ->
+                                                     Cons {integer} ds ds)
+                                                  (Nil {integer})))
+                                            n)))))
+                         (c
+                            (Tuple2
+                               {integer}
+                               {ParamValue}
+                               1
+                               (ParamInteger
+                                  ((let
+                                       a = Tuple2 PredKey (List integer)
+                                     in
+                                     \(g : all b. (a -> b -> b) -> b -> b) ->
+                                       g
+                                         {List a}
+                                         (\(ds : a) (ds : List a) ->
+                                            Cons {a} ds ds)
+                                         (Nil {a}))
+                                     (/\a ->
+                                        \(c :
+                                            Tuple2 PredKey (List integer) ->
+                                            a ->
+                                            a)
+                                         (n : a) ->
+                                          c
+                                            (Tuple2
+                                               {PredKey}
+                                               {List integer}
+                                               MinValue
+                                               ((let
+                                                    a = List integer
+                                                  in
+                                                  \(c : integer -> a -> a)
+                                                   (n : a) ->
+                                                    c 100000 (c 0 n))
+                                                  (\(ds : integer)
+                                                    (ds : List integer) ->
+                                                     Cons {integer} ds ds)
+                                                  (Nil {integer})))
                                             (c
                                                (Tuple2
-                                                  {integer}
-                                                  {ParamValue}
-                                                  10
-                                                  (ParamRational
+                                                  {PredKey}
+                                                  {List integer}
+                                                  MaxValue
+                                                  ((let
+                                                       a = List integer
+                                                     in
+                                                     \(c : integer -> a -> a)
+                                                      (n : a) ->
+                                                       c 10000000 n)
+                                                     (\(ds : integer)
+                                                       (ds : List integer) ->
+                                                        Cons {integer} ds ds)
+                                                     (Nil {integer})))
+                                               n)))))
+                            (c
+                               (Tuple2
+                                  {integer}
+                                  {ParamValue}
+                                  2
+                                  (ParamInteger
+                                     ((let
+                                          a = Tuple2 PredKey (List integer)
+                                        in
+                                        \(g : all b. (a -> b -> b) -> b -> b) ->
+                                          g
+                                            {List a}
+                                            (\(ds : a) (ds : List a) ->
+                                               Cons {a} ds ds)
+                                            (Nil {a}))
+                                        (/\a ->
+                                           \(c :
+                                               Tuple2 PredKey (List integer) ->
+                                               a ->
+                                               a)
+                                            (n : a) ->
+                                             c
+                                               (Tuple2
+                                                  {PredKey}
+                                                  {List integer}
+                                                  MinValue
+                                                  ((let
+                                                       a = List integer
+                                                     in
+                                                     \(c : integer -> a -> a)
+                                                      (n : a) ->
+                                                       c 24576 n)
+                                                     (\(ds : integer)
+                                                       (ds : List integer) ->
+                                                        Cons {integer} ds ds)
+                                                     (Nil {integer})))
+                                               (c
+                                                  (Tuple2
+                                                     {PredKey}
+                                                     {List integer}
+                                                     MaxValue
                                                      ((let
-                                                          a
-                                                            = Tuple2
-                                                                PredKey
-                                                                (List Rational)
+                                                          a = List integer
                                                         in
-                                                        \(g :
-                                                            all b.
-                                                              (a -> b -> b) ->
-                                                              b ->
-                                                              b) ->
-                                                          g
-                                                            {List a}
-                                                            (\(ds : a)
-                                                              (ds : List a) ->
-                                                               Cons {a} ds ds)
-                                                            (Nil {a}))
-                                                        (/\a ->
+                                                        \(c : integer -> a -> a)
+                                                         (n : a) ->
+                                                          c 122880 n)
+                                                        (\(ds : integer)
+                                                          (ds : List integer) ->
+                                                           Cons {integer} ds ds)
+                                                        (Nil {integer})))
+                                                  n)))))
+                               (c
+                                  (Tuple2
+                                     {integer}
+                                     {ParamValue}
+                                     3
+                                     (ParamInteger
+                                        ((let
+                                             a = Tuple2 PredKey (List integer)
+                                           in
+                                           \(g :
+                                               all b.
+                                                 (a -> b -> b) -> b -> b) ->
+                                             g
+                                               {List a}
+                                               (\(ds : a) (ds : List a) ->
+                                                  Cons {a} ds ds)
+                                               (Nil {a}))
+                                           (/\a ->
+                                              \(c :
+                                                  Tuple2
+                                                    PredKey
+                                                    (List integer) ->
+                                                  a ->
+                                                  a)
+                                               (n : a) ->
+                                                c
+                                                  (Tuple2
+                                                     {PredKey}
+                                                     {List integer}
+                                                     MinValue
+                                                     ((let
+                                                          a = List integer
+                                                        in
+                                                        \(c : integer -> a -> a)
+                                                         (n : a) ->
+                                                          c 0 n)
+                                                        (\(ds : integer)
+                                                          (ds : List integer) ->
+                                                           Cons {integer} ds ds)
+                                                        (Nil {integer})))
+                                                  (c
+                                                     (Tuple2
+                                                        {PredKey}
+                                                        {List integer}
+                                                        MaxValue
+                                                        ((let
+                                                             a = List integer
+                                                           in
                                                            \(c :
-                                                               Tuple2
-                                                                 PredKey
-                                                                 (List
-                                                                    Rational) ->
+                                                               integer ->
                                                                a ->
                                                                a)
                                                             (n : a) ->
-                                                             c
-                                                               (Tuple2
-                                                                  {PredKey}
-                                                                  {List
-                                                                     Rational}
-                                                                  MinValue
-                                                                  ((let
-                                                                       a
-                                                                         = List
-                                                                             Rational
-                                                                     in
-                                                                     \(c :
-                                                                         Rational ->
-                                                                         a ->
-                                                                         a)
-                                                                      (n : a) ->
-                                                                       c
-                                                                         (unsafeRatio
-                                                                            1
-                                                                            1000)
-                                                                         (c
-                                                                            (unsafeRatio
-                                                                               0
-                                                                               1)
-                                                                            n))
-                                                                     (\(ds :
-                                                                          Rational)
-                                                                       (ds :
-                                                                          List
-                                                                            Rational) ->
-                                                                        Cons
-                                                                          {Rational}
-                                                                          ds
-                                                                          ds)
-                                                                     (Nil
-                                                                        {Rational})))
-                                                               (c
-                                                                  (Tuple2
-                                                                     {PredKey}
-                                                                     {List
-                                                                        Rational}
-                                                                     MaxValue
-                                                                     ((let
-                                                                          a
-                                                                            = List
-                                                                                Rational
-                                                                        in
-                                                                        \(c :
-                                                                            Rational ->
-                                                                            a ->
-                                                                            a)
-                                                                         (n :
-                                                                            a) ->
-                                                                          c
-                                                                            (unsafeRatio
-                                                                               1
-                                                                               200)
-                                                                            n)
-                                                                        (\(ds :
-                                                                             Rational)
-                                                                          (ds :
-                                                                             List
-                                                                               Rational) ->
-                                                                           Cons
-                                                                             {Rational}
-                                                                             ds
-                                                                             ds)
-                                                                        (Nil
-                                                                           {Rational})))
-                                                                  n)))))
-                                               (c
-                                                  (Tuple2
-                                                     {integer}
-                                                     {ParamValue}
-                                                     11
-                                                     (ParamRational
+                                                             c 32768 n)
+                                                           (\(ds : integer)
+                                                             (ds :
+                                                                List integer) ->
+                                                              Cons
+                                                                {integer}
+                                                                ds
+                                                                ds)
+                                                           (Nil {integer})))
+                                                     n)))))
+                                  (c
+                                     (Tuple2
+                                        {integer}
+                                        {ParamValue}
+                                        4
+                                        (ParamInteger
+                                           ((let
+                                                a
+                                                  = Tuple2
+                                                      PredKey
+                                                      (List integer)
+                                              in
+                                              \(g :
+                                                  all b.
+                                                    (a -> b -> b) -> b -> b) ->
+                                                g
+                                                  {List a}
+                                                  (\(ds : a) (ds : List a) ->
+                                                     Cons {a} ds ds)
+                                                  (Nil {a}))
+                                              (/\a ->
+                                                 \(c :
+                                                     Tuple2
+                                                       PredKey
+                                                       (List integer) ->
+                                                     a ->
+                                                     a)
+                                                  (n : a) ->
+                                                   c
+                                                     (Tuple2
+                                                        {PredKey}
+                                                        {List integer}
+                                                        MinValue
                                                         ((let
-                                                             a
-                                                               = Tuple2
-                                                                   PredKey
-                                                                   (List
-                                                                      Rational)
+                                                             a = List integer
                                                            in
-                                                           \(g :
-                                                               all b.
-                                                                 (a ->
-                                                                  b ->
-                                                                  b) ->
-                                                                 b ->
-                                                                 b) ->
-                                                             g
-                                                               {List a}
-                                                               (\(ds : a)
-                                                                 (ds :
-                                                                    List a) ->
-                                                                  Cons
-                                                                    {a}
-                                                                    ds
-                                                                    ds)
-                                                               (Nil {a}))
-                                                           (/\a ->
+                                                           \(c :
+                                                               integer ->
+                                                               a ->
+                                                               a)
+                                                            (n : a) ->
+                                                             c 0 n)
+                                                           (\(ds : integer)
+                                                             (ds :
+                                                                List integer) ->
+                                                              Cons
+                                                                {integer}
+                                                                ds
+                                                                ds)
+                                                           (Nil {integer})))
+                                                     (c
+                                                        (Tuple2
+                                                           {PredKey}
+                                                           {List integer}
+                                                           MaxValue
+                                                           ((let
+                                                                a = List integer
+                                                              in
                                                               \(c :
-                                                                  Tuple2
-                                                                    PredKey
-                                                                    (List
-                                                                       Rational) ->
+                                                                  integer ->
+                                                                  a ->
+                                                                  a)
+                                                               (n : a) ->
+                                                                c 5000 n)
+                                                              (\(ds : integer)
+                                                                (ds :
+                                                                   List
+                                                                     integer) ->
+                                                                 Cons
+                                                                   {integer}
+                                                                   ds
+                                                                   ds)
+                                                              (Nil {integer})))
+                                                        n)))))
+                                     (c
+                                        (Tuple2
+                                           {integer}
+                                           {ParamValue}
+                                           5
+                                           (ParamInteger
+                                              ((let
+                                                   a
+                                                     = Tuple2
+                                                         PredKey
+                                                         (List integer)
+                                                 in
+                                                 \(g :
+                                                     all b.
+                                                       (a -> b -> b) ->
+                                                       b ->
+                                                       b) ->
+                                                   g
+                                                     {List a}
+                                                     (\(ds : a) (ds : List a) ->
+                                                        Cons {a} ds ds)
+                                                     (Nil {a}))
+                                                 (/\a ->
+                                                    \(c :
+                                                        Tuple2
+                                                          PredKey
+                                                          (List integer) ->
+                                                        a ->
+                                                        a)
+                                                     (n : a) ->
+                                                      c
+                                                        (Tuple2
+                                                           {PredKey}
+                                                           {List integer}
+                                                           MinValue
+                                                           ((let
+                                                                a = List integer
+                                                              in
+                                                              \(c :
+                                                                  integer ->
                                                                   a ->
                                                                   a)
                                                                (n : a) ->
                                                                 c
-                                                                  (Tuple2
-                                                                     {PredKey}
-                                                                     {List
-                                                                        Rational}
-                                                                     MinValue
-                                                                     ((let
-                                                                          a
-                                                                            = List
-                                                                                Rational
-                                                                        in
-                                                                        \(c :
-                                                                            Rational ->
-                                                                            a ->
-                                                                            a)
-                                                                         (n :
-                                                                            a) ->
-                                                                          c
-                                                                            (unsafeRatio
-                                                                               1
-                                                                               10)
-                                                                            (c
-                                                                               (unsafeRatio
-                                                                                  0
-                                                                                  1)
-                                                                               n))
-                                                                        (\(ds :
-                                                                             Rational)
-                                                                          (ds :
-                                                                             List
-                                                                               Rational) ->
-                                                                           Cons
-                                                                             {Rational}
-                                                                             ds
-                                                                             ds)
-                                                                        (Nil
-                                                                           {Rational})))
-                                                                  (c
-                                                                     (Tuple2
-                                                                        {PredKey}
-                                                                        {List
-                                                                           Rational}
-                                                                        MaxValue
-                                                                        ((let
-                                                                             a
-                                                                               = List
-                                                                                   Rational
-                                                                           in
-                                                                           \(c :
-                                                                               Rational ->
-                                                                               a ->
-                                                                               a)
-                                                                            (n :
-                                                                               a) ->
-                                                                             c
-                                                                               (unsafeRatio
-                                                                                  3
-                                                                                  10)
-                                                                               (c
-                                                                                  (unsafeRatio
-                                                                                     1
-                                                                                     1)
-                                                                                  n))
-                                                                           (\(ds :
-                                                                                Rational)
-                                                                             (ds :
-                                                                                List
-                                                                                  Rational) ->
-                                                                              Cons
-                                                                                {Rational}
-                                                                                ds
-                                                                                ds)
-                                                                           (Nil
-                                                                              {Rational})))
-                                                                     n)))))
-                                                  (c
-                                                     (Tuple2
-                                                        {integer}
-                                                        {ParamValue}
-                                                        16
-                                                        (ParamInteger
-                                                           ((let
-                                                                a
-                                                                  = Tuple2
-                                                                      PredKey
-                                                                      (List
-                                                                         integer)
-                                                              in
-                                                              \(g :
-                                                                  all b.
-                                                                    (a ->
-                                                                     b ->
-                                                                     b) ->
-                                                                    b ->
-                                                                    b) ->
-                                                                g
-                                                                  {List a}
-                                                                  (\(ds : a)
-                                                                    (ds :
-                                                                       List
-                                                                         a) ->
-                                                                     Cons
-                                                                       {a}
-                                                                       ds
-                                                                       ds)
-                                                                  (Nil {a}))
-                                                              (/\a ->
+                                                                  1000000
+                                                                  (c 0 n))
+                                                              (\(ds : integer)
+                                                                (ds :
+                                                                   List
+                                                                     integer) ->
+                                                                 Cons
+                                                                   {integer}
+                                                                   ds
+                                                                   ds)
+                                                              (Nil {integer})))
+                                                        (c
+                                                           (Tuple2
+                                                              {PredKey}
+                                                              {List integer}
+                                                              MaxValue
+                                                              ((let
+                                                                   a
+                                                                     = List
+                                                                         integer
+                                                                 in
                                                                  \(c :
-                                                                     Tuple2
-                                                                       PredKey
-                                                                       (List
-                                                                          integer) ->
+                                                                     integer ->
+                                                                     a ->
+                                                                     a)
+                                                                  (n : a) ->
+                                                                   c 5000000 n)
+                                                                 (\(ds :
+                                                                      integer)
+                                                                   (ds :
+                                                                      List
+                                                                        integer) ->
+                                                                    Cons
+                                                                      {integer}
+                                                                      ds
+                                                                      ds)
+                                                                 (Nil
+                                                                    {integer})))
+                                                           n)))))
+                                        (c
+                                           (Tuple2
+                                              {integer}
+                                              {ParamValue}
+                                              6
+                                              (ParamInteger
+                                                 ((let
+                                                      a
+                                                        = Tuple2
+                                                            PredKey
+                                                            (List integer)
+                                                    in
+                                                    \(g :
+                                                        all b.
+                                                          (a -> b -> b) ->
+                                                          b ->
+                                                          b) ->
+                                                      g
+                                                        {List a}
+                                                        (\(ds : a)
+                                                          (ds : List a) ->
+                                                           Cons {a} ds ds)
+                                                        (Nil {a}))
+                                                    (/\a ->
+                                                       \(c :
+                                                           Tuple2
+                                                             PredKey
+                                                             (List integer) ->
+                                                           a ->
+                                                           a)
+                                                        (n : a) ->
+                                                         c
+                                                           (Tuple2
+                                                              {PredKey}
+                                                              {List integer}
+                                                              MinValue
+                                                              ((let
+                                                                   a
+                                                                     = List
+                                                                         integer
+                                                                 in
+                                                                 \(c :
+                                                                     integer ->
                                                                      a ->
                                                                      a)
                                                                   (n : a) ->
                                                                    c
-                                                                     (Tuple2
-                                                                        {PredKey}
-                                                                        {List
-                                                                           integer}
-                                                                        MinValue
-                                                                        ((let
-                                                                             a
-                                                                               = List
-                                                                                   integer
-                                                                           in
-                                                                           \(c :
-                                                                               integer ->
-                                                                               a ->
-                                                                               a)
-                                                                            (n :
-                                                                               a) ->
-                                                                             c
-                                                                               0
-                                                                               n)
-                                                                           (\(ds :
-                                                                                integer)
-                                                                             (ds :
-                                                                                List
-                                                                                  integer) ->
-                                                                              Cons
-                                                                                {integer}
-                                                                                ds
-                                                                                ds)
-                                                                           (Nil
-                                                                              {integer})))
-                                                                     (c
-                                                                        (Tuple2
-                                                                           {PredKey}
-                                                                           {List
-                                                                              integer}
-                                                                           MaxValue
-                                                                           ((let
-                                                                                a
-                                                                                  = List
-                                                                                      integer
-                                                                              in
-                                                                              \(c :
-                                                                                  integer ->
-                                                                                  a ->
-                                                                                  a)
-                                                                               (n :
-                                                                                  a) ->
-                                                                                c
-                                                                                  500000000
-                                                                                  n)
-                                                                              (\(ds :
-                                                                                   integer)
-                                                                                (ds :
-                                                                                   List
-                                                                                     integer) ->
-                                                                                 Cons
-                                                                                   {integer}
-                                                                                   ds
-                                                                                   ds)
-                                                                              (Nil
-                                                                                 {integer})))
-                                                                        n)))))
-                                                     (c
-                                                        (Tuple2
-                                                           {integer}
-                                                           {ParamValue}
-                                                           17
-                                                           (ParamInteger
-                                                              ((let
-                                                                   a
-                                                                     = Tuple2
-                                                                         PredKey
-                                                                         (List
-                                                                            integer)
-                                                                 in
-                                                                 \(g :
-                                                                     all b.
-                                                                       (a ->
-                                                                        b ->
-                                                                        b) ->
-                                                                       b ->
-                                                                       b) ->
-                                                                   g
-                                                                     {List a}
-                                                                     (\(ds : a)
-                                                                       (ds :
-                                                                          List
-                                                                            a) ->
-                                                                        Cons
-                                                                          {a}
-                                                                          ds
-                                                                          ds)
-                                                                     (Nil {a}))
-                                                                 (/\a ->
+                                                                     250000000
+                                                                     (c 0 n))
+                                                                 (\(ds :
+                                                                      integer)
+                                                                   (ds :
+                                                                      List
+                                                                        integer) ->
+                                                                    Cons
+                                                                      {integer}
+                                                                      ds
+                                                                      ds)
+                                                                 (Nil
+                                                                    {integer})))
+                                                           (c
+                                                              (Tuple2
+                                                                 {PredKey}
+                                                                 {List integer}
+                                                                 MaxValue
+                                                                 ((let
+                                                                      a
+                                                                        = List
+                                                                            integer
+                                                                    in
                                                                     \(c :
-                                                                        Tuple2
-                                                                          PredKey
-                                                                          (List
-                                                                             integer) ->
+                                                                        integer ->
                                                                         a ->
                                                                         a)
                                                                      (n : a) ->
                                                                       c
-                                                                        (Tuple2
-                                                                           {PredKey}
-                                                                           {List
-                                                                              integer}
-                                                                           MinValue
-                                                                           ((let
-                                                                                a
-                                                                                  = List
-                                                                                      integer
-                                                                              in
-                                                                              \(c :
-                                                                                  integer ->
-                                                                                  a ->
-                                                                                  a)
-                                                                               (n :
-                                                                                  a) ->
-                                                                                c
-                                                                                  3000
-                                                                                  (c
-                                                                                     0
-                                                                                     n))
-                                                                              (\(ds :
-                                                                                   integer)
-                                                                                (ds :
-                                                                                   List
-                                                                                     integer) ->
-                                                                                 Cons
-                                                                                   {integer}
-                                                                                   ds
-                                                                                   ds)
-                                                                              (Nil
-                                                                                 {integer})))
-                                                                        (c
-                                                                           (Tuple2
-                                                                              {PredKey}
-                                                                              {List
-                                                                                 integer}
-                                                                              MaxValue
-                                                                              ((let
-                                                                                   a
-                                                                                     = List
-                                                                                         integer
-                                                                                 in
-                                                                                 \(c :
-                                                                                     integer ->
-                                                                                     a ->
-                                                                                     a)
-                                                                                  (n :
-                                                                                     a) ->
-                                                                                   c
-                                                                                     6500
-                                                                                     n)
-                                                                                 (\(ds :
-                                                                                      integer)
-                                                                                   (ds :
-                                                                                      List
-                                                                                        integer) ->
-                                                                                    Cons
-                                                                                      {integer}
-                                                                                      ds
-                                                                                      ds)
-                                                                                 (Nil
-                                                                                    {integer})))
-                                                                           (c
-                                                                              (Tuple2
-                                                                                 {PredKey}
-                                                                                 {List
-                                                                                    integer}
-                                                                                 NotEqual
-                                                                                 ((let
-                                                                                      a
-                                                                                        = List
-                                                                                            integer
-                                                                                    in
-                                                                                    \(c :
-                                                                                        integer ->
-                                                                                        a ->
-                                                                                        a)
-                                                                                     (n :
-                                                                                        a) ->
-                                                                                      c
-                                                                                        0
-                                                                                        n)
-                                                                                    (\(ds :
-                                                                                         integer)
-                                                                                      (ds :
-                                                                                         List
-                                                                                           integer) ->
-                                                                                       Cons
-                                                                                         {integer}
-                                                                                         ds
-                                                                                         ds)
-                                                                                    (Nil
-                                                                                       {integer})))
-                                                                              n))))))
-                                                        (c
-                                                           (Tuple2
-                                                              {integer}
-                                                              {ParamValue}
-                                                              18
-                                                              ParamAny)
-                                                           (c
+                                                                        500000000
+                                                                        n)
+                                                                    (\(ds :
+                                                                         integer)
+                                                                      (ds :
+                                                                         List
+                                                                           integer) ->
+                                                                       Cons
+                                                                         {integer}
+                                                                         ds
+                                                                         ds)
+                                                                    (Nil
+                                                                       {integer})))
+                                                              n)))))
+                                           (c
+                                              (Tuple2
+                                                 {integer}
+                                                 {ParamValue}
+                                                 7
+                                                 (ParamInteger
+                                                    ((let
+                                                         a
+                                                           = Tuple2
+                                                               PredKey
+                                                               (List integer)
+                                                       in
+                                                       \(g :
+                                                           all b.
+                                                             (a -> b -> b) ->
+                                                             b ->
+                                                             b) ->
+                                                         g
+                                                           {List a}
+                                                           (\(ds : a)
+                                                             (ds : List a) ->
+                                                              Cons {a} ds ds)
+                                                           (Nil {a}))
+                                                       (/\a ->
+                                                          \(c :
+                                                              Tuple2
+                                                                PredKey
+                                                                (List
+                                                                   integer) ->
+                                                              a ->
+                                                              a)
+                                                           (n : a) ->
+                                                            c
                                                               (Tuple2
-                                                                 {integer}
-                                                                 {ParamValue}
-                                                                 19
-                                                                 (ParamList
+                                                                 {PredKey}
+                                                                 {List integer}
+                                                                 MinValue
+                                                                 ((let
+                                                                      a
+                                                                        = List
+                                                                            integer
+                                                                    in
+                                                                    \(c :
+                                                                        integer ->
+                                                                        a ->
+                                                                        a)
+                                                                     (n : a) ->
+                                                                      c 0 n)
+                                                                    (\(ds :
+                                                                         integer)
+                                                                      (ds :
+                                                                         List
+                                                                           integer) ->
+                                                                       Cons
+                                                                         {integer}
+                                                                         ds
+                                                                         ds)
+                                                                    (Nil
+                                                                       {integer})))
+                                                              n))))
+                                              (c
+                                                 (Tuple2
+                                                    {integer}
+                                                    {ParamValue}
+                                                    8
+                                                    (ParamInteger
+                                                       ((let
+                                                            a
+                                                              = Tuple2
+                                                                  PredKey
+                                                                  (List integer)
+                                                          in
+                                                          \(g :
+                                                              all b.
+                                                                (a -> b -> b) ->
+                                                                b ->
+                                                                b) ->
+                                                            g
+                                                              {List a}
+                                                              (\(ds : a)
+                                                                (ds : List a) ->
+                                                                 Cons {a} ds ds)
+                                                              (Nil {a}))
+                                                          (/\a ->
+                                                             \(c :
+                                                                 Tuple2
+                                                                   PredKey
+                                                                   (List
+                                                                      integer) ->
+                                                                 a ->
+                                                                 a)
+                                                              (n : a) ->
+                                                               c
+                                                                 (Tuple2
+                                                                    {PredKey}
+                                                                    {List
+                                                                       integer}
+                                                                    MinValue
                                                                     ((let
                                                                          a
                                                                            = List
-                                                                               ParamValue
+                                                                               integer
                                                                        in
                                                                        \(c :
-                                                                           ParamValue ->
+                                                                           integer ->
                                                                            a ->
                                                                            a)
                                                                         (n :
                                                                            a) ->
                                                                          c
-                                                                           (ParamRational
-                                                                              ((let
-                                                                                   a
-                                                                                     = Tuple2
-                                                                                         PredKey
-                                                                                         (List
-                                                                                            Rational)
-                                                                                 in
-                                                                                 \(g :
-                                                                                     all b.
-                                                                                       (a ->
-                                                                                        b ->
-                                                                                        b) ->
-                                                                                       b ->
-                                                                                       b) ->
-                                                                                   g
-                                                                                     {List
-                                                                                        a}
-                                                                                     (\(ds :
-                                                                                          a)
-                                                                                       (ds :
-                                                                                          List
-                                                                                            a) ->
-                                                                                        Cons
-                                                                                          {a}
-                                                                                          ds
-                                                                                          ds)
-                                                                                     (Nil
-                                                                                        {a}))
-                                                                                 (/\a ->
-                                                                                    \(c :
-                                                                                        Tuple2
-                                                                                          PredKey
-                                                                                          (List
-                                                                                             Rational) ->
-                                                                                        a ->
-                                                                                        a)
-                                                                                     (n :
-                                                                                        a) ->
-                                                                                      c
-                                                                                        (Tuple2
-                                                                                           {PredKey}
-                                                                                           {List
-                                                                                              Rational}
-                                                                                           MinValue
-                                                                                           ((let
-                                                                                                a
-                                                                                                  = List
-                                                                                                      Rational
-                                                                                              in
-                                                                                              \(c :
-                                                                                                  Rational ->
-                                                                                                  a ->
-                                                                                                  a)
-                                                                                               (n :
-                                                                                                  a) ->
-                                                                                                c
-                                                                                                  (unsafeRatio
-                                                                                                     1
-                                                                                                     25)
-                                                                                                  n)
-                                                                                              (\(ds :
-                                                                                                   Rational)
-                                                                                                (ds :
-                                                                                                   List
-                                                                                                     Rational) ->
-                                                                                                 Cons
-                                                                                                   {Rational}
-                                                                                                   ds
-                                                                                                   ds)
-                                                                                              (Nil
-                                                                                                 {Rational})))
-                                                                                        (c
-                                                                                           (Tuple2
-                                                                                              {PredKey}
-                                                                                              {List
-                                                                                                 Rational}
-                                                                                              MaxValue
-                                                                                              ((let
-                                                                                                   a
-                                                                                                     = List
-                                                                                                         Rational
-                                                                                                 in
-                                                                                                 \(c :
-                                                                                                     Rational ->
-                                                                                                     a ->
-                                                                                                     a)
-                                                                                                  (n :
-                                                                                                     a) ->
-                                                                                                   c
-                                                                                                     (unsafeRatio
-                                                                                                        1
-                                                                                                        5)
-                                                                                                     n)
-                                                                                                 (\(ds :
-                                                                                                      Rational)
-                                                                                                   (ds :
-                                                                                                      List
-                                                                                                        Rational) ->
-                                                                                                    Cons
-                                                                                                      {Rational}
-                                                                                                      ds
-                                                                                                      ds)
-                                                                                                 (Nil
-                                                                                                    {Rational})))
-                                                                                           n))))
+                                                                           250
                                                                            (c
-                                                                              (ParamRational
-                                                                                 ((let
-                                                                                      a
-                                                                                        = Tuple2
-                                                                                            PredKey
-                                                                                            (List
-                                                                                               Rational)
-                                                                                    in
-                                                                                    \(g :
-                                                                                        all b.
-                                                                                          (a ->
-                                                                                           b ->
-                                                                                           b) ->
-                                                                                          b ->
-                                                                                          b) ->
-                                                                                      g
-                                                                                        {List
-                                                                                           a}
-                                                                                        (\(ds :
-                                                                                             a)
-                                                                                          (ds :
-                                                                                             List
-                                                                                               a) ->
-                                                                                           Cons
-                                                                                             {a}
-                                                                                             ds
-                                                                                             ds)
-                                                                                        (Nil
-                                                                                           {a}))
-                                                                                    (/\a ->
-                                                                                       \(c :
-                                                                                           Tuple2
-                                                                                             PredKey
-                                                                                             (List
-                                                                                                Rational) ->
-                                                                                           a ->
-                                                                                           a)
-                                                                                        (n :
-                                                                                           a) ->
-                                                                                         c
-                                                                                           (Tuple2
-                                                                                              {PredKey}
-                                                                                              {List
-                                                                                                 Rational}
-                                                                                              MinValue
-                                                                                              ((let
-                                                                                                   a
-                                                                                                     = List
-                                                                                                         Rational
-                                                                                                 in
-                                                                                                 \(c :
-                                                                                                     Rational ->
-                                                                                                     a ->
-                                                                                                     a)
-                                                                                                  (n :
-                                                                                                     a) ->
-                                                                                                   c
-                                                                                                     (unsafeRatio
-                                                                                                        1
-                                                                                                        20000)
-                                                                                                     n)
-                                                                                                 (\(ds :
-                                                                                                      Rational)
-                                                                                                   (ds :
-                                                                                                      List
-                                                                                                        Rational) ->
-                                                                                                    Cons
-                                                                                                      {Rational}
-                                                                                                      ds
-                                                                                                      ds)
-                                                                                                 (Nil
-                                                                                                    {Rational})))
-                                                                                           (c
-                                                                                              (Tuple2
-                                                                                                 {PredKey}
-                                                                                                 {List
-                                                                                                    Rational}
-                                                                                                 MaxValue
-                                                                                                 ((let
-                                                                                                      a
-                                                                                                        = List
-                                                                                                            Rational
-                                                                                                    in
-                                                                                                    \(c :
-                                                                                                        Rational ->
-                                                                                                        a ->
-                                                                                                        a)
-                                                                                                     (n :
-                                                                                                        a) ->
-                                                                                                      c
-                                                                                                        (unsafeRatio
-                                                                                                           1
-                                                                                                           5000)
-                                                                                                        n)
-                                                                                                    (\(ds :
-                                                                                                         Rational)
-                                                                                                      (ds :
-                                                                                                         List
-                                                                                                           Rational) ->
-                                                                                                       Cons
-                                                                                                         {Rational}
-                                                                                                         ds
-                                                                                                         ds)
-                                                                                                    (Nil
-                                                                                                       {Rational})))
-                                                                                              n))))
+                                                                              0
                                                                               n))
                                                                        (\(ds :
-                                                                            ParamValue)
+                                                                            integer)
                                                                          (ds :
                                                                             List
-                                                                              ParamValue) ->
+                                                                              integer) ->
                                                                           Cons
-                                                                            {ParamValue}
+                                                                            {integer}
                                                                             ds
                                                                             ds)
                                                                        (Nil
-                                                                          {ParamValue}))))
-                                                              (c
-                                                                 (Tuple2
-                                                                    {integer}
-                                                                    {ParamValue}
-                                                                    20
-                                                                    (ParamList
+                                                                          {integer})))
+                                                                 (c
+                                                                    (Tuple2
+                                                                       {PredKey}
+                                                                       {List
+                                                                          integer}
+                                                                       MaxValue
                                                                        ((let
                                                                             a
                                                                               = List
-                                                                                  ParamValue
+                                                                                  integer
                                                                           in
                                                                           \(c :
-                                                                              ParamValue ->
+                                                                              integer ->
                                                                               a ->
                                                                               a)
                                                                            (n :
                                                                               a) ->
                                                                             c
-                                                                              (ParamInteger
-                                                                                 ((let
-                                                                                      a
-                                                                                        = Tuple2
-                                                                                            PredKey
-                                                                                            (List
-                                                                                               integer)
-                                                                                    in
-                                                                                    \(g :
-                                                                                        all b.
-                                                                                          (a ->
-                                                                                           b ->
-                                                                                           b) ->
-                                                                                          b ->
-                                                                                          b) ->
-                                                                                      g
-                                                                                        {List
-                                                                                           a}
-                                                                                        (\(ds :
-                                                                                             a)
-                                                                                          (ds :
-                                                                                             List
-                                                                                               a) ->
-                                                                                           Cons
-                                                                                             {a}
-                                                                                             ds
-                                                                                             ds)
-                                                                                        (Nil
-                                                                                           {a}))
-                                                                                    (/\a ->
-                                                                                       \(c :
-                                                                                           Tuple2
-                                                                                             PredKey
-                                                                                             (List
-                                                                                                integer) ->
-                                                                                           a ->
-                                                                                           a)
-                                                                                        (n :
-                                                                                           a) ->
-                                                                                         c
-                                                                                           (Tuple2
-                                                                                              {PredKey}
-                                                                                              {List
-                                                                                                 integer}
-                                                                                              MinValue
-                                                                                              ((let
-                                                                                                   a
-                                                                                                     = List
-                                                                                                         integer
-                                                                                                 in
-                                                                                                 \(c :
-                                                                                                     integer ->
-                                                                                                     a ->
-                                                                                                     a)
-                                                                                                  (n :
-                                                                                                     a) ->
-                                                                                                   c
-                                                                                                     0
-                                                                                                     n)
-                                                                                                 (\(ds :
-                                                                                                      integer)
-                                                                                                   (ds :
-                                                                                                      List
-                                                                                                        integer) ->
-                                                                                                    Cons
-                                                                                                      {integer}
-                                                                                                      ds
-                                                                                                      ds)
-                                                                                                 (Nil
-                                                                                                    {integer})))
-                                                                                           (c
-                                                                                              (Tuple2
-                                                                                                 {PredKey}
-                                                                                                 {List
-                                                                                                    integer}
-                                                                                                 MaxValue
-                                                                                                 ((let
-                                                                                                      a
-                                                                                                        = List
-                                                                                                            integer
-                                                                                                    in
-                                                                                                    \(c :
-                                                                                                        integer ->
-                                                                                                        a ->
-                                                                                                        a)
-                                                                                                     (n :
-                                                                                                        a) ->
-                                                                                                      c
-                                                                                                        40000000
-                                                                                                        n)
-                                                                                                    (\(ds :
-                                                                                                         integer)
-                                                                                                      (ds :
-                                                                                                         List
-                                                                                                           integer) ->
-                                                                                                       Cons
-                                                                                                         {integer}
-                                                                                                         ds
-                                                                                                         ds)
-                                                                                                    (Nil
-                                                                                                       {integer})))
-                                                                                              n))))
-                                                                              (c
-                                                                                 (ParamInteger
-                                                                                    ((let
-                                                                                         a
-                                                                                           = Tuple2
-                                                                                               PredKey
-                                                                                               (List
-                                                                                                  integer)
-                                                                                       in
-                                                                                       \(g :
-                                                                                           all b.
-                                                                                             (a ->
-                                                                                              b ->
-                                                                                              b) ->
-                                                                                             b ->
-                                                                                             b) ->
-                                                                                         g
-                                                                                           {List
-                                                                                              a}
-                                                                                           (\(ds :
-                                                                                                a)
-                                                                                             (ds :
-                                                                                                List
-                                                                                                  a) ->
-                                                                                              Cons
-                                                                                                {a}
-                                                                                                ds
-                                                                                                ds)
-                                                                                           (Nil
-                                                                                              {a}))
-                                                                                       (/\a ->
-                                                                                          \(c :
-                                                                                              Tuple2
-                                                                                                PredKey
-                                                                                                (List
-                                                                                                   integer) ->
-                                                                                              a ->
-                                                                                              a)
-                                                                                           (n :
-                                                                                              a) ->
-                                                                                            c
-                                                                                              (Tuple2
-                                                                                                 {PredKey}
-                                                                                                 {List
-                                                                                                    integer}
-                                                                                                 MinValue
-                                                                                                 ((let
-                                                                                                      a
-                                                                                                        = List
-                                                                                                            integer
-                                                                                                    in
-                                                                                                    \(c :
-                                                                                                        integer ->
-                                                                                                        a ->
-                                                                                                        a)
-                                                                                                     (n :
-                                                                                                        a) ->
-                                                                                                      c
-                                                                                                        0
-                                                                                                        n)
-                                                                                                    (\(ds :
-                                                                                                         integer)
-                                                                                                      (ds :
-                                                                                                         List
-                                                                                                           integer) ->
-                                                                                                       Cons
-                                                                                                         {integer}
-                                                                                                         ds
-                                                                                                         ds)
-                                                                                                    (Nil
-                                                                                                       {integer})))
-                                                                                              (c
-                                                                                                 (Tuple2
-                                                                                                    {PredKey}
-                                                                                                    {List
-                                                                                                       integer}
-                                                                                                    MaxValue
-                                                                                                    ((let
-                                                                                                         a
-                                                                                                           = List
-                                                                                                               integer
-                                                                                                       in
-                                                                                                       \(c :
-                                                                                                           integer ->
-                                                                                                           a ->
-                                                                                                           a)
-                                                                                                        (n :
-                                                                                                           a) ->
-                                                                                                         c
-                                                                                                           15000000000
-                                                                                                           n)
-                                                                                                       (\(ds :
-                                                                                                            integer)
-                                                                                                         (ds :
-                                                                                                            List
-                                                                                                              integer) ->
-                                                                                                          Cons
-                                                                                                            {integer}
-                                                                                                            ds
-                                                                                                            ds)
-                                                                                                       (Nil
-                                                                                                          {integer})))
-                                                                                                 n))))
-                                                                                 n))
+                                                                              2000
+                                                                              n)
                                                                           (\(ds :
-                                                                               ParamValue)
+                                                                               integer)
                                                                             (ds :
                                                                                List
-                                                                                 ParamValue) ->
+                                                                                 integer) ->
                                                                              Cons
-                                                                               {ParamValue}
+                                                                               {integer}
                                                                                ds
                                                                                ds)
                                                                           (Nil
-                                                                             {ParamValue}))))
-                                                                 (c
-                                                                    (Tuple2
-                                                                       {integer}
-                                                                       {ParamValue}
-                                                                       21
-                                                                       (ParamList
+                                                                             {integer})))
+                                                                    (c
+                                                                       (Tuple2
+                                                                          {PredKey}
+                                                                          {List
+                                                                             integer}
+                                                                          NotEqual
                                                                           ((let
                                                                                a
                                                                                  = List
-                                                                                     ParamValue
+                                                                                     integer
                                                                              in
                                                                              \(c :
-                                                                                 ParamValue ->
+                                                                                 integer ->
                                                                                  a ->
                                                                                  a)
                                                                               (n :
                                                                                  a) ->
                                                                                c
-                                                                                 (ParamInteger
-                                                                                    ((let
-                                                                                         a
-                                                                                           = Tuple2
-                                                                                               PredKey
-                                                                                               (List
-                                                                                                  integer)
-                                                                                       in
-                                                                                       \(g :
-                                                                                           all b.
-                                                                                             (a ->
-                                                                                              b ->
-                                                                                              b) ->
-                                                                                             b ->
-                                                                                             b) ->
-                                                                                         g
-                                                                                           {List
-                                                                                              a}
-                                                                                           (\(ds :
-                                                                                                a)
-                                                                                             (ds :
-                                                                                                List
-                                                                                                  a) ->
-                                                                                              Cons
-                                                                                                {a}
-                                                                                                ds
-                                                                                                ds)
-                                                                                           (Nil
-                                                                                              {a}))
-                                                                                       (/\a ->
-                                                                                          \(c :
-                                                                                              Tuple2
-                                                                                                PredKey
-                                                                                                (List
-                                                                                                   integer) ->
-                                                                                              a ->
-                                                                                              a)
-                                                                                           (n :
-                                                                                              a) ->
-                                                                                            c
-                                                                                              (Tuple2
-                                                                                                 {PredKey}
-                                                                                                 {List
-                                                                                                    integer}
-                                                                                                 MinValue
-                                                                                                 ((let
-                                                                                                      a
-                                                                                                        = List
-                                                                                                            integer
-                                                                                                    in
-                                                                                                    \(c :
-                                                                                                        integer ->
-                                                                                                        a ->
-                                                                                                        a)
-                                                                                                     (n :
-                                                                                                        a) ->
-                                                                                                      c
-                                                                                                        0
-                                                                                                        n)
-                                                                                                    (\(ds :
-                                                                                                         integer)
-                                                                                                      (ds :
-                                                                                                         List
-                                                                                                           integer) ->
-                                                                                                       Cons
-                                                                                                         {integer}
-                                                                                                         ds
-                                                                                                         ds)
-                                                                                                    (Nil
-                                                                                                       {integer})))
-                                                                                              (c
-                                                                                                 (Tuple2
-                                                                                                    {PredKey}
-                                                                                                    {List
-                                                                                                       integer}
-                                                                                                    MaxValue
-                                                                                                    ((let
-                                                                                                         a
-                                                                                                           = List
-                                                                                                               integer
-                                                                                                       in
-                                                                                                       \(c :
-                                                                                                           integer ->
-                                                                                                           a ->
-                                                                                                           a)
-                                                                                                        (n :
-                                                                                                           a) ->
-                                                                                                         c
-                                                                                                           120000000
-                                                                                                           n)
-                                                                                                       (\(ds :
-                                                                                                            integer)
-                                                                                                         (ds :
-                                                                                                            List
-                                                                                                              integer) ->
-                                                                                                          Cons
-                                                                                                            {integer}
-                                                                                                            ds
-                                                                                                            ds)
-                                                                                                       (Nil
-                                                                                                          {integer})))
-                                                                                                 n))))
-                                                                                 (c
-                                                                                    (ParamInteger
-                                                                                       ((let
-                                                                                            a
-                                                                                              = Tuple2
-                                                                                                  PredKey
-                                                                                                  (List
-                                                                                                     integer)
-                                                                                          in
-                                                                                          \(g :
-                                                                                              all b.
-                                                                                                (a ->
-                                                                                                 b ->
-                                                                                                 b) ->
-                                                                                                b ->
-                                                                                                b) ->
-                                                                                            g
-                                                                                              {List
-                                                                                                 a}
-                                                                                              (\(ds :
-                                                                                                   a)
-                                                                                                (ds :
-                                                                                                   List
-                                                                                                     a) ->
-                                                                                                 Cons
-                                                                                                   {a}
-                                                                                                   ds
-                                                                                                   ds)
-                                                                                              (Nil
-                                                                                                 {a}))
-                                                                                          (/\a ->
-                                                                                             \(c :
-                                                                                                 Tuple2
-                                                                                                   PredKey
-                                                                                                   (List
-                                                                                                      integer) ->
-                                                                                                 a ->
-                                                                                                 a)
-                                                                                              (n :
-                                                                                                 a) ->
-                                                                                               c
-                                                                                                 (Tuple2
-                                                                                                    {PredKey}
-                                                                                                    {List
-                                                                                                       integer}
-                                                                                                    MinValue
-                                                                                                    ((let
-                                                                                                         a
-                                                                                                           = List
-                                                                                                               integer
-                                                                                                       in
-                                                                                                       \(c :
-                                                                                                           integer ->
-                                                                                                           a ->
-                                                                                                           a)
-                                                                                                        (n :
-                                                                                                           a) ->
-                                                                                                         c
-                                                                                                           0
-                                                                                                           n)
-                                                                                                       (\(ds :
-                                                                                                            integer)
-                                                                                                         (ds :
-                                                                                                            List
-                                                                                                              integer) ->
-                                                                                                          Cons
-                                                                                                            {integer}
-                                                                                                            ds
-                                                                                                            ds)
-                                                                                                       (Nil
-                                                                                                          {integer})))
-                                                                                                 (c
-                                                                                                    (Tuple2
-                                                                                                       {PredKey}
-                                                                                                       {List
-                                                                                                          integer}
-                                                                                                       MaxValue
-                                                                                                       ((let
-                                                                                                            a
-                                                                                                              = List
-                                                                                                                  integer
-                                                                                                          in
-                                                                                                          \(c :
-                                                                                                              integer ->
-                                                                                                              a ->
-                                                                                                              a)
-                                                                                                           (n :
-                                                                                                              a) ->
-                                                                                                            c
-                                                                                                              40000000000
-                                                                                                              n)
-                                                                                                          (\(ds :
-                                                                                                               integer)
-                                                                                                            (ds :
-                                                                                                               List
-                                                                                                                 integer) ->
-                                                                                                             Cons
-                                                                                                               {integer}
-                                                                                                               ds
-                                                                                                               ds)
-                                                                                                          (Nil
-                                                                                                             {integer})))
-                                                                                                    n))))
-                                                                                    n))
+                                                                                 0
+                                                                                 n)
                                                                              (\(ds :
-                                                                                  ParamValue)
+                                                                                  integer)
                                                                                (ds :
                                                                                   List
-                                                                                    ParamValue) ->
+                                                                                    integer) ->
                                                                                 Cons
-                                                                                  {ParamValue}
+                                                                                  {integer}
                                                                                   ds
                                                                                   ds)
                                                                              (Nil
-                                                                                {ParamValue}))))
+                                                                                {integer})))
+                                                                       n))))))
+                                                 (c
+                                                    (Tuple2
+                                                       {integer}
+                                                       {ParamValue}
+                                                       9
+                                                       (ParamRational
+                                                          ((let
+                                                               a
+                                                                 = Tuple2
+                                                                     PredKey
+                                                                     (List
+                                                                        Rational)
+                                                             in
+                                                             \(g :
+                                                                 all b.
+                                                                   (a ->
+                                                                    b ->
+                                                                    b) ->
+                                                                   b ->
+                                                                   b) ->
+                                                               g
+                                                                 {List a}
+                                                                 (\(ds : a)
+                                                                   (ds :
+                                                                      List a) ->
+                                                                    Cons
+                                                                      {a}
+                                                                      ds
+                                                                      ds)
+                                                                 (Nil {a}))
+                                                             (/\a ->
+                                                                \(c :
+                                                                    Tuple2
+                                                                      PredKey
+                                                                      (List
+                                                                         Rational) ->
+                                                                    a ->
+                                                                    a)
+                                                                 (n : a) ->
+                                                                  c
+                                                                    (Tuple2
+                                                                       {PredKey}
+                                                                       {List
+                                                                          Rational}
+                                                                       MinValue
+                                                                       ((let
+                                                                            a
+                                                                              = List
+                                                                                  Rational
+                                                                          in
+                                                                          \(c :
+                                                                              Rational ->
+                                                                              a ->
+                                                                              a)
+                                                                           (n :
+                                                                              a) ->
+                                                                            c
+                                                                              (unsafeRatio
+                                                                                 1
+                                                                                 10)
+                                                                              (c
+                                                                                 (unsafeRatio
+                                                                                    0
+                                                                                    1)
+                                                                                 n))
+                                                                          (\(ds :
+                                                                               Rational)
+                                                                            (ds :
+                                                                               List
+                                                                                 Rational) ->
+                                                                             Cons
+                                                                               {Rational}
+                                                                               ds
+                                                                               ds)
+                                                                          (Nil
+                                                                             {Rational})))
                                                                     (c
                                                                        (Tuple2
-                                                                          {integer}
-                                                                          {ParamValue}
-                                                                          22
-                                                                          (ParamInteger
+                                                                          {PredKey}
+                                                                          {List
+                                                                             Rational}
+                                                                          MaxValue
+                                                                          ((let
+                                                                               a
+                                                                                 = List
+                                                                                     Rational
+                                                                             in
+                                                                             \(c :
+                                                                                 Rational ->
+                                                                                 a ->
+                                                                                 a)
+                                                                              (n :
+                                                                                 a) ->
+                                                                               c
+                                                                                 (unsafeRatio
+                                                                                    1
+                                                                                    1)
+                                                                                 n)
+                                                                             (\(ds :
+                                                                                  Rational)
+                                                                               (ds :
+                                                                                  List
+                                                                                    Rational) ->
+                                                                                Cons
+                                                                                  {Rational}
+                                                                                  ds
+                                                                                  ds)
+                                                                             (Nil
+                                                                                {Rational})))
+                                                                       n)))))
+                                                    (c
+                                                       (Tuple2
+                                                          {integer}
+                                                          {ParamValue}
+                                                          10
+                                                          (ParamRational
+                                                             ((let
+                                                                  a
+                                                                    = Tuple2
+                                                                        PredKey
+                                                                        (List
+                                                                           Rational)
+                                                                in
+                                                                \(g :
+                                                                    all b.
+                                                                      (a ->
+                                                                       b ->
+                                                                       b) ->
+                                                                      b ->
+                                                                      b) ->
+                                                                  g
+                                                                    {List a}
+                                                                    (\(ds : a)
+                                                                      (ds :
+                                                                         List
+                                                                           a) ->
+                                                                       Cons
+                                                                         {a}
+                                                                         ds
+                                                                         ds)
+                                                                    (Nil {a}))
+                                                                (/\a ->
+                                                                   \(c :
+                                                                       Tuple2
+                                                                         PredKey
+                                                                         (List
+                                                                            Rational) ->
+                                                                       a ->
+                                                                       a)
+                                                                    (n : a) ->
+                                                                     c
+                                                                       (Tuple2
+                                                                          {PredKey}
+                                                                          {List
+                                                                             Rational}
+                                                                          MinValue
+                                                                          ((let
+                                                                               a
+                                                                                 = List
+                                                                                     Rational
+                                                                             in
+                                                                             \(c :
+                                                                                 Rational ->
+                                                                                 a ->
+                                                                                 a)
+                                                                              (n :
+                                                                                 a) ->
+                                                                               c
+                                                                                 (unsafeRatio
+                                                                                    1
+                                                                                    1000)
+                                                                                 (c
+                                                                                    (unsafeRatio
+                                                                                       0
+                                                                                       1)
+                                                                                    n))
+                                                                             (\(ds :
+                                                                                  Rational)
+                                                                               (ds :
+                                                                                  List
+                                                                                    Rational) ->
+                                                                                Cons
+                                                                                  {Rational}
+                                                                                  ds
+                                                                                  ds)
+                                                                             (Nil
+                                                                                {Rational})))
+                                                                       (c
+                                                                          (Tuple2
+                                                                             {PredKey}
+                                                                             {List
+                                                                                Rational}
+                                                                             MaxValue
                                                                              ((let
                                                                                   a
-                                                                                    = Tuple2
-                                                                                        PredKey
-                                                                                        (List
-                                                                                           integer)
+                                                                                    = List
+                                                                                        Rational
                                                                                 in
-                                                                                \(g :
-                                                                                    all b.
-                                                                                      (a ->
-                                                                                       b ->
-                                                                                       b) ->
-                                                                                      b ->
-                                                                                      b) ->
-                                                                                  g
-                                                                                    {List
-                                                                                       a}
-                                                                                    (\(ds :
-                                                                                         a)
-                                                                                      (ds :
-                                                                                         List
-                                                                                           a) ->
-                                                                                       Cons
-                                                                                         {a}
-                                                                                         ds
-                                                                                         ds)
-                                                                                    (Nil
-                                                                                       {a}))
-                                                                                (/\a ->
+                                                                                \(c :
+                                                                                    Rational ->
+                                                                                    a ->
+                                                                                    a)
+                                                                                 (n :
+                                                                                    a) ->
+                                                                                  c
+                                                                                    (unsafeRatio
+                                                                                       1
+                                                                                       200)
+                                                                                    n)
+                                                                                (\(ds :
+                                                                                     Rational)
+                                                                                  (ds :
+                                                                                     List
+                                                                                       Rational) ->
+                                                                                   Cons
+                                                                                     {Rational}
+                                                                                     ds
+                                                                                     ds)
+                                                                                (Nil
+                                                                                   {Rational})))
+                                                                          n)))))
+                                                       (c
+                                                          (Tuple2
+                                                             {integer}
+                                                             {ParamValue}
+                                                             11
+                                                             (ParamRational
+                                                                ((let
+                                                                     a
+                                                                       = Tuple2
+                                                                           PredKey
+                                                                           (List
+                                                                              Rational)
+                                                                   in
+                                                                   \(g :
+                                                                       all b.
+                                                                         (a ->
+                                                                          b ->
+                                                                          b) ->
+                                                                         b ->
+                                                                         b) ->
+                                                                     g
+                                                                       {List a}
+                                                                       (\(ds :
+                                                                            a)
+                                                                         (ds :
+                                                                            List
+                                                                              a) ->
+                                                                          Cons
+                                                                            {a}
+                                                                            ds
+                                                                            ds)
+                                                                       (Nil
+                                                                          {a}))
+                                                                   (/\a ->
+                                                                      \(c :
+                                                                          Tuple2
+                                                                            PredKey
+                                                                            (List
+                                                                               Rational) ->
+                                                                          a ->
+                                                                          a)
+                                                                       (n :
+                                                                          a) ->
+                                                                        c
+                                                                          (Tuple2
+                                                                             {PredKey}
+                                                                             {List
+                                                                                Rational}
+                                                                             MinValue
+                                                                             ((let
+                                                                                  a
+                                                                                    = List
+                                                                                        Rational
+                                                                                in
+                                                                                \(c :
+                                                                                    Rational ->
+                                                                                    a ->
+                                                                                    a)
+                                                                                 (n :
+                                                                                    a) ->
+                                                                                  c
+                                                                                    (unsafeRatio
+                                                                                       1
+                                                                                       10)
+                                                                                    (c
+                                                                                       (unsafeRatio
+                                                                                          0
+                                                                                          1)
+                                                                                       n))
+                                                                                (\(ds :
+                                                                                     Rational)
+                                                                                  (ds :
+                                                                                     List
+                                                                                       Rational) ->
+                                                                                   Cons
+                                                                                     {Rational}
+                                                                                     ds
+                                                                                     ds)
+                                                                                (Nil
+                                                                                   {Rational})))
+                                                                          (c
+                                                                             (Tuple2
+                                                                                {PredKey}
+                                                                                {List
+                                                                                   Rational}
+                                                                                MaxValue
+                                                                                ((let
+                                                                                     a
+                                                                                       = List
+                                                                                           Rational
+                                                                                   in
                                                                                    \(c :
-                                                                                       Tuple2
-                                                                                         PredKey
-                                                                                         (List
-                                                                                            integer) ->
+                                                                                       Rational ->
                                                                                        a ->
                                                                                        a)
                                                                                     (n :
                                                                                        a) ->
                                                                                      c
-                                                                                       (Tuple2
-                                                                                          {PredKey}
-                                                                                          {List
-                                                                                             integer}
-                                                                                          MinValue
-                                                                                          ((let
-                                                                                               a
-                                                                                                 = List
-                                                                                                     integer
-                                                                                             in
-                                                                                             \(c :
-                                                                                                 integer ->
-                                                                                                 a ->
-                                                                                                 a)
-                                                                                              (n :
-                                                                                                 a) ->
-                                                                                               c
-                                                                                                 0
-                                                                                                 n)
-                                                                                             (\(ds :
-                                                                                                  integer)
-                                                                                               (ds :
-                                                                                                  List
-                                                                                                    integer) ->
-                                                                                                Cons
-                                                                                                  {integer}
-                                                                                                  ds
-                                                                                                  ds)
-                                                                                             (Nil
-                                                                                                {integer})))
+                                                                                       (unsafeRatio
+                                                                                          3
+                                                                                          10)
                                                                                        (c
-                                                                                          (Tuple2
-                                                                                             {PredKey}
-                                                                                             {List
-                                                                                                integer}
-                                                                                             MaxValue
-                                                                                             ((let
-                                                                                                  a
-                                                                                                    = List
-                                                                                                        integer
-                                                                                                in
-                                                                                                \(c :
-                                                                                                    integer ->
-                                                                                                    a ->
-                                                                                                    a)
-                                                                                                 (n :
-                                                                                                    a) ->
-                                                                                                  c
-                                                                                                    12288
-                                                                                                    n)
-                                                                                                (\(ds :
-                                                                                                     integer)
-                                                                                                  (ds :
-                                                                                                     List
-                                                                                                       integer) ->
-                                                                                                   Cons
-                                                                                                     {integer}
-                                                                                                     ds
-                                                                                                     ds)
-                                                                                                (Nil
-                                                                                                   {integer})))
-                                                                                          n)))))
-                                                                       (c
-                                                                          (Tuple2
-                                                                             {integer}
-                                                                             {ParamValue}
-                                                                             23
-                                                                             (ParamInteger
+                                                                                          (unsafeRatio
+                                                                                             1
+                                                                                             1)
+                                                                                          n))
+                                                                                   (\(ds :
+                                                                                        Rational)
+                                                                                     (ds :
+                                                                                        List
+                                                                                          Rational) ->
+                                                                                      Cons
+                                                                                        {Rational}
+                                                                                        ds
+                                                                                        ds)
+                                                                                   (Nil
+                                                                                      {Rational})))
+                                                                             n)))))
+                                                          (c
+                                                             (Tuple2
+                                                                {integer}
+                                                                {ParamValue}
+                                                                16
+                                                                (ParamInteger
+                                                                   ((let
+                                                                        a
+                                                                          = Tuple2
+                                                                              PredKey
+                                                                              (List
+                                                                                 integer)
+                                                                      in
+                                                                      \(g :
+                                                                          all b.
+                                                                            (a ->
+                                                                             b ->
+                                                                             b) ->
+                                                                            b ->
+                                                                            b) ->
+                                                                        g
+                                                                          {List
+                                                                             a}
+                                                                          (\(ds :
+                                                                               a)
+                                                                            (ds :
+                                                                               List
+                                                                                 a) ->
+                                                                             Cons
+                                                                               {a}
+                                                                               ds
+                                                                               ds)
+                                                                          (Nil
+                                                                             {a}))
+                                                                      (/\a ->
+                                                                         \(c :
+                                                                             Tuple2
+                                                                               PredKey
+                                                                               (List
+                                                                                  integer) ->
+                                                                             a ->
+                                                                             a)
+                                                                          (n :
+                                                                             a) ->
+                                                                           c
+                                                                             (Tuple2
+                                                                                {PredKey}
+                                                                                {List
+                                                                                   integer}
+                                                                                MinValue
                                                                                 ((let
                                                                                      a
-                                                                                       = Tuple2
-                                                                                           PredKey
-                                                                                           (List
-                                                                                              integer)
+                                                                                       = List
+                                                                                           integer
                                                                                    in
-                                                                                   \(g :
-                                                                                       all b.
-                                                                                         (a ->
-                                                                                          b ->
-                                                                                          b) ->
-                                                                                         b ->
-                                                                                         b) ->
-                                                                                     g
-                                                                                       {List
-                                                                                          a}
-                                                                                       (\(ds :
-                                                                                            a)
-                                                                                         (ds :
-                                                                                            List
-                                                                                              a) ->
-                                                                                          Cons
-                                                                                            {a}
-                                                                                            ds
-                                                                                            ds)
-                                                                                       (Nil
-                                                                                          {a}))
-                                                                                   (/\a ->
+                                                                                   \(c :
+                                                                                       integer ->
+                                                                                       a ->
+                                                                                       a)
+                                                                                    (n :
+                                                                                       a) ->
+                                                                                     c
+                                                                                       0
+                                                                                       n)
+                                                                                   (\(ds :
+                                                                                        integer)
+                                                                                     (ds :
+                                                                                        List
+                                                                                          integer) ->
+                                                                                      Cons
+                                                                                        {integer}
+                                                                                        ds
+                                                                                        ds)
+                                                                                   (Nil
+                                                                                      {integer})))
+                                                                             (c
+                                                                                (Tuple2
+                                                                                   {PredKey}
+                                                                                   {List
+                                                                                      integer}
+                                                                                   MaxValue
+                                                                                   ((let
+                                                                                        a
+                                                                                          = List
+                                                                                              integer
+                                                                                      in
                                                                                       \(c :
-                                                                                          Tuple2
-                                                                                            PredKey
-                                                                                            (List
-                                                                                               integer) ->
+                                                                                          integer ->
                                                                                           a ->
                                                                                           a)
                                                                                        (n :
                                                                                           a) ->
                                                                                         c
-                                                                                          (Tuple2
-                                                                                             {PredKey}
-                                                                                             {List
-                                                                                                integer}
-                                                                                             MinValue
-                                                                                             ((let
-                                                                                                  a
-                                                                                                    = List
-                                                                                                        integer
-                                                                                                in
-                                                                                                \(c :
-                                                                                                    integer ->
-                                                                                                    a ->
-                                                                                                    a)
-                                                                                                 (n :
-                                                                                                    a) ->
-                                                                                                  c
-                                                                                                    100
-                                                                                                    (c
-                                                                                                       0
-                                                                                                       n))
-                                                                                                (\(ds :
-                                                                                                     integer)
-                                                                                                  (ds :
-                                                                                                     List
-                                                                                                       integer) ->
-                                                                                                   Cons
-                                                                                                     {integer}
-                                                                                                     ds
-                                                                                                     ds)
-                                                                                                (Nil
-                                                                                                   {integer})))
-                                                                                          (c
-                                                                                             (Tuple2
-                                                                                                {PredKey}
-                                                                                                {List
-                                                                                                   integer}
-                                                                                                MaxValue
-                                                                                                ((let
-                                                                                                     a
-                                                                                                       = List
-                                                                                                           integer
-                                                                                                   in
-                                                                                                   \(c :
-                                                                                                       integer ->
-                                                                                                       a ->
-                                                                                                       a)
-                                                                                                    (n :
-                                                                                                       a) ->
-                                                                                                     c
-                                                                                                       200
-                                                                                                       n)
-                                                                                                   (\(ds :
-                                                                                                        integer)
-                                                                                                     (ds :
-                                                                                                        List
-                                                                                                          integer) ->
-                                                                                                      Cons
-                                                                                                        {integer}
-                                                                                                        ds
-                                                                                                        ds)
-                                                                                                   (Nil
-                                                                                                      {integer})))
-                                                                                             (c
-                                                                                                (Tuple2
-                                                                                                   {PredKey}
-                                                                                                   {List
-                                                                                                      integer}
-                                                                                                   NotEqual
-                                                                                                   ((let
-                                                                                                        a
-                                                                                                          = List
-                                                                                                              integer
-                                                                                                      in
-                                                                                                      \(c :
-                                                                                                          integer ->
-                                                                                                          a ->
-                                                                                                          a)
-                                                                                                       (n :
-                                                                                                          a) ->
-                                                                                                        c
-                                                                                                          0
-                                                                                                          n)
-                                                                                                      (\(ds :
-                                                                                                           integer)
-                                                                                                        (ds :
-                                                                                                           List
-                                                                                                             integer) ->
-                                                                                                         Cons
-                                                                                                           {integer}
-                                                                                                           ds
-                                                                                                           ds)
-                                                                                                      (Nil
-                                                                                                         {integer})))
-                                                                                                n))))))
-                                                                          (c
-                                                                             (Tuple2
-                                                                                {integer}
-                                                                                {ParamValue}
-                                                                                24
-                                                                                (ParamInteger
+                                                                                          500000000
+                                                                                          n)
+                                                                                      (\(ds :
+                                                                                           integer)
+                                                                                        (ds :
+                                                                                           List
+                                                                                             integer) ->
+                                                                                         Cons
+                                                                                           {integer}
+                                                                                           ds
+                                                                                           ds)
+                                                                                      (Nil
+                                                                                         {integer})))
+                                                                                n)))))
+                                                             (c
+                                                                (Tuple2
+                                                                   {integer}
+                                                                   {ParamValue}
+                                                                   17
+                                                                   (ParamInteger
+                                                                      ((let
+                                                                           a
+                                                                             = Tuple2
+                                                                                 PredKey
+                                                                                 (List
+                                                                                    integer)
+                                                                         in
+                                                                         \(g :
+                                                                             all b.
+                                                                               (a ->
+                                                                                b ->
+                                                                                b) ->
+                                                                               b ->
+                                                                               b) ->
+                                                                           g
+                                                                             {List
+                                                                                a}
+                                                                             (\(ds :
+                                                                                  a)
+                                                                               (ds :
+                                                                                  List
+                                                                                    a) ->
+                                                                                Cons
+                                                                                  {a}
+                                                                                  ds
+                                                                                  ds)
+                                                                             (Nil
+                                                                                {a}))
+                                                                         (/\a ->
+                                                                            \(c :
+                                                                                Tuple2
+                                                                                  PredKey
+                                                                                  (List
+                                                                                     integer) ->
+                                                                                a ->
+                                                                                a)
+                                                                             (n :
+                                                                                a) ->
+                                                                              c
+                                                                                (Tuple2
+                                                                                   {PredKey}
+                                                                                   {List
+                                                                                      integer}
+                                                                                   MinValue
                                                                                    ((let
                                                                                         a
-                                                                                          = Tuple2
-                                                                                              PredKey
-                                                                                              (List
-                                                                                                 integer)
+                                                                                          = List
+                                                                                              integer
                                                                                       in
-                                                                                      \(g :
-                                                                                          all b.
-                                                                                            (a ->
-                                                                                             b ->
-                                                                                             b) ->
-                                                                                            b ->
-                                                                                            b) ->
-                                                                                        g
-                                                                                          {List
-                                                                                             a}
-                                                                                          (\(ds :
-                                                                                               a)
-                                                                                            (ds :
-                                                                                               List
-                                                                                                 a) ->
-                                                                                             Cons
-                                                                                               {a}
-                                                                                               ds
-                                                                                               ds)
-                                                                                          (Nil
-                                                                                             {a}))
-                                                                                      (/\a ->
-                                                                                         \(c :
-                                                                                             Tuple2
-                                                                                               PredKey
-                                                                                               (List
-                                                                                                  integer) ->
-                                                                                             a ->
-                                                                                             a)
-                                                                                          (n :
-                                                                                             a) ->
-                                                                                           c
-                                                                                             (Tuple2
-                                                                                                {PredKey}
-                                                                                                {List
-                                                                                                   integer}
-                                                                                                MinValue
-                                                                                                ((let
-                                                                                                     a
-                                                                                                       = List
-                                                                                                           integer
-                                                                                                   in
-                                                                                                   \(c :
-                                                                                                       integer ->
-                                                                                                       a ->
-                                                                                                       a)
-                                                                                                    (n :
-                                                                                                       a) ->
-                                                                                                     c
-                                                                                                       1
-                                                                                                       n)
-                                                                                                   (\(ds :
-                                                                                                        integer)
-                                                                                                     (ds :
-                                                                                                        List
-                                                                                                          integer) ->
-                                                                                                      Cons
-                                                                                                        {integer}
-                                                                                                        ds
-                                                                                                        ds)
-                                                                                                   (Nil
-                                                                                                      {integer})))
-                                                                                             n))))
-                                                                             (c
-                                                                                (Tuple2
-                                                                                   {integer}
-                                                                                   {ParamValue}
-                                                                                   25
-                                                                                   (ParamList
+                                                                                      \(c :
+                                                                                          integer ->
+                                                                                          a ->
+                                                                                          a)
+                                                                                       (n :
+                                                                                          a) ->
+                                                                                        c
+                                                                                          3000
+                                                                                          (c
+                                                                                             0
+                                                                                             n))
+                                                                                      (\(ds :
+                                                                                           integer)
+                                                                                        (ds :
+                                                                                           List
+                                                                                             integer) ->
+                                                                                         Cons
+                                                                                           {integer}
+                                                                                           ds
+                                                                                           ds)
+                                                                                      (Nil
+                                                                                         {integer})))
+                                                                                (c
+                                                                                   (Tuple2
+                                                                                      {PredKey}
+                                                                                      {List
+                                                                                         integer}
+                                                                                      MaxValue
                                                                                       ((let
                                                                                            a
                                                                                              = List
-                                                                                                 ParamValue
+                                                                                                 integer
                                                                                          in
                                                                                          \(c :
-                                                                                             ParamValue ->
+                                                                                             integer ->
                                                                                              a ->
                                                                                              a)
                                                                                           (n :
                                                                                              a) ->
                                                                                            c
-                                                                                             (ParamRational
-                                                                                                ((let
-                                                                                                     a
-                                                                                                       = Tuple2
-                                                                                                           PredKey
-                                                                                                           (List
-                                                                                                              Rational)
-                                                                                                   in
-                                                                                                   \(g :
-                                                                                                       all b.
-                                                                                                         (a ->
-                                                                                                          b ->
-                                                                                                          b) ->
-                                                                                                         b ->
-                                                                                                         b) ->
-                                                                                                     g
-                                                                                                       {List
-                                                                                                          a}
-                                                                                                       (\(ds :
-                                                                                                            a)
-                                                                                                         (ds :
-                                                                                                            List
-                                                                                                              a) ->
-                                                                                                          Cons
-                                                                                                            {a}
-                                                                                                            ds
-                                                                                                            ds)
-                                                                                                       (Nil
-                                                                                                          {a}))
-                                                                                                   (/\a ->
-                                                                                                      \(c :
-                                                                                                          Tuple2
-                                                                                                            PredKey
-                                                                                                            (List
-                                                                                                               Rational) ->
-                                                                                                          a ->
-                                                                                                          a)
-                                                                                                       (n :
-                                                                                                          a) ->
-                                                                                                        c
-                                                                                                          (Tuple2
-                                                                                                             {PredKey}
-                                                                                                             {List
-                                                                                                                Rational}
-                                                                                                             MinValue
-                                                                                                             ((let
-                                                                                                                  a
-                                                                                                                    = List
-                                                                                                                        Rational
-                                                                                                                in
-                                                                                                                \(c :
-                                                                                                                    Rational ->
-                                                                                                                    a ->
-                                                                                                                    a)
-                                                                                                                 (n :
-                                                                                                                    a) ->
-                                                                                                                  c
-                                                                                                                    (unsafeRatio
-                                                                                                                       1
-                                                                                                                       2)
-                                                                                                                    (c
-                                                                                                                       (unsafeRatio
-                                                                                                                          51
-                                                                                                                          100)
-                                                                                                                       n))
-                                                                                                                (\(ds :
-                                                                                                                     Rational)
-                                                                                                                  (ds :
-                                                                                                                     List
-                                                                                                                       Rational) ->
-                                                                                                                   Cons
-                                                                                                                     {Rational}
-                                                                                                                     ds
-                                                                                                                     ds)
-                                                                                                                (Nil
-                                                                                                                   {Rational})))
-                                                                                                          (c
-                                                                                                             (Tuple2
-                                                                                                                {PredKey}
-                                                                                                                {List
-                                                                                                                   Rational}
-                                                                                                                MaxValue
-                                                                                                                ((let
-                                                                                                                     a
-                                                                                                                       = List
-                                                                                                                           Rational
-                                                                                                                   in
-                                                                                                                   \(c :
-                                                                                                                       Rational ->
-                                                                                                                       a ->
-                                                                                                                       a)
-                                                                                                                    (n :
-                                                                                                                       a) ->
-                                                                                                                     c
-                                                                                                                       (unsafeRatio
-                                                                                                                          1
-                                                                                                                          1)
-                                                                                                                       (c
-                                                                                                                          (unsafeRatio
-                                                                                                                             3
-                                                                                                                             4)
-                                                                                                                          n))
-                                                                                                                   (\(ds :
-                                                                                                                        Rational)
-                                                                                                                     (ds :
-                                                                                                                        List
-                                                                                                                          Rational) ->
-                                                                                                                      Cons
-                                                                                                                        {Rational}
-                                                                                                                        ds
-                                                                                                                        ds)
-                                                                                                                   (Nil
-                                                                                                                      {Rational})))
-                                                                                                             n))))
-                                                                                             (c
-                                                                                                (ParamRational
-                                                                                                   ((let
-                                                                                                        a
-                                                                                                          = Tuple2
-                                                                                                              PredKey
-                                                                                                              (List
-                                                                                                                 Rational)
-                                                                                                      in
-                                                                                                      \(g :
-                                                                                                          all b.
-                                                                                                            (a ->
-                                                                                                             b ->
-                                                                                                             b) ->
-                                                                                                            b ->
-                                                                                                            b) ->
-                                                                                                        g
-                                                                                                          {List
-                                                                                                             a}
-                                                                                                          (\(ds :
-                                                                                                               a)
-                                                                                                            (ds :
-                                                                                                               List
-                                                                                                                 a) ->
-                                                                                                             Cons
-                                                                                                               {a}
-                                                                                                               ds
-                                                                                                               ds)
-                                                                                                          (Nil
-                                                                                                             {a}))
-                                                                                                      (/\a ->
-                                                                                                         \(c :
-                                                                                                             Tuple2
-                                                                                                               PredKey
-                                                                                                               (List
-                                                                                                                  Rational) ->
-                                                                                                             a ->
-                                                                                                             a)
-                                                                                                          (n :
-                                                                                                             a) ->
-                                                                                                           c
-                                                                                                             (Tuple2
-                                                                                                                {PredKey}
-                                                                                                                {List
-                                                                                                                   Rational}
-                                                                                                                MinValue
-                                                                                                                ((let
-                                                                                                                     a
-                                                                                                                       = List
-                                                                                                                           Rational
-                                                                                                                   in
-                                                                                                                   \(c :
-                                                                                                                       Rational ->
-                                                                                                                       a ->
-                                                                                                                       a)
-                                                                                                                    (n :
-                                                                                                                       a) ->
-                                                                                                                     c
-                                                                                                                       (unsafeRatio
-                                                                                                                          1
-                                                                                                                          2)
-                                                                                                                       (c
-                                                                                                                          (unsafeRatio
-                                                                                                                             51
-                                                                                                                             100)
-                                                                                                                          n))
-                                                                                                                   (\(ds :
-                                                                                                                        Rational)
-                                                                                                                     (ds :
-                                                                                                                        List
-                                                                                                                          Rational) ->
-                                                                                                                      Cons
-                                                                                                                        {Rational}
-                                                                                                                        ds
-                                                                                                                        ds)
-                                                                                                                   (Nil
-                                                                                                                      {Rational})))
-                                                                                                             (c
-                                                                                                                (Tuple2
-                                                                                                                   {PredKey}
-                                                                                                                   {List
-                                                                                                                      Rational}
-                                                                                                                   MaxValue
-                                                                                                                   ((let
-                                                                                                                        a
-                                                                                                                          = List
-                                                                                                                              Rational
-                                                                                                                      in
-                                                                                                                      \(c :
-                                                                                                                          Rational ->
-                                                                                                                          a ->
-                                                                                                                          a)
-                                                                                                                       (n :
-                                                                                                                          a) ->
-                                                                                                                        c
-                                                                                                                          (unsafeRatio
-                                                                                                                             1
-                                                                                                                             1)
-                                                                                                                          (c
-                                                                                                                             (unsafeRatio
-                                                                                                                                9
-                                                                                                                                10)
-                                                                                                                             n))
-                                                                                                                      (\(ds :
-                                                                                                                           Rational)
-                                                                                                                        (ds :
-                                                                                                                           List
-                                                                                                                             Rational) ->
-                                                                                                                         Cons
-                                                                                                                           {Rational}
-                                                                                                                           ds
-                                                                                                                           ds)
-                                                                                                                      (Nil
-                                                                                                                         {Rational})))
-                                                                                                                n))))
-                                                                                                (c
-                                                                                                   (ParamRational
-                                                                                                      ((let
-                                                                                                           a
-                                                                                                             = Tuple2
-                                                                                                                 PredKey
-                                                                                                                 (List
-                                                                                                                    Rational)
-                                                                                                         in
-                                                                                                         \(g :
-                                                                                                             all b.
-                                                                                                               (a ->
-                                                                                                                b ->
-                                                                                                                b) ->
-                                                                                                               b ->
-                                                                                                               b) ->
-                                                                                                           g
-                                                                                                             {List
-                                                                                                                a}
-                                                                                                             (\(ds :
-                                                                                                                  a)
-                                                                                                               (ds :
-                                                                                                                  List
-                                                                                                                    a) ->
-                                                                                                                Cons
-                                                                                                                  {a}
-                                                                                                                  ds
-                                                                                                                  ds)
-                                                                                                             (Nil
-                                                                                                                {a}))
-                                                                                                         (/\a ->
-                                                                                                            \(c :
-                                                                                                                Tuple2
-                                                                                                                  PredKey
-                                                                                                                  (List
-                                                                                                                     Rational) ->
-                                                                                                                a ->
-                                                                                                                a)
-                                                                                                             (n :
-                                                                                                                a) ->
-                                                                                                              c
-                                                                                                                (Tuple2
-                                                                                                                   {PredKey}
-                                                                                                                   {List
-                                                                                                                      Rational}
-                                                                                                                   MinValue
-                                                                                                                   ((let
-                                                                                                                        a
-                                                                                                                          = List
-                                                                                                                              Rational
-                                                                                                                      in
-                                                                                                                      \(c :
-                                                                                                                          Rational ->
-                                                                                                                          a ->
-                                                                                                                          a)
-                                                                                                                       (n :
-                                                                                                                          a) ->
-                                                                                                                        c
-                                                                                                                          (unsafeRatio
-                                                                                                                             1
-                                                                                                                             2)
-                                                                                                                          (c
-                                                                                                                             (unsafeRatio
-                                                                                                                                51
-                                                                                                                                100)
-                                                                                                                             n))
-                                                                                                                      (\(ds :
-                                                                                                                           Rational)
-                                                                                                                        (ds :
-                                                                                                                           List
-                                                                                                                             Rational) ->
-                                                                                                                         Cons
-                                                                                                                           {Rational}
-                                                                                                                           ds
-                                                                                                                           ds)
-                                                                                                                      (Nil
-                                                                                                                         {Rational})))
-                                                                                                                (c
-                                                                                                                   (Tuple2
-                                                                                                                      {PredKey}
-                                                                                                                      {List
-                                                                                                                         Rational}
-                                                                                                                      MaxValue
-                                                                                                                      ((let
-                                                                                                                           a
-                                                                                                                             = List
-                                                                                                                                 Rational
-                                                                                                                         in
-                                                                                                                         \(c :
-                                                                                                                             Rational ->
-                                                                                                                             a ->
-                                                                                                                             a)
-                                                                                                                          (n :
-                                                                                                                             a) ->
-                                                                                                                           c
-                                                                                                                             (unsafeRatio
-                                                                                                                                1
-                                                                                                                                1)
-                                                                                                                             (c
-                                                                                                                                (unsafeRatio
-                                                                                                                                   9
-                                                                                                                                   10)
-                                                                                                                                n))
-                                                                                                                         (\(ds :
-                                                                                                                              Rational)
-                                                                                                                           (ds :
-                                                                                                                              List
-                                                                                                                                Rational) ->
-                                                                                                                            Cons
-                                                                                                                              {Rational}
-                                                                                                                              ds
-                                                                                                                              ds)
-                                                                                                                         (Nil
-                                                                                                                            {Rational})))
-                                                                                                                   n))))
-                                                                                                   (c
-                                                                                                      (ParamRational
-                                                                                                         ((let
-                                                                                                              a
-                                                                                                                = Tuple2
-                                                                                                                    PredKey
-                                                                                                                    (List
-                                                                                                                       Rational)
-                                                                                                            in
-                                                                                                            \(g :
-                                                                                                                all b.
-                                                                                                                  (a ->
-                                                                                                                   b ->
-                                                                                                                   b) ->
-                                                                                                                  b ->
-                                                                                                                  b) ->
-                                                                                                              g
-                                                                                                                {List
-                                                                                                                   a}
-                                                                                                                (\(ds :
-                                                                                                                     a)
-                                                                                                                  (ds :
-                                                                                                                     List
-                                                                                                                       a) ->
-                                                                                                                   Cons
-                                                                                                                     {a}
-                                                                                                                     ds
-                                                                                                                     ds)
-                                                                                                                (Nil
-                                                                                                                   {a}))
-                                                                                                            (/\a ->
-                                                                                                               \(c :
-                                                                                                                   Tuple2
-                                                                                                                     PredKey
-                                                                                                                     (List
-                                                                                                                        Rational) ->
-                                                                                                                   a ->
-                                                                                                                   a)
-                                                                                                                (n :
-                                                                                                                   a) ->
-                                                                                                                 c
-                                                                                                                   (Tuple2
-                                                                                                                      {PredKey}
-                                                                                                                      {List
-                                                                                                                         Rational}
-                                                                                                                      MinValue
-                                                                                                                      ((let
-                                                                                                                           a
-                                                                                                                             = List
-                                                                                                                                 Rational
-                                                                                                                         in
-                                                                                                                         \(c :
-                                                                                                                             Rational ->
-                                                                                                                             a ->
-                                                                                                                             a)
-                                                                                                                          (n :
-                                                                                                                             a) ->
-                                                                                                                           c
-                                                                                                                             (unsafeRatio
-                                                                                                                                1
-                                                                                                                                2)
-                                                                                                                             (c
-                                                                                                                                (unsafeRatio
-                                                                                                                                   51
-                                                                                                                                   100)
-                                                                                                                                n))
-                                                                                                                         (\(ds :
-                                                                                                                              Rational)
-                                                                                                                           (ds :
-                                                                                                                              List
-                                                                                                                                Rational) ->
-                                                                                                                            Cons
-                                                                                                                              {Rational}
-                                                                                                                              ds
-                                                                                                                              ds)
-                                                                                                                         (Nil
-                                                                                                                            {Rational})))
-                                                                                                                   (c
-                                                                                                                      (Tuple2
-                                                                                                                         {PredKey}
-                                                                                                                         {List
-                                                                                                                            Rational}
-                                                                                                                         MaxValue
-                                                                                                                         ((let
-                                                                                                                              a
-                                                                                                                                = List
-                                                                                                                                    Rational
-                                                                                                                            in
-                                                                                                                            \(c :
-                                                                                                                                Rational ->
-                                                                                                                                a ->
-                                                                                                                                a)
-                                                                                                                             (n :
-                                                                                                                                a) ->
-                                                                                                                              c
-                                                                                                                                (unsafeRatio
-                                                                                                                                   1
-                                                                                                                                   1)
-                                                                                                                                (c
-                                                                                                                                   (unsafeRatio
-                                                                                                                                      4
-                                                                                                                                      5)
-                                                                                                                                   n))
-                                                                                                                            (\(ds :
-                                                                                                                                 Rational)
-                                                                                                                              (ds :
-                                                                                                                                 List
-                                                                                                                                   Rational) ->
-                                                                                                                               Cons
-                                                                                                                                 {Rational}
-                                                                                                                                 ds
-                                                                                                                                 ds)
-                                                                                                                            (Nil
-                                                                                                                               {Rational})))
-                                                                                                                      n))))
-                                                                                                      (c
-                                                                                                         (ParamRational
-                                                                                                            ((let
-                                                                                                                 a
-                                                                                                                   = Tuple2
-                                                                                                                       PredKey
-                                                                                                                       (List
-                                                                                                                          Rational)
-                                                                                                               in
-                                                                                                               \(g :
-                                                                                                                   all b.
-                                                                                                                     (a ->
-                                                                                                                      b ->
-                                                                                                                      b) ->
-                                                                                                                     b ->
-                                                                                                                     b) ->
-                                                                                                                 g
-                                                                                                                   {List
-                                                                                                                      a}
-                                                                                                                   (\(ds :
-                                                                                                                        a)
-                                                                                                                     (ds :
-                                                                                                                        List
-                                                                                                                          a) ->
-                                                                                                                      Cons
-                                                                                                                        {a}
-                                                                                                                        ds
-                                                                                                                        ds)
-                                                                                                                   (Nil
-                                                                                                                      {a}))
-                                                                                                               (/\a ->
-                                                                                                                  \(c :
-                                                                                                                      Tuple2
-                                                                                                                        PredKey
-                                                                                                                        (List
-                                                                                                                           Rational) ->
-                                                                                                                      a ->
-                                                                                                                      a)
-                                                                                                                   (n :
-                                                                                                                      a) ->
-                                                                                                                    c
-                                                                                                                      (Tuple2
-                                                                                                                         {PredKey}
-                                                                                                                         {List
-                                                                                                                            Rational}
-                                                                                                                         MinValue
-                                                                                                                         ((let
-                                                                                                                              a
-                                                                                                                                = List
-                                                                                                                                    Rational
-                                                                                                                            in
-                                                                                                                            \(c :
-                                                                                                                                Rational ->
-                                                                                                                                a ->
-                                                                                                                                a)
-                                                                                                                             (n :
-                                                                                                                                a) ->
-                                                                                                                              c
-                                                                                                                                (unsafeRatio
-                                                                                                                                   1
-                                                                                                                                   2)
-                                                                                                                                n)
-                                                                                                                            (\(ds :
-                                                                                                                                 Rational)
-                                                                                                                              (ds :
-                                                                                                                                 List
-                                                                                                                                   Rational) ->
-                                                                                                                               Cons
-                                                                                                                                 {Rational}
-                                                                                                                                 ds
-                                                                                                                                 ds)
-                                                                                                                            (Nil
-                                                                                                                               {Rational})))
-                                                                                                                      (c
-                                                                                                                         (Tuple2
-                                                                                                                            {PredKey}
-                                                                                                                            {List
-                                                                                                                               Rational}
-                                                                                                                            MaxValue
-                                                                                                                            ((let
-                                                                                                                                 a
-                                                                                                                                   = List
-                                                                                                                                       Rational
-                                                                                                                               in
-                                                                                                                               \(c :
-                                                                                                                                   Rational ->
-                                                                                                                                   a ->
-                                                                                                                                   a)
-                                                                                                                                (n :
-                                                                                                                                   a) ->
-                                                                                                                                 c
-                                                                                                                                   (unsafeRatio
-                                                                                                                                      1
-                                                                                                                                      1)
-                                                                                                                                   n)
-                                                                                                                               (\(ds :
-                                                                                                                                    Rational)
-                                                                                                                                 (ds :
-                                                                                                                                    List
-                                                                                                                                      Rational) ->
-                                                                                                                                  Cons
-                                                                                                                                    {Rational}
-                                                                                                                                    ds
-                                                                                                                                    ds)
-                                                                                                                               (Nil
-                                                                                                                                  {Rational})))
-                                                                                                                         n))))
-                                                                                                         n)))))
+                                                                                             6500
+                                                                                             n)
                                                                                          (\(ds :
-                                                                                              ParamValue)
+                                                                                              integer)
                                                                                            (ds :
                                                                                               List
-                                                                                                ParamValue) ->
+                                                                                                integer) ->
                                                                                             Cons
-                                                                                              {ParamValue}
+                                                                                              {integer}
                                                                                               ds
                                                                                               ds)
                                                                                          (Nil
-                                                                                            {ParamValue}))))
-                                                                                (c
-                                                                                   (Tuple2
-                                                                                      {integer}
-                                                                                      {ParamValue}
-                                                                                      26
-                                                                                      (ParamList
+                                                                                            {integer})))
+                                                                                   (c
+                                                                                      (Tuple2
+                                                                                         {PredKey}
+                                                                                         {List
+                                                                                            integer}
+                                                                                         NotEqual
                                                                                          ((let
                                                                                               a
                                                                                                 = List
-                                                                                                    ParamValue
+                                                                                                    integer
                                                                                             in
                                                                                             \(c :
-                                                                                                ParamValue ->
+                                                                                                integer ->
                                                                                                 a ->
                                                                                                 a)
                                                                                              (n :
                                                                                                 a) ->
                                                                                               c
-                                                                                                (ParamRational
+                                                                                                0
+                                                                                                n)
+                                                                                            (\(ds :
+                                                                                                 integer)
+                                                                                              (ds :
+                                                                                                 List
+                                                                                                   integer) ->
+                                                                                               Cons
+                                                                                                 {integer}
+                                                                                                 ds
+                                                                                                 ds)
+                                                                                            (Nil
+                                                                                               {integer})))
+                                                                                      n))))))
+                                                                (c
+                                                                   (Tuple2
+                                                                      {integer}
+                                                                      {ParamValue}
+                                                                      18
+                                                                      ParamAny)
+                                                                   (c
+                                                                      (Tuple2
+                                                                         {integer}
+                                                                         {ParamValue}
+                                                                         19
+                                                                         (ParamList
+                                                                            ((let
+                                                                                 a
+                                                                                   = List
+                                                                                       ParamValue
+                                                                               in
+                                                                               \(c :
+                                                                                   ParamValue ->
+                                                                                   a ->
+                                                                                   a)
+                                                                                (n :
+                                                                                   a) ->
+                                                                                 c
+                                                                                   (ParamRational
+                                                                                      ((let
+                                                                                           a
+                                                                                             = Tuple2
+                                                                                                 PredKey
+                                                                                                 (List
+                                                                                                    Rational)
+                                                                                         in
+                                                                                         \(g :
+                                                                                             all b.
+                                                                                               (a ->
+                                                                                                b ->
+                                                                                                b) ->
+                                                                                               b ->
+                                                                                               b) ->
+                                                                                           g
+                                                                                             {List
+                                                                                                a}
+                                                                                             (\(ds :
+                                                                                                  a)
+                                                                                               (ds :
+                                                                                                  List
+                                                                                                    a) ->
+                                                                                                Cons
+                                                                                                  {a}
+                                                                                                  ds
+                                                                                                  ds)
+                                                                                             (Nil
+                                                                                                {a}))
+                                                                                         (/\a ->
+                                                                                            \(c :
+                                                                                                Tuple2
+                                                                                                  PredKey
+                                                                                                  (List
+                                                                                                     Rational) ->
+                                                                                                a ->
+                                                                                                a)
+                                                                                             (n :
+                                                                                                a) ->
+                                                                                              c
+                                                                                                (Tuple2
+                                                                                                   {PredKey}
+                                                                                                   {List
+                                                                                                      Rational}
+                                                                                                   MinValue
                                                                                                    ((let
                                                                                                         a
-                                                                                                          = Tuple2
-                                                                                                              PredKey
-                                                                                                              (List
-                                                                                                                 Rational)
+                                                                                                          = List
+                                                                                                              Rational
                                                                                                       in
-                                                                                                      \(g :
-                                                                                                          all b.
-                                                                                                            (a ->
-                                                                                                             b ->
-                                                                                                             b) ->
-                                                                                                            b ->
-                                                                                                            b) ->
-                                                                                                        g
-                                                                                                          {List
-                                                                                                             a}
-                                                                                                          (\(ds :
-                                                                                                               a)
-                                                                                                            (ds :
-                                                                                                               List
-                                                                                                                 a) ->
-                                                                                                             Cons
-                                                                                                               {a}
-                                                                                                               ds
-                                                                                                               ds)
-                                                                                                          (Nil
-                                                                                                             {a}))
-                                                                                                      (/\a ->
+                                                                                                      \(c :
+                                                                                                          Rational ->
+                                                                                                          a ->
+                                                                                                          a)
+                                                                                                       (n :
+                                                                                                          a) ->
+                                                                                                        c
+                                                                                                          (unsafeRatio
+                                                                                                             1
+                                                                                                             25)
+                                                                                                          n)
+                                                                                                      (\(ds :
+                                                                                                           Rational)
+                                                                                                        (ds :
+                                                                                                           List
+                                                                                                             Rational) ->
+                                                                                                         Cons
+                                                                                                           {Rational}
+                                                                                                           ds
+                                                                                                           ds)
+                                                                                                      (Nil
+                                                                                                         {Rational})))
+                                                                                                (c
+                                                                                                   (Tuple2
+                                                                                                      {PredKey}
+                                                                                                      {List
+                                                                                                         Rational}
+                                                                                                      MaxValue
+                                                                                                      ((let
+                                                                                                           a
+                                                                                                             = List
+                                                                                                                 Rational
+                                                                                                         in
                                                                                                          \(c :
-                                                                                                             Tuple2
-                                                                                                               PredKey
-                                                                                                               (List
-                                                                                                                  Rational) ->
+                                                                                                             Rational ->
                                                                                                              a ->
                                                                                                              a)
                                                                                                           (n :
                                                                                                              a) ->
                                                                                                            c
-                                                                                                             (Tuple2
-                                                                                                                {PredKey}
-                                                                                                                {List
-                                                                                                                   Rational}
-                                                                                                                MinValue
-                                                                                                                ((let
-                                                                                                                     a
-                                                                                                                       = List
-                                                                                                                           Rational
-                                                                                                                   in
-                                                                                                                   \(c :
-                                                                                                                       Rational ->
-                                                                                                                       a ->
-                                                                                                                       a)
-                                                                                                                    (n :
-                                                                                                                       a) ->
-                                                                                                                     c
-                                                                                                                       (unsafeRatio
-                                                                                                                          1
-                                                                                                                          2)
-                                                                                                                       (c
-                                                                                                                          (unsafeRatio
-                                                                                                                             51
-                                                                                                                             100)
-                                                                                                                          n))
-                                                                                                                   (\(ds :
-                                                                                                                        Rational)
-                                                                                                                     (ds :
-                                                                                                                        List
-                                                                                                                          Rational) ->
-                                                                                                                      Cons
-                                                                                                                        {Rational}
-                                                                                                                        ds
-                                                                                                                        ds)
-                                                                                                                   (Nil
-                                                                                                                      {Rational})))
-                                                                                                             (c
-                                                                                                                (Tuple2
-                                                                                                                   {PredKey}
-                                                                                                                   {List
-                                                                                                                      Rational}
-                                                                                                                   MaxValue
-                                                                                                                   ((let
-                                                                                                                        a
-                                                                                                                          = List
-                                                                                                                              Rational
-                                                                                                                      in
-                                                                                                                      \(c :
-                                                                                                                          Rational ->
-                                                                                                                          a ->
-                                                                                                                          a)
-                                                                                                                       (n :
-                                                                                                                          a) ->
-                                                                                                                        c
-                                                                                                                          (unsafeRatio
-                                                                                                                             1
-                                                                                                                             1)
-                                                                                                                          (c
-                                                                                                                             (unsafeRatio
-                                                                                                                                3
-                                                                                                                                4)
-                                                                                                                             n))
-                                                                                                                      (\(ds :
-                                                                                                                           Rational)
-                                                                                                                        (ds :
-                                                                                                                           List
-                                                                                                                             Rational) ->
-                                                                                                                         Cons
-                                                                                                                           {Rational}
-                                                                                                                           ds
-                                                                                                                           ds)
-                                                                                                                      (Nil
-                                                                                                                         {Rational})))
-                                                                                                                n))))
-                                                                                                (c
-                                                                                                   (ParamRational
+                                                                                                             (unsafeRatio
+                                                                                                                1
+                                                                                                                5)
+                                                                                                             n)
+                                                                                                         (\(ds :
+                                                                                                              Rational)
+                                                                                                           (ds :
+                                                                                                              List
+                                                                                                                Rational) ->
+                                                                                                            Cons
+                                                                                                              {Rational}
+                                                                                                              ds
+                                                                                                              ds)
+                                                                                                         (Nil
+                                                                                                            {Rational})))
+                                                                                                   n))))
+                                                                                   (c
+                                                                                      (ParamRational
+                                                                                         ((let
+                                                                                              a
+                                                                                                = Tuple2
+                                                                                                    PredKey
+                                                                                                    (List
+                                                                                                       Rational)
+                                                                                            in
+                                                                                            \(g :
+                                                                                                all b.
+                                                                                                  (a ->
+                                                                                                   b ->
+                                                                                                   b) ->
+                                                                                                  b ->
+                                                                                                  b) ->
+                                                                                              g
+                                                                                                {List
+                                                                                                   a}
+                                                                                                (\(ds :
+                                                                                                     a)
+                                                                                                  (ds :
+                                                                                                     List
+                                                                                                       a) ->
+                                                                                                   Cons
+                                                                                                     {a}
+                                                                                                     ds
+                                                                                                     ds)
+                                                                                                (Nil
+                                                                                                   {a}))
+                                                                                            (/\a ->
+                                                                                               \(c :
+                                                                                                   Tuple2
+                                                                                                     PredKey
+                                                                                                     (List
+                                                                                                        Rational) ->
+                                                                                                   a ->
+                                                                                                   a)
+                                                                                                (n :
+                                                                                                   a) ->
+                                                                                                 c
+                                                                                                   (Tuple2
+                                                                                                      {PredKey}
+                                                                                                      {List
+                                                                                                         Rational}
+                                                                                                      MinValue
                                                                                                       ((let
                                                                                                            a
-                                                                                                             = Tuple2
-                                                                                                                 PredKey
-                                                                                                                 (List
-                                                                                                                    Rational)
+                                                                                                             = List
+                                                                                                                 Rational
                                                                                                          in
-                                                                                                         \(g :
-                                                                                                             all b.
-                                                                                                               (a ->
-                                                                                                                b ->
-                                                                                                                b) ->
-                                                                                                               b ->
-                                                                                                               b) ->
-                                                                                                           g
-                                                                                                             {List
-                                                                                                                a}
-                                                                                                             (\(ds :
-                                                                                                                  a)
-                                                                                                               (ds :
-                                                                                                                  List
-                                                                                                                    a) ->
-                                                                                                                Cons
-                                                                                                                  {a}
-                                                                                                                  ds
-                                                                                                                  ds)
-                                                                                                             (Nil
-                                                                                                                {a}))
-                                                                                                         (/\a ->
+                                                                                                         \(c :
+                                                                                                             Rational ->
+                                                                                                             a ->
+                                                                                                             a)
+                                                                                                          (n :
+                                                                                                             a) ->
+                                                                                                           c
+                                                                                                             (unsafeRatio
+                                                                                                                1
+                                                                                                                20000)
+                                                                                                             n)
+                                                                                                         (\(ds :
+                                                                                                              Rational)
+                                                                                                           (ds :
+                                                                                                              List
+                                                                                                                Rational) ->
+                                                                                                            Cons
+                                                                                                              {Rational}
+                                                                                                              ds
+                                                                                                              ds)
+                                                                                                         (Nil
+                                                                                                            {Rational})))
+                                                                                                   (c
+                                                                                                      (Tuple2
+                                                                                                         {PredKey}
+                                                                                                         {List
+                                                                                                            Rational}
+                                                                                                         MaxValue
+                                                                                                         ((let
+                                                                                                              a
+                                                                                                                = List
+                                                                                                                    Rational
+                                                                                                            in
                                                                                                             \(c :
-                                                                                                                Tuple2
-                                                                                                                  PredKey
-                                                                                                                  (List
-                                                                                                                     Rational) ->
+                                                                                                                Rational ->
                                                                                                                 a ->
                                                                                                                 a)
                                                                                                              (n :
                                                                                                                 a) ->
                                                                                                               c
-                                                                                                                (Tuple2
-                                                                                                                   {PredKey}
-                                                                                                                   {List
-                                                                                                                      Rational}
-                                                                                                                   MinValue
-                                                                                                                   ((let
-                                                                                                                        a
-                                                                                                                          = List
-                                                                                                                              Rational
-                                                                                                                      in
-                                                                                                                      \(c :
-                                                                                                                          Rational ->
-                                                                                                                          a ->
-                                                                                                                          a)
-                                                                                                                       (n :
-                                                                                                                          a) ->
-                                                                                                                        c
-                                                                                                                          (unsafeRatio
-                                                                                                                             1
-                                                                                                                             2)
-                                                                                                                          (c
-                                                                                                                             (unsafeRatio
-                                                                                                                                51
-                                                                                                                                100)
-                                                                                                                             n))
-                                                                                                                      (\(ds :
-                                                                                                                           Rational)
-                                                                                                                        (ds :
-                                                                                                                           List
-                                                                                                                             Rational) ->
-                                                                                                                         Cons
-                                                                                                                           {Rational}
-                                                                                                                           ds
-                                                                                                                           ds)
-                                                                                                                      (Nil
-                                                                                                                         {Rational})))
-                                                                                                                (c
-                                                                                                                   (Tuple2
-                                                                                                                      {PredKey}
-                                                                                                                      {List
-                                                                                                                         Rational}
-                                                                                                                      MaxValue
-                                                                                                                      ((let
-                                                                                                                           a
-                                                                                                                             = List
-                                                                                                                                 Rational
-                                                                                                                         in
-                                                                                                                         \(c :
-                                                                                                                             Rational ->
-                                                                                                                             a ->
-                                                                                                                             a)
-                                                                                                                          (n :
-                                                                                                                             a) ->
-                                                                                                                           c
-                                                                                                                             (unsafeRatio
-                                                                                                                                1
-                                                                                                                                1)
-                                                                                                                             (c
-                                                                                                                                (unsafeRatio
-                                                                                                                                   9
-                                                                                                                                   10)
-                                                                                                                                n))
-                                                                                                                         (\(ds :
-                                                                                                                              Rational)
-                                                                                                                           (ds :
-                                                                                                                              List
-                                                                                                                                Rational) ->
-                                                                                                                            Cons
-                                                                                                                              {Rational}
-                                                                                                                              ds
-                                                                                                                              ds)
-                                                                                                                         (Nil
-                                                                                                                            {Rational})))
-                                                                                                                   n))))
+                                                                                                                (unsafeRatio
+                                                                                                                   1
+                                                                                                                   5000)
+                                                                                                                n)
+                                                                                                            (\(ds :
+                                                                                                                 Rational)
+                                                                                                              (ds :
+                                                                                                                 List
+                                                                                                                   Rational) ->
+                                                                                                               Cons
+                                                                                                                 {Rational}
+                                                                                                                 ds
+                                                                                                                 ds)
+                                                                                                            (Nil
+                                                                                                               {Rational})))
+                                                                                                      n))))
+                                                                                      n))
+                                                                               (\(ds :
+                                                                                    ParamValue)
+                                                                                 (ds :
+                                                                                    List
+                                                                                      ParamValue) ->
+                                                                                  Cons
+                                                                                    {ParamValue}
+                                                                                    ds
+                                                                                    ds)
+                                                                               (Nil
+                                                                                  {ParamValue}))))
+                                                                      (c
+                                                                         (Tuple2
+                                                                            {integer}
+                                                                            {ParamValue}
+                                                                            20
+                                                                            (ParamList
+                                                                               ((let
+                                                                                    a
+                                                                                      = List
+                                                                                          ParamValue
+                                                                                  in
+                                                                                  \(c :
+                                                                                      ParamValue ->
+                                                                                      a ->
+                                                                                      a)
+                                                                                   (n :
+                                                                                      a) ->
+                                                                                    c
+                                                                                      (ParamInteger
+                                                                                         ((let
+                                                                                              a
+                                                                                                = Tuple2
+                                                                                                    PredKey
+                                                                                                    (List
+                                                                                                       integer)
+                                                                                            in
+                                                                                            \(g :
+                                                                                                all b.
+                                                                                                  (a ->
+                                                                                                   b ->
+                                                                                                   b) ->
+                                                                                                  b ->
+                                                                                                  b) ->
+                                                                                              g
+                                                                                                {List
+                                                                                                   a}
+                                                                                                (\(ds :
+                                                                                                     a)
+                                                                                                  (ds :
+                                                                                                     List
+                                                                                                       a) ->
+                                                                                                   Cons
+                                                                                                     {a}
+                                                                                                     ds
+                                                                                                     ds)
+                                                                                                (Nil
+                                                                                                   {a}))
+                                                                                            (/\a ->
+                                                                                               \(c :
+                                                                                                   Tuple2
+                                                                                                     PredKey
+                                                                                                     (List
+                                                                                                        integer) ->
+                                                                                                   a ->
+                                                                                                   a)
+                                                                                                (n :
+                                                                                                   a) ->
+                                                                                                 c
+                                                                                                   (Tuple2
+                                                                                                      {PredKey}
+                                                                                                      {List
+                                                                                                         integer}
+                                                                                                      MinValue
+                                                                                                      ((let
+                                                                                                           a
+                                                                                                             = List
+                                                                                                                 integer
+                                                                                                         in
+                                                                                                         \(c :
+                                                                                                             integer ->
+                                                                                                             a ->
+                                                                                                             a)
+                                                                                                          (n :
+                                                                                                             a) ->
+                                                                                                           c
+                                                                                                             0
+                                                                                                             n)
+                                                                                                         (\(ds :
+                                                                                                              integer)
+                                                                                                           (ds :
+                                                                                                              List
+                                                                                                                integer) ->
+                                                                                                            Cons
+                                                                                                              {integer}
+                                                                                                              ds
+                                                                                                              ds)
+                                                                                                         (Nil
+                                                                                                            {integer})))
                                                                                                    (c
-                                                                                                      (ParamRational
+                                                                                                      (Tuple2
+                                                                                                         {PredKey}
+                                                                                                         {List
+                                                                                                            integer}
+                                                                                                         MaxValue
                                                                                                          ((let
                                                                                                               a
-                                                                                                                = Tuple2
-                                                                                                                    PredKey
-                                                                                                                    (List
-                                                                                                                       Rational)
+                                                                                                                = List
+                                                                                                                    integer
                                                                                                             in
-                                                                                                            \(g :
-                                                                                                                all b.
-                                                                                                                  (a ->
-                                                                                                                   b ->
-                                                                                                                   b) ->
-                                                                                                                  b ->
-                                                                                                                  b) ->
-                                                                                                              g
-                                                                                                                {List
-                                                                                                                   a}
-                                                                                                                (\(ds :
-                                                                                                                     a)
-                                                                                                                  (ds :
-                                                                                                                     List
-                                                                                                                       a) ->
-                                                                                                                   Cons
-                                                                                                                     {a}
-                                                                                                                     ds
-                                                                                                                     ds)
-                                                                                                                (Nil
-                                                                                                                   {a}))
-                                                                                                            (/\a ->
-                                                                                                               \(c :
-                                                                                                                   Tuple2
-                                                                                                                     PredKey
-                                                                                                                     (List
-                                                                                                                        Rational) ->
-                                                                                                                   a ->
-                                                                                                                   a)
-                                                                                                                (n :
-                                                                                                                   a) ->
-                                                                                                                 c
-                                                                                                                   (Tuple2
-                                                                                                                      {PredKey}
-                                                                                                                      {List
-                                                                                                                         Rational}
-                                                                                                                      MinValue
-                                                                                                                      ((let
-                                                                                                                           a
-                                                                                                                             = List
-                                                                                                                                 Rational
-                                                                                                                         in
-                                                                                                                         \(c :
-                                                                                                                             Rational ->
-                                                                                                                             a ->
-                                                                                                                             a)
-                                                                                                                          (n :
-                                                                                                                             a) ->
-                                                                                                                           c
-                                                                                                                             (unsafeRatio
-                                                                                                                                1
-                                                                                                                                2)
-                                                                                                                             (c
-                                                                                                                                (unsafeRatio
-                                                                                                                                   51
-                                                                                                                                   100)
-                                                                                                                                n))
-                                                                                                                         (\(ds :
-                                                                                                                              Rational)
-                                                                                                                           (ds :
-                                                                                                                              List
-                                                                                                                                Rational) ->
-                                                                                                                            Cons
-                                                                                                                              {Rational}
-                                                                                                                              ds
-                                                                                                                              ds)
-                                                                                                                         (Nil
-                                                                                                                            {Rational})))
-                                                                                                                   (c
-                                                                                                                      (Tuple2
-                                                                                                                         {PredKey}
-                                                                                                                         {List
-                                                                                                                            Rational}
-                                                                                                                         MaxValue
-                                                                                                                         ((let
-                                                                                                                              a
-                                                                                                                                = List
-                                                                                                                                    Rational
-                                                                                                                            in
-                                                                                                                            \(c :
-                                                                                                                                Rational ->
-                                                                                                                                a ->
-                                                                                                                                a)
-                                                                                                                             (n :
-                                                                                                                                a) ->
-                                                                                                                              c
-                                                                                                                                (unsafeRatio
-                                                                                                                                   1
-                                                                                                                                   1)
-                                                                                                                                (c
-                                                                                                                                   (unsafeRatio
-                                                                                                                                      9
-                                                                                                                                      10)
-                                                                                                                                   n))
-                                                                                                                            (\(ds :
-                                                                                                                                 Rational)
-                                                                                                                              (ds :
-                                                                                                                                 List
-                                                                                                                                   Rational) ->
-                                                                                                                               Cons
-                                                                                                                                 {Rational}
-                                                                                                                                 ds
-                                                                                                                                 ds)
-                                                                                                                            (Nil
-                                                                                                                               {Rational})))
-                                                                                                                      n))))
-                                                                                                      (c
-                                                                                                         (ParamRational
-                                                                                                            ((let
-                                                                                                                 a
-                                                                                                                   = Tuple2
-                                                                                                                       PredKey
-                                                                                                                       (List
-                                                                                                                          Rational)
-                                                                                                               in
-                                                                                                               \(g :
-                                                                                                                   all b.
-                                                                                                                     (a ->
-                                                                                                                      b ->
-                                                                                                                      b) ->
-                                                                                                                     b ->
-                                                                                                                     b) ->
-                                                                                                                 g
-                                                                                                                   {List
-                                                                                                                      a}
-                                                                                                                   (\(ds :
-                                                                                                                        a)
-                                                                                                                     (ds :
-                                                                                                                        List
-                                                                                                                          a) ->
-                                                                                                                      Cons
-                                                                                                                        {a}
-                                                                                                                        ds
-                                                                                                                        ds)
-                                                                                                                   (Nil
-                                                                                                                      {a}))
-                                                                                                               (/\a ->
-                                                                                                                  \(c :
-                                                                                                                      Tuple2
-                                                                                                                        PredKey
-                                                                                                                        (List
-                                                                                                                           Rational) ->
-                                                                                                                      a ->
-                                                                                                                      a)
-                                                                                                                   (n :
-                                                                                                                      a) ->
-                                                                                                                    c
-                                                                                                                      (Tuple2
-                                                                                                                         {PredKey}
-                                                                                                                         {List
-                                                                                                                            Rational}
-                                                                                                                         MinValue
-                                                                                                                         ((let
-                                                                                                                              a
-                                                                                                                                = List
-                                                                                                                                    Rational
-                                                                                                                            in
-                                                                                                                            \(c :
-                                                                                                                                Rational ->
-                                                                                                                                a ->
-                                                                                                                                a)
-                                                                                                                             (n :
-                                                                                                                                a) ->
-                                                                                                                              c
-                                                                                                                                (unsafeRatio
-                                                                                                                                   1
-                                                                                                                                   2)
-                                                                                                                                (c
-                                                                                                                                   (unsafeRatio
-                                                                                                                                      13
-                                                                                                                                      20)
-                                                                                                                                   n))
-                                                                                                                            (\(ds :
-                                                                                                                                 Rational)
-                                                                                                                              (ds :
-                                                                                                                                 List
-                                                                                                                                   Rational) ->
-                                                                                                                               Cons
-                                                                                                                                 {Rational}
-                                                                                                                                 ds
-                                                                                                                                 ds)
-                                                                                                                            (Nil
-                                                                                                                               {Rational})))
-                                                                                                                      (c
-                                                                                                                         (Tuple2
-                                                                                                                            {PredKey}
-                                                                                                                            {List
-                                                                                                                               Rational}
-                                                                                                                            MaxValue
-                                                                                                                            ((let
-                                                                                                                                 a
-                                                                                                                                   = List
-                                                                                                                                       Rational
-                                                                                                                               in
-                                                                                                                               \(c :
-                                                                                                                                   Rational ->
-                                                                                                                                   a ->
-                                                                                                                                   a)
-                                                                                                                                (n :
-                                                                                                                                   a) ->
-                                                                                                                                 c
-                                                                                                                                   (unsafeRatio
-                                                                                                                                      1
-                                                                                                                                      1)
-                                                                                                                                   (c
-                                                                                                                                      (unsafeRatio
-                                                                                                                                         9
-                                                                                                                                         10)
-                                                                                                                                      n))
-                                                                                                                               (\(ds :
-                                                                                                                                    Rational)
-                                                                                                                                 (ds :
-                                                                                                                                    List
-                                                                                                                                      Rational) ->
-                                                                                                                                  Cons
-                                                                                                                                    {Rational}
-                                                                                                                                    ds
-                                                                                                                                    ds)
-                                                                                                                               (Nil
-                                                                                                                                  {Rational})))
-                                                                                                                         n))))
-                                                                                                         (c
-                                                                                                            (ParamRational
-                                                                                                               ((let
-                                                                                                                    a
-                                                                                                                      = Tuple2
-                                                                                                                          PredKey
-                                                                                                                          (List
-                                                                                                                             Rational)
-                                                                                                                  in
-                                                                                                                  \(g :
-                                                                                                                      all b.
-                                                                                                                        (a ->
-                                                                                                                         b ->
-                                                                                                                         b) ->
-                                                                                                                        b ->
-                                                                                                                        b) ->
-                                                                                                                    g
-                                                                                                                      {List
-                                                                                                                         a}
-                                                                                                                      (\(ds :
-                                                                                                                           a)
-                                                                                                                        (ds :
-                                                                                                                           List
-                                                                                                                             a) ->
-                                                                                                                         Cons
-                                                                                                                           {a}
-                                                                                                                           ds
-                                                                                                                           ds)
-                                                                                                                      (Nil
-                                                                                                                         {a}))
-                                                                                                                  (/\a ->
-                                                                                                                     \(c :
-                                                                                                                         Tuple2
-                                                                                                                           PredKey
-                                                                                                                           (List
-                                                                                                                              Rational) ->
-                                                                                                                         a ->
-                                                                                                                         a)
-                                                                                                                      (n :
-                                                                                                                         a) ->
-                                                                                                                       c
-                                                                                                                         (Tuple2
-                                                                                                                            {PredKey}
-                                                                                                                            {List
-                                                                                                                               Rational}
-                                                                                                                            MinValue
-                                                                                                                            ((let
-                                                                                                                                 a
-                                                                                                                                   = List
-                                                                                                                                       Rational
-                                                                                                                               in
-                                                                                                                               \(c :
-                                                                                                                                   Rational ->
-                                                                                                                                   a ->
-                                                                                                                                   a)
-                                                                                                                                (n :
-                                                                                                                                   a) ->
-                                                                                                                                 c
-                                                                                                                                   (unsafeRatio
-                                                                                                                                      1
-                                                                                                                                      2)
-                                                                                                                                   (c
-                                                                                                                                      (unsafeRatio
-                                                                                                                                         51
-                                                                                                                                         100)
-                                                                                                                                      n))
-                                                                                                                               (\(ds :
-                                                                                                                                    Rational)
-                                                                                                                                 (ds :
-                                                                                                                                    List
-                                                                                                                                      Rational) ->
-                                                                                                                                  Cons
-                                                                                                                                    {Rational}
-                                                                                                                                    ds
-                                                                                                                                    ds)
-                                                                                                                               (Nil
-                                                                                                                                  {Rational})))
-                                                                                                                         (c
-                                                                                                                            (Tuple2
-                                                                                                                               {PredKey}
-                                                                                                                               {List
-                                                                                                                                  Rational}
-                                                                                                                               MaxValue
-                                                                                                                               ((let
-                                                                                                                                    a
-                                                                                                                                      = List
-                                                                                                                                          Rational
-                                                                                                                                  in
-                                                                                                                                  \(c :
-                                                                                                                                      Rational ->
-                                                                                                                                      a ->
-                                                                                                                                      a)
-                                                                                                                                   (n :
-                                                                                                                                      a) ->
-                                                                                                                                    c
-                                                                                                                                      (unsafeRatio
-                                                                                                                                         1
-                                                                                                                                         1)
-                                                                                                                                      (c
-                                                                                                                                         (unsafeRatio
-                                                                                                                                            4
-                                                                                                                                            5)
-                                                                                                                                         n))
-                                                                                                                                  (\(ds :
-                                                                                                                                       Rational)
-                                                                                                                                    (ds :
-                                                                                                                                       List
-                                                                                                                                         Rational) ->
-                                                                                                                                     Cons
-                                                                                                                                       {Rational}
-                                                                                                                                       ds
-                                                                                                                                       ds)
-                                                                                                                                  (Nil
-                                                                                                                                     {Rational})))
-                                                                                                                            n))))
-                                                                                                            (c
-                                                                                                               (ParamRational
-                                                                                                                  ((let
-                                                                                                                       a
-                                                                                                                         = Tuple2
-                                                                                                                             PredKey
-                                                                                                                             (List
-                                                                                                                                Rational)
-                                                                                                                     in
-                                                                                                                     \(g :
-                                                                                                                         all b.
-                                                                                                                           (a ->
-                                                                                                                            b ->
-                                                                                                                            b) ->
-                                                                                                                           b ->
-                                                                                                                           b) ->
-                                                                                                                       g
-                                                                                                                         {List
-                                                                                                                            a}
-                                                                                                                         (\(ds :
-                                                                                                                              a)
-                                                                                                                           (ds :
-                                                                                                                              List
-                                                                                                                                a) ->
-                                                                                                                            Cons
-                                                                                                                              {a}
-                                                                                                                              ds
-                                                                                                                              ds)
-                                                                                                                         (Nil
-                                                                                                                            {a}))
-                                                                                                                     (/\a ->
-                                                                                                                        \(c :
-                                                                                                                            Tuple2
-                                                                                                                              PredKey
-                                                                                                                              (List
-                                                                                                                                 Rational) ->
-                                                                                                                            a ->
-                                                                                                                            a)
-                                                                                                                         (n :
-                                                                                                                            a) ->
-                                                                                                                          c
-                                                                                                                            (Tuple2
-                                                                                                                               {PredKey}
-                                                                                                                               {List
-                                                                                                                                  Rational}
-                                                                                                                               MinValue
-                                                                                                                               ((let
-                                                                                                                                    a
-                                                                                                                                      = List
-                                                                                                                                          Rational
-                                                                                                                                  in
-                                                                                                                                  \(c :
-                                                                                                                                      Rational ->
-                                                                                                                                      a ->
-                                                                                                                                      a)
-                                                                                                                                   (n :
-                                                                                                                                      a) ->
-                                                                                                                                    c
-                                                                                                                                      (unsafeRatio
-                                                                                                                                         1
-                                                                                                                                         2)
-                                                                                                                                      (c
-                                                                                                                                         (unsafeRatio
-                                                                                                                                            51
-                                                                                                                                            100)
-                                                                                                                                         n))
-                                                                                                                                  (\(ds :
-                                                                                                                                       Rational)
-                                                                                                                                    (ds :
-                                                                                                                                       List
-                                                                                                                                         Rational) ->
-                                                                                                                                     Cons
-                                                                                                                                       {Rational}
-                                                                                                                                       ds
-                                                                                                                                       ds)
-                                                                                                                                  (Nil
-                                                                                                                                     {Rational})))
-                                                                                                                            (c
-                                                                                                                               (Tuple2
-                                                                                                                                  {PredKey}
-                                                                                                                                  {List
-                                                                                                                                     Rational}
-                                                                                                                                  MaxValue
-                                                                                                                                  ((let
-                                                                                                                                       a
-                                                                                                                                         = List
-                                                                                                                                             Rational
-                                                                                                                                     in
-                                                                                                                                     \(c :
-                                                                                                                                         Rational ->
-                                                                                                                                         a ->
-                                                                                                                                         a)
-                                                                                                                                      (n :
-                                                                                                                                         a) ->
-                                                                                                                                       c
-                                                                                                                                         (unsafeRatio
-                                                                                                                                            1
-                                                                                                                                            1)
-                                                                                                                                         (c
-                                                                                                                                            (unsafeRatio
-                                                                                                                                               3
-                                                                                                                                               4)
-                                                                                                                                            n))
-                                                                                                                                     (\(ds :
-                                                                                                                                          Rational)
-                                                                                                                                       (ds :
-                                                                                                                                          List
-                                                                                                                                            Rational) ->
-                                                                                                                                        Cons
-                                                                                                                                          {Rational}
-                                                                                                                                          ds
-                                                                                                                                          ds)
-                                                                                                                                     (Nil
-                                                                                                                                        {Rational})))
-                                                                                                                               n))))
-                                                                                                               (c
-                                                                                                                  (ParamRational
-                                                                                                                     ((let
-                                                                                                                          a
-                                                                                                                            = Tuple2
-                                                                                                                                PredKey
-                                                                                                                                (List
-                                                                                                                                   Rational)
-                                                                                                                        in
-                                                                                                                        \(g :
-                                                                                                                            all b.
-                                                                                                                              (a ->
-                                                                                                                               b ->
-                                                                                                                               b) ->
-                                                                                                                              b ->
-                                                                                                                              b) ->
-                                                                                                                          g
-                                                                                                                            {List
-                                                                                                                               a}
-                                                                                                                            (\(ds :
-                                                                                                                                 a)
-                                                                                                                              (ds :
-                                                                                                                                 List
-                                                                                                                                   a) ->
-                                                                                                                               Cons
-                                                                                                                                 {a}
-                                                                                                                                 ds
-                                                                                                                                 ds)
-                                                                                                                            (Nil
-                                                                                                                               {a}))
-                                                                                                                        (/\a ->
-                                                                                                                           \(c :
-                                                                                                                               Tuple2
-                                                                                                                                 PredKey
-                                                                                                                                 (List
-                                                                                                                                    Rational) ->
-                                                                                                                               a ->
-                                                                                                                               a)
-                                                                                                                            (n :
-                                                                                                                               a) ->
-                                                                                                                             c
-                                                                                                                               (Tuple2
-                                                                                                                                  {PredKey}
-                                                                                                                                  {List
-                                                                                                                                     Rational}
-                                                                                                                                  MinValue
-                                                                                                                                  ((let
-                                                                                                                                       a
-                                                                                                                                         = List
-                                                                                                                                             Rational
-                                                                                                                                     in
-                                                                                                                                     \(c :
-                                                                                                                                         Rational ->
-                                                                                                                                         a ->
-                                                                                                                                         a)
-                                                                                                                                      (n :
-                                                                                                                                         a) ->
-                                                                                                                                       c
-                                                                                                                                         (unsafeRatio
-                                                                                                                                            1
-                                                                                                                                            2)
-                                                                                                                                         (c
-                                                                                                                                            (unsafeRatio
-                                                                                                                                               51
-                                                                                                                                               100)
-                                                                                                                                            n))
-                                                                                                                                     (\(ds :
-                                                                                                                                          Rational)
-                                                                                                                                       (ds :
-                                                                                                                                          List
-                                                                                                                                            Rational) ->
-                                                                                                                                        Cons
-                                                                                                                                          {Rational}
-                                                                                                                                          ds
-                                                                                                                                          ds)
-                                                                                                                                     (Nil
-                                                                                                                                        {Rational})))
-                                                                                                                               (c
-                                                                                                                                  (Tuple2
-                                                                                                                                     {PredKey}
-                                                                                                                                     {List
-                                                                                                                                        Rational}
-                                                                                                                                     MaxValue
-                                                                                                                                     ((let
-                                                                                                                                          a
-                                                                                                                                            = List
-                                                                                                                                                Rational
-                                                                                                                                        in
-                                                                                                                                        \(c :
-                                                                                                                                            Rational ->
-                                                                                                                                            a ->
-                                                                                                                                            a)
-                                                                                                                                         (n :
-                                                                                                                                            a) ->
-                                                                                                                                          c
-                                                                                                                                            (unsafeRatio
-                                                                                                                                               1
-                                                                                                                                               1)
-                                                                                                                                            (c
-                                                                                                                                               (unsafeRatio
-                                                                                                                                                  3
-                                                                                                                                                  4)
-                                                                                                                                               n))
-                                                                                                                                        (\(ds :
-                                                                                                                                             Rational)
-                                                                                                                                          (ds :
-                                                                                                                                             List
-                                                                                                                                               Rational) ->
-                                                                                                                                           Cons
-                                                                                                                                             {Rational}
-                                                                                                                                             ds
-                                                                                                                                             ds)
-                                                                                                                                        (Nil
-                                                                                                                                           {Rational})))
-                                                                                                                                  n))))
-                                                                                                                  (c
-                                                                                                                     (ParamRational
-                                                                                                                        ((let
-                                                                                                                             a
-                                                                                                                               = Tuple2
-                                                                                                                                   PredKey
-                                                                                                                                   (List
-                                                                                                                                      Rational)
-                                                                                                                           in
-                                                                                                                           \(g :
-                                                                                                                               all b.
-                                                                                                                                 (a ->
-                                                                                                                                  b ->
-                                                                                                                                  b) ->
-                                                                                                                                 b ->
-                                                                                                                                 b) ->
-                                                                                                                             g
-                                                                                                                               {List
-                                                                                                                                  a}
-                                                                                                                               (\(ds :
-                                                                                                                                    a)
-                                                                                                                                 (ds :
-                                                                                                                                    List
-                                                                                                                                      a) ->
-                                                                                                                                  Cons
-                                                                                                                                    {a}
-                                                                                                                                    ds
-                                                                                                                                    ds)
-                                                                                                                               (Nil
-                                                                                                                                  {a}))
-                                                                                                                           (/\a ->
-                                                                                                                              \(c :
-                                                                                                                                  Tuple2
-                                                                                                                                    PredKey
-                                                                                                                                    (List
-                                                                                                                                       Rational) ->
-                                                                                                                                  a ->
-                                                                                                                                  a)
-                                                                                                                               (n :
-                                                                                                                                  a) ->
-                                                                                                                                c
-                                                                                                                                  (Tuple2
-                                                                                                                                     {PredKey}
-                                                                                                                                     {List
-                                                                                                                                        Rational}
-                                                                                                                                     MinValue
-                                                                                                                                     ((let
-                                                                                                                                          a
-                                                                                                                                            = List
-                                                                                                                                                Rational
-                                                                                                                                        in
-                                                                                                                                        \(c :
-                                                                                                                                            Rational ->
-                                                                                                                                            a ->
-                                                                                                                                            a)
-                                                                                                                                         (n :
-                                                                                                                                            a) ->
-                                                                                                                                          c
-                                                                                                                                            (unsafeRatio
-                                                                                                                                               1
-                                                                                                                                               2)
-                                                                                                                                            (c
-                                                                                                                                               (unsafeRatio
-                                                                                                                                                  51
-                                                                                                                                                  100)
-                                                                                                                                               n))
-                                                                                                                                        (\(ds :
-                                                                                                                                             Rational)
-                                                                                                                                          (ds :
-                                                                                                                                             List
-                                                                                                                                               Rational) ->
-                                                                                                                                           Cons
-                                                                                                                                             {Rational}
-                                                                                                                                             ds
-                                                                                                                                             ds)
-                                                                                                                                        (Nil
-                                                                                                                                           {Rational})))
-                                                                                                                                  (c
-                                                                                                                                     (Tuple2
-                                                                                                                                        {PredKey}
-                                                                                                                                        {List
-                                                                                                                                           Rational}
-                                                                                                                                        MaxValue
-                                                                                                                                        ((let
-                                                                                                                                             a
-                                                                                                                                               = List
-                                                                                                                                                   Rational
-                                                                                                                                           in
-                                                                                                                                           \(c :
-                                                                                                                                               Rational ->
-                                                                                                                                               a ->
-                                                                                                                                               a)
-                                                                                                                                            (n :
-                                                                                                                                               a) ->
-                                                                                                                                             c
-                                                                                                                                               (unsafeRatio
-                                                                                                                                                  1
-                                                                                                                                                  1)
-                                                                                                                                               (c
-                                                                                                                                                  (unsafeRatio
-                                                                                                                                                     3
-                                                                                                                                                     4)
-                                                                                                                                                  n))
-                                                                                                                                           (\(ds :
-                                                                                                                                                Rational)
-                                                                                                                                             (ds :
-                                                                                                                                                List
-                                                                                                                                                  Rational) ->
-                                                                                                                                              Cons
-                                                                                                                                                {Rational}
-                                                                                                                                                ds
-                                                                                                                                                ds)
-                                                                                                                                           (Nil
-                                                                                                                                              {Rational})))
-                                                                                                                                     n))))
-                                                                                                                     (c
-                                                                                                                        (ParamRational
-                                                                                                                           ((let
-                                                                                                                                a
-                                                                                                                                  = Tuple2
-                                                                                                                                      PredKey
-                                                                                                                                      (List
-                                                                                                                                         Rational)
-                                                                                                                              in
-                                                                                                                              \(g :
-                                                                                                                                  all b.
-                                                                                                                                    (a ->
-                                                                                                                                     b ->
-                                                                                                                                     b) ->
-                                                                                                                                    b ->
-                                                                                                                                    b) ->
-                                                                                                                                g
-                                                                                                                                  {List
-                                                                                                                                     a}
-                                                                                                                                  (\(ds :
-                                                                                                                                       a)
-                                                                                                                                    (ds :
-                                                                                                                                       List
-                                                                                                                                         a) ->
-                                                                                                                                     Cons
-                                                                                                                                       {a}
-                                                                                                                                       ds
-                                                                                                                                       ds)
-                                                                                                                                  (Nil
-                                                                                                                                     {a}))
-                                                                                                                              (/\a ->
-                                                                                                                                 \(c :
-                                                                                                                                     Tuple2
-                                                                                                                                       PredKey
-                                                                                                                                       (List
-                                                                                                                                          Rational) ->
-                                                                                                                                     a ->
-                                                                                                                                     a)
-                                                                                                                                  (n :
-                                                                                                                                     a) ->
-                                                                                                                                   c
-                                                                                                                                     (Tuple2
-                                                                                                                                        {PredKey}
-                                                                                                                                        {List
-                                                                                                                                           Rational}
-                                                                                                                                        MinValue
-                                                                                                                                        ((let
-                                                                                                                                             a
-                                                                                                                                               = List
-                                                                                                                                                   Rational
-                                                                                                                                           in
-                                                                                                                                           \(c :
-                                                                                                                                               Rational ->
-                                                                                                                                               a ->
-                                                                                                                                               a)
-                                                                                                                                            (n :
-                                                                                                                                               a) ->
-                                                                                                                                             c
-                                                                                                                                               (unsafeRatio
-                                                                                                                                                  1
-                                                                                                                                                  2)
-                                                                                                                                               (c
-                                                                                                                                                  (unsafeRatio
-                                                                                                                                                     3
-                                                                                                                                                     4)
-                                                                                                                                                  n))
-                                                                                                                                           (\(ds :
-                                                                                                                                                Rational)
-                                                                                                                                             (ds :
-                                                                                                                                                List
-                                                                                                                                                  Rational) ->
-                                                                                                                                              Cons
-                                                                                                                                                {Rational}
-                                                                                                                                                ds
-                                                                                                                                                ds)
-                                                                                                                                           (Nil
-                                                                                                                                              {Rational})))
-                                                                                                                                     (c
-                                                                                                                                        (Tuple2
-                                                                                                                                           {PredKey}
-                                                                                                                                           {List
-                                                                                                                                              Rational}
-                                                                                                                                           MaxValue
-                                                                                                                                           ((let
-                                                                                                                                                a
-                                                                                                                                                  = List
-                                                                                                                                                      Rational
-                                                                                                                                              in
-                                                                                                                                              \(c :
-                                                                                                                                                  Rational ->
-                                                                                                                                                  a ->
-                                                                                                                                                  a)
-                                                                                                                                               (n :
-                                                                                                                                                  a) ->
-                                                                                                                                                c
-                                                                                                                                                  (unsafeRatio
-                                                                                                                                                     1
-                                                                                                                                                     1)
-                                                                                                                                                  (c
-                                                                                                                                                     (unsafeRatio
-                                                                                                                                                        9
-                                                                                                                                                        10)
-                                                                                                                                                     n))
-                                                                                                                                              (\(ds :
-                                                                                                                                                   Rational)
-                                                                                                                                                (ds :
-                                                                                                                                                   List
-                                                                                                                                                     Rational) ->
-                                                                                                                                                 Cons
-                                                                                                                                                   {Rational}
-                                                                                                                                                   ds
-                                                                                                                                                   ds)
-                                                                                                                                              (Nil
-                                                                                                                                                 {Rational})))
-                                                                                                                                        n))))
-                                                                                                                        (c
-                                                                                                                           (ParamRational
-                                                                                                                              ((let
-                                                                                                                                   a
-                                                                                                                                     = Tuple2
-                                                                                                                                         PredKey
-                                                                                                                                         (List
-                                                                                                                                            Rational)
-                                                                                                                                 in
-                                                                                                                                 \(g :
-                                                                                                                                     all b.
-                                                                                                                                       (a ->
-                                                                                                                                        b ->
-                                                                                                                                        b) ->
-                                                                                                                                       b ->
-                                                                                                                                       b) ->
-                                                                                                                                   g
-                                                                                                                                     {List
-                                                                                                                                        a}
-                                                                                                                                     (\(ds :
-                                                                                                                                          a)
-                                                                                                                                       (ds :
-                                                                                                                                          List
-                                                                                                                                            a) ->
-                                                                                                                                        Cons
-                                                                                                                                          {a}
-                                                                                                                                          ds
-                                                                                                                                          ds)
-                                                                                                                                     (Nil
-                                                                                                                                        {a}))
-                                                                                                                                 (/\a ->
-                                                                                                                                    \(c :
-                                                                                                                                        Tuple2
-                                                                                                                                          PredKey
-                                                                                                                                          (List
-                                                                                                                                             Rational) ->
-                                                                                                                                        a ->
-                                                                                                                                        a)
-                                                                                                                                     (n :
-                                                                                                                                        a) ->
-                                                                                                                                      c
-                                                                                                                                        (Tuple2
-                                                                                                                                           {PredKey}
-                                                                                                                                           {List
-                                                                                                                                              Rational}
-                                                                                                                                           MinValue
-                                                                                                                                           ((let
-                                                                                                                                                a
-                                                                                                                                                  = List
-                                                                                                                                                      Rational
-                                                                                                                                              in
-                                                                                                                                              \(c :
-                                                                                                                                                  Rational ->
-                                                                                                                                                  a ->
-                                                                                                                                                  a)
-                                                                                                                                               (n :
-                                                                                                                                                  a) ->
-                                                                                                                                                c
-                                                                                                                                                  (unsafeRatio
-                                                                                                                                                     1
-                                                                                                                                                     2)
-                                                                                                                                                  n)
-                                                                                                                                              (\(ds :
-                                                                                                                                                   Rational)
-                                                                                                                                                (ds :
-                                                                                                                                                   List
-                                                                                                                                                     Rational) ->
-                                                                                                                                                 Cons
-                                                                                                                                                   {Rational}
-                                                                                                                                                   ds
-                                                                                                                                                   ds)
-                                                                                                                                              (Nil
-                                                                                                                                                 {Rational})))
-                                                                                                                                        (c
-                                                                                                                                           (Tuple2
-                                                                                                                                              {PredKey}
-                                                                                                                                              {List
-                                                                                                                                                 Rational}
-                                                                                                                                              MaxValue
-                                                                                                                                              ((let
-                                                                                                                                                   a
-                                                                                                                                                     = List
-                                                                                                                                                         Rational
-                                                                                                                                                 in
-                                                                                                                                                 \(c :
-                                                                                                                                                     Rational ->
-                                                                                                                                                     a ->
-                                                                                                                                                     a)
-                                                                                                                                                  (n :
-                                                                                                                                                     a) ->
-                                                                                                                                                   c
-                                                                                                                                                     (unsafeRatio
-                                                                                                                                                        1
-                                                                                                                                                        1)
-                                                                                                                                                     n)
-                                                                                                                                                 (\(ds :
-                                                                                                                                                      Rational)
-                                                                                                                                                   (ds :
-                                                                                                                                                      List
-                                                                                                                                                        Rational) ->
-                                                                                                                                                    Cons
-                                                                                                                                                      {Rational}
-                                                                                                                                                      ds
-                                                                                                                                                      ds)
-                                                                                                                                                 (Nil
-                                                                                                                                                    {Rational})))
-                                                                                                                                           n))))
-                                                                                                                           n))))))))))
-                                                                                            (\(ds :
-                                                                                                 ParamValue)
-                                                                                              (ds :
-                                                                                                 List
-                                                                                                   ParamValue) ->
-                                                                                               Cons
-                                                                                                 {ParamValue}
-                                                                                                 ds
-                                                                                                 ds)
-                                                                                            (Nil
-                                                                                               {ParamValue}))))
-                                                                                   (c
-                                                                                      (Tuple2
-                                                                                         {integer}
-                                                                                         {ParamValue}
-                                                                                         27
+                                                                                                            \(c :
+                                                                                                                integer ->
+                                                                                                                a ->
+                                                                                                                a)
+                                                                                                             (n :
+                                                                                                                a) ->
+                                                                                                              c
+                                                                                                                40000000
+                                                                                                                n)
+                                                                                                            (\(ds :
+                                                                                                                 integer)
+                                                                                                              (ds :
+                                                                                                                 List
+                                                                                                                   integer) ->
+                                                                                                               Cons
+                                                                                                                 {integer}
+                                                                                                                 ds
+                                                                                                                 ds)
+                                                                                                            (Nil
+                                                                                                               {integer})))
+                                                                                                      n))))
+                                                                                      (c
                                                                                          (ParamInteger
                                                                                             ((let
                                                                                                  a
@@ -4398,9 +2109,7 @@ program
                                                                                                                 a) ->
                                                                                                               c
                                                                                                                 0
-                                                                                                                (c
-                                                                                                                   3
-                                                                                                                   n))
+                                                                                                                n)
                                                                                                             (\(ds :
                                                                                                                  integer)
                                                                                                               (ds :
@@ -4430,7 +2139,7 @@ program
                                                                                                                 (n :
                                                                                                                    a) ->
                                                                                                                  c
-                                                                                                                   10
+                                                                                                                   15000000000
                                                                                                                    n)
                                                                                                                (\(ds :
                                                                                                                     integer)
@@ -4443,12 +2152,140 @@ program
                                                                                                                     ds)
                                                                                                                (Nil
                                                                                                                   {integer})))
-                                                                                                         n)))))
-                                                                                      (c
-                                                                                         (Tuple2
-                                                                                            {integer}
-                                                                                            {ParamValue}
-                                                                                            28
+                                                                                                         n))))
+                                                                                         n))
+                                                                                  (\(ds :
+                                                                                       ParamValue)
+                                                                                    (ds :
+                                                                                       List
+                                                                                         ParamValue) ->
+                                                                                     Cons
+                                                                                       {ParamValue}
+                                                                                       ds
+                                                                                       ds)
+                                                                                  (Nil
+                                                                                     {ParamValue}))))
+                                                                         (c
+                                                                            (Tuple2
+                                                                               {integer}
+                                                                               {ParamValue}
+                                                                               21
+                                                                               (ParamList
+                                                                                  ((let
+                                                                                       a
+                                                                                         = List
+                                                                                             ParamValue
+                                                                                     in
+                                                                                     \(c :
+                                                                                         ParamValue ->
+                                                                                         a ->
+                                                                                         a)
+                                                                                      (n :
+                                                                                         a) ->
+                                                                                       c
+                                                                                         (ParamInteger
+                                                                                            ((let
+                                                                                                 a
+                                                                                                   = Tuple2
+                                                                                                       PredKey
+                                                                                                       (List
+                                                                                                          integer)
+                                                                                               in
+                                                                                               \(g :
+                                                                                                   all b.
+                                                                                                     (a ->
+                                                                                                      b ->
+                                                                                                      b) ->
+                                                                                                     b ->
+                                                                                                     b) ->
+                                                                                                 g
+                                                                                                   {List
+                                                                                                      a}
+                                                                                                   (\(ds :
+                                                                                                        a)
+                                                                                                     (ds :
+                                                                                                        List
+                                                                                                          a) ->
+                                                                                                      Cons
+                                                                                                        {a}
+                                                                                                        ds
+                                                                                                        ds)
+                                                                                                   (Nil
+                                                                                                      {a}))
+                                                                                               (/\a ->
+                                                                                                  \(c :
+                                                                                                      Tuple2
+                                                                                                        PredKey
+                                                                                                        (List
+                                                                                                           integer) ->
+                                                                                                      a ->
+                                                                                                      a)
+                                                                                                   (n :
+                                                                                                      a) ->
+                                                                                                    c
+                                                                                                      (Tuple2
+                                                                                                         {PredKey}
+                                                                                                         {List
+                                                                                                            integer}
+                                                                                                         MinValue
+                                                                                                         ((let
+                                                                                                              a
+                                                                                                                = List
+                                                                                                                    integer
+                                                                                                            in
+                                                                                                            \(c :
+                                                                                                                integer ->
+                                                                                                                a ->
+                                                                                                                a)
+                                                                                                             (n :
+                                                                                                                a) ->
+                                                                                                              c
+                                                                                                                0
+                                                                                                                n)
+                                                                                                            (\(ds :
+                                                                                                                 integer)
+                                                                                                              (ds :
+                                                                                                                 List
+                                                                                                                   integer) ->
+                                                                                                               Cons
+                                                                                                                 {integer}
+                                                                                                                 ds
+                                                                                                                 ds)
+                                                                                                            (Nil
+                                                                                                               {integer})))
+                                                                                                      (c
+                                                                                                         (Tuple2
+                                                                                                            {PredKey}
+                                                                                                            {List
+                                                                                                               integer}
+                                                                                                            MaxValue
+                                                                                                            ((let
+                                                                                                                 a
+                                                                                                                   = List
+                                                                                                                       integer
+                                                                                                               in
+                                                                                                               \(c :
+                                                                                                                   integer ->
+                                                                                                                   a ->
+                                                                                                                   a)
+                                                                                                                (n :
+                                                                                                                   a) ->
+                                                                                                                 c
+                                                                                                                   120000000
+                                                                                                                   n)
+                                                                                                               (\(ds :
+                                                                                                                    integer)
+                                                                                                                 (ds :
+                                                                                                                    List
+                                                                                                                      integer) ->
+                                                                                                                  Cons
+                                                                                                                    {integer}
+                                                                                                                    ds
+                                                                                                                    ds)
+                                                                                                               (Nil
+                                                                                                                  {integer})))
+                                                                                                         n))))
+                                                                                         (c
                                                                                             (ParamInteger
                                                                                                ((let
                                                                                                     a
@@ -4507,9 +2344,7 @@ program
                                                                                                                    a) ->
                                                                                                                  c
                                                                                                                    0
-                                                                                                                   (c
-                                                                                                                      18
-                                                                                                                      n))
+                                                                                                                   n)
                                                                                                                (\(ds :
                                                                                                                     integer)
                                                                                                                  (ds :
@@ -4539,7 +2374,7 @@ program
                                                                                                                    (n :
                                                                                                                       a) ->
                                                                                                                     c
-                                                                                                                      293
+                                                                                                                      40000000000
                                                                                                                       n)
                                                                                                                   (\(ds :
                                                                                                                        integer)
@@ -4552,266 +2387,367 @@ program
                                                                                                                        ds)
                                                                                                                   (Nil
                                                                                                                      {integer})))
-                                                                                                            (c
-                                                                                                               (Tuple2
-                                                                                                                  {PredKey}
-                                                                                                                  {List
-                                                                                                                     integer}
-                                                                                                                  NotEqual
-                                                                                                                  ((let
-                                                                                                                       a
-                                                                                                                         = List
-                                                                                                                             integer
-                                                                                                                     in
-                                                                                                                     \(c :
-                                                                                                                         integer ->
-                                                                                                                         a ->
-                                                                                                                         a)
-                                                                                                                      (n :
-                                                                                                                         a) ->
-                                                                                                                       c
-                                                                                                                         0
-                                                                                                                         n)
-                                                                                                                     (\(ds :
-                                                                                                                          integer)
-                                                                                                                       (ds :
-                                                                                                                          List
-                                                                                                                            integer) ->
-                                                                                                                        Cons
-                                                                                                                          {integer}
-                                                                                                                          ds
-                                                                                                                          ds)
-                                                                                                                     (Nil
-                                                                                                                        {integer})))
-                                                                                                               n))))))
-                                                                                         (c
-                                                                                            (Tuple2
-                                                                                               {integer}
-                                                                                               {ParamValue}
-                                                                                               29
-                                                                                               (ParamInteger
+                                                                                                            n))))
+                                                                                            n))
+                                                                                     (\(ds :
+                                                                                          ParamValue)
+                                                                                       (ds :
+                                                                                          List
+                                                                                            ParamValue) ->
+                                                                                        Cons
+                                                                                          {ParamValue}
+                                                                                          ds
+                                                                                          ds)
+                                                                                     (Nil
+                                                                                        {ParamValue}))))
+                                                                            (c
+                                                                               (Tuple2
+                                                                                  {integer}
+                                                                                  {ParamValue}
+                                                                                  22
+                                                                                  (ParamInteger
+                                                                                     ((let
+                                                                                          a
+                                                                                            = Tuple2
+                                                                                                PredKey
+                                                                                                (List
+                                                                                                   integer)
+                                                                                        in
+                                                                                        \(g :
+                                                                                            all b.
+                                                                                              (a ->
+                                                                                               b ->
+                                                                                               b) ->
+                                                                                              b ->
+                                                                                              b) ->
+                                                                                          g
+                                                                                            {List
+                                                                                               a}
+                                                                                            (\(ds :
+                                                                                                 a)
+                                                                                              (ds :
+                                                                                                 List
+                                                                                                   a) ->
+                                                                                               Cons
+                                                                                                 {a}
+                                                                                                 ds
+                                                                                                 ds)
+                                                                                            (Nil
+                                                                                               {a}))
+                                                                                        (/\a ->
+                                                                                           \(c :
+                                                                                               Tuple2
+                                                                                                 PredKey
+                                                                                                 (List
+                                                                                                    integer) ->
+                                                                                               a ->
+                                                                                               a)
+                                                                                            (n :
+                                                                                               a) ->
+                                                                                             c
+                                                                                               (Tuple2
+                                                                                                  {PredKey}
+                                                                                                  {List
+                                                                                                     integer}
+                                                                                                  MinValue
                                                                                                   ((let
                                                                                                        a
-                                                                                                         = Tuple2
-                                                                                                             PredKey
-                                                                                                             (List
-                                                                                                                integer)
+                                                                                                         = List
+                                                                                                             integer
                                                                                                      in
-                                                                                                     \(g :
-                                                                                                         all b.
-                                                                                                           (a ->
-                                                                                                            b ->
-                                                                                                            b) ->
-                                                                                                           b ->
-                                                                                                           b) ->
-                                                                                                       g
-                                                                                                         {List
-                                                                                                            a}
-                                                                                                         (\(ds :
-                                                                                                              a)
-                                                                                                           (ds :
-                                                                                                              List
-                                                                                                                a) ->
-                                                                                                            Cons
-                                                                                                              {a}
-                                                                                                              ds
-                                                                                                              ds)
-                                                                                                         (Nil
-                                                                                                            {a}))
-                                                                                                     (/\a ->
+                                                                                                     \(c :
+                                                                                                         integer ->
+                                                                                                         a ->
+                                                                                                         a)
+                                                                                                      (n :
+                                                                                                         a) ->
+                                                                                                       c
+                                                                                                         0
+                                                                                                         n)
+                                                                                                     (\(ds :
+                                                                                                          integer)
+                                                                                                       (ds :
+                                                                                                          List
+                                                                                                            integer) ->
+                                                                                                        Cons
+                                                                                                          {integer}
+                                                                                                          ds
+                                                                                                          ds)
+                                                                                                     (Nil
+                                                                                                        {integer})))
+                                                                                               (c
+                                                                                                  (Tuple2
+                                                                                                     {PredKey}
+                                                                                                     {List
+                                                                                                        integer}
+                                                                                                     MaxValue
+                                                                                                     ((let
+                                                                                                          a
+                                                                                                            = List
+                                                                                                                integer
+                                                                                                        in
                                                                                                         \(c :
-                                                                                                            Tuple2
-                                                                                                              PredKey
-                                                                                                              (List
-                                                                                                                 integer) ->
+                                                                                                            integer ->
                                                                                                             a ->
                                                                                                             a)
                                                                                                          (n :
                                                                                                             a) ->
                                                                                                           c
-                                                                                                            (Tuple2
-                                                                                                               {PredKey}
-                                                                                                               {List
-                                                                                                                  integer}
-                                                                                                               MinValue
-                                                                                                               ((let
-                                                                                                                    a
-                                                                                                                      = List
-                                                                                                                          integer
-                                                                                                                  in
-                                                                                                                  \(c :
-                                                                                                                      integer ->
-                                                                                                                      a ->
-                                                                                                                      a)
-                                                                                                                   (n :
-                                                                                                                      a) ->
-                                                                                                                    c
-                                                                                                                      1
-                                                                                                                      n)
-                                                                                                                  (\(ds :
-                                                                                                                       integer)
-                                                                                                                    (ds :
-                                                                                                                       List
-                                                                                                                         integer) ->
-                                                                                                                     Cons
-                                                                                                                       {integer}
-                                                                                                                       ds
-                                                                                                                       ds)
-                                                                                                                  (Nil
-                                                                                                                     {integer})))
-                                                                                                            (c
-                                                                                                               (Tuple2
-                                                                                                                  {PredKey}
-                                                                                                                  {List
-                                                                                                                     integer}
-                                                                                                                  MaxValue
-                                                                                                                  ((let
-                                                                                                                       a
-                                                                                                                         = List
-                                                                                                                             integer
-                                                                                                                     in
-                                                                                                                     \(c :
-                                                                                                                         integer ->
-                                                                                                                         a ->
-                                                                                                                         a)
-                                                                                                                      (n :
-                                                                                                                         a) ->
-                                                                                                                       c
-                                                                                                                         15
-                                                                                                                         n)
-                                                                                                                     (\(ds :
-                                                                                                                          integer)
-                                                                                                                       (ds :
-                                                                                                                          List
-                                                                                                                            integer) ->
-                                                                                                                        Cons
-                                                                                                                          {integer}
-                                                                                                                          ds
-                                                                                                                          ds)
-                                                                                                                     (Nil
-                                                                                                                        {integer})))
-                                                                                                               n)))))
-                                                                                            (c
-                                                                                               (Tuple2
-                                                                                                  {integer}
-                                                                                                  {ParamValue}
-                                                                                                  30
-                                                                                                  (ParamInteger
+                                                                                                            12288
+                                                                                                            n)
+                                                                                                        (\(ds :
+                                                                                                             integer)
+                                                                                                          (ds :
+                                                                                                             List
+                                                                                                               integer) ->
+                                                                                                           Cons
+                                                                                                             {integer}
+                                                                                                             ds
+                                                                                                             ds)
+                                                                                                        (Nil
+                                                                                                           {integer})))
+                                                                                                  n)))))
+                                                                               (c
+                                                                                  (Tuple2
+                                                                                     {integer}
+                                                                                     {ParamValue}
+                                                                                     23
+                                                                                     (ParamInteger
+                                                                                        ((let
+                                                                                             a
+                                                                                               = Tuple2
+                                                                                                   PredKey
+                                                                                                   (List
+                                                                                                      integer)
+                                                                                           in
+                                                                                           \(g :
+                                                                                               all b.
+                                                                                                 (a ->
+                                                                                                  b ->
+                                                                                                  b) ->
+                                                                                                 b ->
+                                                                                                 b) ->
+                                                                                             g
+                                                                                               {List
+                                                                                                  a}
+                                                                                               (\(ds :
+                                                                                                    a)
+                                                                                                 (ds :
+                                                                                                    List
+                                                                                                      a) ->
+                                                                                                  Cons
+                                                                                                    {a}
+                                                                                                    ds
+                                                                                                    ds)
+                                                                                               (Nil
+                                                                                                  {a}))
+                                                                                           (/\a ->
+                                                                                              \(c :
+                                                                                                  Tuple2
+                                                                                                    PredKey
+                                                                                                    (List
+                                                                                                       integer) ->
+                                                                                                  a ->
+                                                                                                  a)
+                                                                                               (n :
+                                                                                                  a) ->
+                                                                                                c
+                                                                                                  (Tuple2
+                                                                                                     {PredKey}
+                                                                                                     {List
+                                                                                                        integer}
+                                                                                                     MinValue
                                                                                                      ((let
                                                                                                           a
-                                                                                                            = Tuple2
-                                                                                                                PredKey
-                                                                                                                (List
-                                                                                                                   integer)
+                                                                                                            = List
+                                                                                                                integer
                                                                                                         in
-                                                                                                        \(g :
-                                                                                                            all b.
-                                                                                                              (a ->
-                                                                                                               b ->
-                                                                                                               b) ->
-                                                                                                              b ->
-                                                                                                              b) ->
-                                                                                                          g
-                                                                                                            {List
-                                                                                                               a}
-                                                                                                            (\(ds :
-                                                                                                                 a)
-                                                                                                              (ds :
-                                                                                                                 List
-                                                                                                                   a) ->
-                                                                                                               Cons
-                                                                                                                 {a}
-                                                                                                                 ds
-                                                                                                                 ds)
-                                                                                                            (Nil
-                                                                                                               {a}))
-                                                                                                        (/\a ->
+                                                                                                        \(c :
+                                                                                                            integer ->
+                                                                                                            a ->
+                                                                                                            a)
+                                                                                                         (n :
+                                                                                                            a) ->
+                                                                                                          c
+                                                                                                            100
+                                                                                                            (c
+                                                                                                               0
+                                                                                                               n))
+                                                                                                        (\(ds :
+                                                                                                             integer)
+                                                                                                          (ds :
+                                                                                                             List
+                                                                                                               integer) ->
+                                                                                                           Cons
+                                                                                                             {integer}
+                                                                                                             ds
+                                                                                                             ds)
+                                                                                                        (Nil
+                                                                                                           {integer})))
+                                                                                                  (c
+                                                                                                     (Tuple2
+                                                                                                        {PredKey}
+                                                                                                        {List
+                                                                                                           integer}
+                                                                                                        MaxValue
+                                                                                                        ((let
+                                                                                                             a
+                                                                                                               = List
+                                                                                                                   integer
+                                                                                                           in
                                                                                                            \(c :
-                                                                                                               Tuple2
-                                                                                                                 PredKey
-                                                                                                                 (List
-                                                                                                                    integer) ->
+                                                                                                               integer ->
                                                                                                                a ->
                                                                                                                a)
                                                                                                             (n :
                                                                                                                a) ->
                                                                                                              c
-                                                                                                               (Tuple2
-                                                                                                                  {PredKey}
-                                                                                                                  {List
-                                                                                                                     integer}
-                                                                                                                  MinValue
-                                                                                                                  ((let
-                                                                                                                       a
-                                                                                                                         = List
-                                                                                                                             integer
-                                                                                                                     in
-                                                                                                                     \(c :
-                                                                                                                         integer ->
-                                                                                                                         a ->
-                                                                                                                         a)
-                                                                                                                      (n :
-                                                                                                                         a) ->
-                                                                                                                       c
-                                                                                                                         0
-                                                                                                                         (c
-                                                                                                                            1000000
-                                                                                                                            n))
-                                                                                                                     (\(ds :
-                                                                                                                          integer)
-                                                                                                                       (ds :
-                                                                                                                          List
-                                                                                                                            integer) ->
-                                                                                                                        Cons
-                                                                                                                          {integer}
-                                                                                                                          ds
-                                                                                                                          ds)
-                                                                                                                     (Nil
-                                                                                                                        {integer})))
-                                                                                                               (c
-                                                                                                                  (Tuple2
-                                                                                                                     {PredKey}
-                                                                                                                     {List
-                                                                                                                        integer}
-                                                                                                                     MaxValue
-                                                                                                                     ((let
-                                                                                                                          a
-                                                                                                                            = List
-                                                                                                                                integer
-                                                                                                                        in
-                                                                                                                        \(c :
-                                                                                                                            integer ->
-                                                                                                                            a ->
-                                                                                                                            a)
-                                                                                                                         (n :
-                                                                                                                            a) ->
-                                                                                                                          c
-                                                                                                                            10000000000000
-                                                                                                                            n)
-                                                                                                                        (\(ds :
-                                                                                                                             integer)
-                                                                                                                          (ds :
-                                                                                                                             List
-                                                                                                                               integer) ->
-                                                                                                                           Cons
-                                                                                                                             {integer}
-                                                                                                                             ds
-                                                                                                                             ds)
-                                                                                                                        (Nil
-                                                                                                                           {integer})))
-                                                                                                                  n)))))
-                                                                                               (c
-                                                                                                  (Tuple2
-                                                                                                     {integer}
-                                                                                                     {ParamValue}
-                                                                                                     31
-                                                                                                     (ParamInteger
+                                                                                                               200
+                                                                                                               n)
+                                                                                                           (\(ds :
+                                                                                                                integer)
+                                                                                                             (ds :
+                                                                                                                List
+                                                                                                                  integer) ->
+                                                                                                              Cons
+                                                                                                                {integer}
+                                                                                                                ds
+                                                                                                                ds)
+                                                                                                           (Nil
+                                                                                                              {integer})))
+                                                                                                     (c
+                                                                                                        (Tuple2
+                                                                                                           {PredKey}
+                                                                                                           {List
+                                                                                                              integer}
+                                                                                                           NotEqual
+                                                                                                           ((let
+                                                                                                                a
+                                                                                                                  = List
+                                                                                                                      integer
+                                                                                                              in
+                                                                                                              \(c :
+                                                                                                                  integer ->
+                                                                                                                  a ->
+                                                                                                                  a)
+                                                                                                               (n :
+                                                                                                                  a) ->
+                                                                                                                c
+                                                                                                                  0
+                                                                                                                  n)
+                                                                                                              (\(ds :
+                                                                                                                   integer)
+                                                                                                                (ds :
+                                                                                                                   List
+                                                                                                                     integer) ->
+                                                                                                                 Cons
+                                                                                                                   {integer}
+                                                                                                                   ds
+                                                                                                                   ds)
+                                                                                                              (Nil
+                                                                                                                 {integer})))
+                                                                                                        n))))))
+                                                                                  (c
+                                                                                     (Tuple2
+                                                                                        {integer}
+                                                                                        {ParamValue}
+                                                                                        24
+                                                                                        (ParamInteger
+                                                                                           ((let
+                                                                                                a
+                                                                                                  = Tuple2
+                                                                                                      PredKey
+                                                                                                      (List
+                                                                                                         integer)
+                                                                                              in
+                                                                                              \(g :
+                                                                                                  all b.
+                                                                                                    (a ->
+                                                                                                     b ->
+                                                                                                     b) ->
+                                                                                                    b ->
+                                                                                                    b) ->
+                                                                                                g
+                                                                                                  {List
+                                                                                                     a}
+                                                                                                  (\(ds :
+                                                                                                       a)
+                                                                                                    (ds :
+                                                                                                       List
+                                                                                                         a) ->
+                                                                                                     Cons
+                                                                                                       {a}
+                                                                                                       ds
+                                                                                                       ds)
+                                                                                                  (Nil
+                                                                                                     {a}))
+                                                                                              (/\a ->
+                                                                                                 \(c :
+                                                                                                     Tuple2
+                                                                                                       PredKey
+                                                                                                       (List
+                                                                                                          integer) ->
+                                                                                                     a ->
+                                                                                                     a)
+                                                                                                  (n :
+                                                                                                     a) ->
+                                                                                                   c
+                                                                                                     (Tuple2
+                                                                                                        {PredKey}
+                                                                                                        {List
+                                                                                                           integer}
+                                                                                                        MinValue
+                                                                                                        ((let
+                                                                                                             a
+                                                                                                               = List
+                                                                                                                   integer
+                                                                                                           in
+                                                                                                           \(c :
+                                                                                                               integer ->
+                                                                                                               a ->
+                                                                                                               a)
+                                                                                                            (n :
+                                                                                                               a) ->
+                                                                                                             c
+                                                                                                               1
+                                                                                                               n)
+                                                                                                           (\(ds :
+                                                                                                                integer)
+                                                                                                             (ds :
+                                                                                                                List
+                                                                                                                  integer) ->
+                                                                                                              Cons
+                                                                                                                {integer}
+                                                                                                                ds
+                                                                                                                ds)
+                                                                                                           (Nil
+                                                                                                              {integer})))
+                                                                                                     n))))
+                                                                                     (c
+                                                                                        (Tuple2
+                                                                                           {integer}
+                                                                                           {ParamValue}
+                                                                                           25
+                                                                                           (ParamList
+                                                                                              ((let
+                                                                                                   a
+                                                                                                     = List
+                                                                                                         ParamValue
+                                                                                                 in
+                                                                                                 \(c :
+                                                                                                     ParamValue ->
+                                                                                                     a ->
+                                                                                                     a)
+                                                                                                  (n :
+                                                                                                     a) ->
+                                                                                                   c
+                                                                                                     (ParamRational
                                                                                                         ((let
                                                                                                              a
                                                                                                                = Tuple2
                                                                                                                    PredKey
                                                                                                                    (List
-                                                                                                                      integer)
+                                                                                                                      Rational)
                                                                                                            in
                                                                                                            \(g :
                                                                                                                all b.
@@ -4839,7 +2775,7 @@ program
                                                                                                                   Tuple2
                                                                                                                     PredKey
                                                                                                                     (List
-                                                                                                                       integer) ->
+                                                                                                                       Rational) ->
                                                                                                                   a ->
                                                                                                                   a)
                                                                                                                (n :
@@ -4848,79 +2784,85 @@ program
                                                                                                                   (Tuple2
                                                                                                                      {PredKey}
                                                                                                                      {List
-                                                                                                                        integer}
+                                                                                                                        Rational}
                                                                                                                      MinValue
                                                                                                                      ((let
                                                                                                                           a
                                                                                                                             = List
-                                                                                                                                integer
+                                                                                                                                Rational
                                                                                                                         in
                                                                                                                         \(c :
-                                                                                                                            integer ->
+                                                                                                                            Rational ->
                                                                                                                             a ->
                                                                                                                             a)
                                                                                                                          (n :
                                                                                                                             a) ->
                                                                                                                           c
-                                                                                                                            0
+                                                                                                                            (unsafeRatio
+                                                                                                                               1
+                                                                                                                               2)
                                                                                                                             (c
-                                                                                                                               1000000
+                                                                                                                               (unsafeRatio
+                                                                                                                                  51
+                                                                                                                                  100)
                                                                                                                                n))
                                                                                                                         (\(ds :
-                                                                                                                             integer)
+                                                                                                                             Rational)
                                                                                                                           (ds :
                                                                                                                              List
-                                                                                                                               integer) ->
+                                                                                                                               Rational) ->
                                                                                                                            Cons
-                                                                                                                             {integer}
+                                                                                                                             {Rational}
                                                                                                                              ds
                                                                                                                              ds)
                                                                                                                         (Nil
-                                                                                                                           {integer})))
+                                                                                                                           {Rational})))
                                                                                                                   (c
                                                                                                                      (Tuple2
                                                                                                                         {PredKey}
                                                                                                                         {List
-                                                                                                                           integer}
+                                                                                                                           Rational}
                                                                                                                         MaxValue
                                                                                                                         ((let
                                                                                                                              a
                                                                                                                                = List
-                                                                                                                                   integer
+                                                                                                                                   Rational
                                                                                                                            in
                                                                                                                            \(c :
-                                                                                                                               integer ->
+                                                                                                                               Rational ->
                                                                                                                                a ->
                                                                                                                                a)
                                                                                                                             (n :
                                                                                                                                a) ->
                                                                                                                              c
-                                                                                                                               100000000000
-                                                                                                                               n)
+                                                                                                                               (unsafeRatio
+                                                                                                                                  1
+                                                                                                                                  1)
+                                                                                                                               (c
+                                                                                                                                  (unsafeRatio
+                                                                                                                                     3
+                                                                                                                                     4)
+                                                                                                                                  n))
                                                                                                                            (\(ds :
-                                                                                                                                integer)
+                                                                                                                                Rational)
                                                                                                                              (ds :
                                                                                                                                 List
-                                                                                                                                  integer) ->
+                                                                                                                                  Rational) ->
                                                                                                                               Cons
-                                                                                                                                {integer}
+                                                                                                                                {Rational}
                                                                                                                                 ds
                                                                                                                                 ds)
                                                                                                                            (Nil
-                                                                                                                              {integer})))
-                                                                                                                     n)))))
-                                                                                                  (c
-                                                                                                     (Tuple2
-                                                                                                        {integer}
-                                                                                                        {ParamValue}
-                                                                                                        32
-                                                                                                        (ParamInteger
+                                                                                                                              {Rational})))
+                                                                                                                     n))))
+                                                                                                     (c
+                                                                                                        (ParamRational
                                                                                                            ((let
                                                                                                                 a
                                                                                                                   = Tuple2
                                                                                                                       PredKey
                                                                                                                       (List
-                                                                                                                         integer)
+                                                                                                                         Rational)
                                                                                                               in
                                                                                                               \(g :
                                                                                                                   all b.
@@ -4948,7 +2890,7 @@ program
                                                                                                                      Tuple2
                                                                                                                        PredKey
                                                                                                                        (List
-                                                                                                                          integer) ->
+                                                                                                                          Rational) ->
                                                                                                                      a ->
                                                                                                                      a)
                                                                                                                   (n :
@@ -4957,72 +2899,78 @@ program
                                                                                                                      (Tuple2
                                                                                                                         {PredKey}
                                                                                                                         {List
-                                                                                                                           integer}
+                                                                                                                           Rational}
                                                                                                                         MinValue
                                                                                                                         ((let
                                                                                                                              a
                                                                                                                                = List
-                                                                                                                                   integer
+                                                                                                                                   Rational
                                                                                                                            in
                                                                                                                            \(c :
-                                                                                                                               integer ->
+                                                                                                                               Rational ->
                                                                                                                                a ->
                                                                                                                                a)
                                                                                                                             (n :
                                                                                                                                a) ->
                                                                                                                              c
-                                                                                                                               13
+                                                                                                                               (unsafeRatio
+                                                                                                                                  1
+                                                                                                                                  2)
                                                                                                                                (c
-                                                                                                                                  0
+                                                                                                                                  (unsafeRatio
+                                                                                                                                     51
+                                                                                                                                     100)
                                                                                                                                   n))
                                                                                                                            (\(ds :
-                                                                                                                                integer)
+                                                                                                                                Rational)
                                                                                                                              (ds :
                                                                                                                                 List
-                                                                                                                                  integer) ->
+                                                                                                                                  Rational) ->
                                                                                                                               Cons
-                                                                                                                                {integer}
+                                                                                                                                {Rational}
                                                                                                                                 ds
                                                                                                                                 ds)
                                                                                                                            (Nil
-                                                                                                                              {integer})))
+                                                                                                                              {Rational})))
                                                                                                                      (c
                                                                                                                         (Tuple2
                                                                                                                            {PredKey}
                                                                                                                            {List
-                                                                                                                              integer}
+                                                                                                                              Rational}
                                                                                                                            MaxValue
                                                                                                                            ((let
                                                                                                                                 a
                                                                                                                                   = List
-                                                                                                                                      integer
+                                                                                                                                      Rational
                                                                                                                               in
                                                                                                                               \(c :
-                                                                                                                                  integer ->
+                                                                                                                                  Rational ->
                                                                                                                                   a ->
                                                                                                                                   a)
                                                                                                                                (n :
                                                                                                                                   a) ->
                                                                                                                                 c
-                                                                                                                                  37
-                                                                                                                                  n)
+                                                                                                                                  (unsafeRatio
+                                                                                                                                     1
+                                                                                                                                     1)
+                                                                                                                                  (c
+                                                                                                                                     (unsafeRatio
+                                                                                                                                        9
+                                                                                                                                        10)
+                                                                                                                                     n))
                                                                                                                               (\(ds :
-                                                                                                                                   integer)
+                                                                                                                                   Rational)
                                                                                                                                 (ds :
                                                                                                                                    List
-                                                                                                                                     integer) ->
+                                                                                                                                     Rational) ->
                                                                                                                                  Cons
-                                                                                                                                   {integer}
+                                                                                                                                   {Rational}
                                                                                                                                    ds
                                                                                                                                    ds)
                                                                                                                               (Nil
-                                                                                                                                 {integer})))
-                                                                                                                        n)))))
-                                                                                                     (c
-                                                                                                        (Tuple2
-                                                                                                           {integer}
-                                                                                                           {ParamValue}
-                                                                                                           33
+                                                                                                                                 {Rational})))
+                                                                                                                        n))))
+                                                                                                        (c
                                                                                                            (ParamRational
                                                                                                               ((let
                                                                                                                    a
@@ -5081,9 +3029,13 @@ program
                                                                                                                                   a) ->
                                                                                                                                 c
                                                                                                                                   (unsafeRatio
-                                                                                                                                     0
-                                                                                                                                     1)
-                                                                                                                                  n)
+                                                                                                                                     1
+                                                                                                                                     2)
+                                                                                                                                  (c
+                                                                                                                                     (unsafeRatio
+                                                                                                                                        51
+                                                                                                                                        100)
+                                                                                                                                     n))
                                                                                                                               (\(ds :
                                                                                                                                    Rational)
                                                                                                                                 (ds :
@@ -5114,9 +3066,13 @@ program
                                                                                                                                      a) ->
                                                                                                                                    c
                                                                                                                                      (unsafeRatio
-                                                                                                                                        1000
+                                                                                                                                        1
                                                                                                                                         1)
-                                                                                                                                     n)
+                                                                                                                                     (c
+                                                                                                                                        (unsafeRatio
+                                                                                                                                           9
+                                                                                                                                           10)
+                                                                                                                                        n))
                                                                                                                                  (\(ds :
                                                                                                                                       Rational)
                                                                                                                                    (ds :
@@ -5128,67 +3084,2249 @@ program
                                                                                                                                       ds)
                                                                                                                                  (Nil
                                                                                                                                     {Rational})))
-                                                                                                                           n)))))
-                                                                                                        n))))))))))))))))))))))))))))))
-  in
-  letrec
-    !go : List (Tuple2 data data) -> bool
-      = \(ds : List (Tuple2 data data)) ->
-          List_match
-            {Tuple2 data data}
-            ds
-            {bool}
-            True
-            (\(x : Tuple2 data data) (xs : List (Tuple2 data data)) ->
-               case
-                 (all dead. bool)
-                 (Tuple2_match
-                    {data}
-                    {data}
-                    x
-                    {bool}
-                    (\(ds : data) (actualValueData : data) ->
-                       validateParamValue
-                         ((let
-                              !k : integer = unIData ds
-                            in
-                            letrec
-                              !go :
-                                 List (Tuple2 integer ParamValue) -> ParamValue
-                                = \(ds : List (Tuple2 integer ParamValue)) ->
-                                    List_match
-                                      {Tuple2 integer ParamValue}
-                                      ds
-                                      {all dead. ParamValue}
-                                      (/\dead -> error {ParamValue})
-                                      (\(ds : Tuple2 integer ParamValue)
-                                        (xs' :
-                                           List (Tuple2 integer ParamValue)) ->
-                                         /\dead ->
-                                           Tuple2_match
-                                             {integer}
-                                             {ParamValue}
-                                             ds
-                                             {ParamValue}
-                                             (\(k' : integer)
-                                               (i : ParamValue) ->
-                                                case
-                                                  (all dead. ParamValue)
-                                                  (equalsInteger k k')
-                                                  [ (/\dead -> go xs')
-                                                  , (/\dead -> i) ]
-                                                  {all dead. dead}))
-                                      {all dead. dead}
-                            in
-                            go)
-                            cfg)
-                         actualValueData))
-                 [(/\dead -> False), (/\dead -> go xs)]
-                 {all dead. dead})
+                                                                                                                           n))))
+                                                                                                           (c
+                                                                                                              (ParamRational
+                                                                                                                 ((let
+                                                                                                                      a
+                                                                                                                        = Tuple2
+                                                                                                                            PredKey
+                                                                                                                            (List
+                                                                                                                               Rational)
+                                                                                                                    in
+                                                                                                                    \(g :
+                                                                                                                        all b.
+                                                                                                                          (a ->
+                                                                                                                           b ->
+                                                                                                                           b) ->
+                                                                                                                          b ->
+                                                                                                                          b) ->
+                                                                                                                      g
+                                                                                                                        {List
+                                                                                                                           a}
+                                                                                                                        (\(ds :
+                                                                                                                             a)
+                                                                                                                          (ds :
+                                                                                                                             List
+                                                                                                                               a) ->
+                                                                                                                           Cons
+                                                                                                                             {a}
+                                                                                                                             ds
+                                                                                                                             ds)
+                                                                                                                        (Nil
+                                                                                                                           {a}))
+                                                                                                                    (/\a ->
+                                                                                                                       \(c :
+                                                                                                                           Tuple2
+                                                                                                                             PredKey
+                                                                                                                             (List
+                                                                                                                                Rational) ->
+                                                                                                                           a ->
+                                                                                                                           a)
+                                                                                                                        (n :
+                                                                                                                           a) ->
+                                                                                                                         c
+                                                                                                                           (Tuple2
+                                                                                                                              {PredKey}
+                                                                                                                              {List
+                                                                                                                                 Rational}
+                                                                                                                              MinValue
+                                                                                                                              ((let
+                                                                                                                                   a
+                                                                                                                                     = List
+                                                                                                                                         Rational
+                                                                                                                                 in
+                                                                                                                                 \(c :
+                                                                                                                                     Rational ->
+                                                                                                                                     a ->
+                                                                                                                                     a)
+                                                                                                                                  (n :
+                                                                                                                                     a) ->
+                                                                                                                                   c
+                                                                                                                                     (unsafeRatio
+                                                                                                                                        1
+                                                                                                                                        2)
+                                                                                                                                     (c
+                                                                                                                                        (unsafeRatio
+                                                                                                                                           51
+                                                                                                                                           100)
+                                                                                                                                        n))
+                                                                                                                                 (\(ds :
+                                                                                                                                      Rational)
+                                                                                                                                   (ds :
+                                                                                                                                      List
+                                                                                                                                        Rational) ->
+                                                                                                                                    Cons
+                                                                                                                                      {Rational}
+                                                                                                                                      ds
+                                                                                                                                      ds)
+                                                                                                                                 (Nil
+                                                                                                                                    {Rational})))
+                                                                                                                           (c
+                                                                                                                              (Tuple2
+                                                                                                                                 {PredKey}
+                                                                                                                                 {List
+                                                                                                                                    Rational}
+                                                                                                                                 MaxValue
+                                                                                                                                 ((let
+                                                                                                                                      a
+                                                                                                                                        = List
+                                                                                                                                            Rational
+                                                                                                                                    in
+                                                                                                                                    \(c :
+                                                                                                                                        Rational ->
+                                                                                                                                        a ->
+                                                                                                                                        a)
+                                                                                                                                     (n :
+                                                                                                                                        a) ->
+                                                                                                                                      c
+                                                                                                                                        (unsafeRatio
+                                                                                                                                           1
+                                                                                                                                           1)
+                                                                                                                                        (c
+                                                                                                                                           (unsafeRatio
+                                                                                                                                              4
+                                                                                                                                              5)
+                                                                                                                                           n))
+                                                                                                                                    (\(ds :
+                                                                                                                                         Rational)
+                                                                                                                                      (ds :
+                                                                                                                                         List
+                                                                                                                                           Rational) ->
+                                                                                                                                       Cons
+                                                                                                                                         {Rational}
+                                                                                                                                         ds
+                                                                                                                                         ds)
+                                                                                                                                    (Nil
+                                                                                                                                       {Rational})))
+                                                                                                                              n))))
+                                                                                                              (c
+                                                                                                                 (ParamRational
+                                                                                                                    ((let
+                                                                                                                         a
+                                                                                                                           = Tuple2
+                                                                                                                               PredKey
+                                                                                                                               (List
+                                                                                                                                  Rational)
+                                                                                                                       in
+                                                                                                                       \(g :
+                                                                                                                           all b.
+                                                                                                                             (a ->
+                                                                                                                              b ->
+                                                                                                                              b) ->
+                                                                                                                             b ->
+                                                                                                                             b) ->
+                                                                                                                         g
+                                                                                                                           {List
+                                                                                                                              a}
+                                                                                                                           (\(ds :
+                                                                                                                                a)
+                                                                                                                             (ds :
+                                                                                                                                List
+                                                                                                                                  a) ->
+                                                                                                                              Cons
+                                                                                                                                {a}
+                                                                                                                                ds
+                                                                                                                                ds)
+                                                                                                                           (Nil
+                                                                                                                              {a}))
+                                                                                                                       (/\a ->
+                                                                                                                          \(c :
+                                                                                                                              Tuple2
+                                                                                                                                PredKey
+                                                                                                                                (List
+                                                                                                                                   Rational) ->
+                                                                                                                              a ->
+                                                                                                                              a)
+                                                                                                                           (n :
+                                                                                                                              a) ->
+                                                                                                                            c
+                                                                                                                              (Tuple2
+                                                                                                                                 {PredKey}
+                                                                                                                                 {List
+                                                                                                                                    Rational}
+                                                                                                                                 MinValue
+                                                                                                                                 ((let
+                                                                                                                                      a
+                                                                                                                                        = List
+                                                                                                                                            Rational
+                                                                                                                                    in
+                                                                                                                                    \(c :
+                                                                                                                                        Rational ->
+                                                                                                                                        a ->
+                                                                                                                                        a)
+                                                                                                                                     (n :
+                                                                                                                                        a) ->
+                                                                                                                                      c
+                                                                                                                                        (unsafeRatio
+                                                                                                                                           1
+                                                                                                                                           2)
+                                                                                                                                        n)
+                                                                                                                                    (\(ds :
+                                                                                                                                         Rational)
+                                                                                                                                      (ds :
+                                                                                                                                         List
+                                                                                                                                           Rational) ->
+                                                                                                                                       Cons
+                                                                                                                                         {Rational}
+                                                                                                                                         ds
+                                                                                                                                         ds)
+                                                                                                                                    (Nil
+                                                                                                                                       {Rational})))
+                                                                                                                              (c
+                                                                                                                                 (Tuple2
+                                                                                                                                    {PredKey}
+                                                                                                                                    {List
+                                                                                                                                       Rational}
+                                                                                                                                    MaxValue
+                                                                                                                                    ((let
+                                                                                                                                         a
+                                                                                                                                           = List
+                                                                                                                                               Rational
+                                                                                                                                       in
+                                                                                                                                       \(c :
+                                                                                                                                           Rational ->
+                                                                                                                                           a ->
+                                                                                                                                           a)
+                                                                                                                                        (n :
+                                                                                                                                           a) ->
+                                                                                                                                         c
+                                                                                                                                           (unsafeRatio
+                                                                                                                                              1
+                                                                                                                                              1)
+                                                                                                                                           n)
+                                                                                                                                       (\(ds :
+                                                                                                                                            Rational)
+                                                                                                                                         (ds :
+                                                                                                                                            List
+                                                                                                                                              Rational) ->
+                                                                                                                                          Cons
+                                                                                                                                            {Rational}
+                                                                                                                                            ds
+                                                                                                                                            ds)
+                                                                                                                                       (Nil
+                                                                                                                                          {Rational})))
+                                                                                                                                 n))))
+                                                                                                                 n)))))
+                                                                                                 (\(ds :
+                                                                                                      ParamValue)
+                                                                                                   (ds :
+                                                                                                      List
+                                                                                                        ParamValue) ->
+                                                                                                    Cons
+                                                                                                      {ParamValue}
+                                                                                                      ds
+                                                                                                      ds)
+                                                                                                 (Nil
+                                                                                                    {ParamValue}))))
+                                                                                        (c
+                                                                                           (Tuple2
+                                                                                              {integer}
+                                                                                              {ParamValue}
+                                                                                              26
+                                                                                              (ParamList
+                                                                                                 ((let
+                                                                                                      a
+                                                                                                        = List
+                                                                                                            ParamValue
+                                                                                                    in
+                                                                                                    \(c :
+                                                                                                        ParamValue ->
+                                                                                                        a ->
+                                                                                                        a)
+                                                                                                     (n :
+                                                                                                        a) ->
+                                                                                                      c
+                                                                                                        (ParamRational
+                                                                                                           ((let
+                                                                                                                a
+                                                                                                                  = Tuple2
+                                                                                                                      PredKey
+                                                                                                                      (List
+                                                                                                                         Rational)
+                                                                                                              in
+                                                                                                              \(g :
+                                                                                                                  all b.
+                                                                                                                    (a ->
+                                                                                                                     b ->
+                                                                                                                     b) ->
+                                                                                                                    b ->
+                                                                                                                    b) ->
+                                                                                                                g
+                                                                                                                  {List
+                                                                                                                     a}
+                                                                                                                  (\(ds :
+                                                                                                                       a)
+                                                                                                                    (ds :
+                                                                                                                       List
+                                                                                                                         a) ->
+                                                                                                                     Cons
+                                                                                                                       {a}
+                                                                                                                       ds
+                                                                                                                       ds)
+                                                                                                                  (Nil
+                                                                                                                     {a}))
+                                                                                                              (/\a ->
+                                                                                                                 \(c :
+                                                                                                                     Tuple2
+                                                                                                                       PredKey
+                                                                                                                       (List
+                                                                                                                          Rational) ->
+                                                                                                                     a ->
+                                                                                                                     a)
+                                                                                                                  (n :
+                                                                                                                     a) ->
+                                                                                                                   c
+                                                                                                                     (Tuple2
+                                                                                                                        {PredKey}
+                                                                                                                        {List
+                                                                                                                           Rational}
+                                                                                                                        MinValue
+                                                                                                                        ((let
+                                                                                                                             a
+                                                                                                                               = List
+                                                                                                                                   Rational
+                                                                                                                           in
+                                                                                                                           \(c :
+                                                                                                                               Rational ->
+                                                                                                                               a ->
+                                                                                                                               a)
+                                                                                                                            (n :
+                                                                                                                               a) ->
+                                                                                                                             c
+                                                                                                                               (unsafeRatio
+                                                                                                                                  1
+                                                                                                                                  2)
+                                                                                                                               (c
+                                                                                                                                  (unsafeRatio
+                                                                                                                                     51
+                                                                                                                                     100)
+                                                                                                                                  n))
+                                                                                                                           (\(ds :
+                                                                                                                                Rational)
+                                                                                                                             (ds :
+                                                                                                                                List
+                                                                                                                                  Rational) ->
+                                                                                                                              Cons
+                                                                                                                                {Rational}
+                                                                                                                                ds
+                                                                                                                                ds)
+                                                                                                                           (Nil
+                                                                                                                              {Rational})))
+                                                                                                                     (c
+                                                                                                                        (Tuple2
+                                                                                                                           {PredKey}
+                                                                                                                           {List
+                                                                                                                              Rational}
+                                                                                                                           MaxValue
+                                                                                                                           ((let
+                                                                                                                                a
+                                                                                                                                  = List
+                                                                                                                                      Rational
+                                                                                                                              in
+                                                                                                                              \(c :
+                                                                                                                                  Rational ->
+                                                                                                                                  a ->
+                                                                                                                                  a)
+                                                                                                                               (n :
+                                                                                                                                  a) ->
+                                                                                                                                c
+                                                                                                                                  (unsafeRatio
+                                                                                                                                     1
+                                                                                                                                     1)
+                                                                                                                                  (c
+                                                                                                                                     (unsafeRatio
+                                                                                                                                        3
+                                                                                                                                        4)
+                                                                                                                                     n))
+                                                                                                                              (\(ds :
+                                                                                                                                   Rational)
+                                                                                                                                (ds :
+                                                                                                                                   List
+                                                                                                                                     Rational) ->
+                                                                                                                                 Cons
+                                                                                                                                   {Rational}
+                                                                                                                                   ds
+                                                                                                                                   ds)
+                                                                                                                              (Nil
+                                                                                                                                 {Rational})))
+                                                                                                                        n))))
+                                                                                                        (c
+                                                                                                           (ParamRational
+                                                                                                              ((let
+                                                                                                                   a
+                                                                                                                     = Tuple2
+                                                                                                                         PredKey
+                                                                                                                         (List
+                                                                                                                            Rational)
+                                                                                                                 in
+                                                                                                                 \(g :
+                                                                                                                     all b.
+                                                                                                                       (a ->
+                                                                                                                        b ->
+                                                                                                                        b) ->
+                                                                                                                       b ->
+                                                                                                                       b) ->
+                                                                                                                   g
+                                                                                                                     {List
+                                                                                                                        a}
+                                                                                                                     (\(ds :
+                                                                                                                          a)
+                                                                                                                       (ds :
+                                                                                                                          List
+                                                                                                                            a) ->
+                                                                                                                        Cons
+                                                                                                                          {a}
+                                                                                                                          ds
+                                                                                                                          ds)
+                                                                                                                     (Nil
+                                                                                                                        {a}))
+                                                                                                                 (/\a ->
+                                                                                                                    \(c :
+                                                                                                                        Tuple2
+                                                                                                                          PredKey
+                                                                                                                          (List
+                                                                                                                             Rational) ->
+                                                                                                                        a ->
+                                                                                                                        a)
+                                                                                                                     (n :
+                                                                                                                        a) ->
+                                                                                                                      c
+                                                                                                                        (Tuple2
+                                                                                                                           {PredKey}
+                                                                                                                           {List
+                                                                                                                              Rational}
+                                                                                                                           MinValue
+                                                                                                                           ((let
+                                                                                                                                a
+                                                                                                                                  = List
+                                                                                                                                      Rational
+                                                                                                                              in
+                                                                                                                              \(c :
+                                                                                                                                  Rational ->
+                                                                                                                                  a ->
+                                                                                                                                  a)
+                                                                                                                               (n :
+                                                                                                                                  a) ->
+                                                                                                                                c
+                                                                                                                                  (unsafeRatio
+                                                                                                                                     1
+                                                                                                                                     2)
+                                                                                                                                  (c
+                                                                                                                                     (unsafeRatio
+                                                                                                                                        51
+                                                                                                                                        100)
+                                                                                                                                     n))
+                                                                                                                              (\(ds :
+                                                                                                                                   Rational)
+                                                                                                                                (ds :
+                                                                                                                                   List
+                                                                                                                                     Rational) ->
+                                                                                                                                 Cons
+                                                                                                                                   {Rational}
+                                                                                                                                   ds
+                                                                                                                                   ds)
+                                                                                                                              (Nil
+                                                                                                                                 {Rational})))
+                                                                                                                        (c
+                                                                                                                           (Tuple2
+                                                                                                                              {PredKey}
+                                                                                                                              {List
+                                                                                                                                 Rational}
+                                                                                                                              MaxValue
+                                                                                                                              ((let
+                                                                                                                                   a
+                                                                                                                                     = List
+                                                                                                                                         Rational
+                                                                                                                                 in
+                                                                                                                                 \(c :
+                                                                                                                                     Rational ->
+                                                                                                                                     a ->
+                                                                                                                                     a)
+                                                                                                                                  (n :
+                                                                                                                                     a) ->
+                                                                                                                                   c
+                                                                                                                                     (unsafeRatio
+                                                                                                                                        1
+                                                                                                                                        1)
+                                                                                                                                     (c
+                                                                                                                                        (unsafeRatio
+                                                                                                                                           9
+                                                                                                                                           10)
+                                                                                                                                        n))
+                                                                                                                                 (\(ds :
+                                                                                                                                      Rational)
+                                                                                                                                   (ds :
+                                                                                                                                      List
+                                                                                                                                        Rational) ->
+                                                                                                                                    Cons
+                                                                                                                                      {Rational}
+                                                                                                                                      ds
+                                                                                                                                      ds)
+                                                                                                                                 (Nil
+                                                                                                                                    {Rational})))
+                                                                                                                           n))))
+                                                                                                           (c
+                                                                                                              (ParamRational
+                                                                                                                 ((let
+                                                                                                                      a
+                                                                                                                        = Tuple2
+                                                                                                                            PredKey
+                                                                                                                            (List
+                                                                                                                               Rational)
+                                                                                                                    in
+                                                                                                                    \(g :
+                                                                                                                        all b.
+                                                                                                                          (a ->
+                                                                                                                           b ->
+                                                                                                                           b) ->
+                                                                                                                          b ->
+                                                                                                                          b) ->
+                                                                                                                      g
+                                                                                                                        {List
+                                                                                                                           a}
+                                                                                                                        (\(ds :
+                                                                                                                             a)
+                                                                                                                          (ds :
+                                                                                                                             List
+                                                                                                                               a) ->
+                                                                                                                           Cons
+                                                                                                                             {a}
+                                                                                                                             ds
+                                                                                                                             ds)
+                                                                                                                        (Nil
+                                                                                                                           {a}))
+                                                                                                                    (/\a ->
+                                                                                                                       \(c :
+                                                                                                                           Tuple2
+                                                                                                                             PredKey
+                                                                                                                             (List
+                                                                                                                                Rational) ->
+                                                                                                                           a ->
+                                                                                                                           a)
+                                                                                                                        (n :
+                                                                                                                           a) ->
+                                                                                                                         c
+                                                                                                                           (Tuple2
+                                                                                                                              {PredKey}
+                                                                                                                              {List
+                                                                                                                                 Rational}
+                                                                                                                              MinValue
+                                                                                                                              ((let
+                                                                                                                                   a
+                                                                                                                                     = List
+                                                                                                                                         Rational
+                                                                                                                                 in
+                                                                                                                                 \(c :
+                                                                                                                                     Rational ->
+                                                                                                                                     a ->
+                                                                                                                                     a)
+                                                                                                                                  (n :
+                                                                                                                                     a) ->
+                                                                                                                                   c
+                                                                                                                                     (unsafeRatio
+                                                                                                                                        1
+                                                                                                                                        2)
+                                                                                                                                     (c
+                                                                                                                                        (unsafeRatio
+                                                                                                                                           51
+                                                                                                                                           100)
+                                                                                                                                        n))
+                                                                                                                                 (\(ds :
+                                                                                                                                      Rational)
+                                                                                                                                   (ds :
+                                                                                                                                      List
+                                                                                                                                        Rational) ->
+                                                                                                                                    Cons
+                                                                                                                                      {Rational}
+                                                                                                                                      ds
+                                                                                                                                      ds)
+                                                                                                                                 (Nil
+                                                                                                                                    {Rational})))
+                                                                                                                           (c
+                                                                                                                              (Tuple2
+                                                                                                                                 {PredKey}
+                                                                                                                                 {List
+                                                                                                                                    Rational}
+                                                                                                                                 MaxValue
+                                                                                                                                 ((let
+                                                                                                                                      a
+                                                                                                                                        = List
+                                                                                                                                            Rational
+                                                                                                                                    in
+                                                                                                                                    \(c :
+                                                                                                                                        Rational ->
+                                                                                                                                        a ->
+                                                                                                                                        a)
+                                                                                                                                     (n :
+                                                                                                                                        a) ->
+                                                                                                                                      c
+                                                                                                                                        (unsafeRatio
+                                                                                                                                           1
+                                                                                                                                           1)
+                                                                                                                                        (c
+                                                                                                                                           (unsafeRatio
+                                                                                                                                              9
+                                                                                                                                              10)
+                                                                                                                                           n))
+                                                                                                                                    (\(ds :
+                                                                                                                                         Rational)
+                                                                                                                                      (ds :
+                                                                                                                                         List
+                                                                                                                                           Rational) ->
+                                                                                                                                       Cons
+                                                                                                                                         {Rational}
+                                                                                                                                         ds
+                                                                                                                                         ds)
+                                                                                                                                    (Nil
+                                                                                                                                       {Rational})))
+                                                                                                                              n))))
+                                                                                                              (c
+                                                                                                                 (ParamRational
+                                                                                                                    ((let
+                                                                                                                         a
+                                                                                                                           = Tuple2
+                                                                                                                               PredKey
+                                                                                                                               (List
+                                                                                                                                  Rational)
+                                                                                                                       in
+                                                                                                                       \(g :
+                                                                                                                           all b.
+                                                                                                                             (a ->
+                                                                                                                              b ->
+                                                                                                                              b) ->
+                                                                                                                             b ->
+                                                                                                                             b) ->
+                                                                                                                         g
+                                                                                                                           {List
+                                                                                                                              a}
+                                                                                                                           (\(ds :
+                                                                                                                                a)
+                                                                                                                             (ds :
+                                                                                                                                List
+                                                                                                                                  a) ->
+                                                                                                                              Cons
+                                                                                                                                {a}
+                                                                                                                                ds
+                                                                                                                                ds)
+                                                                                                                           (Nil
+                                                                                                                              {a}))
+                                                                                                                       (/\a ->
+                                                                                                                          \(c :
+                                                                                                                              Tuple2
+                                                                                                                                PredKey
+                                                                                                                                (List
+                                                                                                                                   Rational) ->
+                                                                                                                              a ->
+                                                                                                                              a)
+                                                                                                                           (n :
+                                                                                                                              a) ->
+                                                                                                                            c
+                                                                                                                              (Tuple2
+                                                                                                                                 {PredKey}
+                                                                                                                                 {List
+                                                                                                                                    Rational}
+                                                                                                                                 MinValue
+                                                                                                                                 ((let
+                                                                                                                                      a
+                                                                                                                                        = List
+                                                                                                                                            Rational
+                                                                                                                                    in
+                                                                                                                                    \(c :
+                                                                                                                                        Rational ->
+                                                                                                                                        a ->
+                                                                                                                                        a)
+                                                                                                                                     (n :
+                                                                                                                                        a) ->
+                                                                                                                                      c
+                                                                                                                                        (unsafeRatio
+                                                                                                                                           1
+                                                                                                                                           2)
+                                                                                                                                        (c
+                                                                                                                                           (unsafeRatio
+                                                                                                                                              13
+                                                                                                                                              20)
+                                                                                                                                           n))
+                                                                                                                                    (\(ds :
+                                                                                                                                         Rational)
+                                                                                                                                      (ds :
+                                                                                                                                         List
+                                                                                                                                           Rational) ->
+                                                                                                                                       Cons
+                                                                                                                                         {Rational}
+                                                                                                                                         ds
+                                                                                                                                         ds)
+                                                                                                                                    (Nil
+                                                                                                                                       {Rational})))
+                                                                                                                              (c
+                                                                                                                                 (Tuple2
+                                                                                                                                    {PredKey}
+                                                                                                                                    {List
+                                                                                                                                       Rational}
+                                                                                                                                    MaxValue
+                                                                                                                                    ((let
+                                                                                                                                         a
+                                                                                                                                           = List
+                                                                                                                                               Rational
+                                                                                                                                       in
+                                                                                                                                       \(c :
+                                                                                                                                           Rational ->
+                                                                                                                                           a ->
+                                                                                                                                           a)
+                                                                                                                                        (n :
+                                                                                                                                           a) ->
+                                                                                                                                         c
+                                                                                                                                           (unsafeRatio
+                                                                                                                                              1
+                                                                                                                                              1)
+                                                                                                                                           (c
+                                                                                                                                              (unsafeRatio
+                                                                                                                                                 9
+                                                                                                                                                 10)
+                                                                                                                                              n))
+                                                                                                                                       (\(ds :
+                                                                                                                                            Rational)
+                                                                                                                                         (ds :
+                                                                                                                                            List
+                                                                                                                                              Rational) ->
+                                                                                                                                          Cons
+                                                                                                                                            {Rational}
+                                                                                                                                            ds
+                                                                                                                                            ds)
+                                                                                                                                       (Nil
+                                                                                                                                          {Rational})))
+                                                                                                                                 n))))
+                                                                                                                 (c
+                                                                                                                    (ParamRational
+                                                                                                                       ((let
+                                                                                                                            a
+                                                                                                                              = Tuple2
+                                                                                                                                  PredKey
+                                                                                                                                  (List
+                                                                                                                                     Rational)
+                                                                                                                          in
+                                                                                                                          \(g :
+                                                                                                                              all b.
+                                                                                                                                (a ->
+                                                                                                                                 b ->
+                                                                                                                                 b) ->
+                                                                                                                                b ->
+                                                                                                                                b) ->
+                                                                                                                            g
+                                                                                                                              {List
+                                                                                                                                 a}
+                                                                                                                              (\(ds :
+                                                                                                                                   a)
+                                                                                                                                (ds :
+                                                                                                                                   List
+                                                                                                                                     a) ->
+                                                                                                                                 Cons
+                                                                                                                                   {a}
+                                                                                                                                   ds
+                                                                                                                                   ds)
+                                                                                                                              (Nil
+                                                                                                                                 {a}))
+                                                                                                                          (/\a ->
+                                                                                                                             \(c :
+                                                                                                                                 Tuple2
+                                                                                                                                   PredKey
+                                                                                                                                   (List
+                                                                                                                                      Rational) ->
+                                                                                                                                 a ->
+                                                                                                                                 a)
+                                                                                                                              (n :
+                                                                                                                                 a) ->
+                                                                                                                               c
+                                                                                                                                 (Tuple2
+                                                                                                                                    {PredKey}
+                                                                                                                                    {List
+                                                                                                                                       Rational}
+                                                                                                                                    MinValue
+                                                                                                                                    ((let
+                                                                                                                                         a
+                                                                                                                                           = List
+                                                                                                                                               Rational
+                                                                                                                                       in
+                                                                                                                                       \(c :
+                                                                                                                                           Rational ->
+                                                                                                                                           a ->
+                                                                                                                                           a)
+                                                                                                                                        (n :
+                                                                                                                                           a) ->
+                                                                                                                                         c
+                                                                                                                                           (unsafeRatio
+                                                                                                                                              1
+                                                                                                                                              2)
+                                                                                                                                           (c
+                                                                                                                                              (unsafeRatio
+                                                                                                                                                 51
+                                                                                                                                                 100)
+                                                                                                                                              n))
+                                                                                                                                       (\(ds :
+                                                                                                                                            Rational)
+                                                                                                                                         (ds :
+                                                                                                                                            List
+                                                                                                                                              Rational) ->
+                                                                                                                                          Cons
+                                                                                                                                            {Rational}
+                                                                                                                                            ds
+                                                                                                                                            ds)
+                                                                                                                                       (Nil
+                                                                                                                                          {Rational})))
+                                                                                                                                 (c
+                                                                                                                                    (Tuple2
+                                                                                                                                       {PredKey}
+                                                                                                                                       {List
+                                                                                                                                          Rational}
+                                                                                                                                       MaxValue
+                                                                                                                                       ((let
+                                                                                                                                            a
+                                                                                                                                              = List
+                                                                                                                                                  Rational
+                                                                                                                                          in
+                                                                                                                                          \(c :
+                                                                                                                                              Rational ->
+                                                                                                                                              a ->
+                                                                                                                                              a)
+                                                                                                                                           (n :
+                                                                                                                                              a) ->
+                                                                                                                                            c
+                                                                                                                                              (unsafeRatio
+                                                                                                                                                 1
+                                                                                                                                                 1)
+                                                                                                                                              (c
+                                                                                                                                                 (unsafeRatio
+                                                                                                                                                    4
+                                                                                                                                                    5)
+                                                                                                                                                 n))
+                                                                                                                                          (\(ds :
+                                                                                                                                               Rational)
+                                                                                                                                            (ds :
+                                                                                                                                               List
+                                                                                                                                                 Rational) ->
+                                                                                                                                             Cons
+                                                                                                                                               {Rational}
+                                                                                                                                               ds
+                                                                                                                                               ds)
+                                                                                                                                          (Nil
+                                                                                                                                             {Rational})))
+                                                                                                                                    n))))
+                                                                                                                    (c
+                                                                                                                       (ParamRational
+                                                                                                                          ((let
+                                                                                                                               a
+                                                                                                                                 = Tuple2
+                                                                                                                                     PredKey
+                                                                                                                                     (List
+                                                                                                                                        Rational)
+                                                                                                                             in
+                                                                                                                             \(g :
+                                                                                                                                 all b.
+                                                                                                                                   (a ->
+                                                                                                                                    b ->
+                                                                                                                                    b) ->
+                                                                                                                                   b ->
+                                                                                                                                   b) ->
+                                                                                                                               g
+                                                                                                                                 {List
+                                                                                                                                    a}
+                                                                                                                                 (\(ds :
+                                                                                                                                      a)
+                                                                                                                                   (ds :
+                                                                                                                                      List
+                                                                                                                                        a) ->
+                                                                                                                                    Cons
+                                                                                                                                      {a}
+                                                                                                                                      ds
+                                                                                                                                      ds)
+                                                                                                                                 (Nil
+                                                                                                                                    {a}))
+                                                                                                                             (/\a ->
+                                                                                                                                \(c :
+                                                                                                                                    Tuple2
+                                                                                                                                      PredKey
+                                                                                                                                      (List
+                                                                                                                                         Rational) ->
+                                                                                                                                    a ->
+                                                                                                                                    a)
+                                                                                                                                 (n :
+                                                                                                                                    a) ->
+                                                                                                                                  c
+                                                                                                                                    (Tuple2
+                                                                                                                                       {PredKey}
+                                                                                                                                       {List
+                                                                                                                                          Rational}
+                                                                                                                                       MinValue
+                                                                                                                                       ((let
+                                                                                                                                            a
+                                                                                                                                              = List
+                                                                                                                                                  Rational
+                                                                                                                                          in
+                                                                                                                                          \(c :
+                                                                                                                                              Rational ->
+                                                                                                                                              a ->
+                                                                                                                                              a)
+                                                                                                                                           (n :
+                                                                                                                                              a) ->
+                                                                                                                                            c
+                                                                                                                                              (unsafeRatio
+                                                                                                                                                 1
+                                                                                                                                                 2)
+                                                                                                                                              (c
+                                                                                                                                                 (unsafeRatio
+                                                                                                                                                    51
+                                                                                                                                                    100)
+                                                                                                                                                 n))
+                                                                                                                                          (\(ds :
+                                                                                                                                               Rational)
+                                                                                                                                            (ds :
+                                                                                                                                               List
+                                                                                                                                                 Rational) ->
+                                                                                                                                             Cons
+                                                                                                                                               {Rational}
+                                                                                                                                               ds
+                                                                                                                                               ds)
+                                                                                                                                          (Nil
+                                                                                                                                             {Rational})))
+                                                                                                                                    (c
+                                                                                                                                       (Tuple2
+                                                                                                                                          {PredKey}
+                                                                                                                                          {List
+                                                                                                                                             Rational}
+                                                                                                                                          MaxValue
+                                                                                                                                          ((let
+                                                                                                                                               a
+                                                                                                                                                 = List
+                                                                                                                                                     Rational
+                                                                                                                                             in
+                                                                                                                                             \(c :
+                                                                                                                                                 Rational ->
+                                                                                                                                                 a ->
+                                                                                                                                                 a)
+                                                                                                                                              (n :
+                                                                                                                                                 a) ->
+                                                                                                                                               c
+                                                                                                                                                 (unsafeRatio
+                                                                                                                                                    1
+                                                                                                                                                    1)
+                                                                                                                                                 (c
+                                                                                                                                                    (unsafeRatio
+                                                                                                                                                       3
+                                                                                                                                                       4)
+                                                                                                                                                    n))
+                                                                                                                                             (\(ds :
+                                                                                                                                                  Rational)
+                                                                                                                                               (ds :
+                                                                                                                                                  List
+                                                                                                                                                    Rational) ->
+                                                                                                                                                Cons
+                                                                                                                                                  {Rational}
+                                                                                                                                                  ds
+                                                                                                                                                  ds)
+                                                                                                                                             (Nil
+                                                                                                                                                {Rational})))
+                                                                                                                                       n))))
+                                                                                                                       (c
+                                                                                                                          (ParamRational
+                                                                                                                             ((let
+                                                                                                                                  a
+                                                                                                                                    = Tuple2
+                                                                                                                                        PredKey
+                                                                                                                                        (List
+                                                                                                                                           Rational)
+                                                                                                                                in
+                                                                                                                                \(g :
+                                                                                                                                    all b.
+                                                                                                                                      (a ->
+                                                                                                                                       b ->
+                                                                                                                                       b) ->
+                                                                                                                                      b ->
+                                                                                                                                      b) ->
+                                                                                                                                  g
+                                                                                                                                    {List
+                                                                                                                                       a}
+                                                                                                                                    (\(ds :
+                                                                                                                                         a)
+                                                                                                                                      (ds :
+                                                                                                                                         List
+                                                                                                                                           a) ->
+                                                                                                                                       Cons
+                                                                                                                                         {a}
+                                                                                                                                         ds
+                                                                                                                                         ds)
+                                                                                                                                    (Nil
+                                                                                                                                       {a}))
+                                                                                                                                (/\a ->
+                                                                                                                                   \(c :
+                                                                                                                                       Tuple2
+                                                                                                                                         PredKey
+                                                                                                                                         (List
+                                                                                                                                            Rational) ->
+                                                                                                                                       a ->
+                                                                                                                                       a)
+                                                                                                                                    (n :
+                                                                                                                                       a) ->
+                                                                                                                                     c
+                                                                                                                                       (Tuple2
+                                                                                                                                          {PredKey}
+                                                                                                                                          {List
+                                                                                                                                             Rational}
+                                                                                                                                          MinValue
+                                                                                                                                          ((let
+                                                                                                                                               a
+                                                                                                                                                 = List
+                                                                                                                                                     Rational
+                                                                                                                                             in
+                                                                                                                                             \(c :
+                                                                                                                                                 Rational ->
+                                                                                                                                                 a ->
+                                                                                                                                                 a)
+                                                                                                                                              (n :
+                                                                                                                                                 a) ->
+                                                                                                                                               c
+                                                                                                                                                 (unsafeRatio
+                                                                                                                                                    1
+                                                                                                                                                    2)
+                                                                                                                                                 (c
+                                                                                                                                                    (unsafeRatio
+                                                                                                                                                       51
+                                                                                                                                                       100)
+                                                                                                                                                    n))
+                                                                                                                                             (\(ds :
+                                                                                                                                                  Rational)
+                                                                                                                                               (ds :
+                                                                                                                                                  List
+                                                                                                                                                    Rational) ->
+                                                                                                                                                Cons
+                                                                                                                                                  {Rational}
+                                                                                                                                                  ds
+                                                                                                                                                  ds)
+                                                                                                                                             (Nil
+                                                                                                                                                {Rational})))
+                                                                                                                                       (c
+                                                                                                                                          (Tuple2
+                                                                                                                                             {PredKey}
+                                                                                                                                             {List
+                                                                                                                                                Rational}
+                                                                                                                                             MaxValue
+                                                                                                                                             ((let
+                                                                                                                                                  a
+                                                                                                                                                    = List
+                                                                                                                                                        Rational
+                                                                                                                                                in
+                                                                                                                                                \(c :
+                                                                                                                                                    Rational ->
+                                                                                                                                                    a ->
+                                                                                                                                                    a)
+                                                                                                                                                 (n :
+                                                                                                                                                    a) ->
+                                                                                                                                                  c
+                                                                                                                                                    (unsafeRatio
+                                                                                                                                                       1
+                                                                                                                                                       1)
+                                                                                                                                                    (c
+                                                                                                                                                       (unsafeRatio
+                                                                                                                                                          3
+                                                                                                                                                          4)
+                                                                                                                                                       n))
+                                                                                                                                                (\(ds :
+                                                                                                                                                     Rational)
+                                                                                                                                                  (ds :
+                                                                                                                                                     List
+                                                                                                                                                       Rational) ->
+                                                                                                                                                   Cons
+                                                                                                                                                     {Rational}
+                                                                                                                                                     ds
+                                                                                                                                                     ds)
+                                                                                                                                                (Nil
+                                                                                                                                                   {Rational})))
+                                                                                                                                          n))))
+                                                                                                                          (c
+                                                                                                                             (ParamRational
+                                                                                                                                ((let
+                                                                                                                                     a
+                                                                                                                                       = Tuple2
+                                                                                                                                           PredKey
+                                                                                                                                           (List
+                                                                                                                                              Rational)
+                                                                                                                                   in
+                                                                                                                                   \(g :
+                                                                                                                                       all b.
+                                                                                                                                         (a ->
+                                                                                                                                          b ->
+                                                                                                                                          b) ->
+                                                                                                                                         b ->
+                                                                                                                                         b) ->
+                                                                                                                                     g
+                                                                                                                                       {List
+                                                                                                                                          a}
+                                                                                                                                       (\(ds :
+                                                                                                                                            a)
+                                                                                                                                         (ds :
+                                                                                                                                            List
+                                                                                                                                              a) ->
+                                                                                                                                          Cons
+                                                                                                                                            {a}
+                                                                                                                                            ds
+                                                                                                                                            ds)
+                                                                                                                                       (Nil
+                                                                                                                                          {a}))
+                                                                                                                                   (/\a ->
+                                                                                                                                      \(c :
+                                                                                                                                          Tuple2
+                                                                                                                                            PredKey
+                                                                                                                                            (List
+                                                                                                                                               Rational) ->
+                                                                                                                                          a ->
+                                                                                                                                          a)
+                                                                                                                                       (n :
+                                                                                                                                          a) ->
+                                                                                                                                        c
+                                                                                                                                          (Tuple2
+                                                                                                                                             {PredKey}
+                                                                                                                                             {List
+                                                                                                                                                Rational}
+                                                                                                                                             MinValue
+                                                                                                                                             ((let
+                                                                                                                                                  a
+                                                                                                                                                    = List
+                                                                                                                                                        Rational
+                                                                                                                                                in
+                                                                                                                                                \(c :
+                                                                                                                                                    Rational ->
+                                                                                                                                                    a ->
+                                                                                                                                                    a)
+                                                                                                                                                 (n :
+                                                                                                                                                    a) ->
+                                                                                                                                                  c
+                                                                                                                                                    (unsafeRatio
+                                                                                                                                                       1
+                                                                                                                                                       2)
+                                                                                                                                                    (c
+                                                                                                                                                       (unsafeRatio
+                                                                                                                                                          51
+                                                                                                                                                          100)
+                                                                                                                                                       n))
+                                                                                                                                                (\(ds :
+                                                                                                                                                     Rational)
+                                                                                                                                                  (ds :
+                                                                                                                                                     List
+                                                                                                                                                       Rational) ->
+                                                                                                                                                   Cons
+                                                                                                                                                     {Rational}
+                                                                                                                                                     ds
+                                                                                                                                                     ds)
+                                                                                                                                                (Nil
+                                                                                                                                                   {Rational})))
+                                                                                                                                          (c
+                                                                                                                                             (Tuple2
+                                                                                                                                                {PredKey}
+                                                                                                                                                {List
+                                                                                                                                                   Rational}
+                                                                                                                                                MaxValue
+                                                                                                                                                ((let
+                                                                                                                                                     a
+                                                                                                                                                       = List
+                                                                                                                                                           Rational
+                                                                                                                                                   in
+                                                                                                                                                   \(c :
+                                                                                                                                                       Rational ->
+                                                                                                                                                       a ->
+                                                                                                                                                       a)
+                                                                                                                                                    (n :
+                                                                                                                                                       a) ->
+                                                                                                                                                     c
+                                                                                                                                                       (unsafeRatio
+                                                                                                                                                          1
+                                                                                                                                                          1)
+                                                                                                                                                       (c
+                                                                                                                                                          (unsafeRatio
+                                                                                                                                                             3
+                                                                                                                                                             4)
+                                                                                                                                                          n))
+                                                                                                                                                   (\(ds :
+                                                                                                                                                        Rational)
+                                                                                                                                                     (ds :
+                                                                                                                                                        List
+                                                                                                                                                          Rational) ->
+                                                                                                                                                      Cons
+                                                                                                                                                        {Rational}
+                                                                                                                                                        ds
+                                                                                                                                                        ds)
+                                                                                                                                                   (Nil
+                                                                                                                                                      {Rational})))
+                                                                                                                                             n))))
+                                                                                                                             (c
+                                                                                                                                (ParamRational
+                                                                                                                                   ((let
+                                                                                                                                        a
+                                                                                                                                          = Tuple2
+                                                                                                                                              PredKey
+                                                                                                                                              (List
+                                                                                                                                                 Rational)
+                                                                                                                                      in
+                                                                                                                                      \(g :
+                                                                                                                                          all b.
+                                                                                                                                            (a ->
+                                                                                                                                             b ->
+                                                                                                                                             b) ->
+                                                                                                                                            b ->
+                                                                                                                                            b) ->
+                                                                                                                                        g
+                                                                                                                                          {List
+                                                                                                                                             a}
+                                                                                                                                          (\(ds :
+                                                                                                                                               a)
+                                                                                                                                            (ds :
+                                                                                                                                               List
+                                                                                                                                                 a) ->
+                                                                                                                                             Cons
+                                                                                                                                               {a}
+                                                                                                                                               ds
+                                                                                                                                               ds)
+                                                                                                                                          (Nil
+                                                                                                                                             {a}))
+                                                                                                                                      (/\a ->
+                                                                                                                                         \(c :
+                                                                                                                                             Tuple2
+                                                                                                                                               PredKey
+                                                                                                                                               (List
+                                                                                                                                                  Rational) ->
+                                                                                                                                             a ->
+                                                                                                                                             a)
+                                                                                                                                          (n :
+                                                                                                                                             a) ->
+                                                                                                                                           c
+                                                                                                                                             (Tuple2
+                                                                                                                                                {PredKey}
+                                                                                                                                                {List
+                                                                                                                                                   Rational}
+                                                                                                                                                MinValue
+                                                                                                                                                ((let
+                                                                                                                                                     a
+                                                                                                                                                       = List
+                                                                                                                                                           Rational
+                                                                                                                                                   in
+                                                                                                                                                   \(c :
+                                                                                                                                                       Rational ->
+                                                                                                                                                       a ->
+                                                                                                                                                       a)
+                                                                                                                                                    (n :
+                                                                                                                                                       a) ->
+                                                                                                                                                     c
+                                                                                                                                                       (unsafeRatio
+                                                                                                                                                          1
+                                                                                                                                                          2)
+                                                                                                                                                       (c
+                                                                                                                                                          (unsafeRatio
+                                                                                                                                                             3
+                                                                                                                                                             4)
+                                                                                                                                                          n))
+                                                                                                                                                   (\(ds :
+                                                                                                                                                        Rational)
+                                                                                                                                                     (ds :
+                                                                                                                                                        List
+                                                                                                                                                          Rational) ->
+                                                                                                                                                      Cons
+                                                                                                                                                        {Rational}
+                                                                                                                                                        ds
+                                                                                                                                                        ds)
+                                                                                                                                                   (Nil
+                                                                                                                                                      {Rational})))
+                                                                                                                                             (c
+                                                                                                                                                (Tuple2
+                                                                                                                                                   {PredKey}
+                                                                                                                                                   {List
+                                                                                                                                                      Rational}
+                                                                                                                                                   MaxValue
+                                                                                                                                                   ((let
+                                                                                                                                                        a
+                                                                                                                                                          = List
+                                                                                                                                                              Rational
+                                                                                                                                                      in
+                                                                                                                                                      \(c :
+                                                                                                                                                          Rational ->
+                                                                                                                                                          a ->
+                                                                                                                                                          a)
+                                                                                                                                                       (n :
+                                                                                                                                                          a) ->
+                                                                                                                                                        c
+                                                                                                                                                          (unsafeRatio
+                                                                                                                                                             1
+                                                                                                                                                             1)
+                                                                                                                                                          (c
+                                                                                                                                                             (unsafeRatio
+                                                                                                                                                                9
+                                                                                                                                                                10)
+                                                                                                                                                             n))
+                                                                                                                                                      (\(ds :
+                                                                                                                                                           Rational)
+                                                                                                                                                        (ds :
+                                                                                                                                                           List
+                                                                                                                                                             Rational) ->
+                                                                                                                                                         Cons
+                                                                                                                                                           {Rational}
+                                                                                                                                                           ds
+                                                                                                                                                           ds)
+                                                                                                                                                      (Nil
+                                                                                                                                                         {Rational})))
+                                                                                                                                                n))))
+                                                                                                                                (c
+                                                                                                                                   (ParamRational
+                                                                                                                                      ((let
+                                                                                                                                           a
+                                                                                                                                             = Tuple2
+                                                                                                                                                 PredKey
+                                                                                                                                                 (List
+                                                                                                                                                    Rational)
+                                                                                                                                         in
+                                                                                                                                         \(g :
+                                                                                                                                             all b.
+                                                                                                                                               (a ->
+                                                                                                                                                b ->
+                                                                                                                                                b) ->
+                                                                                                                                               b ->
+                                                                                                                                               b) ->
+                                                                                                                                           g
+                                                                                                                                             {List
+                                                                                                                                                a}
+                                                                                                                                             (\(ds :
+                                                                                                                                                  a)
+                                                                                                                                               (ds :
+                                                                                                                                                  List
+                                                                                                                                                    a) ->
+                                                                                                                                                Cons
+                                                                                                                                                  {a}
+                                                                                                                                                  ds
+                                                                                                                                                  ds)
+                                                                                                                                             (Nil
+                                                                                                                                                {a}))
+                                                                                                                                         (/\a ->
+                                                                                                                                            \(c :
+                                                                                                                                                Tuple2
+                                                                                                                                                  PredKey
+                                                                                                                                                  (List
+                                                                                                                                                     Rational) ->
+                                                                                                                                                a ->
+                                                                                                                                                a)
+                                                                                                                                             (n :
+                                                                                                                                                a) ->
+                                                                                                                                              c
+                                                                                                                                                (Tuple2
+                                                                                                                                                   {PredKey}
+                                                                                                                                                   {List
+                                                                                                                                                      Rational}
+                                                                                                                                                   MinValue
+                                                                                                                                                   ((let
+                                                                                                                                                        a
+                                                                                                                                                          = List
+                                                                                                                                                              Rational
+                                                                                                                                                      in
+                                                                                                                                                      \(c :
+                                                                                                                                                          Rational ->
+                                                                                                                                                          a ->
+                                                                                                                                                          a)
+                                                                                                                                                       (n :
+                                                                                                                                                          a) ->
+                                                                                                                                                        c
+                                                                                                                                                          (unsafeRatio
+                                                                                                                                                             1
+                                                                                                                                                             2)
+                                                                                                                                                          n)
+                                                                                                                                                      (\(ds :
+                                                                                                                                                           Rational)
+                                                                                                                                                        (ds :
+                                                                                                                                                           List
+                                                                                                                                                             Rational) ->
+                                                                                                                                                         Cons
+                                                                                                                                                           {Rational}
+                                                                                                                                                           ds
+                                                                                                                                                           ds)
+                                                                                                                                                      (Nil
+                                                                                                                                                         {Rational})))
+                                                                                                                                                (c
+                                                                                                                                                   (Tuple2
+                                                                                                                                                      {PredKey}
+                                                                                                                                                      {List
+                                                                                                                                                         Rational}
+                                                                                                                                                      MaxValue
+                                                                                                                                                      ((let
+                                                                                                                                                           a
+                                                                                                                                                             = List
+                                                                                                                                                                 Rational
+                                                                                                                                                         in
+                                                                                                                                                         \(c :
+                                                                                                                                                             Rational ->
+                                                                                                                                                             a ->
+                                                                                                                                                             a)
+                                                                                                                                                          (n :
+                                                                                                                                                             a) ->
+                                                                                                                                                           c
+                                                                                                                                                             (unsafeRatio
+                                                                                                                                                                1
+                                                                                                                                                                1)
+                                                                                                                                                             n)
+                                                                                                                                                         (\(ds :
+                                                                                                                                                              Rational)
+                                                                                                                                                           (ds :
+                                                                                                                                                              List
+                                                                                                                                                                Rational) ->
+                                                                                                                                                            Cons
+                                                                                                                                                              {Rational}
+                                                                                                                                                              ds
+                                                                                                                                                              ds)
+                                                                                                                                                         (Nil
+                                                                                                                                                            {Rational})))
+                                                                                                                                                   n))))
+                                                                                                                                   n))))))))))
+                                                                                                    (\(ds :
+                                                                                                         ParamValue)
+                                                                                                      (ds :
+                                                                                                         List
+                                                                                                           ParamValue) ->
+                                                                                                       Cons
+                                                                                                         {ParamValue}
+                                                                                                         ds
+                                                                                                         ds)
+                                                                                                    (Nil
+                                                                                                       {ParamValue}))))
+                                                                                           (c
+                                                                                              (Tuple2
+                                                                                                 {integer}
+                                                                                                 {ParamValue}
+                                                                                                 27
+                                                                                                 (ParamInteger
+                                                                                                    ((let
+                                                                                                         a
+                                                                                                           = Tuple2
+                                                                                                               PredKey
+                                                                                                               (List
+                                                                                                                  integer)
+                                                                                                       in
+                                                                                                       \(g :
+                                                                                                           all b.
+                                                                                                             (a ->
+                                                                                                              b ->
+                                                                                                              b) ->
+                                                                                                             b ->
+                                                                                                             b) ->
+                                                                                                         g
+                                                                                                           {List
+                                                                                                              a}
+                                                                                                           (\(ds :
+                                                                                                                a)
+                                                                                                             (ds :
+                                                                                                                List
+                                                                                                                  a) ->
+                                                                                                              Cons
+                                                                                                                {a}
+                                                                                                                ds
+                                                                                                                ds)
+                                                                                                           (Nil
+                                                                                                              {a}))
+                                                                                                       (/\a ->
+                                                                                                          \(c :
+                                                                                                              Tuple2
+                                                                                                                PredKey
+                                                                                                                (List
+                                                                                                                   integer) ->
+                                                                                                              a ->
+                                                                                                              a)
+                                                                                                           (n :
+                                                                                                              a) ->
+                                                                                                            c
+                                                                                                              (Tuple2
+                                                                                                                 {PredKey}
+                                                                                                                 {List
+                                                                                                                    integer}
+                                                                                                                 MinValue
+                                                                                                                 ((let
+                                                                                                                      a
+                                                                                                                        = List
+                                                                                                                            integer
+                                                                                                                    in
+                                                                                                                    \(c :
+                                                                                                                        integer ->
+                                                                                                                        a ->
+                                                                                                                        a)
+                                                                                                                     (n :
+                                                                                                                        a) ->
+                                                                                                                      c
+                                                                                                                        0
+                                                                                                                        (c
+                                                                                                                           3
+                                                                                                                           n))
+                                                                                                                    (\(ds :
+                                                                                                                         integer)
+                                                                                                                      (ds :
+                                                                                                                         List
+                                                                                                                           integer) ->
+                                                                                                                       Cons
+                                                                                                                         {integer}
+                                                                                                                         ds
+                                                                                                                         ds)
+                                                                                                                    (Nil
+                                                                                                                       {integer})))
+                                                                                                              (c
+                                                                                                                 (Tuple2
+                                                                                                                    {PredKey}
+                                                                                                                    {List
+                                                                                                                       integer}
+                                                                                                                    MaxValue
+                                                                                                                    ((let
+                                                                                                                         a
+                                                                                                                           = List
+                                                                                                                               integer
+                                                                                                                       in
+                                                                                                                       \(c :
+                                                                                                                           integer ->
+                                                                                                                           a ->
+                                                                                                                           a)
+                                                                                                                        (n :
+                                                                                                                           a) ->
+                                                                                                                         c
+                                                                                                                           10
+                                                                                                                           n)
+                                                                                                                       (\(ds :
+                                                                                                                            integer)
+                                                                                                                         (ds :
+                                                                                                                            List
+                                                                                                                              integer) ->
+                                                                                                                          Cons
+                                                                                                                            {integer}
+                                                                                                                            ds
+                                                                                                                            ds)
+                                                                                                                       (Nil
+                                                                                                                          {integer})))
+                                                                                                                 n)))))
+                                                                                              (c
+                                                                                                 (Tuple2
+                                                                                                    {integer}
+                                                                                                    {ParamValue}
+                                                                                                    28
+                                                                                                    (ParamInteger
+                                                                                                       ((let
+                                                                                                            a
+                                                                                                              = Tuple2
+                                                                                                                  PredKey
+                                                                                                                  (List
+                                                                                                                     integer)
+                                                                                                          in
+                                                                                                          \(g :
+                                                                                                              all b.
+                                                                                                                (a ->
+                                                                                                                 b ->
+                                                                                                                 b) ->
+                                                                                                                b ->
+                                                                                                                b) ->
+                                                                                                            g
+                                                                                                              {List
+                                                                                                                 a}
+                                                                                                              (\(ds :
+                                                                                                                   a)
+                                                                                                                (ds :
+                                                                                                                   List
+                                                                                                                     a) ->
+                                                                                                                 Cons
+                                                                                                                   {a}
+                                                                                                                   ds
+                                                                                                                   ds)
+                                                                                                              (Nil
+                                                                                                                 {a}))
+                                                                                                          (/\a ->
+                                                                                                             \(c :
+                                                                                                                 Tuple2
+                                                                                                                   PredKey
+                                                                                                                   (List
+                                                                                                                      integer) ->
+                                                                                                                 a ->
+                                                                                                                 a)
+                                                                                                              (n :
+                                                                                                                 a) ->
+                                                                                                               c
+                                                                                                                 (Tuple2
+                                                                                                                    {PredKey}
+                                                                                                                    {List
+                                                                                                                       integer}
+                                                                                                                    MinValue
+                                                                                                                    ((let
+                                                                                                                         a
+                                                                                                                           = List
+                                                                                                                               integer
+                                                                                                                       in
+                                                                                                                       \(c :
+                                                                                                                           integer ->
+                                                                                                                           a ->
+                                                                                                                           a)
+                                                                                                                        (n :
+                                                                                                                           a) ->
+                                                                                                                         c
+                                                                                                                           0
+                                                                                                                           (c
+                                                                                                                              18
+                                                                                                                              n))
+                                                                                                                       (\(ds :
+                                                                                                                            integer)
+                                                                                                                         (ds :
+                                                                                                                            List
+                                                                                                                              integer) ->
+                                                                                                                          Cons
+                                                                                                                            {integer}
+                                                                                                                            ds
+                                                                                                                            ds)
+                                                                                                                       (Nil
+                                                                                                                          {integer})))
+                                                                                                                 (c
+                                                                                                                    (Tuple2
+                                                                                                                       {PredKey}
+                                                                                                                       {List
+                                                                                                                          integer}
+                                                                                                                       MaxValue
+                                                                                                                       ((let
+                                                                                                                            a
+                                                                                                                              = List
+                                                                                                                                  integer
+                                                                                                                          in
+                                                                                                                          \(c :
+                                                                                                                              integer ->
+                                                                                                                              a ->
+                                                                                                                              a)
+                                                                                                                           (n :
+                                                                                                                              a) ->
+                                                                                                                            c
+                                                                                                                              293
+                                                                                                                              n)
+                                                                                                                          (\(ds :
+                                                                                                                               integer)
+                                                                                                                            (ds :
+                                                                                                                               List
+                                                                                                                                 integer) ->
+                                                                                                                             Cons
+                                                                                                                               {integer}
+                                                                                                                               ds
+                                                                                                                               ds)
+                                                                                                                          (Nil
+                                                                                                                             {integer})))
+                                                                                                                    (c
+                                                                                                                       (Tuple2
+                                                                                                                          {PredKey}
+                                                                                                                          {List
+                                                                                                                             integer}
+                                                                                                                          NotEqual
+                                                                                                                          ((let
+                                                                                                                               a
+                                                                                                                                 = List
+                                                                                                                                     integer
+                                                                                                                             in
+                                                                                                                             \(c :
+                                                                                                                                 integer ->
+                                                                                                                                 a ->
+                                                                                                                                 a)
+                                                                                                                              (n :
+                                                                                                                                 a) ->
+                                                                                                                               c
+                                                                                                                                 0
+                                                                                                                                 n)
+                                                                                                                             (\(ds :
+                                                                                                                                  integer)
+                                                                                                                               (ds :
+                                                                                                                                  List
+                                                                                                                                    integer) ->
+                                                                                                                                Cons
+                                                                                                                                  {integer}
+                                                                                                                                  ds
+                                                                                                                                  ds)
+                                                                                                                             (Nil
+                                                                                                                                {integer})))
+                                                                                                                       n))))))
+                                                                                                 (c
+                                                                                                    (Tuple2
+                                                                                                       {integer}
+                                                                                                       {ParamValue}
+                                                                                                       29
+                                                                                                       (ParamInteger
+                                                                                                          ((let
+                                                                                                               a
+                                                                                                                 = Tuple2
+                                                                                                                     PredKey
+                                                                                                                     (List
+                                                                                                                        integer)
+                                                                                                             in
+                                                                                                             \(g :
+                                                                                                                 all b.
+                                                                                                                   (a ->
+                                                                                                                    b ->
+                                                                                                                    b) ->
+                                                                                                                   b ->
+                                                                                                                   b) ->
+                                                                                                               g
+                                                                                                                 {List
+                                                                                                                    a}
+                                                                                                                 (\(ds :
+                                                                                                                      a)
+                                                                                                                   (ds :
+                                                                                                                      List
+                                                                                                                        a) ->
+                                                                                                                    Cons
+                                                                                                                      {a}
+                                                                                                                      ds
+                                                                                                                      ds)
+                                                                                                                 (Nil
+                                                                                                                    {a}))
+                                                                                                             (/\a ->
+                                                                                                                \(c :
+                                                                                                                    Tuple2
+                                                                                                                      PredKey
+                                                                                                                      (List
+                                                                                                                         integer) ->
+                                                                                                                    a ->
+                                                                                                                    a)
+                                                                                                                 (n :
+                                                                                                                    a) ->
+                                                                                                                  c
+                                                                                                                    (Tuple2
+                                                                                                                       {PredKey}
+                                                                                                                       {List
+                                                                                                                          integer}
+                                                                                                                       MinValue
+                                                                                                                       ((let
+                                                                                                                            a
+                                                                                                                              = List
+                                                                                                                                  integer
+                                                                                                                          in
+                                                                                                                          \(c :
+                                                                                                                              integer ->
+                                                                                                                              a ->
+                                                                                                                              a)
+                                                                                                                           (n :
+                                                                                                                              a) ->
+                                                                                                                            c
+                                                                                                                              1
+                                                                                                                              n)
+                                                                                                                          (\(ds :
+                                                                                                                               integer)
+                                                                                                                            (ds :
+                                                                                                                               List
+                                                                                                                                 integer) ->
+                                                                                                                             Cons
+                                                                                                                               {integer}
+                                                                                                                               ds
+                                                                                                                               ds)
+                                                                                                                          (Nil
+                                                                                                                             {integer})))
+                                                                                                                    (c
+                                                                                                                       (Tuple2
+                                                                                                                          {PredKey}
+                                                                                                                          {List
+                                                                                                                             integer}
+                                                                                                                          MaxValue
+                                                                                                                          ((let
+                                                                                                                               a
+                                                                                                                                 = List
+                                                                                                                                     integer
+                                                                                                                             in
+                                                                                                                             \(c :
+                                                                                                                                 integer ->
+                                                                                                                                 a ->
+                                                                                                                                 a)
+                                                                                                                              (n :
+                                                                                                                                 a) ->
+                                                                                                                               c
+                                                                                                                                 15
+                                                                                                                                 n)
+                                                                                                                             (\(ds :
+                                                                                                                                  integer)
+                                                                                                                               (ds :
+                                                                                                                                  List
+                                                                                                                                    integer) ->
+                                                                                                                                Cons
+                                                                                                                                  {integer}
+                                                                                                                                  ds
+                                                                                                                                  ds)
+                                                                                                                             (Nil
+                                                                                                                                {integer})))
+                                                                                                                       n)))))
+                                                                                                    (c
+                                                                                                       (Tuple2
+                                                                                                          {integer}
+                                                                                                          {ParamValue}
+                                                                                                          30
+                                                                                                          (ParamInteger
+                                                                                                             ((let
+                                                                                                                  a
+                                                                                                                    = Tuple2
+                                                                                                                        PredKey
+                                                                                                                        (List
+                                                                                                                           integer)
+                                                                                                                in
+                                                                                                                \(g :
+                                                                                                                    all b.
+                                                                                                                      (a ->
+                                                                                                                       b ->
+                                                                                                                       b) ->
+                                                                                                                      b ->
+                                                                                                                      b) ->
+                                                                                                                  g
+                                                                                                                    {List
+                                                                                                                       a}
+                                                                                                                    (\(ds :
+                                                                                                                         a)
+                                                                                                                      (ds :
+                                                                                                                         List
+                                                                                                                           a) ->
+                                                                                                                       Cons
+                                                                                                                         {a}
+                                                                                                                         ds
+                                                                                                                         ds)
+                                                                                                                    (Nil
+                                                                                                                       {a}))
+                                                                                                                (/\a ->
+                                                                                                                   \(c :
+                                                                                                                       Tuple2
+                                                                                                                         PredKey
+                                                                                                                         (List
+                                                                                                                            integer) ->
+                                                                                                                       a ->
+                                                                                                                       a)
+                                                                                                                    (n :
+                                                                                                                       a) ->
+                                                                                                                     c
+                                                                                                                       (Tuple2
+                                                                                                                          {PredKey}
+                                                                                                                          {List
+                                                                                                                             integer}
+                                                                                                                          MinValue
+                                                                                                                          ((let
+                                                                                                                               a
+                                                                                                                                 = List
+                                                                                                                                     integer
+                                                                                                                             in
+                                                                                                                             \(c :
+                                                                                                                                 integer ->
+                                                                                                                                 a ->
+                                                                                                                                 a)
+                                                                                                                              (n :
+                                                                                                                                 a) ->
+                                                                                                                               c
+                                                                                                                                 0
+                                                                                                                                 (c
+                                                                                                                                    1000000
+                                                                                                                                    n))
+                                                                                                                             (\(ds :
+                                                                                                                                  integer)
+                                                                                                                               (ds :
+                                                                                                                                  List
+                                                                                                                                    integer) ->
+                                                                                                                                Cons
+                                                                                                                                  {integer}
+                                                                                                                                  ds
+                                                                                                                                  ds)
+                                                                                                                             (Nil
+                                                                                                                                {integer})))
+                                                                                                                       (c
+                                                                                                                          (Tuple2
+                                                                                                                             {PredKey}
+                                                                                                                             {List
+                                                                                                                                integer}
+                                                                                                                             MaxValue
+                                                                                                                             ((let
+                                                                                                                                  a
+                                                                                                                                    = List
+                                                                                                                                        integer
+                                                                                                                                in
+                                                                                                                                \(c :
+                                                                                                                                    integer ->
+                                                                                                                                    a ->
+                                                                                                                                    a)
+                                                                                                                                 (n :
+                                                                                                                                    a) ->
+                                                                                                                                  c
+                                                                                                                                    10000000000000
+                                                                                                                                    n)
+                                                                                                                                (\(ds :
+                                                                                                                                     integer)
+                                                                                                                                  (ds :
+                                                                                                                                     List
+                                                                                                                                       integer) ->
+                                                                                                                                   Cons
+                                                                                                                                     {integer}
+                                                                                                                                     ds
+                                                                                                                                     ds)
+                                                                                                                                (Nil
+                                                                                                                                   {integer})))
+                                                                                                                          n)))))
+                                                                                                       (c
+                                                                                                          (Tuple2
+                                                                                                             {integer}
+                                                                                                             {ParamValue}
+                                                                                                             31
+                                                                                                             (ParamInteger
+                                                                                                                ((let
+                                                                                                                     a
+                                                                                                                       = Tuple2
+                                                                                                                           PredKey
+                                                                                                                           (List
+                                                                                                                              integer)
+                                                                                                                   in
+                                                                                                                   \(g :
+                                                                                                                       all b.
+                                                                                                                         (a ->
+                                                                                                                          b ->
+                                                                                                                          b) ->
+                                                                                                                         b ->
+                                                                                                                         b) ->
+                                                                                                                     g
+                                                                                                                       {List
+                                                                                                                          a}
+                                                                                                                       (\(ds :
+                                                                                                                            a)
+                                                                                                                         (ds :
+                                                                                                                            List
+                                                                                                                              a) ->
+                                                                                                                          Cons
+                                                                                                                            {a}
+                                                                                                                            ds
+                                                                                                                            ds)
+                                                                                                                       (Nil
+                                                                                                                          {a}))
+                                                                                                                   (/\a ->
+                                                                                                                      \(c :
+                                                                                                                          Tuple2
+                                                                                                                            PredKey
+                                                                                                                            (List
+                                                                                                                               integer) ->
+                                                                                                                          a ->
+                                                                                                                          a)
+                                                                                                                       (n :
+                                                                                                                          a) ->
+                                                                                                                        c
+                                                                                                                          (Tuple2
+                                                                                                                             {PredKey}
+                                                                                                                             {List
+                                                                                                                                integer}
+                                                                                                                             MinValue
+                                                                                                                             ((let
+                                                                                                                                  a
+                                                                                                                                    = List
+                                                                                                                                        integer
+                                                                                                                                in
+                                                                                                                                \(c :
+                                                                                                                                    integer ->
+                                                                                                                                    a ->
+                                                                                                                                    a)
+                                                                                                                                 (n :
+                                                                                                                                    a) ->
+                                                                                                                                  c
+                                                                                                                                    0
+                                                                                                                                    (c
+                                                                                                                                       1000000
+                                                                                                                                       n))
+                                                                                                                                (\(ds :
+                                                                                                                                     integer)
+                                                                                                                                  (ds :
+                                                                                                                                     List
+                                                                                                                                       integer) ->
+                                                                                                                                   Cons
+                                                                                                                                     {integer}
+                                                                                                                                     ds
+                                                                                                                                     ds)
+                                                                                                                                (Nil
+                                                                                                                                   {integer})))
+                                                                                                                          (c
+                                                                                                                             (Tuple2
+                                                                                                                                {PredKey}
+                                                                                                                                {List
+                                                                                                                                   integer}
+                                                                                                                                MaxValue
+                                                                                                                                ((let
+                                                                                                                                     a
+                                                                                                                                       = List
+                                                                                                                                           integer
+                                                                                                                                   in
+                                                                                                                                   \(c :
+                                                                                                                                       integer ->
+                                                                                                                                       a ->
+                                                                                                                                       a)
+                                                                                                                                    (n :
+                                                                                                                                       a) ->
+                                                                                                                                     c
+                                                                                                                                       100000000000
+                                                                                                                                       n)
+                                                                                                                                   (\(ds :
+                                                                                                                                        integer)
+                                                                                                                                     (ds :
+                                                                                                                                        List
+                                                                                                                                          integer) ->
+                                                                                                                                      Cons
+                                                                                                                                        {integer}
+                                                                                                                                        ds
+                                                                                                                                        ds)
+                                                                                                                                   (Nil
+                                                                                                                                      {integer})))
+                                                                                                                             n)))))
+                                                                                                          (c
+                                                                                                             (Tuple2
+                                                                                                                {integer}
+                                                                                                                {ParamValue}
+                                                                                                                32
+                                                                                                                (ParamInteger
+                                                                                                                   ((let
+                                                                                                                        a
+                                                                                                                          = Tuple2
+                                                                                                                              PredKey
+                                                                                                                              (List
+                                                                                                                                 integer)
+                                                                                                                      in
+                                                                                                                      \(g :
+                                                                                                                          all b.
+                                                                                                                            (a ->
+                                                                                                                             b ->
+                                                                                                                             b) ->
+                                                                                                                            b ->
+                                                                                                                            b) ->
+                                                                                                                        g
+                                                                                                                          {List
+                                                                                                                             a}
+                                                                                                                          (\(ds :
+                                                                                                                               a)
+                                                                                                                            (ds :
+                                                                                                                               List
+                                                                                                                                 a) ->
+                                                                                                                             Cons
+                                                                                                                               {a}
+                                                                                                                               ds
+                                                                                                                               ds)
+                                                                                                                          (Nil
+                                                                                                                             {a}))
+                                                                                                                      (/\a ->
+                                                                                                                         \(c :
+                                                                                                                             Tuple2
+                                                                                                                               PredKey
+                                                                                                                               (List
+                                                                                                                                  integer) ->
+                                                                                                                             a ->
+                                                                                                                             a)
+                                                                                                                          (n :
+                                                                                                                             a) ->
+                                                                                                                           c
+                                                                                                                             (Tuple2
+                                                                                                                                {PredKey}
+                                                                                                                                {List
+                                                                                                                                   integer}
+                                                                                                                                MinValue
+                                                                                                                                ((let
+                                                                                                                                     a
+                                                                                                                                       = List
+                                                                                                                                           integer
+                                                                                                                                   in
+                                                                                                                                   \(c :
+                                                                                                                                       integer ->
+                                                                                                                                       a ->
+                                                                                                                                       a)
+                                                                                                                                    (n :
+                                                                                                                                       a) ->
+                                                                                                                                     c
+                                                                                                                                       13
+                                                                                                                                       (c
+                                                                                                                                          0
+                                                                                                                                          n))
+                                                                                                                                   (\(ds :
+                                                                                                                                        integer)
+                                                                                                                                     (ds :
+                                                                                                                                        List
+                                                                                                                                          integer) ->
+                                                                                                                                      Cons
+                                                                                                                                        {integer}
+                                                                                                                                        ds
+                                                                                                                                        ds)
+                                                                                                                                   (Nil
+                                                                                                                                      {integer})))
+                                                                                                                             (c
+                                                                                                                                (Tuple2
+                                                                                                                                   {PredKey}
+                                                                                                                                   {List
+                                                                                                                                      integer}
+                                                                                                                                   MaxValue
+                                                                                                                                   ((let
+                                                                                                                                        a
+                                                                                                                                          = List
+                                                                                                                                              integer
+                                                                                                                                      in
+                                                                                                                                      \(c :
+                                                                                                                                          integer ->
+                                                                                                                                          a ->
+                                                                                                                                          a)
+                                                                                                                                       (n :
+                                                                                                                                          a) ->
+                                                                                                                                        c
+                                                                                                                                          37
+                                                                                                                                          n)
+                                                                                                                                      (\(ds :
+                                                                                                                                           integer)
+                                                                                                                                        (ds :
+                                                                                                                                           List
+                                                                                                                                             integer) ->
+                                                                                                                                         Cons
+                                                                                                                                           {integer}
+                                                                                                                                           ds
+                                                                                                                                           ds)
+                                                                                                                                      (Nil
+                                                                                                                                         {integer})))
+                                                                                                                                n)))))
+                                                                                                             (c
+                                                                                                                (Tuple2
+                                                                                                                   {integer}
+                                                                                                                   {ParamValue}
+                                                                                                                   33
+                                                                                                                   (ParamRational
+                                                                                                                      ((let
+                                                                                                                           a
+                                                                                                                             = Tuple2
+                                                                                                                                 PredKey
+                                                                                                                                 (List
+                                                                                                                                    Rational)
+                                                                                                                         in
+                                                                                                                         \(g :
+                                                                                                                             all b.
+                                                                                                                               (a ->
+                                                                                                                                b ->
+                                                                                                                                b) ->
+                                                                                                                               b ->
+                                                                                                                               b) ->
+                                                                                                                           g
+                                                                                                                             {List
+                                                                                                                                a}
+                                                                                                                             (\(ds :
+                                                                                                                                  a)
+                                                                                                                               (ds :
+                                                                                                                                  List
+                                                                                                                                    a) ->
+                                                                                                                                Cons
+                                                                                                                                  {a}
+                                                                                                                                  ds
+                                                                                                                                  ds)
+                                                                                                                             (Nil
+                                                                                                                                {a}))
+                                                                                                                         (/\a ->
+                                                                                                                            \(c :
+                                                                                                                                Tuple2
+                                                                                                                                  PredKey
+                                                                                                                                  (List
+                                                                                                                                     Rational) ->
+                                                                                                                                a ->
+                                                                                                                                a)
+                                                                                                                             (n :
+                                                                                                                                a) ->
+                                                                                                                              c
+                                                                                                                                (Tuple2
+                                                                                                                                   {PredKey}
+                                                                                                                                   {List
+                                                                                                                                      Rational}
+                                                                                                                                   MinValue
+                                                                                                                                   ((let
+                                                                                                                                        a
+                                                                                                                                          = List
+                                                                                                                                              Rational
+                                                                                                                                      in
+                                                                                                                                      \(c :
+                                                                                                                                          Rational ->
+                                                                                                                                          a ->
+                                                                                                                                          a)
+                                                                                                                                       (n :
+                                                                                                                                          a) ->
+                                                                                                                                        c
+                                                                                                                                          (unsafeRatio
+                                                                                                                                             0
+                                                                                                                                             1)
+                                                                                                                                          n)
+                                                                                                                                      (\(ds :
+                                                                                                                                           Rational)
+                                                                                                                                        (ds :
+                                                                                                                                           List
+                                                                                                                                             Rational) ->
+                                                                                                                                         Cons
+                                                                                                                                           {Rational}
+                                                                                                                                           ds
+                                                                                                                                           ds)
+                                                                                                                                      (Nil
+                                                                                                                                         {Rational})))
+                                                                                                                                (c
+                                                                                                                                   (Tuple2
+                                                                                                                                      {PredKey}
+                                                                                                                                      {List
+                                                                                                                                         Rational}
+                                                                                                                                      MaxValue
+                                                                                                                                      ((let
+                                                                                                                                           a
+                                                                                                                                             = List
+                                                                                                                                                 Rational
+                                                                                                                                         in
+                                                                                                                                         \(c :
+                                                                                                                                             Rational ->
+                                                                                                                                             a ->
+                                                                                                                                             a)
+                                                                                                                                          (n :
+                                                                                                                                             a) ->
+                                                                                                                                           c
+                                                                                                                                             (unsafeRatio
+                                                                                                                                                1000
+                                                                                                                                                1)
+                                                                                                                                             n)
+                                                                                                                                         (\(ds :
+                                                                                                                                              Rational)
+                                                                                                                                           (ds :
+                                                                                                                                              List
+                                                                                                                                                Rational) ->
+                                                                                                                                            Cons
+                                                                                                                                              {Rational}
+                                                                                                                                              ds
+                                                                                                                                              ds)
+                                                                                                                                         (Nil
+                                                                                                                                            {Rational})))
+                                                                                                                                   n)))))
+                                                                                                                n))))))))))))))))))))))))))))))
+          in
+          \(cparam : pair data data) ->
+            case
+              bool
+              cparam
+              [ (\(actualPidData : data) (actualValueData : data) ->
+                   validateParamValue
+                     ((let
+                          !k : integer = unIData actualPidData
+                        in
+                        letrec
+                          !go : List (Tuple2 integer ParamValue) -> ParamValue
+                            = \(ds : List (Tuple2 integer ParamValue)) ->
+                                List_match
+                                  {Tuple2 integer ParamValue}
+                                  ds
+                                  {all dead. ParamValue}
+                                  (/\dead -> error {ParamValue})
+                                  (\(ds : Tuple2 integer ParamValue)
+                                    (xs' : List (Tuple2 integer ParamValue)) ->
+                                     /\dead ->
+                                       Tuple2_match
+                                         {integer}
+                                         {ParamValue}
+                                         ds
+                                         {ParamValue}
+                                         (\(k' : integer) (i : ParamValue) ->
+                                            case
+                                              (all dead. ParamValue)
+                                              (equalsInteger k k')
+                                              [ (/\dead -> go xs')
+                                              , (/\dead -> i) ]
+                                              {all dead. dead}))
+                                  {all dead. dead}
+                        in
+                        go)
+                        ds)
+                     actualValueData) ])
   in
   \(ds : data) ->
     Maybe_match
-      {List (Tuple2 data data)}
+      {list (pair data data)}
       (let
         !nt : data
           = headList
@@ -5235,7 +5373,7 @@ program
                     [(\(l : integer) (r : list data) -> r)]))
       in
       (let
-          r = Maybe (List (Tuple2 data data))
+          r = Maybe (list (pair data data))
         in
         \(scrut : data)
          (cont : Maybe data -> data -> Maybe bytestring -> r)
@@ -5274,10 +5412,10 @@ program
             {all dead. dead})
         nt
         (\(ds : Maybe data) (cparams : data) (ds : Maybe bytestring) ->
-           Just {List (Tuple2 data data)} (matchData_go (unMapData cparams)))
+           Just {list (pair data data)} (unMapData cparams))
         (\(void : unit) ->
            (let
-               r = Maybe (List (Tuple2 data data))
+               r = Maybe (list (pair data data))
              in
              \(scrut : data)
               (cont :
@@ -5312,14 +5450,14 @@ program
              nt
              (\(ds : (\k a -> list (pair data data)) data integer)
                (ds : Maybe bytestring) ->
-                Nothing {List (Tuple2 data data)})
-             (\(void : unit) -> error {Maybe (List (Tuple2 data data))})))
+                Nothing {list (pair data data)})
+             (\(void : unit) -> error {Maybe (list (pair data data))})))
       {all dead. unit}
-      (\(cparams : List (Tuple2 data data)) ->
+      (\(cparams : list (pair data data)) ->
          /\dead ->
            case
              (all dead. unit)
-             (go cparams)
+             (fun cparams)
              [(/\dead -> error {unit}), (/\dead -> ())]
              {all dead. dead})
       (/\dead -> ())

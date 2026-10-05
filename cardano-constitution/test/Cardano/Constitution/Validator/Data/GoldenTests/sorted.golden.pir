@@ -1,6 +1,15 @@
 program
   1.1.0
   (let
+    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+      Tuple2 : a -> b -> Tuple2 a b
+  in
+  letrec
+    data (List :: * -> *) a | List_match where
+      Nil : List a
+      Cons : a -> List a -> List a
+  in
+  let
     data Ordering | Ordering_match where
       EQ : Ordering
       GT : Ordering
@@ -20,15 +29,6 @@ program
       MaxValue : PredKey
       MinValue : PredKey
       NotEqual : PredKey
-    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-      Tuple2 : a -> b -> Tuple2 a b
-  in
-  letrec
-    data (List :: * -> *) a | List_match where
-      Nil : List a
-      Cons : a -> List a -> List a
-  in
-  let
     !validatePreds :
        all a. Ord a -> (\v -> List (Tuple2 PredKey (List v))) a -> a -> bool
       = /\a ->
@@ -397,46 +397,39 @@ program
   in
   letrec
     !runRules :
-       List (Tuple2 integer ParamValue) -> List (Tuple2 data data) -> bool
-      = \(ds : List (Tuple2 integer ParamValue))
-         (cparams : List (Tuple2 data data)) ->
-          List_match
-            {Tuple2 integer ParamValue}
-            ds
-            {all dead. bool}
-            (/\dead ->
+       List (Tuple2 integer ParamValue) -> list (pair data data) -> bool
+      = \(cfg : List (Tuple2 integer ParamValue))
+         (cparams : list (pair data data)) ->
+          (let
+              a = pair data data
+            in
+            /\r ->
+              \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z])
+            {bool}
+            True
+            (\(cparamsHd : pair data data)
+              (cparamsRest : list (pair data data)) ->
                List_match
-                 {Tuple2 data data}
-                 cparams
+                 {Tuple2 integer ParamValue}
+                 cfg
                  {bool}
-                 True
-                 (\(ipv : Tuple2 data data) (ipv : List (Tuple2 data data)) ->
-                    False))
-            (\(ds : Tuple2 integer ParamValue)
-              (cfgRest : List (Tuple2 integer ParamValue)) ->
-               /\dead ->
-                 Tuple2_match
-                   {integer}
-                   {ParamValue}
-                   ds
-                   {bool}
-                   (\(expectedPid : integer) (paramValue : ParamValue) ->
-                      List_match
-                        {Tuple2 data data}
-                        cparams
-                        {bool}
-                        True
-                        (\(ds : Tuple2 data data)
-                          (cparamsRest : List (Tuple2 data data)) ->
-                           Tuple2_match
-                             {data}
-                             {data}
-                             ds
-                             {bool}
-                             (\(ds : data) (actualValueData : data) ->
+                 False
+                 (\(ds : Tuple2 integer ParamValue)
+                   (cfgRest : List (Tuple2 integer ParamValue)) ->
+                    Tuple2_match
+                      {integer}
+                      {ParamValue}
+                      ds
+                      {bool}
+                      (\(expectedPid : integer) (paramValue : ParamValue) ->
+                         case
+                           bool
+                           cparamsHd
+                           [ (\(actualPidData : data)
+                               (actualValueData : data) ->
                                 Ordering_match
                                   (let
-                                    !x : integer = unIData ds
+                                    !x : integer = unIData actualPidData
                                   in
                                   case
                                     (all dead. Ordering)
@@ -462,8 +455,8 @@ program
                                        {all dead. dead})
                                   (/\dead -> runRules cfgRest cparams)
                                   (/\dead -> False)
-                                  {all dead. dead}))))
-            {all dead. dead}
+                                  {all dead. dead}) ])))
+            cparams
   in
   let
     data (Maybe :: * -> *) a | Maybe_match where
@@ -479,29 +472,7 @@ program
               [ (\(ds : list data) ->
                    Just {a} (`$dUnsafeFromData` (headList {data} ds)))
               , (\(ds : list data) -> Nothing {a}) ]
-  in
-  letrec
-    ~matchData_go : list (pair data data) -> List (Tuple2 data data)
-      = (let
-            a = pair data data
-          in
-          /\r ->
-            \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z])
-          {List (Tuple2 data data)}
-          (Nil {Tuple2 data data})
-          (\(x : pair data data) (xs : list (pair data data)) ->
-             Cons
-               {Tuple2 data data}
-               ((let
-                    r = Tuple2 data data
-                  in
-                  \(p : pair data data) (f : data -> data -> r) -> case r p [f])
-                  x
-                  (\(l : data) (r : data) -> Tuple2 {data} {data} l r))
-               (matchData_go xs))
-  in
-  let
-    !fun : List (Tuple2 data data) -> bool
+    !fun : list (pair data data) -> bool
       = runRules
           ((let
                a = Tuple2 integer ParamValue
@@ -5264,7 +5235,7 @@ program
   in
   \(ds : data) ->
     Maybe_match
-      {List (Tuple2 data data)}
+      {list (pair data data)}
       (let
         !nt : data
           = headList
@@ -5311,7 +5282,7 @@ program
                     [(\(l : integer) (r : list data) -> r)]))
       in
       (let
-          r = Maybe (List (Tuple2 data data))
+          r = Maybe (list (pair data data))
         in
         \(scrut : data)
          (cont : Maybe data -> data -> Maybe bytestring -> r)
@@ -5350,10 +5321,10 @@ program
             {all dead. dead})
         nt
         (\(ds : Maybe data) (cparams : data) (ds : Maybe bytestring) ->
-           Just {List (Tuple2 data data)} (matchData_go (unMapData cparams)))
+           Just {list (pair data data)} (unMapData cparams))
         (\(void : unit) ->
            (let
-               r = Maybe (List (Tuple2 data data))
+               r = Maybe (list (pair data data))
              in
              \(scrut : data)
               (cont :
@@ -5388,10 +5359,10 @@ program
              nt
              (\(ds : (\k a -> list (pair data data)) data integer)
                (ds : Maybe bytestring) ->
-                Nothing {List (Tuple2 data data)})
-             (\(void : unit) -> error {Maybe (List (Tuple2 data data))})))
+                Nothing {list (pair data data)})
+             (\(void : unit) -> error {Maybe (list (pair data data))})))
       {all dead. unit}
-      (\(cparams : List (Tuple2 data data)) ->
+      (\(cparams : list (pair data data)) ->
          /\dead ->
            case
              (all dead. unit)
