@@ -33,6 +33,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`defer-errors`|Bool|False|If a compilation error happens and this option is turned on, the compilation error is suppressed and the original Haskell expression is replaced with a runtime-error expression.|
 |`dump-compilation-trace`|Bool|False|Dump compilation trace for debugging|
 |`dump-pir`|Bool|False|Dump Plutus IR|
+|`dump-timings`|Bool|False|Report source-plugin and compiler-stage wall/CPU timings to stderr, forcing stage results.|
 |`dump-tplc`|Bool|False|Dump Typed Plutus Core|
 |`dump-uplc`|Bool|False|Dump Untyped Plutus Core|
 |`hoist-polymorphic-builtins`|Bool|True|Run the hoist-polymorphic-builtins pass, reducing the number of forces.|
@@ -56,7 +57,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`simplifier-remove-dead-bindings`|Bool|True|Run a simplification pass that removes dead bindings|
 |`simplifier-unwrap-cancel`|Bool|True|Run a simplification pass that cancels unwrap/wrap pairs|
 |`strictify-bindings`|Bool|True|Run a simplification pass that makes bindings stricter|
-|`target-version`|Version|1.1.0|The target Plutus Core language version|
+|`target-version`|Version|1.2.0|The target Plutus Core language version|
 |`typecheck`|Bool|True|Perform type checking during compilation.|
 |`verbosity`|Verbosity|Quiet|Set logging verbosity level (0=Quiet, 1=Verbose, 2=Debug)|
 

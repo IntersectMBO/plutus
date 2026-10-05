@@ -1,3 +1,9 @@
+# Unreleased
+
+## Added
+
+- The `dump-timings` plugin option reports wall and CPU time for source-plugin
+  hooks and Core-to-UPLC compilation stages. It is disabled by default.
 
 <a id='changelog-1.71.0.0'></a>
 # 1.71.0.0 — 2026-09-29
