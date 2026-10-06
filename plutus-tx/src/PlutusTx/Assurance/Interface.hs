@@ -5,6 +5,11 @@ Legacy 'attachUal' and 'writeAssurance' remain available for UAL 0.5 fixtures. -
 module PlutusTx.Assurance.Interface
   ( interfaceBlueprint
   , FunctionArtifact
+  , ParameterArtifact
+  , compiledParameter
+  , AppliedParameters
+  , appliedParameters
+  , writeInterfaceBundleWithBindings
   , compiledFunction
   , writeInterfaceBundleWithFunctions
   , writeInterfaceBundle
@@ -13,7 +18,7 @@ module PlutusTx.Assurance.Interface
 import Codec.Extras.SerialiseViaFlat (SerialiseViaFlat (..))
 import Codec.Serialise (serialise)
 import Control.Lens (over)
-import Control.Monad (forM, forM_, unless)
+import Control.Monad (foldM, forM, forM_, unless)
 import Data.Aeson (Value (..), object, toJSON, (.=))
 import Data.Aeson.Encode.Pretty (encodePretty)
 import Data.Aeson.Key qualified as Key
@@ -26,13 +31,18 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Data.Vector qualified as V
+import PlutusCore (DefaultFun, DefaultUni)
 import PlutusCore.Crypto.Hash (sha2_256)
+import PlutusCore.Flat (Flat (encode))
+import PlutusCore.Flat.Encoder (strictEncoder)
+import PlutusCore.Flat.Filler (Filler (FillerEnd))
 import PlutusTx.Assurance.Build (buildAssurance)
 import PlutusTx.Assurance.Document
 import PlutusTx.Assurance.Write (blueprintRef)
 import PlutusTx.Blueprint.Contract (ContractBlueprint)
 import PlutusTx.Blueprint.Definition.Id (definitionIdToText)
-import PlutusTx.Blueprint.Validator (ExecutionBudget (..))
+import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (..))
+import PlutusTx.Blueprint.Validator (ExecutionBudget (..), compiledValidator, compiledValidatorHash)
 import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import PlutusTx.Ual.Parser (parseArgument)
 import PlutusTx.Ual.Resolve (attachUal)
@@ -56,6 +66,31 @@ compiledFunction ident code = FunctionArtifact ident bytes
   where
     program = over UPLC.progTerm (UPLC.termMapNames UPLC.unNameDeBruijn) (getPlcNoAnn code)
     bytes = LBS.toStrict (serialise (SerialiseViaFlat (UPLC.UnrestrictedProgram program)))
+
+{-| A compiled parameter value. The checker independently requires a closed
+value in the declared wire encoding; compiling an arbitrary expression does
+not establish that obligation. -}
+newtype ParameterArtifact = ParameterArtifact (UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ())
+
+compiledParameter :: CompiledCode a -> ParameterArtifact
+compiledParameter = ParameterArtifact . over UPLC.progTerm (UPLC.termMapNames UPLC.unNameDeBruijn) . getPlcNoAnn
+
+data AppliedParameters = AppliedParameters [BS.ByteString] BS.ByteString
+
+{-| Apply without optimization so the consumer can verify the exact ordered
+template application independently of the compiler. -}
+appliedParameters :: CompiledCode a -> [ParameterArtifact] -> Either String AppliedParameters
+appliedParameters template parameters = do
+  let ParameterArtifact program = compiledParameter template
+      programs = [p | ParameterArtifact p <- parameters]
+  applied <- foldM (\f x -> either (Left . show) Right (UPLC.applyProgram f x)) program programs
+  pure
+    ( AppliedParameters
+        [ strictEncoder (UPLC.sizeTerm t 0 + 8) (UPLC.encodeTerm t <> encode FillerEnd)
+        | UPLC.Program _ _ t <- programs
+        ]
+        (LBS.toStrict (serialise (SerialiseViaFlat (UPLC.UnrestrictedProgram applied))))
+    )
 
 hex :: BS.ByteString -> Text
 hex = TE.decodeUtf8 . Base16.encode
@@ -269,7 +304,8 @@ interfaceBlueprint modules bp = do
 {-| Write plutus.json, assurance.json and one digest-bound context per claim in
 the working directory. The supplied environment manifest must describe the
 actual checking environment; the checker validates it before execution.
-Only universal parameters and explicit semantic step budgets are supported. -}
+The default API uses universal parameters and explicit semantic step budgets.
+Use writeInterfaceBundleWithBindings for a fully specialized deployment. -}
 writeInterfaceBundle
   :: FilePath -> AssurancePreamble -> Text -> [ModuleUal] -> ContractBlueprint -> IO ()
 writeInterfaceBundle environment preamble defaultId modules bp =
@@ -283,7 +319,21 @@ writeInterfaceBundleWithFunctions
   -> ContractBlueprint
   -> [FunctionArtifact]
   -> IO ()
-writeInterfaceBundleWithFunctions environment preamble defaultId modules bp artifacts = do
+writeInterfaceBundleWithFunctions environment preamble defaultId modules bp artifacts =
+  writeInterfaceBundleWithBindings environment preamble defaultId modules bp artifacts []
+
+{-| Each binding names a property and validator, then supplies every parameter
+in declaration order. Properties refer to the remaining runtime arguments. -}
+writeInterfaceBundleWithBindings
+  :: FilePath
+  -> AssurancePreamble
+  -> Text
+  -> [ModuleUal]
+  -> ContractBlueprint
+  -> [FunctionArtifact]
+  -> [(Text, Text, AppliedParameters)]
+  -> IO ()
+writeInterfaceBundleWithBindings environment preamble defaultId modules bp artifacts bindings = do
   let die = either fail pure
       write f = LBS.writeFile f . (<> "\n") . encodePretty
   functions <- die (functionRegistry modules bp artifacts)
@@ -296,6 +346,16 @@ writeInterfaceBundleWithFunctions environment preamble defaultId modules bp arti
   write "plutus.json" extended
   ref <- blueprintRef "plutus.json" "plutus.json"
   assurance <- die (either (Left . show) Right (buildAssurance preamble ref defaultId modules))
+  let bindingIds = [(pid, vid) | (pid, vid, _) <- bindings]
+  unless (length bindingIds == length (nub bindingIds)) (fail "duplicate applied binding")
+  forM_ bindingIds $ \(pid, vid) ->
+    unless
+      ( any
+          (\p -> propertyIdent p == pid && vid `elem` propertyValidators p)
+          (assuranceProperties assurance)
+          && vid `notElem` map fst functions
+      )
+      (fail "applied binding does not name a scoped validator")
   contexts <- forM (assuranceProperties assurance) $ \prop -> do
     targets <- forM (propertyValidators prop) $ \vid -> do
       case lookup vid functions of
@@ -325,9 +385,40 @@ writeInterfaceBundleWithFunctions environment preamble defaultId modules bp arti
           unless
             (optional "exCPU" budget == Nothing && optional "exMem" budget == Nothing)
             (fail "step checking cannot use ledger units")
+          params <- case [a | (pid, target, a) <- bindings, pid == propertyIdent prop, target == vid] of
+            [] -> pure (object ["mode" .= ("universal" :: Text)])
+            [AppliedParameters values code] -> do
+              slots <- die (maybe (Right []) array (optional "parameters" ev))
+              unless
+                (not (null values) && length values == length slots)
+                (fail "applied parameters must cover every parameter")
+              let prefix = "applied-" <> T.unpack (propertyIdent prop) <> "-" <> T.unpack vid
+              terms <- forM (zip [0 :: Int ..] values) $ \(i, bytes) -> do
+                let name = prefix <> "-" <> show i <> ".flat"
+                BS.writeFile name bytes
+                termRef <- blueprintRef (T.pack name) name
+                pure (object ["parameter" .= ("/parameters/" <> T.pack (show i)), "term" .= termRef])
+              let name = prefix <> ".cbor"
+              BS.writeFile name code
+              codeRef <- blueprintRef (T.pack name) name
+              version <- die (field "preamble" extended >>= field "plutusVersion" >>= text)
+              language <- die $ case version of
+                "v1" -> Right PlutusV1
+                "v2" -> Right PlutusV2
+                "v3" -> Right PlutusV3
+                _ -> Left "unknown language"
+              pure
+                ( object
+                    [ "mode" .= ("applied" :: Text)
+                    , "values" .= terms
+                    , "appliedScript" .= codeRef
+                    , "appliedScriptHash" .= hex (compiledValidatorHash (compiledValidator language code))
+                    ]
+                )
+            _ -> fail "duplicate applied binding"
           pure
             ( object
-                ["validator" .= vid, "purpose" .= purpose, "parameters" .= object ["mode" .= ("universal" :: Text)]]
+                ["validator" .= vid, "purpose" .= purpose, "parameters" .= params]
             , steps
             , semantics
             )

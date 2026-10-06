@@ -13,6 +13,7 @@ module Main where
 
 import Data.ByteString.Short qualified as SBS
 import Data.Set qualified as Set
+import PlutusLedgerApi.Common (Version (..))
 import PlutusLedgerApi.V2 (serialiseCompiledCode)
 import PlutusTx qualified
 import PlutusTx.Assurance
@@ -45,6 +46,23 @@ dataParameter d _ _ = check ((unsafeFromBuiltinData d :: Integer) == 7)
 {-@ PROPERTY [scope: dataParameter] data_seven
     "The Data parameter succeeds exactly for seven, for any runtime inputs."
   : ∀ (n : Integer) (r ctx : Data), isSuccessful (dataParameter n r ctx) ↔ n = 7
+@-}
+
+{-@ PROPERTY [scope: nativeParameter] native_applied_seven
+    "The specialized program with parameter 7 has the stated outcome for every runtime input."
+  : ∀ (r ctx : Data), isSuccessful (nativeParameter r ctx)
+@-}
+{-@ PROPERTY [scope: nativeParameter] native_applied_eight
+    "The specialized program with parameter 8 has the stated outcome for every runtime input."
+  : ∀ (r ctx : Data), isUnsuccessful (nativeParameter r ctx)
+@-}
+{-@ PROPERTY [scope: dataParameter] data_applied_seven
+    "The specialized program with parameter 7 has the stated outcome for every runtime input."
+  : ∀ (r ctx : Data), isSuccessful (dataParameter r ctx)
+@-}
+{-@ PROPERTY [scope: dataParameter] data_applied_eight
+    "The specialized program with parameter 8 has the stated outcome for every runtime input."
+  : ∀ (r ctx : Data), isUnsuccessful (dataParameter r ctx)
 @-}
 
 nativeCode :: PlutusTx.CompiledCode (Integer -> BuiltinData -> BuiltinData -> BuiltinUnit)
@@ -101,4 +119,18 @@ main = do
           ["Plutus contributors"]
           "2026-09-30"
           Nothing
-  writeInterfaceBundle environment preamble "" [annotations] blueprint
+  let native n =
+        appliedParameters nativeCode [compiledParameter (PlutusTx.liftCode (Version 1 0 0) (n :: Integer))]
+      encoded n =
+        appliedParameters
+          dataCode
+          [compiledParameter (PlutusTx.liftCode (Version 1 0 0) (toBuiltinData (n :: Integer)))]
+  bindings <-
+    Haskell.either Haskell.fail Haskell.pure
+      $ Haskell.sequence
+        [ (\a -> ("native_applied_seven", "nativeParameter", a)) Haskell.<$> native 7
+        , (\a -> ("native_applied_eight", "nativeParameter", a)) Haskell.<$> native 8
+        , (\a -> ("data_applied_seven", "dataParameter", a)) Haskell.<$> encoded 7
+        , (\a -> ("data_applied_eight", "dataParameter", a)) Haskell.<$> encoded 8
+        ]
+  writeInterfaceBundleWithBindings environment preamble "" [annotations] blueprint [] bindings
