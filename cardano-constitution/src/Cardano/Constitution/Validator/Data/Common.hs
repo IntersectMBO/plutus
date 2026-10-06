@@ -28,8 +28,7 @@ type ConstitutionValidator =
   -> BuiltinUnit
   -- ^ No-error means the proposal conforms to the constitution
 
--- OPTIMIZE: operate on BuiltinList<BuiltinPair> directly, needs major refactoring of sorted&unsorted Validators
-type ChangedParams = [(BuiltinData, BuiltinData)]
+type ChangedParams = BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
 
 {- HLINT ignore "Redundant lambda" -}
 -- I like to see until where it supposed to be first applied.
@@ -94,7 +93,7 @@ scriptContextToValidGovAction =
     governanceActionToValidGovAction :: GovernanceAction -> Maybe ChangedParams
     governanceActionToValidGovAction govAction =
       case govAction of
-        (ParameterChange _ cparams _) -> Just . B.unsafeDataAsMap . toBuiltinData $ cparams
+        (ParameterChange _ cparams _) -> Just . BI.unsafeDataAsMap . toBuiltinData $ cparams
         (TreasuryWithdrawals _ _) -> Nothing
         _ ->
           traceError
