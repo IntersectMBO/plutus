@@ -49,7 +49,7 @@ import PlutusTx.Ual.Resolve (attachUal)
 import PlutusTx.Ual.Syntax
   ( ArgumentEncoding (..)
   , ModuleUal (..)
-  , OnchainDecl (..)
+  , OnchainDecl (..), OnchainKind (..)
   , ResolvedArgument (..)
   , UalArgument (..)
   , UalModuleName (..)
@@ -124,6 +124,12 @@ tests =
               )
           )
           @?= Just [OrphanValidatorArguments "v"]
+    , testCase "duplicate ONCHAIN names are reported" $
+        errorsOf (attachUal [uals decl, uals decl] (contract [validator (Just "v")]))
+          @?= Just [DuplicateOnchain "v"]
+    , testCase "unresolved argument lists are reported" $
+        errorsOf (attachUal [uals decl {onchainResolvedArgs = []}] (contract [validator (Just "v")]))
+          @?= Just [UnresolvedArguments "v"]
     , testCase "duplicate validator ids are reported" $
         errorsOf (attachUal [] (contract [validator (Just "dup"), validator2 (Just "dup")]))
           @?= Just [DuplicateValidatorId "dup"]
@@ -132,7 +138,9 @@ tests =
 decl :: OnchainDecl
 decl =
   MkOnchainDecl
-    { onchainName = "v"
+    { onchainKind = Script
+    , onchainResolvedResult = Nothing
+    , onchainName = "v"
     , onchainArgs = [MkUalArgument "Ticket" AsData, MkUalArgument "Integer" AsScott]
     , onchainResult = "()"
     , onchainVersion = Nothing

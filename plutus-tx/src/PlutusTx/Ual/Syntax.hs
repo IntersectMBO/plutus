@@ -9,6 +9,7 @@ module PlutusTx.Ual.Syntax
   , ExecutionBudget (..)
   , UalArgument (..)
   , ResolvedArgument (..)
+  , OnchainKind (..)
   , OnchainDecl (..)
   , PropertyDecl (..)
   , UalBlock (..)
@@ -75,14 +76,19 @@ data ResolvedArgument = MkResolvedArgument
   }
   deriving stock (Eq, Show)
 
+data OnchainKind = Script | Function
+  deriving stock (Eq, Ord, Show, Lift)
+
 data OnchainDecl = MkOnchainDecl
   { onchainName :: Text
+  , onchainKind :: OnchainKind
   , onchainArgs :: [UalArgument]
   , onchainResult :: Text
   -- ^ Source text of the result type.
   , onchainVersion :: Maybe PlutusVersion
   , onchainBudget :: Maybe ExecutionBudget
   , onchainLine :: Int
+  , onchainResolvedResult :: Maybe ResolvedArgument
   , onchainResolvedArgs :: [ResolvedArgument]
   -- ^ Empty as the parser produces it; the Template Haskell splice fills it in.
   }
@@ -94,6 +100,8 @@ data PropertyDecl = MkPropertyDecl
   -- ^ The natural-language statement.
   , propertyBody :: Text
   -- ^ The formal statement, verbatim.
+  , propertyScope :: [Text]
+  -- ^ Explicit ONCHAIN ids; empty permits the single-validator shorthand.
   , propertyLine :: Int
   }
   deriving stock (Eq, Show, Lift)

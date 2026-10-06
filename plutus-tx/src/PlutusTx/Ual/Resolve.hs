@@ -19,7 +19,12 @@ import PlutusTx.Blueprint.Preamble (Preamble (..))
 import PlutusTx.Blueprint.Schema (Schema (SchemaDefinitionRef))
 import PlutusTx.Blueprint.Validator (AppliedArgument (..), ValidatorBlueprint (..))
 import PlutusTx.Ual.Error (UalError (..))
-import PlutusTx.Ual.Syntax (ModuleUal (..), OnchainDecl (..), ResolvedArgument (..))
+import PlutusTx.Ual.Syntax
+  ( ModuleUal (..)
+  , OnchainDecl (..)
+  , OnchainKind (..)
+  , ResolvedArgument (..)
+  )
 
 {-| The blueprint validator id an @ONCHAIN@ block claims. Identity, so the id is
 readable straight off the annotation. The Template Haskell helper that derives a
@@ -32,22 +37,43 @@ on every validator whose 'validatorId' matches an @ONCHAIN@ name.
 
 Every check below is run on every input, so one call reports all the problems of
 the kinds it checks rather than stopping at the first. It does not check anything
-else: in particular an @ONCHAIN@ block's declared argument types are not compared
-against the validator's, and two @ONCHAIN@ blocks sharing a name are not
-diagnosed but silently deduplicated. -}
+else: refined argument schemas remain the producer's responsibility, but
+duplicate ONCHAIN names and unresolved argument lists are rejected. -}
 attachUal :: [ModuleUal] -> ContractBlueprint -> Either [UalError] ContractBlueprint
 attachUal modules MkContractBlueprint {..} =
-  case sort (dupIdErrors <> versionErrors <> missingErrors <> orphanErrors) of
+  case sort
+    ( dupIdErrors
+        <> duplicateOnchainErrors
+        <> unresolvedErrors
+        <> versionErrors
+        <> missingErrors
+        <> orphanErrors
+    ) of
     [] -> Right MkContractBlueprint {contractValidators = Set.map fill contractValidators, ..}
     errs -> Left errs
   where
     preambleVersion' = preamblePlutusVersion contractPreamble
 
-    {- Keyed by claimed validator id. Two ONCHAIN blocks claiming the same id --
-    whether in one module or across two -- collapse here, last one wins, with no
-    error. Nothing in this function detects that. -}
+    -- Duplicate names are diagnosed before the map is used.
     decls :: Map.Map Text OnchainDecl
-    decls = Map.fromList [(onchainIdOf d, d) | m <- modules, d <- ualOnchain m]
+    decls = Map.fromList [(onchainIdOf d, d) | m <- modules, d <- ualOnchain m, onchainKind d == Script]
+
+    duplicateOnchainErrors =
+      [ DuplicateOnchain n
+      | (n, count) <-
+          Map.toList
+            ( Map.fromListWith
+                (+)
+                [(onchainName d, 1 :: Int) | m <- modules, d <- ualOnchain m, onchainKind d == Script]
+            )
+      , count > 1
+      ]
+
+    unresolvedErrors =
+      [ UnresolvedArguments (onchainName d)
+      | d <- Map.elems decls
+      , length (onchainResolvedArgs d) /= length (onchainArgs d)
+      ]
 
     validatorIds :: [Text]
     validatorIds = [vid | v <- Set.toList contractValidators, Just vid <- [validatorId v]]

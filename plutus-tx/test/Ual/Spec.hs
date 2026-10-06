@@ -5,6 +5,7 @@ import Ual.Assurance.Spec qualified
 import Ual.Blueprint.Spec qualified
 import Ual.Error.Spec qualified
 import Ual.Fixture qualified
+import Ual.InterfaceSpec qualified
 import Ual.Lexer.Spec qualified
 import Ual.Parser.Spec qualified
 import Ual.Resolve.Spec qualified
@@ -13,7 +14,8 @@ tests :: TestTree
 tests =
   testGroup
     "UAL"
-    [ Ual.Assurance.Spec.tests
+    [ Ual.InterfaceSpec.tests
+    , Ual.Assurance.Spec.tests
     , Ual.Blueprint.Spec.tests
     , Ual.Error.Spec.tests
     , Ual.Fixture.tests

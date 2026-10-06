@@ -23,10 +23,11 @@ import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Syntax (addDependentFile, lift)
 import PlutusTx.Blueprint.Definition (definitionId)
 import PlutusTx.Ual.Error (UalError (..), renderUalError)
-import PlutusTx.Ual.Parser (moduleUalFromSource)
+import PlutusTx.Ual.Parser (moduleUalFromSource, parseArgument)
 import PlutusTx.Ual.Syntax
   ( ModuleUal (..)
   , OnchainDecl (..)
+  , OnchainKind (..)
   , ResolvedArgument (..)
   , UalArgument (..)
   , UalModuleName (..)
@@ -92,9 +93,17 @@ onchainExp :: OnchainDecl -> TH.Q TH.Exp
 onchainExp d = do
   checkOnchain d
   args <- traverse resolvedArgExp (onchainArgs d)
+  result <- case onchainKind d of
+    Script -> [|Nothing|]
+    Function -> do
+      a <- either die pure (parseArgument (onchainLine d) (onchainResult d))
+      r <- resolvedArgExp a
+      [|Just $(pure r)|]
   [|
     MkOnchainDecl
       { onchainName = $(lift (onchainName d))
+      , onchainKind = $(lift (onchainKind d))
+      , onchainResolvedResult = $(pure result)
       , onchainArgs = $(lift (onchainArgs d))
       , onchainResult = $(lift (onchainResult d))
       , onchainVersion = $(lift (onchainVersion d))

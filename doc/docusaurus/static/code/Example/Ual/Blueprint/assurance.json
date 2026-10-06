@@ -1,127 +1,168 @@
 {
-  "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance.json",
-  "preamble": {
-    "title": "Two-tranche vesting — UAL assurance",
-    "description": "Generated from the UAL annotations in this module.",
-    "version": "1.0.0",
-    "authors": [
-      "Romain Soulat <romain.soulat@iohk.io>"
+    "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance-v2.json",
+    "blueprint": {
+        "hash": {
+            "alg": "sha256",
+            "digest": "54fc300e88030e44c2d6763f0f634b2e99d5b5a8420845f96c3154969d72870c"
+        },
+        "uri": "plutus.json"
+    },
+    "checkingContexts": {
+        "conforming_spend_accepted": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "ab1aeb8963306f69fff43620681574fa6f99fb51dae7447d453d430e378febb6"
+            },
+            "uri": "checking-conforming_spend_accepted.json"
+        },
+        "malformed_context_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "ab1aeb8963306f69fff43620681574fa6f99fb51dae7447d453d430e378febb6"
+            },
+            "uri": "checking-malformed_context_rejected.json"
+        },
+        "own_input_required": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "ab1aeb8963306f69fff43620681574fa6f99fb51dae7447d453d430e378febb6"
+            },
+            "uri": "checking-own_input_required.json"
+        },
+        "owner_signature_required": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "ab1aeb8963306f69fff43620681574fa6f99fb51dae7447d453d430e378febb6"
+            },
+            "uri": "checking-owner_signature_required.json"
+        },
+        "unvested_value_stays_locked": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "ab1aeb8963306f69fff43620681574fa6f99fb51dae7447d453d430e378febb6"
+            },
+            "uri": "checking-unvested_value_stays_locked.json"
+        }
+    },
+    "formalFragments": [
+        {
+            "id": "Main",
+            "language": "ual",
+            "source": "-- What one tranche still requires to stay locked, at a time. `Value`,\n-- `POSIXTime`, `null`, `merge` and `ofTypedValue` are CardanoLedgerApi.V3's;\n-- `Tranche` and its field names come from this blueprint's `definitions`.\n--\n-- `ofTypedValue` is the crossing between the two. A blueprint describes a\n-- Value as a map of currency symbol to token map, so the generated\n-- `trancheAmount` has that type; the ledger's Value keeps its keys as Data.\ndef trancheUnvested (t : Tranche) (now : POSIXTime) : Value :=\n  if now >= t.trancheDeadline then null else ofTypedValue t.trancheAmount\n\n-- What the whole schedule requires to stay locked.\ndef unvested (p : VestingParams) (now : POSIXTime) : Value :=\n  merge (trancheUnvested p.vpTranche1 now) (trancheUnvested p.vpTranche2 now)"
+        }
     ],
-    "created": "2026-09-07",
-    "license": "CC-BY-4.0"
-  },
-  "blueprint": {
-    "uri": "plutus.json",
-    "hash": {
-      "alg": "sha256",
-      "digest": "cdfc522cce0788de9efc7d0f2eb52fc17b65b54195e572f07f20b8ea291b3720"
-    }
-  },
-  "languages": {
-    "ual": {
-      "name": "Universal Annotation Language",
-      "description": "Property specification language used by Blaster.",
-      "version": "0.4",
-      "uri": "https://github.com/input-output-hk/ual-spec"
-    }
-  },
-  "formalFragments": [
-    {
-      "id": "Main",
-      "language": "ual",
-      "source": "-- What one tranche still requires to stay locked, at a time. `Value`,\n-- `POSIXTime`, `null`, `merge` and `ofTypedValue` are CardanoLedgerApi.V3's;\n-- `Tranche` and its field names come from this blueprint's `definitions`.\n--\n-- `ofTypedValue` is the crossing between the two. A blueprint describes a\n-- Value as a map of currency symbol to token map, so the generated\n-- `trancheAmount` has that type; the ledger's Value keeps its keys as Data.\ndef trancheUnvested (t : Tranche) (now : POSIXTime) : Value :=\n  if now >= t.trancheDeadline then null else ofTypedValue t.trancheAmount\n\n-- What the whole schedule requires to stay locked.\ndef unvested (p : VestingParams) (now : POSIXTime) : Value :=\n  merge (trancheUnvested p.vpTranche1 now) (trancheUnvested p.vpTranche2 now)"
-    }
-  ],
-  "properties": [
-    {
-      "id": "owner_signature_required",
-      "scope": {
-        "validators": [
-          "vestingValidator"
-        ]
-      },
-      "statement": {
-        "text": "A transaction that the owner has not signed is rejected.",
-        "formal": {
-          "language": "ual",
-          "uses": [
-            "Main"
-          ],
-          "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        ¬ txSignedBy p.vpOwner ctx.scriptContextTxInfo →\n          ¬ isSuccessful (vestingValidator p (toLedgerData ctx))"
+    "languages": {
+        "ual": {
+            "name": "Universal Annotation Language",
+            "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage",
+            "version": "0.6-draft"
         }
-      }
     },
-    {
-      "id": "unvested_value_stays_locked",
-      "scope": {
-        "validators": [
-          "vestingValidator"
-        ]
-      },
-      "statement": {
-        "text": "A transaction is rejected when it leaves less value at the address of the input it spends than the total of the tranches that are not yet vested.",
-        "formal": {
-          "language": "ual",
-          "uses": [
-            "Main"
-          ],
-          "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime) (v : Value),\n        txRangeStartsAt now ctx.scriptContextTxInfo.txInfoValidRange →\n          continuingValue ctx = some v →\n            ¬ geq v (unvested p now) →\n              ¬ isSuccessful (vestingValidator p (toLedgerData ctx))"
-        }
-      }
+    "preamble": {
+        "authors": [
+            "Romain Soulat <romain.soulat@iohk.io>"
+        ],
+        "created": "2026-09-07",
+        "description": "Generated from the UAL annotations in this module.",
+        "license": "CC-BY-4.0",
+        "title": "Two-tranche vesting — UAL assurance",
+        "version": "1.0.0"
     },
-    {
-      "id": "own_input_required",
-      "scope": {
-        "validators": [
-          "vestingValidator"
-        ]
-      },
-      "statement": {
-        "text": "A transaction is rejected when the validator is not spending one of its inputs.",
-        "formal": {
-          "language": "ual",
-          "uses": [
-            "Main"
-          ],
-          "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        findOwnInput ctx = none →\n          ¬ isSuccessful (vestingValidator p (toLedgerData ctx))"
+    "properties": [
+        {
+            "checkingContext": "owner_signature_required",
+            "id": "owner_signature_required",
+            "scope": {
+                "validators": [
+                    "vestingValidator"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        ¬ txSignedBy p.vpOwner ctx.scriptContextTxInfo →\n          isUnsuccessful (vestingValidator p (toLedgerData ctx))",
+                    "uses": [
+                        "Main"
+                    ]
+                },
+                "text": "A transaction that the owner has not signed is rejected."
+            }
+        },
+        {
+            "checkingContext": "unvested_value_stays_locked",
+            "id": "unvested_value_stays_locked",
+            "scope": {
+                "validators": [
+                    "vestingValidator"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime) (v : Value),\n        txRangeStartsAt now ctx.scriptContextTxInfo.txInfoValidRange →\n          continuingValue ctx = some v →\n            ¬ geq v (unvested p now) →\n              isUnsuccessful (vestingValidator p (toLedgerData ctx))",
+                    "uses": [
+                        "Main"
+                    ]
+                },
+                "text": "A transaction is rejected when it leaves less value at the address of the input it spends than the total of the tranches that are not yet vested."
+            }
+        },
+        {
+            "checkingContext": "own_input_required",
+            "id": "own_input_required",
+            "scope": {
+                "validators": [
+                    "vestingValidator"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        findOwnInput ctx = none →\n          isUnsuccessful (vestingValidator p (toLedgerData ctx))",
+                    "uses": [
+                        "Main"
+                    ]
+                },
+                "text": "A transaction is rejected when the validator is not spending one of its inputs."
+            }
+        },
+        {
+            "checkingContext": "conforming_spend_accepted",
+            "id": "conforming_spend_accepted",
+            "scope": {
+                "validators": [
+                    "vestingValidator"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime) (v : Value),\n        txSignedBy p.vpOwner ctx.scriptContextTxInfo →\n          txRangeStartsAt now ctx.scriptContextTxInfo.txInfoValidRange →\n            continuingValue ctx = some v →\n              geq v (unvested p now) →\n                isSuccessful (vestingValidator p (toLedgerData ctx))",
+                    "uses": [
+                        "Main"
+                    ]
+                },
+                "text": "A transaction is accepted when it spends an input the validator guards, is signed by the owner, and leaves at least the total of the tranches that are not yet vested at the address of that input."
+            }
+        },
+        {
+            "checkingContext": "malformed_context_rejected",
+            "id": "malformed_context_rejected",
+            "scope": {
+                "validators": [
+                    "vestingValidator"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (p : VestingParams), isUnsuccessful (vestingValidator p (Data.I 0))",
+                    "uses": [
+                        "Main"
+                    ]
+                },
+                "text": "A transaction is rejected when what reaches the validator in place of a script context does not decode as one."
+            }
         }
-      }
-    },
-    {
-      "id": "conforming_spend_accepted",
-      "scope": {
-        "validators": [
-          "vestingValidator"
-        ]
-      },
-      "statement": {
-        "text": "A transaction is accepted when it spends an input the validator guards, is signed by the owner, and leaves at least the total of the tranches that are not yet vested at the address of that input.",
-        "formal": {
-          "language": "ual",
-          "uses": [
-            "Main"
-          ],
-          "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime) (v : Value),\n        txSignedBy p.vpOwner ctx.scriptContextTxInfo →\n          txRangeStartsAt now ctx.scriptContextTxInfo.txInfoValidRange →\n            continuingValue ctx = some v →\n              geq v (unvested p now) →\n                isSuccessful (vestingValidator p (toLedgerData ctx))"
-        }
-      }
-    },
-    {
-      "id": "malformed_context_rejected",
-      "scope": {
-        "validators": [
-          "vestingValidator"
-        ]
-      },
-      "statement": {
-        "text": "A transaction is rejected when what reaches the validator in place of a script context does not decode as one.",
-        "formal": {
-          "language": "ual",
-          "uses": [
-            "Main"
-          ],
-          "source": "∀ (p : VestingParams), ¬ isSuccessful (vestingValidator p (Data.I 0))"
-        }
-      }
-    }
-  ]
+    ]
 }

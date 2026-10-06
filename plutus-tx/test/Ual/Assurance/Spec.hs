@@ -117,6 +117,30 @@ buildTests =
             , modWith "C" [] []
             ]
           @?= Right [["B"], []]
+    , testCase "properties import predicates even without an own fragment" $
+        (concatMap uses . assuranceProperties)
+          <$> build
+            [ (modWith "A" [] [prop "p"]) {ualModuleImports = [UalModuleName "B"]}
+            , modWith "B" ["def b := True"] []
+            ]
+          @?= Right ["B"]
+    , testCase "imports cross modules without predicates" $
+        (concatMap uses . assuranceProperties)
+          <$> build
+            [ (modWith "A" [] [prop "p"]) {ualModuleImports = [UalModuleName "B"]}
+            , (modWith "B" [] []) {ualModuleImports = [UalModuleName "C"]}
+            , modWith "C" ["def c := True"] []
+            ]
+          @?= Right ["C"]
+    , testCase "duplicate module names are rejected" $
+        build [modWith "A" [] [prop "p"], modWith "A" [] []] @?= Left [DuplicateModule "A"]
+    , testCase "explicit property scope is preserved" $
+        (concatMap propertyValidators . assuranceProperties)
+          <$> build [modWith "A" [] [(prop "p") {propertyScope = ["first", "second"]}]]
+          @?= Right ["first", "second"]
+    , testCase "unknown explicit scopes are rejected" $
+        build [fixtureUal {ualProperties = [(prop "p") {propertyScope = ["unknown"]}]}]
+          @?= Left [InvalidPropertyScope "p" "unknown ONCHAIN id: unknown"]
     , testCase "no module declaring a property is rejected" $
         build [modWith "A" ["a"] []] @?= Left [NoProperties]
     , testCase "an empty module list is rejected" $
@@ -176,6 +200,7 @@ buildTests =
         { propertyName = n
         , propertyText = "t"
         , propertyBody = "True"
+        , propertyScope = []
         , propertyLine = 1
         }
 
@@ -201,8 +226,8 @@ doc =
           ( "ual"
           , MkRegistryEntry
               { registryName = "Universal Annotation Language"
-              , registryVersion = "0.4"
-              , registryUri = Just "https://github.com/input-output-hk/ual-spec"
+              , registryVersion = "0.5"
+              , registryUri = Just "https://github.com/input-output-hk/UniversalAnnotationLanguage"
               , registryDescription = Nothing
               }
           )

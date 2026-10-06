@@ -122,7 +122,7 @@ today.
 
 == Where the execution budget comes from
 
-@[steps: 2500]@ is a bound on abstract-machine steps, not a budget in cost-model
+@[steps: 2500, semantics: E]@ is a bound on abstract-machine steps, not a budget in cost-model
 units. UAL accepts either, and this example uses steps because that is what a
 consumer of the assurance document can currently act on: the machine it runs the
 compiled program on takes a step count, and no budget-aware variant of it exists
@@ -151,7 +151,7 @@ Five things this figure is not:
 
 == What the properties say, and what they do not
 
-The four @PROPERTY@ blocks are stated, unverified claims. 'buildAssurance' runs
+The five @PROPERTY@ blocks are stated, unverified claims. 'buildAssurance' runs
 at build time, before any proof, so the emitted properties carry no evidence
 records; the CIP names that case explicitly.
 
@@ -226,10 +226,8 @@ context they quantify over decodes by construction. @own_input_required@ is a
 different claim — a well-formed context whose purpose does not resolve to one of
 the transaction's inputs.
 
-One thing all five lean on that is not yet written down: the convention that a
-validator's id denotes the applied wrapper inside a property is proposed rather
-than specified in UAL. It is recorded in
-@docs/superpowers/ual-doc-corrections.md@.
+UAL 0.6-draft specifies that a validator's stable id denotes its applied wrapper.
+The explicit semantics variant and step bound are part of each claim's meaning.
 
 The @PREDICATE@ and @PROPERTY@ bodies are Lean source. Nothing in this repository
 parses or checks them; the lexer reads each block verbatim and the assurance
@@ -257,16 +255,15 @@ import PlutusLedgerApi.V3.Contexts (getContinuingOutputs, txSignedBy)
 import PlutusTx qualified
 import PlutusTx.Assurance
   ( AssurancePreamble (..)
-  , blueprintRef
-  , buildAssurance
-  , writeAssurance
+  , writeInterfaceBundle
   )
 import PlutusTx.Blueprint
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import PlutusTx.List (foldr)
 import PlutusTx.Prelude
-import PlutusTx.Ual (ModuleUal, attachUal)
+import PlutusTx.Ual (ModuleUal)
 import PlutusTx.Ual.TH (ualIdFor, ualModule)
+import System.Environment (getArgs)
 import Prelude qualified as Haskell
 
 {-| One instalment of the schedule.
@@ -331,7 +328,7 @@ def unvested (p : VestingParams) (now : POSIXTime) : Value :=
   merge (trancheUnvested p.vpTranche1 now) (trancheUnvested p.vpTranche2 now)
 @-}
 
-{-@ ONCHAIN [version: PlutusV3] [steps: 2500]
+{-@ ONCHAIN [version: PlutusV3] [steps: 2500, semantics: E]
     vestingValidator :: { VestingParams : asData }
                      -> { BuiltinData : asData }
                      -> BuiltinUnit
@@ -395,7 +392,7 @@ trancheUnvested tranche range =
       "A transaction that the owner has not signed is rejected."
     : ∀ (p : VestingParams) (ctx : ScriptContext),
         ¬ txSignedBy p.vpOwner ctx.scriptContextTxInfo →
-          ¬ isSuccessful (vestingValidator p (toLedgerData ctx))
+          isUnsuccessful (vestingValidator p (toLedgerData ctx))
 @-}
 
 {-@ PROPERTY unvested_value_stays_locked
@@ -405,7 +402,7 @@ trancheUnvested tranche range =
         txRangeStartsAt now ctx.scriptContextTxInfo.txInfoValidRange →
           continuingValue ctx = some v →
             ¬ geq v (unvested p now) →
-              ¬ isSuccessful (vestingValidator p (toLedgerData ctx))
+              isUnsuccessful (vestingValidator p (toLedgerData ctx))
 @-}
 
 {-@ PROPERTY own_input_required
@@ -413,7 +410,7 @@ trancheUnvested tranche range =
       inputs."
     : ∀ (p : VestingParams) (ctx : ScriptContext),
         findOwnInput ctx = none →
-          ¬ isSuccessful (vestingValidator p (toLedgerData ctx))
+          isUnsuccessful (vestingValidator p (toLedgerData ctx))
 @-}
 
 {-@ PROPERTY conforming_spend_accepted
@@ -431,14 +428,13 @@ trancheUnvested tranche range =
 {-@ PROPERTY malformed_context_rejected
       "A transaction is rejected when what reaches the validator in place of a
       script context does not decode as one."
-    : ∀ (p : VestingParams), ¬ isSuccessful (vestingValidator p (Data.I 0))
+    : ∀ (p : VestingParams), isUnsuccessful (vestingValidator p (Data.I 0))
 @-}
 
 {-| The validator as the Plinth plugin compiles it, with the parameter still to
 apply.
 
-This is what the blueprint publishes, so its @arguments@ array describes both
-arguments. -}
+This is what the blueprint publishes, so its @interface@ lists both arguments in order. -}
 vestingValidatorCode :: PlutusTx.CompiledCode (BuiltinData -> BuiltinData -> BuiltinUnit)
 vestingValidatorCode = $$(PlutusTx.compile [||vestingValidator||])
 
@@ -594,15 +590,13 @@ hash. -}
 main :: Haskell.IO ()
 main = do
   _ <- either Haskell.fail Haskell.pure vestingInstance
-  blueprint <- either die Haskell.pure (attachUal [contractUal] myContractBlueprint)
-  writeBlueprint "plutus.json" blueprint
-  ref <- blueprintRef "plutus.json" "plutus.json"
-  doc <-
-    either
-      die
-      Haskell.pure
-      (buildAssurance myAssurancePreamble ref $(ualIdFor 'vestingValidator) [contractUal])
-  writeAssurance "assurance.json" doc
-  where
-    die :: Haskell.Show e => e -> Haskell.IO a
-    die = Haskell.fail . Haskell.show
+  args <- getArgs
+  environment <- case args of
+    [path] -> Haskell.pure path
+    _ -> Haskell.fail "usage: example-ual-blueprint ENVIRONMENT.json"
+  writeInterfaceBundle
+    environment
+    myAssurancePreamble
+    $(ualIdFor 'vestingValidator)
+    [contractUal]
+    myContractBlueprint

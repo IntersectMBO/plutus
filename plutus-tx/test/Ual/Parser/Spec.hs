@@ -15,6 +15,7 @@ import PlutusTx.Ual.Syntax
   , ExecutionBudget (..)
   , ModuleUal (..)
   , OnchainDecl (..)
+  , OnchainKind (..)
   , PropertyDecl (..)
   , RawBlock (..)
   , UalArgument (..)
@@ -39,7 +40,9 @@ onchainTests =
           @?= Right
             ( BOnchain
                 MkOnchainDecl
-                  { onchainName = "f"
+                  { onchainKind = Script
+                  , onchainResolvedResult = Nothing
+                  , onchainName = "f"
                   , onchainArgs = [MkUalArgument "Integer" AsData]
                   , onchainResult = "Bool"
                   , onchainVersion = Nothing
@@ -58,9 +61,26 @@ onchainTests =
     , testCase "single colon form is also accepted" $
         (fmap onchainName . asOnchain) <$> onchain " f : A -> () "
           @?= Right (Just "f")
+    , testCase "function target kind" $
+        (fmap onchainKind . asOnchain) <$> onchain "[kind: function] f :: Integer -> Bool"
+          @?= Right (Just Function)
+    , testCase "explicit script target kind" $
+        (fmap onchainKind . asOnchain) <$> onchain "[kind: script] f :: Integer -> Bool"
+          @?= Right (Just Script)
+    , testCase "unknown target kind" $
+        onchain "[kind: other] f :: Integer -> Bool"
+          @?= Left (MalformedBlock 7 "unknown ONCHAIN kind: other")
     , testCase "version option" $
         (fmap onchainVersion . asOnchain) <$> onchain " [version: PlutusV3] f :: A -> () "
           @?= Right (Just (Just PlutusV3))
+    , testCase "explicit CEK semantics survive parsing" $
+        (fmap onchainBudget . asOnchain) <$> onchain " [steps: 20, semantics: D] f :: A -> () "
+          @?= Right (Just (Just (MkSemanticStepBudget 20 "D")))
+    , testCase "unknown option is rejected" $
+        onchain " [step: 20] f :: A -> () " @?= Left (MalformedBlock 7 "unknown ONCHAIN option: step")
+    , testCase "duplicate option is rejected" $
+        onchain " [steps: 20, steps: 30] f :: A -> () "
+          @?= Left (MalformedBlock 7 "duplicate ONCHAIN option")
     , testCase "budget option, both fields" $
         (fmap onchainBudget . asOnchain)
           <$> onchain " [exCPU: 1883313, exMem: 12342] f :: A -> () "
@@ -94,7 +114,7 @@ onchainTests =
           @?= Left (MalformedBlock 7 "expected '::' or ':' after the name")
     , testCase "unknown encoding scheme" $
         onchain " f :: { A : asBytes } -> () "
-          @?= Left (MalformedBlock 7 "unknown encoding 'asBytes'; expected asData or asScott")
+          @?= Left (MalformedBlock 7 "unknown encoding 'asBytes'; expected asData, asNative or asScott")
     , testCase "unknown plutus version" $
         onchain " [version: PlutusV9] f :: A -> () "
           @?= Left (MalformedBlock 7 "unknown version 'PlutusV9'")
@@ -139,6 +159,7 @@ otherKindTests =
                   { propertyName = "p_one"
                   , propertyText = "Funds cannot be locked."
                   , propertyBody = "\8704 x, x \8594 x"
+                  , propertyScope = []
                   , propertyLine = 9
                   }
             )
@@ -181,7 +202,9 @@ assemblyTests =
               , ualModuleImports = [UalModuleName "My.Types"]
               , ualOnchain =
                   [ MkOnchainDecl
-                      { onchainName = "v"
+                      { onchainKind = Script
+                      , onchainResolvedResult = Nothing
+                      , onchainName = "v"
                       , onchainArgs = [MkUalArgument "A" AsData]
                       , onchainResult = "()"
                       , onchainVersion = Nothing
@@ -196,6 +219,7 @@ assemblyTests =
                       { propertyName = "p"
                       , propertyText = "t"
                       , propertyBody = "True"
+                      , propertyScope = []
                       , propertyLine = 11
                       }
                   ]

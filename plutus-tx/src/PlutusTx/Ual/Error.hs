@@ -38,6 +38,11 @@ data UalError
     UnknownFragment Text Text
   | -- | The fragment ids taking part in an import cycle.
     FragmentCycle [Text]
+  | DuplicateModule Text
+  | DuplicateOnchain Text
+  | InvalidPropertyScope Text Text
+  | EmptyAssuranceAuthors
+  | UnresolvedArguments Text
   | {-| No module declared a @PROPERTY@ block, so the assurance document would
     carry an empty @properties@ array. -}
     NoProperties
@@ -85,6 +90,11 @@ renderUalError = \case
     "property " <> squote pid <> " uses unknown fragment " <> squote frag
   FragmentCycle ids ->
     "cycle in fragment imports: " <> Text.intercalate " -> " ids
+  DuplicateModule n -> "duplicate UAL module " <> squote n
+  DuplicateOnchain n -> "duplicate ONCHAIN id " <> squote n
+  InvalidPropertyScope p why -> "property " <> squote p <> ": " <> why
+  EmptyAssuranceAuthors -> "assurance authors must not be empty"
+  UnresolvedArguments n -> "ONCHAIN " <> squote n <> ": argument schemas have not been resolved by ualModule"
   NoProperties ->
     "no PROPERTY blocks: an assurance document must declare at least one property"
   where

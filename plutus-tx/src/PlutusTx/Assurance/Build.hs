@@ -7,7 +7,7 @@ module PlutusTx.Assurance.Build
 
 import Prelude
 
-import Data.List (sort)
+import Data.List (nub, sort)
 import Data.Map.Strict qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
@@ -17,6 +17,7 @@ import PlutusTx.Assurance.Document
 import PlutusTx.Ual.Error (UalError (..))
 import PlutusTx.Ual.Syntax
   ( ModuleUal (..)
+  , OnchainDecl (..)
   , PropertyDecl (..)
   , UalModuleName (..)
   )
@@ -39,16 +40,14 @@ Properties carry no evidence records: this runs at build time, before any proof.
 The CIP names that state explicitly — a property with no evidence is "a stated,
 unverified claim … a machine-readable specification target".
 
-All properties are scoped to the given validator id. Per-property scoping needs
-a @scope@ field in the UAL @PROPERTY@ syntax, which does not exist yet; a single
-scope is honest about what the annotation actually says.
+Properties use explicit ONCHAIN scopes when present. The default validator is
+only a shorthand for a single-target build; multi-target builds must say which
+compiled programs each property constrains. Imported predicates remain reachable
+through modules which have no predicate block of their own.
 
-Of the three arrays the CIP's meta-schema marks both @required@ and
-@minItems: 1@, this guarantees two. @scope.validators@ is the singleton built
-from the validator id argument. @properties@ is non-empty because a run over
-modules that declare no @PROPERTY@ block returns 'NoProperties' rather than a
-document the schema rejects. @preamble.authors@ comes from the caller's
-'AssurancePreamble' and is still not checked here.
+Scopes are non-empty and use explicit targets or the single-target default.
+An empty property list returns 'NoProperties'; an empty authors list returns
+'EmptyAssuranceAuthors'.
 
 Every check below runs on every input, so one call reports duplicate property
 ids, an import cycle and an empty property list together rather than stopping at
@@ -57,11 +56,12 @@ buildAssurance
   :: AssurancePreamble
   -> BlueprintRef
   -> Text
-  -- ^ The validator id every property is scoped to.
+  -- ^ The default validator id for a single-target build.
   -> [ModuleUal]
   -> Either [UalError] AssuranceDocument
 buildAssurance preamble ref defaultValidator modules =
-  case sort (dupPropertyErrors <> cycleErrors <> noPropertyErrors) of
+  case sort
+    (dupPropertyErrors <> moduleErrors <> scopeErrors <> authorErrors <> cycleErrors <> noPropertyErrors) of
     [] ->
       Right
         MkAssuranceDocument
@@ -75,10 +75,41 @@ buildAssurance preamble ref defaultValidator modules =
     errs -> Left errs
   where
     nameOf (UalModuleName n) = n
+    knownValidators = nub [onchainName d | m <- modules, d <- ualOnchain m]
+    scopeOf p = if null (propertyScope p) then [defaultValidator] else propertyScope p
+    scopeErrors =
+      concat
+        [ [ InvalidPropertyScope (propertyName p) "multiple ONCHAIN targets require an explicit [scope: ...]"
+          | null (propertyScope p)
+          , length knownValidators > 1
+          ]
+            <> [InvalidPropertyScope (propertyName p) "validator ids must be nonempty" | any Text.null (scopeOf p)]
+            <> [ InvalidPropertyScope (propertyName p) ("unknown ONCHAIN id: " <> v)
+               | v <- scopeOf p
+               , not (null knownValidators)
+               , v `notElem` knownValidators
+               ]
+        | m <- modules
+        , p <- ualProperties m
+        ]
+    authorErrors = [EmptyAssuranceAuthors | null (assuranceAuthors preamble)]
+    moduleErrors =
+      [ DuplicateModule n
+      | (n, count) <-
+          Map.toList
+            (Map.fromListWith (+) [(nameOf (ualModuleName m), 1 :: Int) | m <- modules])
+      , count > 1
+      ]
 
-    {- Only modules with at least one PREDICATE block become fragments. Two
-    modules sharing a name would produce two fragments sharing an id; nothing
-    here detects that. -}
+    -- Preserve imports through modules which have no predicates of their own.
+    reachableFragments seen n
+      | n `elem` seen = []
+      | Set.member n fragmentIds = [n]
+      | otherwise = case [m | m <- modules, nameOf (ualModuleName m) == n] of
+          m : _ -> nub (concatMap (reachableFragments (n : seen) . nameOf) (ualModuleImports m))
+          [] -> []
+    importsOf m = nub (concatMap (reachableFragments [] . nameOf) (ualModuleImports m))
+
     fragmentModules :: [ModuleUal]
     fragmentModules = [m | m <- modules, not (null (ualPredicates m))]
 
@@ -90,20 +121,17 @@ buildAssurance preamble ref defaultValidator modules =
           { fragmentId = nameOf (ualModuleName m)
           , fragmentLanguage = ualLanguageKey
           , fragmentImports =
-              [i | imp <- ualModuleImports m, let i = nameOf imp, Set.member i fragmentIds]
+              importsOf m
           , fragmentSource = Text.intercalate "\n\n" (Text.strip <$> ualPredicates m)
           }
       | m <- fragmentModules
       ]
 
-    {- A property uses its own module's fragment, or nothing when that module
-    produced none. It never names another: 'PropertyDecl' has no @uses@ field,
-    so the annotation cannot ask for one. -}
     properties =
       [ MkProperty
           { propertyIdent = propertyName p
           , propertyTitle = Nothing
-          , propertyValidators = [defaultValidator]
+          , propertyValidators = scopeOf p
           , propertyStatement =
               MkStatement
                 { statementText = propertyText p
@@ -111,7 +139,7 @@ buildAssurance preamble ref defaultValidator modules =
                     Just
                       MkFormalStatement
                         { formalLanguage = ualLanguageKey
-                        , formalUses = [mname | Set.member mname fragmentIds]
+                        , formalUses = if Set.member mname fragmentIds then [mname] else importsOf m
                         , formalSource = propertyBody p
                         }
                 }
@@ -148,8 +176,8 @@ ualRegistryEntry :: RegistryEntry
 ualRegistryEntry =
   MkRegistryEntry
     { registryName = "Universal Annotation Language"
-    , registryVersion = "0.4"
-    , registryUri = Just "https://github.com/input-output-hk/ual-spec"
+    , registryVersion = "0.5"
+    , registryUri = Just "https://github.com/input-output-hk/UniversalAnnotationLanguage"
     , registryDescription = Just "Property specification language used by Blaster."
     }
 

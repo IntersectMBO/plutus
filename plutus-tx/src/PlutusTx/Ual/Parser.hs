@@ -2,13 +2,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusTx.Ual.Parser
-  ( parseBlock
+  ( parseArgument
+  , parseBlock
   , moduleUalFromSource
   ) where
 
 import Prelude
 
 import Data.Char qualified as Char
+import Data.List qualified as List
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Text qualified as Text
@@ -23,6 +25,7 @@ import PlutusTx.Ual.Syntax
   , LexedModule (..)
   , ModuleUal (..)
   , OnchainDecl (..)
+  , OnchainKind (..)
   , PropertyDecl (..)
   , RawBlock (..)
   , UalArgument (..)
@@ -48,8 +51,27 @@ separator may be @::@ (Haskell) or @:@ (Aiken, Scalus). -}
 parseOnchain :: Int -> Text -> Either UalError OnchainDecl
 parseOnchain line body = do
   (opts, afterOpts) <- takeOptions line (Text.strip body)
+  let keys = map fst opts
+  if length keys /= length (List.nub keys)
+    then Left (MalformedBlock line "duplicate ONCHAIN option")
+    else Right ()
+  mapM_
+    ( \k ->
+        if k `elem` ["kind", "version", "steps", "semantics", "exCPU", "exMem"]
+          then Right ()
+          else Left (MalformedBlock line ("unknown ONCHAIN option: " <> k))
+    )
+    keys
+  kind <- case lookup "kind" opts of
+    Nothing -> Right Script
+    Just "script" -> Right Script
+    Just "function" -> Right Function
+    Just k -> Left (MalformedBlock line ("unknown ONCHAIN kind: " <> k))
   version <- traverse (parseVersion line) (lookup "version" opts)
   budget <- parseBudget line opts
+  if lookup "semantics" opts /= Nothing && lookup "steps" opts == Nothing
+    then Left (MalformedBlock line "semantics requires a steps budget")
+    else Right ()
   (name, sig) <- splitSignature line afterOpts
   case reverse (splitArrows sig) of
     result : revArgs@(_ : _) -> do
@@ -57,6 +79,8 @@ parseOnchain line body = do
       pure
         MkOnchainDecl
           { onchainName = name
+          , onchainKind = kind
+          , onchainResolvedResult = Nothing
           , onchainArgs = args
           , onchainResult = Text.strip result
           , onchainVersion = version
@@ -103,7 +127,12 @@ parseBudget line opts =
   case (lookup "exCPU" opts, lookup "exMem" opts, lookup "steps" opts) of
     (Nothing, Nothing, Nothing) -> Right Nothing
     (Just c, Just m, Nothing) -> Just <$> (MkExecutionBudget <$> nat c <*> nat m)
-    (Nothing, Nothing, Just n) -> Just . MkStepBudget <$> nat n
+    (Nothing, Nothing, Just n) -> do
+      steps <- nat n
+      case lookup "semantics" opts of
+        Nothing -> Right (Just (MkStepBudget steps))
+        Just v | v `elem` ["A", "B", "C", "D", "E"] -> Right (Just (MkSemanticStepBudget steps v))
+        Just _ -> Left (MalformedBlock line "semantics must be A, B, C, D, or E")
     (_, _, Just _) ->
       Left (MalformedBlock line "give either exCPU and exMem, or steps, not both")
     _ -> Left (MalformedBlock line "budget needs both exCPU and exMem")
@@ -171,9 +200,11 @@ parseArgument line raw =
 parseEncoding :: Int -> Text -> Either UalError ArgumentEncoding
 parseEncoding line = \case
   "asData" -> Right AsData
+  "asNative" -> Right AsNative
   "asScott" -> Right AsScott
   other ->
-    Left (MalformedBlock line ("unknown encoding '" <> other <> "'; expected asData or asScott"))
+    Left
+      (MalformedBlock line ("unknown encoding '" <> other <> "'; expected asData, asNative or asScott"))
 
 ----------------------------------------------------------------------------------------------------
 -- UPLC_DATA ---------------------------------------------------------------------------------------
@@ -198,7 +229,18 @@ the last word on it. The formal statement is not checked and may be empty: it
 is Lean source, and only Lean can judge it. -}
 parseProperty :: Int -> Text -> Either UalError PropertyDecl
 parseProperty line body = do
-  let afterName = Text.stripStart body
+  (opts, afterOptions) <- takeOptions line (Text.stripStart body)
+  mapM_
+    ( \(k, _) -> if k == "scope" then Right () else Left (MalformedBlock line ("unknown PROPERTY option: " <> k))
+    )
+    opts
+  let scopes = [v | ("scope", v) <- opts]
+  if length scopes > 1 then Left (MalformedBlock line "duplicate scope option") else Right ()
+  let scope = concatMap Text.words scopes
+  if not (null scopes) && null scope
+    then Left (MalformedBlock line "scope must not be empty")
+    else Right ()
+  let afterName = Text.stripStart afterOptions
       (nameText, rest0) = Text.break (\c -> c == '"' || c == ':') afterName
   (text, rest1) <- takeQuoted line (Text.stripStart rest0)
   formal <- case Text.stripPrefix ":" (Text.stripStart rest1) of
@@ -209,11 +251,14 @@ parseProperty line body = do
   -- statement" names that mistake far better than a complaint about the name
   -- would. Checking last keeps this error about names that really are names.
   name <- validPropertyName line (Text.strip nameText)
+  if Text.null text then Left (MalformedBlock line "empty natural-language statement") else Right ()
+  if Text.null formal then Left (MalformedBlock line "empty formal statement") else Right ()
   pure
     MkPropertyDecl
       { propertyName = name
       , propertyText = text
       , propertyBody = formal
+      , propertyScope = scope
       , propertyLine = line
       }
 

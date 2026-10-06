@@ -1,0 +1,191 @@
+{
+    "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance-v2.json",
+    "blueprint": {
+        "hash": {
+            "alg": "sha256",
+            "digest": "4a3cea405e4b901b3fe33eff3dd4edb079cce4325cf5a336f58f7186d0107263"
+        },
+        "uri": "plutus.json"
+    },
+    "checkingContexts": {
+        "existing_bid_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "03b4931431aa6b96ece79a64d11112b12f39723a8da9ccde32613a8947b267bb"
+            },
+            "uri": "checking-existing_bid_exact.json"
+        },
+        "first_bid_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "03b4931431aa6b96ece79a64d11112b12f39723a8da9ccde32613a8947b267bb"
+            },
+            "uri": "checking-first_bid_exact.json"
+        },
+        "malformed_context": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "03b4931431aa6b96ece79a64d11112b12f39723a8da9ccde32613a8947b267bb"
+            },
+            "uri": "checking-malformed_context.json"
+        },
+        "outbids_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "89ea2413e21b7a7f7c761c9ce897620b33dcc78c594519528d25c1777fbee899"
+            },
+            "uri": "checking-outbids_exact.json"
+        },
+        "payout_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "03b4931431aa6b96ece79a64d11112b12f39723a8da9ccde32613a8947b267bb"
+            },
+            "uri": "checking-payout_exact.json"
+        }
+    },
+    "definitions": {
+        "BuiltinData": {}
+    },
+    "formalFragments": [
+        {
+            "id": "Example.Ual.Auction.FormalSpec",
+            "language": "ual",
+            "source": "def typedAuction (validator : Data → State) (ctx : CardanoLedgerApi.V3.Contexts.ScriptContext) :=\n    validator (CardanoLedgerApi.IsData.Class.IsData.toData ctx)\n\n  def bidScenario (validator : Data → State) (old proposed locked refund tokens hi : Integer) :=\n    typedAuction validator (CardanoLedgerApi.Examples.Auction.newBidContext old proposed locked refund tokens hi)\n\n  def payoutScenario (validator : Data → State) (bid paid tokens lo : Integer) :=\n    typedAuction validator (CardanoLedgerApi.Examples.Auction.payoutContext bid paid tokens lo)"
+        }
+    ],
+    "functions": {
+        "outbids": {
+            "arguments": [
+                {
+                    "dataType": "#integer"
+                },
+                {
+                    "dataType": "#integer"
+                }
+            ],
+            "compiledCode": "4a01010022337100040021",
+            "hash": {
+                "alg": "sha256",
+                "digest": "264d481d68647619542971000e727b145b21600e612476ea09841dce094752a8"
+            },
+            "plutusVersion": "v3",
+            "result": {
+                "dataType": "#boolean"
+            },
+            "serialization": "cbor-flat"
+        }
+    },
+    "languages": {
+        "ual": {
+            "name": "Universal Annotation Language",
+            "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage",
+            "version": "0.6-draft"
+        }
+    },
+    "preamble": {
+        "authors": [
+            "Plutus contributors"
+        ],
+        "created": "2026-10-06",
+        "title": "Auction with detached specification",
+        "version": "1.0.0"
+    },
+    "properties": [
+        {
+            "checkingContext": "outbids_exact",
+            "id": "outbids_exact",
+            "scope": {
+                "functions": [
+                    "outbids"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (old proposed : Integer), outbids_returns old proposed (decide (old < proposed))",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "The separately compiled helper returns the native comparison result."
+            }
+        },
+        {
+            "checkingContext": "first_bid_exact",
+            "id": "first_bid_exact",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (proposed locked tokens hi : Integer),\n      isSuccessful (bidScenario auction 0 proposed locked 0 tokens hi) ↔\n        100 ≤ proposed ∧ hi ≤ 1725227091000 ∧ locked = proposed ∧ tokens = 1",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "For the upstream no-previous-bid scenario, the minimum, deadline, locked Ada and NFT quantity characterize success."
+            }
+        },
+        {
+            "checkingContext": "existing_bid_exact",
+            "id": "existing_bid_exact",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (old proposed locked refund tokens hi : Integer), 0 < old →\n      (isSuccessful (bidScenario auction old proposed locked refund tokens hi) ↔\n        old < proposed ∧ hi ≤ 1725227091000 ∧ locked = proposed ∧ refund = old ∧ tokens = 1)",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "For a positive previous bid, success requires a strictly larger bid, exact refund, correct continuing value and the deadline."
+            }
+        },
+        {
+            "checkingContext": "payout_exact",
+            "id": "payout_exact",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bid paid tokens lo : Integer),\n      isSuccessful (payoutScenario auction bid paid tokens lo) ↔\n        1725227091000 ≤ lo ∧ tokens = 1 ∧ (0 < bid → paid = bid)",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "For the upstream payout scenario, the deadline, NFT and seller payment characterize success."
+            }
+        },
+        {
+            "checkingContext": "malformed_context",
+            "id": "malformed_context",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (n : Integer), isUnsuccessful (auction (Data.I n))",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "An integer is not a V3 ScriptContext and is rejected."
+            }
+        }
+    ]
+}

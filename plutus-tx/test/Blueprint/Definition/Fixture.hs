@@ -26,3 +26,17 @@ data T2 = MkT2 T1 T1
 deriving stock instance Generic T2
 deriving anyclass instance HasBlueprintDefinition T2
 $(makeIsDataSchemaIndexed ''T2 [('MkT2, 0)])
+
+-- Mutually recursive datatypes exercise the visited set across type boundaries.
+data MutualA = ALeaf Integer | ABranch MutualB
+data MutualB = BBranch MutualA
+
+deriving stock instance Generic MutualA
+deriving stock instance Generic MutualB
+deriving anyclass instance HasBlueprintDefinition MutualA
+deriving anyclass instance HasBlueprintDefinition MutualB
+$( do
+    a <- makeIsDataSchemaIndexed ''MutualA [('ALeaf, 0), ('ABranch, 1)]
+    b <- makeIsDataSchemaIndexed ''MutualB [('BBranch, 0)]
+    pure (a ++ b)
+ )

@@ -1,0 +1,75 @@
+-- Custom repository for cardano haskell packages, see CONTRIBUTING for more
+repository cardano-haskell-packages
+  url: https://chap.intersectmbo.org/
+  secure: True
+  root-keys:
+    3e0cce471cf09815f930210f7827266fd09045445d65923e6d0238a6cd15126f
+    443abb7fb497a134c343faf52f0b659bd7999bc06b7f63fa76dc99d631f9bea1
+    a86a1f6ce86c449c46666bda44268677abf29b5b2d2eb5ec7af903ec2f117a82
+    bcec67e8e99cabfa7764d75ad9b158d72bfacf70ca1d0ec8bc6b4406d1bf8413
+    c00aae8461a256275598500ea0e187588c35a5d5d7454fb57eac18d9edb86a56
+    d4a35cd3121aa00d18544bb0ac01c3e1691d618f462c46129271bccf39f7e8ee
+
+-- See CONTRIBUTING for some Nix commands you will need to run if you
+-- update either of these.
+index-state:
+  -- Bump both the following dates if you need newer packages from Hackage
+  , hackage.haskell.org 2026-06-22T23:30:49Z
+  -- Bump this if you need newer packages from CHaP
+  , cardano-haskell-packages 2026-06-18T17:45:00Z
+
+active-repositories:
+  , :rest
+  , cardano-haskell-packages:override
+
+packages: plutus-core
+          plutus-tx
+          plutus-ledger-api
+          plutus-tx-plugin
+          plutus-metatheory
+          doc/docusaurus
+
+
+-- We never, ever, want this.
+write-ghc-environment-files: never
+
+-- Always build tests and benchmarks.
+tests: false
+benchmarks: false
+
+-- The only sensible test display option, since it allows us to have colourized
+-- 'tasty' output.
+test-show-details: direct
+
+package plutus-core
+  flags: -with-inline-r -with-cert
+
+if arch(wasm32)
+  package plutus-core
+    flags: +do-not-build-plutus-exec
+
+-- Various dependencies of coq don't work when cross building for windows
+if os(windows)
+  -- Note: we enable this and then disable it conditionally, rather than enabling
+  -- it conditionally, to avoid https://github.com/haskell/cabal/issues/9293
+  package plutus-core
+    flags: -with-cert
+  -- This is a bit silly. Although we won't use plutus-cert in this case, cabal
+  -- still considers it a "local" project and tries to solve for it so we hack
+  -- around the dependency issue, keeping cabal happy, which is fine since it
+  -- won't actually build it.
+  allow-older: plutus-cert:base
+
+-- Recently introduced flag to be clever and use SIMD instructions.
+-- We don't need this and it causes problems in a few settings including
+-- cross-compilation.
+package bitvec
+  flags: -simd
+
+-- plutus-tx-plugin cannot be built with profiling enabled
+package plutus-tx-plugin
+  profiling: False
+
+-- See the note on nix/agda-packages.nix for why this is here.
+-- (NOTE this will change to ieee754 in newer versions of nixpkgs).
+extra-packages: ieee, filemanip

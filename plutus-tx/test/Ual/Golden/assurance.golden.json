@@ -20,8 +20,8 @@
   "languages": {
     "ual": {
       "name": "Universal Annotation Language",
-      "version": "0.4",
-      "uri": "https://github.com/input-output-hk/ual-spec"
+      "version": "0.5",
+      "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage"
     }
   },
   "formalFragments": [

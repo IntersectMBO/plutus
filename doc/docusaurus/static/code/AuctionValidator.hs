@@ -37,7 +37,7 @@ import PlutusLedgerApi.V1.Interval (contains)
 import PlutusLedgerApi.V3
   ( CurrencySymbol
   , Datum (Datum, getDatum)
-  , Lovelace
+  , Lovelace (..)
   , OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash)
   , POSIXTime
   , PubKeyHash
@@ -132,6 +132,11 @@ data AuctionRedeemer = NewBid Bid | Payout
 
 PlutusTx.makeIsDataSchemaIndexed ''AuctionRedeemer [('NewBid, 0), ('Payout, 1)]
 
+-- | Native integer/boolean helper, also compiled separately by the UAL example.
+{-# INLINEABLE outbids #-}
+outbids :: Integer -> Integer -> Bool
+outbids previous proposed = proposed PlutusTx.> previous
+
 -- BLOCK2
 -- AuctionValidator.hs
 {-# INLINEABLE auctionTypedValidator #-}
@@ -171,7 +176,7 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = List.and c
     -- AuctionValidator.hs
     sufficientBid :: Bid -> Bool
     sufficientBid (Bid _ _ amt) = case highestBid of
-      Just (Bid _ _ amt') -> amt PlutusTx.> amt'
+      Just (Bid _ _ amt') -> outbids (getLovelace amt') (getLovelace amt)
       Nothing -> amt PlutusTx.>= apMinBid params
     -- BLOCK4
     -- AuctionValidator.hs

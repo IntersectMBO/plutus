@@ -55,7 +55,7 @@ instance HasBlueprintSchema Ticket referencedTypes where
 {-@ UPLC_DATA Ticket @-}
 
 {-@ PREDICATE
-def ticketOk (t : Ticket) : Prop := t.value > 0
+def ticketOk (t : Integer) : Prop := t > 0
 @-}
 
 {-@ ONCHAIN [version: PlutusV3] [exCPU: 1883313, exMem: 12342]
@@ -68,7 +68,7 @@ ticketSpend _ _ = ()
 
 {-@ PROPERTY ticket_ok
       "A ticket with a positive value is accepted."
-    : ∀ (t : Ticket), ticketOk t
+    : ∀ (t : Integer) (xs : List Integer), ticketOk t → isSuccessful (ticketSpend t xs)
 @-}
 
 fixtureContract :: ContractBlueprint
@@ -127,7 +127,7 @@ tests =
         (length . onchainResolvedArgs <$> ualOnchain fixtureUal) @?= [2]
     , testCase "one predicate, verbatim" $
         (Text.strip <$> ualPredicates fixtureUal)
-          @?= ["def ticketOk (t : Ticket) : Prop := t.value > 0"]
+          @?= ["def ticketOk (t : Integer) : Prop := t > 0"]
     , testCase "one property, with its natural-language text" $
         (propertyText <$> ualProperties fixtureUal)
           @?= ["A ticket with a positive value is accepted."]

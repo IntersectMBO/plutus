@@ -57,6 +57,7 @@ library
     PlutusTx.AsData.Internal
     PlutusTx.AssocMap
     PlutusTx.Assurance
+    PlutusTx.Assurance.Interface
     PlutusTx.Assurance.Build
     PlutusTx.Assurance.Document
     PlutusTx.Assurance.Write
@@ -253,6 +254,7 @@ test-suite plutus-tx-test
     Ual.Assurance.Spec
     Ual.Blueprint.Spec
     Ual.Error.Spec
+    Ual.InterfaceSpec
     Ual.Fixture
     Ual.Lexer.Spec
     Ual.Parser.Spec

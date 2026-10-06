@@ -1,0 +1,82 @@
+{
+    "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance-v2.json",
+    "blueprint": {
+        "hash": {
+            "alg": "sha256",
+            "digest": "ec67f0c0b69c274e2ad4f899af61d43b4c16f22864bd663c11e579e90e060b8c"
+        },
+        "uri": "plutus.json"
+    },
+    "checkingContexts": {
+        "data_seven": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "cd8c239f2aa6edc28dadf840999354e86ee02b04bb2626bd24337f6d85ba2334"
+            },
+            "uri": "checking-data_seven.json"
+        },
+        "native_seven": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "0abe5a7626fdfaeb556d9bcb3fb52e538c4467106c13f8e1581167a48efbca8c"
+            },
+            "uri": "checking-native_seven.json"
+        }
+    },
+    "definitions": {
+        "BuiltinData": {},
+        "Integer": {
+            "dataType": "integer"
+        }
+    },
+    "functions": {},
+    "languages": {
+        "ual": {
+            "name": "Universal Annotation Language",
+            "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage",
+            "version": "0.6-draft"
+        }
+    },
+    "preamble": {
+        "authors": [
+            "Plutus contributors"
+        ],
+        "created": "2026-09-30",
+        "title": "Parameter encoding assurance",
+        "version": "1.0.0"
+    },
+    "properties": [
+        {
+            "checkingContext": "native_seven",
+            "id": "native_seven",
+            "scope": {
+                "validators": [
+                    "nativeParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (n : Integer) (r ctx : Data), isSuccessful (nativeParameter n r ctx) ↔ n = 7"
+                },
+                "text": "The native parameter succeeds exactly for seven, for any runtime inputs."
+            }
+        },
+        {
+            "checkingContext": "data_seven",
+            "id": "data_seven",
+            "scope": {
+                "validators": [
+                    "dataParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (n : Integer) (r ctx : Data), isSuccessful (dataParameter n r ctx) ↔ n = 7"
+                },
+                "text": "The Data parameter succeeds exactly for seven, for any runtime inputs."
+            }
+        }
+    ]
+}
