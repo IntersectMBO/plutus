@@ -3,7 +3,7 @@
     "environment": {
         "hash": {
             "alg": "sha256",
-            "digest": "de654ec6c98c564393ab35dfaae1193d9d675ffb8f8b9d8517eb6cfd70f81733"
+            "digest": "af388ba7c4e835add9a288459dddb50ce180089a3e4c48bab203e50dc7b5cbaf"
         },
         "uri": "environment.json"
     },

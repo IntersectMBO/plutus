@@ -11,28 +11,28 @@
         "leaf_seven": {
             "hash": {
                 "alg": "sha256",
-                "digest": "6f5a015ac8ab7e1bf7d3a458a7b278272bce3bd4a4d002120b18373c9bb32387"
+                "digest": "ef301f1a450a9a404228ceda12694774cbc76cbfe36363c2475d8786c794dbdb"
             },
             "uri": "checking-leaf_seven.json"
         },
         "malformed_tree": {
             "hash": {
                 "alg": "sha256",
-                "digest": "7a781bd3817d712ac95decbfa7f1c7e52bf372c6db984b6918fc114653951a03"
+                "digest": "0a78de1b92212c6ea8e222af18ec68fb4875df5856bdab5fc1a45d1c315bcad1"
             },
             "uri": "checking-malformed_tree.json"
         },
         "nested_mirror": {
             "hash": {
                 "alg": "sha256",
-                "digest": "7a781bd3817d712ac95decbfa7f1c7e52bf372c6db984b6918fc114653951a03"
+                "digest": "0a78de1b92212c6ea8e222af18ec68fb4875df5856bdab5fc1a45d1c315bcad1"
             },
             "uri": "checking-nested_mirror.json"
         },
         "nested_sum": {
             "hash": {
                 "alg": "sha256",
-                "digest": "6f5a015ac8ab7e1bf7d3a458a7b278272bce3bd4a4d002120b18373c9bb32387"
+                "digest": "ef301f1a450a9a404228ceda12694774cbc76cbfe36363c2475d8786c794dbdb"
             },
             "uri": "checking-nested_sum.json"
         }

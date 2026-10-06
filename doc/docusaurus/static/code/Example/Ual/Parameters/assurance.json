@@ -8,17 +8,45 @@
         "uri": "plutus.json"
     },
     "checkingContexts": {
+        "data_applied_eight": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "18fb5096520a32d8322215ffa94563d4b5a205c43ba3641caa9e8f3dc4751b15"
+            },
+            "uri": "checking-data_applied_eight.json"
+        },
+        "data_applied_seven": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5c71ad72b7ea18b27c41470b1edf64bbcff5983ee64fad1d48d56eaff1715b32"
+            },
+            "uri": "checking-data_applied_seven.json"
+        },
         "data_seven": {
             "hash": {
                 "alg": "sha256",
-                "digest": "cd8c239f2aa6edc28dadf840999354e86ee02b04bb2626bd24337f6d85ba2334"
+                "digest": "09f421f715edcf3f6165eb3fec5ae2edeab3ec59a8bf8e91a0c8d2257449a34c"
             },
             "uri": "checking-data_seven.json"
+        },
+        "native_applied_eight": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "8c0ddab5270dfcf26239575a3aded47f200890775470024a9176165709d8e317"
+            },
+            "uri": "checking-native_applied_eight.json"
+        },
+        "native_applied_seven": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "8cb33bbf34a5ec17114c5e0625dc565e1bdff1e196e996c58253f3bad4927832"
+            },
+            "uri": "checking-native_applied_seven.json"
         },
         "native_seven": {
             "hash": {
                 "alg": "sha256",
-                "digest": "0abe5a7626fdfaeb556d9bcb3fb52e538c4467106c13f8e1581167a48efbca8c"
+                "digest": "a2b3c53f35a2bea3954ad4b4366776f2367d8c225460f9e9dcf4aca908156ffe"
             },
             "uri": "checking-native_seven.json"
         }
@@ -76,6 +104,70 @@
                     "source": "∀ (n : Integer) (r ctx : Data), isSuccessful (dataParameter n r ctx) ↔ n = 7"
                 },
                 "text": "The Data parameter succeeds exactly for seven, for any runtime inputs."
+            }
+        },
+        {
+            "checkingContext": "native_applied_seven",
+            "id": "native_applied_seven",
+            "scope": {
+                "validators": [
+                    "nativeParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (r ctx : Data), isSuccessful (nativeParameter r ctx)"
+                },
+                "text": "The specialized program with parameter 7 has the stated outcome for every runtime input."
+            }
+        },
+        {
+            "checkingContext": "native_applied_eight",
+            "id": "native_applied_eight",
+            "scope": {
+                "validators": [
+                    "nativeParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (r ctx : Data), isUnsuccessful (nativeParameter r ctx)"
+                },
+                "text": "The specialized program with parameter 8 has the stated outcome for every runtime input."
+            }
+        },
+        {
+            "checkingContext": "data_applied_seven",
+            "id": "data_applied_seven",
+            "scope": {
+                "validators": [
+                    "dataParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (r ctx : Data), isSuccessful (dataParameter r ctx)"
+                },
+                "text": "The specialized program with parameter 7 has the stated outcome for every runtime input."
+            }
+        },
+        {
+            "checkingContext": "data_applied_eight",
+            "id": "data_applied_eight",
+            "scope": {
+                "validators": [
+                    "dataParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (r ctx : Data), isUnsuccessful (dataParameter r ctx)"
+                },
+                "text": "The specialized program with parameter 8 has the stated outcome for every runtime input."
             }
         }
     ]
