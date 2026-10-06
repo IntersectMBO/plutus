@@ -92,10 +92,15 @@ scriptContextToValidGovAction =
 
     governanceActionToValidGovAction :: GovernanceAction -> Maybe ChangedParams
     governanceActionToValidGovAction govAction =
-      case govAction of
-        (ParameterChange _ cparams _) -> Just . BI.unsafeDataAsMap . toBuiltinData $ cparams
-        (TreasuryWithdrawals _ _) -> Nothing
-        _ ->
-          traceError
-            "Not a ChangedParams. This should not ever happen, because ledger should guard before, against it."
+      BI.casePair (BI.unsafeDataAsConstr (toBuiltinData govAction)) $ \i args ->
+        BI.caseInteger
+          i
+          [ -- 0: ParameterChange
+            Just (BI.unsafeDataAsMap (BI.head (BI.tail args)))
+          , -- 1: HardForkInitiation
+            traceError
+              "Not a ChangedParams. This should not ever happen, because ledger should guard before, against it."
+          , -- 2: TreasuryWithdrawals
+            Nothing
+          ]
 {-# INLINEABLE scriptContextToValidGovAction #-}
