@@ -1,15 +1,28 @@
 \section{Protocol versions}
-The Cardano blockchain controls the introduction of features through the use of \emph{protocol versions}, a field in the protocol parameters.
-The major protocol version is used to indicate when forwards-incompatible changes (i.e. those that allow blocks that were not previously allowed) are made to the rules of the chain.
-This is a hard fork of the chain.
+The Cardano blockchain controls the introduction of features through the use of
+\emph{protocol versions}, a field in the protocol parameters.  The major
+protocol version is used to indicate when forwards-incompatible changes
+(i.e. those that allow blocks that were not previously allowed) are made to the
+rules of the chain.  This is a hard fork of the chain.
 
-The protocol version is part of the history of the chain, as are all protocol parameters.
-That means that all blocks are associated with the protocol version from when they were created, so that they can be interpreted correctly.
+The protocol version is part of the history of the chain, as are all protocol
+parameters.  That means that all blocks are associated with the protocol version
+from when they were created, so that they can be interpreted correctly.
 
 In summary, conditioning on the protocol version is the main way in which we can introduce changes in behaviour.
 
-Table~\ref{table:protocol-versions} lists the protocol versions that are relevant to the use of Plutus Core on Cardano.
-This table is based on the \texttt{features-table.md} document attached to CIP-0059~\cite{CIP-0059}.
+Table~\ref{table:protocol-versions} lists the protocol versions that are
+relevant to the use of Plutus Core on Cardano.  This table is based on the
+\texttt{features-table.md} document attached to CIP-0059~\cite{CIP-0059}.  For
+brevity, in the remainder of this document We will sometimes abbreviate
+``Protocol Version'' to PV and omit the minor version number, so for example PV9
+means Protocol Version 9.0.
+
+The table includes an entry for Protocol Version 12.0, which will initiate
+Cardano's Dijkstra era, and this document uses the name ``Dijkstra HF'' for the
+corresponding hard fork.  The date of this hard fork is unknown at the time of
+writing, and its actual name will probably be different.
+
 
 \begin{table}[H]
   \centering
@@ -23,6 +36,7 @@ This table is based on the \texttt{features-table.md} document attached to CIP-0
         9.0  & Chang       & 507 &  133660855  & September 2024 \\
         10.0 & Plomin      & 537 &  146620809  & January 2025 \\
         11.0 & van Rossem  & 644 &  192845302  & July 2026 \\
+        12.0 & Dijkstra HF &     &             & TBD\\
         \hline
     \end{tabular}
     \caption{Protocol versions}
@@ -32,27 +46,42 @@ This table is based on the \texttt{features-table.md} document attached to CIP-0
 
 \section{Ledger languages}
 
-The Cardano ledger uses Plutus Core as the programming language for \emph{scripts}.
-The ledger in fact supports multiple different interpretations for scripts, and so each script is tagged with a \emph{ledger language} that tells the ledger how to interpret it.
-Since the ledger must always be able to evaluate old scripts and get the same answer, the ledger language must pin down everything about how the script is evaluated, including:
+The Cardano ledger uses Plutus Core as the programming language for
+\emph{scripts}.  The ledger in fact supports multiple different interpretations
+for scripts, and so each script is tagged with a \emph{ledger language} that
+tells the ledger how to interpret it.  Since the ledger must always be able to
+evaluate old scripts and get the same answer, the ledger language must pin down
+everything about how the script is evaluated, including:
 
 \begin{enumerate}
-  \item How to interpret the script itself (e.g. as a Plutus Core program, what versions of the Plutus Core language are allowable)
-  \item Other configuration the script may need in order to run (e.g. the set of builtin types and functions and their interpretations, cost model parameters)
-  \item How the script is invoked (e.g. after having certain arguments passed to it)
+  \item How to interpret the script itself (e.g. as a Plutus Core program, what
+    versions of the Plutus Core language are allowable)
+  \item Other configuration the script may need in order to run (e.g. the set of
+    builtin types and functions and their interpretations, cost model
+    parameters)
+  \item How the script is invoked (e.g. after having certain arguments passed to
+    it)
 \end{enumerate}
 
-There are currently three ``Plutus'' ledger languages (i.e. ledger languages whose underlying programming language is Plutus Core) in use on Cardano:\footnote{
-  Note that ledger languages are completely distinct from the point of view of the ledger, the ``V1''/``V2'' naming is suggestive of the fact that these two ledger languages are related, but in the implementation they are completely independent.
-}
+There are currently three ``Plutus'' ledger languages (i.e. ledger languages
+whose underlying programming language is Plutus Core) in use on
+Cardano:\footnote{ Note that ledger languages are completely distinct from the
+point of view of the ledger, the ``V1''/``V2'' naming is suggestive of the fact
+that these two ledger languages are related, but in the implementation they are
+completely independent.  },
 \begin{enumerate}
   \item \LL{PlutusV1}
   \item \LL{PlutusV2}
   \item \LL{PlutusV3}
 \end{enumerate}
 
-\noindent Table~\ref{table:ll-introduction} shows when each Plutus ledger language was introduced.
-Ledger languages remain available permanently after they have been introduced.
+\noindent Table~\ref{table:ll-introduction} shows when each Plutus ledger
+language was introduced.  Ledger languages remain available permanently after
+they have been introduced.  A fourth ledger language, \LL{PlutusV4}, will become
+available at Protocol Version 12.0; this will mostly differ from \LL{PlutusV3}
+in the API for interacting with the Cardano ledger, which is beyond the scope of
+this specification (but see~\cite{plinth-userguide:contexts} for more information).
+
 
 \begin{table}[H]
   \centering
@@ -60,73 +89,110 @@ Ledger languages remain available permanently after they have been introduced.
         \hline
         \thead{Protocol version} & \thead{Ledger language introduced} \\
         \hline
-        5.0 & \LL{PlutusV1} \\
-        7.0 & \LL{PlutusV2} \\
-        9.0 & \LL{PlutusV3} \\
+        5.0  & \LL{PlutusV1} \\
+        7.0  & \LL{PlutusV2} \\
+        9.0  & \LL{PlutusV3} \\
+        \hline
+        12.0 & \LL{PlutusV4} \\
         \hline
     \end{tabular}
     \caption{Introduction of Plutus ledger languages}
     \label{table:ll-introduction}
 \end{table}
 
-\noindent Ledger languages can evolve over time.
-We can make backwards-compatible changes when the major protocol version changes, but backwards-incompatible changes can only be introduced by creating a whole new ledger language.\footnote{
-  See~\cite{CIP-0035} for more details on how the process of evolution works.
-}
-This means that to fully explain the behaviour of a ledger language we may need to also index by the protocol version.
+\subsection{Evolution of Plutus ledger languages and Plutus Core language versions}
+Plutus Core scripts first became available on Cardano at the Alonzo hard fork
+(PV5).  Later hard forks have introduced a number of ``batches'' of built-in
+type and functions (described in Section~\ref{sec:builtin-batches} below) and
+new Plutus Core language versions (see Section~\ref{sec:grammar-notes}).
+Initially the workings of the Cardano ledger meant that it was not possible to
+retroactively add new built-in functions or Plutus Core language versions to
+existing ledger languages after a new ledger language was introduced: for
+example Batch 3 was added to PlutusV2 at the Valentine hard fork (introducing
+PV8), but it was not possible to add Batch 3 to PlutusV1 at that time. This
+restriction was lifted at the van Rossem hard fork (PV11) and it became possible
+to use all builtins and all Plutus Core language versions in all ledger
+languages.  Table~\ref{table:ll-pv-features} below shows how the situation has
+evolved as time progressed (the row for PV12 is provisional at the time of
+writing).  This is of some relevance for nodes replaying the history of the
+chain because they must reject scripts which use builtins or Plutus Core
+versions which were not available at the time when the scripts were originally
+executed.\footnote{In fact, in PV7 and later, scripts which use an unavailable
+ledger language or unavailable built-in types or functions should be rejected
+during deserialisation and should never be recorded on the chain.  These are
+\textit{Phase 1 failures}, as opposed to \textit{Phase 2 failures}, which
+involve run-time errors such as division by zero or budget overflows, and also
+attempts to use an unavailable Plutus Core version.  Script evaluations with
+Phase 2 failures will be recorded in the history of the chain, although
+examination of the history shows that very few Phase 2 failures have actually
+occurred (the deterministic nature of script evaluation means that they become
+apparent if a script is evaluated off-chain prior to submission, so it is
+unlikely that scripts with Phase 2 failures will be submitted to the chain).}
 
-The following tables show how Plutus ledger languages determine:
-\begin{itemize}
-  \item Which Plutus Core language versions are allowable (Table~\ref{table:lv-introduction})
-  \item Which built-in functions and types are available (Table~\ref{table:b-introduction}, given in terms of batches, see Section~\ref{sec:builtin-batches})
-  \item How to interpret the built-in functions and types (Table~\ref{table:bs-introduction}, given in terms of built-in semantics variants, see Section~\ref{sec:builtin-semantics-variants})
-\end{itemize}
-
-Currently, once we add a feature for any given protocol version/ledger language, we also make it available for all subsequent protocol versions/ledger languages.
-For example, Batch 2 of builtins was introduced in \LL{PlutusV2} at protocol version 7.0, so it is also available in \LL{PlutusV2} at protocol versions after 7.0, and \LL{PlutusV3} at protocol versions after 9.0 (when \LL{PlutusV3} itself was first introduced).
-Hence the tables are simplified to only show when something is \emph{introduced}.
-
-\begin{table}[H]
-  \centering
-    \begin{tabular}{|c|c|c|}
-        \hline
-        \thead{Ledger language} & \thead{Protocol version} & \thead{Plutus Core language version introduced} \\
-        \hline
-        \LL{PlutusV1} & 5.0 & 1.0.0 \\
-        \LL{PlutusV3} & 9.0 & 1.1.0 \\
-        \hline
-    \end{tabular}
-    \caption{Introduction of Plutus Core language versions}
-    \label{table:lv-introduction}
-\end{table}
-
-\begin{table}[H]
-  \centering
-    \begin{tabular}{|c|c|c|}
-        \hline
-        \thead{Ledger language} & \thead{Protocol version} & \thead{Built-in functions and types introduced} \\
-        \hline
-        \LL{PlutusV1} & 5.0 & Batch 1 \\
-        \LL{PlutusV2} & 7.0 & Batch 2 \\
-        \LL{PlutusV2} & 8.0 & Batch 3 \\
-        \LL{PlutusV3} & 9.0 & Batch 4 \\
-        \LL{PlutusV3} & 10.0 & Batch 5 \\
-        \hline
-    \end{tabular}
-    \caption{Introduction of built-in functions and types}
-    \label{table:b-introduction}
-\end{table}
 
 \begin{table}[H]
   \centering
-    \begin{tabular}{|c|c|c|}
-        \hline
-        \thead{Ledger language} & \thead{Built-in semantics variant used} \\
-        \hline
-        \LL{PlutusV1} & Built-in semantics 1 \\
-        \LL{PlutusV3} & Built-in semantics 2 \\
-        \hline
-    \end{tabular}
-    \caption{Selection of built-in semantics variant}
-    \label{table:bs-introduction}
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\cellalign}{cc}
+  \begin{tabular}{|l|c|c|c|c|}
+    \hline
+    \thead{Protocol\\version}
+      & \thead{\LL{PlutusV1}} & \thead{\LL{PlutusV2}}
+      & \thead{\LL{PlutusV3}} & \thead{\LL{PlutusV4}} \\
+    \hline
+    5.0 (Alonzo)
+      & \makecell{Batch 1\\PLC 1.0.0}
+      & --- & --- & --- \\
+    \hline
+    7.0 (Vasil)
+      & \makecell{Batch 1\\PLC 1.0.0}
+      & \makecell{Batches 1--2\\PLC 1.0.0}
+      & --- & --- \\
+    \hline
+    8.0 (Valentine)
+      & \makecell{Batch 1\\PLC 1.0.0}
+      & \makecell{Batches 1--3\\PLC 1.0.0}
+      & --- & --- \\
+    \hline
+    9.0 (Chang)
+      & \makecell{Batch 1\\PLC 1.0.0}
+      & \makecell{Batches 1--3\\PLC 1.0.0}
+      & \makecell{Batches 1--4\\PLC 1.0.0, 1.1.0}
+      & --- \\
+    \hline
+    10.0 (Plomin)
+      & \makecell{Batch 1\\PLC 1.0.0}
+      & \makecell{Batches 1--3, 4b$^{\dagger}$\\PLC 1.0.0}
+      & \makecell{Batches 1--5\\PLC 1.0.0, 1.1.0}
+      & --- \\
+    \hline
+    11.0 (van Rossem)
+      & \makecell{Batches 1--6\\PLC 1.0.0, 1.1.0}
+      & \makecell{Batches 1--6\\PLC 1.0.0, 1.1.0}
+      & \makecell{Batches 1--6\\PLC 1.0.0, 1.1.0}
+      & --- \\
+    \hline
+    \hline
+    12.0 (Dijkstra HF)
+      & \makecell{Batches 1--7\\PLC 1.0.0--1.2.0}
+      & \makecell{Batches 1--7\\PLC 1.0.0--1.2.0}
+      & \makecell{Batches 1--7\\PLC 1.0.0--1.2.0}
+      & \makecell{Batches 1--7\\PLC 1.0.0--1.2.0} \\
+    \hline
+  \end{tabular}
+  \caption{Built-in functions and Plutus Core language versions available in
+    each ledger language at each major protocol version}
+  \label{table:ll-pv-features}
 \end{table}
+
+\noindent Each entry in the table gives the built-in batches which are available
+(see Section~\ref{sec:builtin-batches}) and the Plutus Core language versions
+which are allowed.  An entry of `---' means that the ledger language does not
+exist at that protocol version.  The entry for PV12 is provisional at the time
+of writing.  Only protocol versions at which something changes are shown: a
+protocol version which does not appear in the table behaves exactly like the
+most recent one which precedes it (and protocol versions earlier than 5.0
+support no ledger languages at all).  At PV10, \LL{PlutusV2} gained only the
+Batch 4b built-ins (\TT{integerToByteString} and \TT{byteStringToInteger}); the
+remainder of Batch 4 became available in \LL{PlutusV2} at PV11.
