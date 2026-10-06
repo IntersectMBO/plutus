@@ -462,16 +462,6 @@ program
     data (Maybe :: * -> *) a | Maybe_match where
       Just : a -> Maybe a
       Nothing : Maybe a
-    !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
-       all a. (\a -> data -> a) a -> data -> Maybe a
-      = /\a ->
-          \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
-            case
-              (Maybe a)
-              d
-              [ (\(ds : list data) ->
-                   Just {a} (`$dUnsafeFromData` (headList {data} ds)))
-              , (\(ds : list data) -> Nothing {a}) ]
     !fun : list (pair data data) -> bool
       = runRules
           ((let
@@ -5236,131 +5226,65 @@ program
   \(ds : data) ->
     Maybe_match
       {list (pair data data)}
-      (let
-        !nt : data
-          = headList
-              {data}
-              (dropList
-                 {data}
-                 2
-                 (case
-                    (list data)
-                    (unConstrData
-                       (let
-                         !tup : pair integer (list data)
-                           = unConstrData
-                               (headList
-                                  {data}
-                                  (dropList
-                                     {data}
-                                     2
-                                     (case
-                                        (list data)
-                                        (unConstrData ds)
-                                        [ (\(l : integer) (r : list data) ->
-                                             r) ])))
-                       in
-                       case
-                         (all dead. data)
-                         (equalsInteger
-                            5
-                            (case
-                               integer
-                               tup
-                               [(\(l : integer) (r : list data) -> l)]))
-                         [ (/\dead -> error {data})
-                         , (/\dead ->
-                              case
-                                data
-                                (case
-                                   (list data)
-                                   tup
-                                   [(\(l : integer) (r : list data) -> r)])
-                                [ (\(ds : data) (ds : list data) ->
-                                     headList {data} ds) ]) ]
-                         {all dead. dead}))
-                    [(\(l : integer) (r : list data) -> r)]))
-      in
-      (let
-          r = Maybe (list (pair data data))
-        in
-        \(scrut : data)
-         (cont : Maybe data -> data -> Maybe bytestring -> r)
-         (fail : unit -> r) ->
-          let
-            !tup : pair integer (list data) = unConstrData scrut
-          in
-          case
-            (all dead. r)
-            (equalsInteger
-               0
-               (case integer tup [(\(l : integer) (r : list data) -> l)]))
-            [ (/\dead -> fail ())
-            , (/\dead ->
-                 case
-                   r
-                   (case
-                      (list data)
-                      tup
-                      [(\(l : integer) (r : list data) -> r)])
-                   [ (\(ds : data) (ds : list data) ->
+      (case
+         (Maybe (list (pair data data)))
+         (unConstrData
+            (headList
+               {data}
+               (dropList
+                  {data}
+                  2
+                  (case
+                     (list data)
+                     (unConstrData
+                        (let
+                          !tup : pair integer (list data)
+                            = unConstrData
+                                (headList
+                                   {data}
+                                   (dropList
+                                      {data}
+                                      2
+                                      (case
+                                         (list data)
+                                         (unConstrData ds)
+                                         [ (\(l : integer) (r : list data) ->
+                                              r) ])))
+                        in
                         case
-                          r
-                          ds
-                          [ (\(ds : data) (ds : list data) ->
-                               cont
-                                 (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                    {data}
-                                    (\(d : data) -> d)
-                                    ds)
-                                 ds
-                                 (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                    {bytestring}
-                                    unBData
-                                    (headList {data} ds))) ]) ]) ]
-            {all dead. dead})
-        nt
-        (\(ds : Maybe data) (cparams : data) (ds : Maybe bytestring) ->
-           Just {list (pair data data)} (unMapData cparams))
-        (\(void : unit) ->
-           (let
-               r = Maybe (list (pair data data))
-             in
-             \(scrut : data)
-              (cont :
-                 (\k a -> list (pair data data)) data integer ->
-                 Maybe bytestring ->
-                 r)
-              (fail : unit -> r) ->
-               let
-                 !tup : pair integer (list data) = unConstrData scrut
-               in
-               case
-                 (all dead. r)
-                 (equalsInteger
-                    2
-                    (case integer tup [(\(l : integer) (r : list data) -> l)]))
-                 [ (/\dead -> fail ())
-                 , (/\dead ->
-                      case
-                        r
-                        (case
-                           (list data)
-                           tup
-                           [(\(l : integer) (r : list data) -> r)])
-                        [ (\(ds : data) (ds : list data) ->
-                             cont
-                               (unMapData ds)
-                               (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                  {bytestring}
-                                  unBData
-                                  (headList {data} ds))) ]) ]
-                 {all dead. dead})
-             nt
-             (\(ds : (\k a -> list (pair data data)) data integer)
-               (ds : Maybe bytestring) ->
-                Nothing {list (pair data data)})
-             (\(void : unit) -> error {Maybe (list (pair data data))})))
+                          (all dead. data)
+                          (equalsInteger
+                             5
+                             ((let
+                                  b = list data
+                                in
+                                \(x : pair integer b) ->
+                                  case
+                                    integer
+                                    x
+                                    [(\(l : integer) (r : b) -> l)])
+                                tup))
+                          [ (/\dead -> error {data})
+                          , (/\dead ->
+                               case
+                                 data
+                                 (case
+                                    (list data)
+                                    tup
+                                    [(\(l : integer) (r : list data) -> r)])
+                                 [ (\(ds : data) (ds : list data) ->
+                                      headList {data} ds) ]) ]
+                          {all dead. dead}))
+                     [(\(l : integer) (r : list data) -> r)]))))
+         [ (\(i : integer) (args : list data) ->
+              case
+                (Maybe (list (pair data data)))
+                i
+                [ (Just
+                     {list (pair data data)}
+                     (unMapData (headList {data} (tailList {data} args))))
+                , (error {Maybe (list (pair data data))})
+                , (Nothing {list (pair data data)}) ]) ])
       {all dead. unit}
       (\(cparams : list (pair data data)) ->
          /\dead ->
