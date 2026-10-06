@@ -9,7 +9,7 @@ import PlutusTx.Ual (ModuleUal)
 import PlutusTx.Ual.TH (ualModule)
 
 -- This module imports implementation bindings. It contains no on-chain code.
-{-@ ONCHAIN [kind: script] [version: PlutusV3] [steps: 10000, semantics: E]
+{-@ ONCHAIN [kind: script] [version: PlutusV3] [steps: 20000, semantics: E]
     auction :: BuiltinData -> BuiltinUnit
 @-}
 {-@ ONCHAIN [kind: function] [version: PlutusV3] [steps: 100, semantics: E]
