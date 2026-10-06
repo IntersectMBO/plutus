@@ -25,8 +25,13 @@ and CBOR. All three files are byte-identical to the earlier source pin used by
 the existing verification run; the difference is the added upstream README.
 
 Current Plinth source is recompiled; this does not assert byte identity with
-the upstream CBOR or import the upstream theorems. These bounded shapes do not
-cover all transactions, ledger validity or the full upstream vulnerability audit.
+the upstream CBOR or import the upstream theorem proofs. The detached specification
+ports all 26 theorem statements from the pinned upstream audit, alongside the five
+interface/scenario claims. The runner also requires both upstream “always fails”
+statements to be falsified and evaluates 18 concrete acceptance/rejection witnesses.
+These bounded transaction shapes do not establish ledger validity or coverage of
+all transactions; the double-satisfaction claim preserves the upstream scenario
+and does not prove a complete transaction passes phase-one ledger validation.
 
 Build `docusaurus-examples:exe:example-ual-auction`. In CardanoLedgerApiBlaster,
 build and run:
@@ -45,8 +50,8 @@ The JSON snapshots here contain no verification evidence; regenerate the pinned
 environment before checking on another machine or after rebuilding dependencies.
 
 The helper shares its Haskell binding with the validator, but its separate proof
-is not automatically a proof about compiler inlining/optimization. The three
-Auction scenario claims independently execute the compiled full validator.
+is not automatically a proof about compiler inlining/optimization. The
+Auction scenario and audit claims independently execute the compiled full validator.
 
 The runner loads Blaster's compiled shared library when it is available on the
 Lake search path. An explicit `ASSURANCE_NATIVE_LIBRARY` overrides discovery;
