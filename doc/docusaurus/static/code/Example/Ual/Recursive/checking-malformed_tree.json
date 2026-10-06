@@ -3,7 +3,7 @@
     "environment": {
         "hash": {
             "alg": "sha256",
-            "digest": "af388ba7c4e835add9a288459dddb50ce180089a3e4c48bab203e50dc7b5cbaf"
+            "digest": "0550166e1e5c0f765e5d2f877cd71ddab22ff1e9f9efd7228a0d3891c01fba7e"
         },
         "uri": "environment.json"
     },
@@ -21,7 +21,7 @@
             "function": "mirrorData",
             "functionHash": {
                 "alg": "sha256",
-                "digest": "d5e66163d9d603559a7292dab7ef36ad05666d69129619a5cf7860a353ac69a2"
+                "digest": "984d7b5789786764a6ebb1ef1403fff1ebe768fdb37541d55082c4ea08ca6d07"
             },
             "functionInterface": {
                 "arguments": [

@@ -3,7 +3,7 @@
     "blueprint": {
         "hash": {
             "alg": "sha256",
-            "digest": "4a3cea405e4b901b3fe33eff3dd4edb079cce4325cf5a336f58f7186d0107263"
+            "digest": "22bd6d80f1c08c348394654ea13e2b757ecc15c310446bcad32d1146ef6e32e4"
         },
         "uri": "plutus.json"
     },
@@ -11,217 +11,217 @@
         "audit_demo_valid_bid_accepted": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_demo_valid_bid_accepted.json"
         },
         "audit_nb_datum_hash_rejected": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_nb_datum_hash_rejected.json"
         },
         "audit_nb_datum_missing_rejected": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_nb_datum_missing_rejected.json"
         },
         "audit_nb_datum_wrong_bid_rejected": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_nb_datum_wrong_bid_rejected.json"
         },
         "audit_nb_other_redeemer_rejected": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_nb_other_redeemer_rejected.json"
         },
         "audit_nb_wrong_policy_rejected": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_nb_wrong_policy_rejected.json"
         },
         "audit_nb_wrong_token_name_rejected": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_nb_wrong_token_name_rejected.json"
         },
         "audit_newBid_accepts_dust_tokens": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_newBid_accepts_dust_tokens.json"
         },
         "audit_newBid_accepts_minimal_increment": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_newBid_accepts_minimal_increment.json"
         },
         "audit_newBid_ignores_minting": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_newBid_ignores_minting.json"
         },
         "audit_newBid_success_positive_bid": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_newBid_success_positive_bid.json"
         },
         "audit_newBid_success_requires_before_deadline": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_newBid_success_requires_before_deadline.json"
         },
         "audit_newBid_success_requires_bigger_bid": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_newBid_success_requires_bigger_bid.json"
         },
         "audit_newBid_success_requires_output_locks_bid": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_newBid_success_requires_output_locks_bid.json"
         },
         "audit_newBid_success_requires_single_nft": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_newBid_success_requires_single_nft.json"
         },
         "audit_newBid_success_requires_sufficient_bid": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_newBid_success_requires_sufficient_bid.json"
         },
         "audit_payout_double_satisfaction": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_payout_double_satisfaction.json"
         },
         "audit_payout_staked_outputs_accepted": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_payout_staked_outputs_accepted.json"
         },
         "audit_payout_success_pays_seller_highest_bid": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_payout_success_pays_seller_highest_bid.json"
         },
         "audit_payout_success_positive_asset": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_payout_success_positive_asset.json"
         },
         "audit_payout_success_positive_seller_payment": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_payout_success_positive_seller_payment.json"
         },
         "audit_payout_success_requires_after_deadline": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_payout_success_requires_after_deadline.json"
         },
         "audit_payout_success_transfers_asset": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_payout_success_transfers_asset.json"
         },
         "audit_valid_newBid_succeeds": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_valid_newBid_succeeds.json"
         },
         "audit_valid_payout_no_bid_succeeds": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_valid_payout_no_bid_succeeds.json"
         },
         "audit_valid_payout_with_bid_succeeds": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-audit_valid_payout_with_bid_succeeds.json"
         },
         "existing_bid_exact": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-existing_bid_exact.json"
         },
         "first_bid_exact": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-first_bid_exact.json"
         },
         "malformed_context": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-malformed_context.json"
         },
         "outbids_exact": {
             "hash": {
                 "alg": "sha256",
-                "digest": "afb24bdcc3d649e0f68d6fa61ef3b797f4b026e689d1e7a631472728d97aedcb"
+                "digest": "ed9ab4442382c20e0f9aa6ec633cf9a9b1289e80a61a56af58422b72cbb47adc"
             },
             "uri": "checking-outbids_exact.json"
         },
         "payout_exact": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ebb3ed0503dae42a3339bb008042ca8a7136118b6593b6508369bc1a193fc42b"
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
             },
             "uri": "checking-payout_exact.json"
         }

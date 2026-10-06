@@ -3,7 +3,7 @@
     "blueprint": {
         "hash": {
             "alg": "sha256",
-            "digest": "aaa45fc76503c884deff10946fc9508bf2b3ff8dba11fb5300faa5c825881bb4"
+            "digest": "b063a640281037effd0e13008d67895a22f8543944bac96956b8672bfd4deeeb"
         },
         "uri": "plutus.json"
     },
@@ -11,28 +11,28 @@
         "leaf_seven": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ef301f1a450a9a404228ceda12694774cbc76cbfe36363c2475d8786c794dbdb"
+                "digest": "448d5fd80ee6a14e19799bc988d11747805e23251338c9df01c19408614ca45b"
             },
             "uri": "checking-leaf_seven.json"
         },
         "malformed_tree": {
             "hash": {
                 "alg": "sha256",
-                "digest": "0a78de1b92212c6ea8e222af18ec68fb4875df5856bdab5fc1a45d1c315bcad1"
+                "digest": "f6fa078afed38f739986c0e52ccf75a89402cc60007bb201c0995189a97014f5"
             },
             "uri": "checking-malformed_tree.json"
         },
         "nested_mirror": {
             "hash": {
                 "alg": "sha256",
-                "digest": "0a78de1b92212c6ea8e222af18ec68fb4875df5856bdab5fc1a45d1c315bcad1"
+                "digest": "f6fa078afed38f739986c0e52ccf75a89402cc60007bb201c0995189a97014f5"
             },
             "uri": "checking-nested_mirror.json"
         },
         "nested_sum": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ef301f1a450a9a404228ceda12694774cbc76cbfe36363c2475d8786c794dbdb"
+                "digest": "448d5fd80ee6a14e19799bc988d11747805e23251338c9df01c19408614ca45b"
             },
             "uri": "checking-nested_sum.json"
         }
@@ -84,10 +84,10 @@
                     "$ref": "#/definitions/Tree"
                 }
             ],
-            "compiledCode": "58860101003322323232230043002300300132300100122900191194004c00400a600200630040049400c004323001001229375400322390029400cdd69803800a5200322328009800801cc004c028008600e00e0008c8c0040048a40064466e952002323300730010033300730010024bd70180200248cdd2a40006600a6ea00052f5c05740ae85",
+            "compiledCode": "58910101009800aab9daba0aab9eaba148888c8c8c88c010c008c00c004c8c0040048a40064465001300100298008018c01001250030010c8c00400488c8e4c0200065003375a600c00294800c88ca00260020073001300900218030030600c0026ea8004c8c0040048a40064466e952002323300830010033300830010024bd70180200248cdd2a40006600c6ea00052f5c01",
             "hash": {
                 "alg": "sha256",
-                "digest": "d5e66163d9d603559a7292dab7ef36ad05666d69129619a5cf7860a353ac69a2"
+                "digest": "984d7b5789786764a6ebb1ef1403fff1ebe768fdb37541d55082c4ea08ca6d07"
             },
             "plutusVersion": "v3",
             "result": {

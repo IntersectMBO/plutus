@@ -46,7 +46,8 @@ requires `recfun-finder`). Its executable is hashed into the environment manifes
 The runner captures that environment, invokes the generator, verifies every
 claim and runs negative checks for byte tampering, scopes, wire encodings and
 exhausted steps. `run-report.json` records the results and generator digest.
-The JSON snapshots here contain no verification evidence; regenerate the pinned
+The full validator uses an explicit 20,000 CEK-step bound; this is not a ledger
+cost budget. The JSON snapshots here contain no verification evidence; regenerate the pinned
 environment before checking on another machine or after rebuilding dependencies.
 
 The helper shares its Haskell binding with the validator, but its separate proof
