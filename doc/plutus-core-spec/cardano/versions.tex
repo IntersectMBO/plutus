@@ -109,25 +109,28 @@ Initially the workings of the Cardano ledger meant that it was not possible to
 retroactively add new built-in functions or Plutus Core language versions to
 existing ledger languages after a new ledger language was introduced: for
 example Batch 3 was added to PlutusV2 at the Valentine hard fork (introducing
-PV8), but it was not possible to add Batch 3 to PlutusV1 at that time. This
-restriction was lifted at the van Rossem hard fork (PV11) and it became possible
-to use all builtins and all Plutus Core language versions in all ledger
-languages.  Table~\ref{table:ll-pv-features} below shows how the situation has
-evolved as time progressed (the row for PV12 is provisional at the time of
-writing).  This is of some relevance for nodes replaying the history of the
-chain because they must reject scripts which use builtins or Plutus Core
-versions which were not available at the time when the scripts were originally
-executed.\footnote{In fact, in PV7 and later, scripts which use an unavailable
-ledger language or unavailable built-in types or functions should be rejected
-during deserialisation and should never be recorded on the chain.  These are
-\textit{Phase 1 failures}, as opposed to \textit{Phase 2 failures}, which
-involve run-time errors such as division by zero or budget overflows, and also
-attempts to use an unavailable Plutus Core version.  Script evaluations with
-Phase 2 failures will be recorded in the history of the chain, although
-examination of the history shows that very few Phase 2 failures have actually
-occurred (the deterministic nature of script evaluation means that they become
-apparent if a script is evaluated off-chain prior to submission, so it is
-unlikely that scripts with Phase 2 failures will be submitted to the chain).}
+PV8), but it was not possible to add Batch 3 to PlutusV1 at that time.  This
+restriction was subsequently lifted and at the van Rossem hard fork (PV11) it
+became possible to use all built-in types and functions and all Plutus Core
+language versions in all ledger languages.  Table~\ref{table:ll-pv-features}
+below shows how the situation has evolved as time progressed (the row for PV12
+is provisional at the time of writing).  This is of some relevance for nodes
+replaying the history of the chain because they must treat scripts which use
+builtins or Plutus Core versions which were not available at the time when the
+scripts were originally executed as failing.\footnote{In fact, in PV7 and later,
+scripts which use an unavailable ledger language or unavailable built-in types
+or functions should be rejected during deserialisation and should never be
+recorded on the chain.  These are \textit{Phase 1 failures}, as opposed to
+\textit{Phase 2 failures}, which involve run-time errors such as division by
+zero or budget overflows, and also attempts to use an unavailable Plutus Core
+version.  Before PV7 scripts were only deserialised when they were executed, so
+scripts using unavailable features would have caused Phase 2 failures instead.
+Script evaluations with Phase 2 failures will be recorded in the history of the
+chain, although examination of the history shows that very few Phase 2 failures
+have actually occurred (the deterministic nature of script evaluation means that
+they become apparent if a script is evaluated off-chain prior to submission, so
+it is unlikely that scripts with Phase 2 failures will be submitted to the
+chain).}
 
 
 \begin{table}[H]
@@ -142,43 +145,43 @@ unlikely that scripts with Phase 2 failures will be submitted to the chain).}
       & \thead{\LL{PlutusV3}} & \thead{\LL{PlutusV4}} \\
     \hline
     5.0 (Alonzo)
-      & \makecell{Batch 1\\PLC 1.0.0}
+      & \makecell{1.0.0\\[1pt] Batch 1}
       & --- & --- & --- \\
     \hline
     7.0 (Vasil)
-      & \makecell{Batch 1\\PLC 1.0.0}
-      & \makecell{Batches 1--2\\PLC 1.0.0}
+      & \makecell{1.0.0\\[1pt] Batch 1}
+      & \makecell{Batches  1.0.0\\[1pt] 1--2}
       & --- & --- \\
     \hline
     8.0 (Valentine)
-      & \makecell{Batch 1\\PLC 1.0.0}
-      & \makecell{Batches 1--3\\PLC 1.0.0}
+      & \makecell{1.0.0\\[1pt] Batch 1}
+      & \makecell{1.0.0\\[1pt] Batches 1--3}
       & --- & --- \\
     \hline
     9.0 (Chang)
-      & \makecell{Batch 1\\PLC 1.0.0}
-      & \makecell{Batches 1--3\\PLC 1.0.0}
-      & \makecell{Batches 1--4\\PLC 1.0.0, 1.1.0}
+      & \makecell{1.0.0\\[1pt] Batch 1}
+      & \makecell{1.0.0\\[1pt] Batches 1--3}
+      & \makecell{1.0.0, 1.1.0 \\[1pt] Batches 1--4}
       & --- \\
     \hline
     10.0 (Plomin)
-      & \makecell{Batch 1\\PLC 1.0.0}
-      & \makecell{Batches 1--3, 4b$^{\dagger}$\\PLC 1.0.0}
-      & \makecell{Batches 1--5\\PLC 1.0.0, 1.1.0}
+      & \makecell{1.0.0\\[1pt] Batch 1}
+      & \makecell{1.0.0\\[1pt] Batches 1--3, 4b$^{\dagger}$}
+      & \makecell{1.0.0, 1.1.0\\[1pt] Batches 1--5}
       & --- \\
     \hline
     11.0 (van Rossem)
-      & \makecell{Batches 1--6\\PLC 1.0.0, 1.1.0}
-      & \makecell{Batches 1--6\\PLC 1.0.0, 1.1.0}
-      & \makecell{Batches 1--6\\PLC 1.0.0, 1.1.0}
+      & \makecell{1.0.0, 1.1.0\\[1pt] Batches 1--6}
+      & \makecell{1.0.0, 1.1.0\\[1pt] Batches 1--6}
+      & \makecell{1.0.0, 1.1.0\\[1pt] Batches 1--6}
       & --- \\
     \hline
     \hline
     12.0 (Dijkstra HF)
-      & \makecell{Batches 1--7\\PLC 1.0.0--1.2.0}
-      & \makecell{Batches 1--7\\PLC 1.0.0--1.2.0}
-      & \makecell{Batches 1--7\\PLC 1.0.0--1.2.0}
-      & \makecell{Batches 1--7\\PLC 1.0.0--1.2.0} \\
+      & \makecell{1.0.0--1.2.0\\[1pt] Batches 1--7}
+      & \makecell{1.0.0--1.2.0\\[1pt] Batches 1--7}
+      & \makecell{1.0.0--1.2.0\\[1pt] Batches 1--7}
+      & \makecell{1.0.0--1.2.0\\[1pt] Batches 1--7}\\
     \hline
   \end{tabular}
   \caption{Built-in functions and Plutus Core language versions available in
@@ -186,13 +189,12 @@ unlikely that scripts with Phase 2 failures will be submitted to the chain).}
   \label{table:ll-pv-features}
 \end{table}
 
-\noindent Each entry in the table gives the built-in batches which are available
-(see Section~\ref{sec:builtin-batches}) and the Plutus Core language versions
-which are allowed.  An entry of `---' means that the ledger language does not
-exist at that protocol version.  The entry for PV12 is provisional at the time
-of writing.  Only protocol versions at which something changes are shown: a
-protocol version which does not appear in the table behaves exactly like the
-most recent one which precedes it (and protocol versions earlier than 5.0
-support no ledger languages at all).  At PV10, \LL{PlutusV2} gained only the
-Batch 4b built-ins (\TT{integerToByteString} and \TT{byteStringToInteger}); the
-remainder of Batch 4 became available in \LL{PlutusV2} at PV11.
+\noindent Each entry in the table shows the Plutus Core language versions which
+are allowed and the built-in batches which are available (see
+Section~\ref{sec:builtin-batches}).  An entry of `---' means that the
+ledger language does not exist at that protocol version.  The entry for PV12 is
+provisional at the time of writing.  Only protocol versions at which something
+changes are shown: for example, no relevant changes happened at PV6.  At PV10,
+the Batch 4b built-ins (\TT{integerToByteString} and \TT{byteStringToInteger})
+were added to \LL{PlutusV2} as a proof of concept; the remainder of Batch 4
+became available in \LL{PlutusV2} at PV11.
