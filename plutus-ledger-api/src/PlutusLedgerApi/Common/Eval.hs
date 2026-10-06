@@ -16,6 +16,7 @@ module PlutusLedgerApi.Common.Eval
   , evaluateScriptRestricting
   , evaluateScriptCounting
   , evaluateTerm
+  , defaultCaserBuiltinFor
   , mkDynEvaluationContext
   , toMachineParameters
   , mkTermToEvaluate
@@ -23,7 +24,11 @@ module PlutusLedgerApi.Common.Eval
   ) where
 
 import PlutusCore
-import PlutusCore.Builtin (CaserBuiltin)
+import PlutusCore.Builtin
+  ( CaserBuiltin (..)
+  , caseBuiltin
+  , unavailableCaserBuiltin
+  )
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -33,6 +38,7 @@ import PlutusCore.Evaluation.Machine.MachineParameters (MachineParameters (..))
 import PlutusCore.Evaluation.Machine.MachineParameters.Default
 import PlutusCore.MkPlc qualified as UPLC
 import PlutusCore.Pretty
+import PlutusCore.Version (plcVersion120)
 import PlutusLedgerApi.Common.SerialisedScript
 import PlutusLedgerApi.Common.Versions
 import PlutusPrelude
@@ -122,16 +128,27 @@ mkTermToEvaluate ll pv script args = do
       PlutusCoreLanguageNotAvailableError v ll pv
 
   -- make sure that term is closed, i.e. well-scoped
-  through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
+  let mode
+        | pv < dijkstraPV = UPLC.NoCaseConstr
+        | otherwise = UPLC.Full
+  through (liftEither . first DeBruijnError . UPLC.checkScope mode) appliedT
 
-toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
-toMachineParameters pv (EvaluationContext ll toCaser toSemVar machParsList) =
+toMachineParameters
+  :: MajorProtocolVersion -> Version -> EvaluationContext -> DefaultMachineParameters
+toMachineParameters pv plcVersion (EvaluationContext ll toCaser toSemVar machParsList) =
   case lookup (toSemVar pv) machParsList of
     Nothing ->
       error $
         Prelude.concat
           ["Internal error: ", show ll, " does not support protocol version ", show pv]
-    Just machVarPars -> MachineParameters (toCaser pv) machVarPars
+    Just machVarPars -> MachineParameters (toCaser pv plcVersion) machVarPars
+
+-- | Select built-in casing semantics once, before entering the evaluator.
+defaultCaserBuiltinFor :: MajorProtocolVersion -> Version -> CaserBuiltin DefaultUni
+defaultCaserBuiltinFor pv plcVersion
+  | pv < vanRossemPV = unavailableCaserBuiltin $ getMajorProtocolVersion pv
+  | pv < dijkstraPV || plcVersion < plcVersion120 = CaserBuiltin caseBuiltinNoData
+  | otherwise = CaserBuiltin caseBuiltin
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
 script. This is so that they can be computed once and cached, rather than being recomputed on every
@@ -163,12 +180,10 @@ protocol version are
 data EvaluationContext = EvaluationContext
   { _evalCtxLedgerLang :: PlutusLedgerLanguage
   -- ^ Specifies what language versions the 'EvaluationContext' is for.
-  , _evalCtxCaserBuiltin :: MajorProtocolVersion -> CaserBuiltin DefaultUni
-  {-^ Specifies how 'case' on values of built-in types works: fails evaluation for older
-  protocol versions and defers to 'caseBuiltin' for newer ones. Note that this function
-  doesn't depend on the 'PlutusLedgerLanguage' or the AST version: deserialisation of a 1.0.0
-  AST fails upon encountering a 'Case' node anyway, so we can safely assume here that 'case'
-  is available.
+  , _evalCtxCaserBuiltin :: MajorProtocolVersion -> Version -> CaserBuiltin DefaultUni
+  {-^ Specifies how 'case' on values of built-in types works: fails evaluation before van Rossem,
+  permits casing except on 'Data' until Dijkstra and Plutus Core 1.2.0, and permits all supported
+  built-in types thereafter. Deserialisation of a 1.0.0 AST fails upon encountering a 'Case' node.
   FIXME: do we need to test that it fails for older PVs?  We can't submit
   transactions in old PVs, so maybe it doesn't matter. -}
   , _evalCtxToSemVar :: MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun
@@ -197,7 +212,7 @@ with the updated cost model parameters. -}
 mkDynEvaluationContext
   :: MonadError CostModelApplyError m
   => PlutusLedgerLanguage
-  -> (MajorProtocolVersion -> CaserBuiltin DefaultUni)
+  -> (MajorProtocolVersion -> Version -> CaserBuiltin DefaultUni)
   -> [BuiltinSemanticsVariant DefaultFun]
   -> (MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun)
   -> Plutus.CostModelParams
@@ -216,13 +231,14 @@ on-chain evaluator. -}
 evaluateTerm
   :: UPLC.ExBudgetMode cost DefaultUni DefaultFun
   -> MajorProtocolVersion
+  -> Version
   -> VerboseMode
   -> EvaluationContext
   -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
   -> UPLC.CekReport cost NamedDeBruijn DefaultUni DefaultFun
-evaluateTerm budgetMode pv verbose ectx =
+evaluateTerm budgetMode pv plcVersion verbose ectx =
   UPLC.runCekDeBruijn
-    (toMachineParameters pv ectx)
+    (toMachineParameters pv plcVersion ectx)
     budgetMode
     (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
 -- Just replicating the old behavior, probably doesn't matter.
@@ -256,8 +272,9 @@ evaluateScriptRestricting
   -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting ll pv verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
   appliedTerm <- mkTermToEvaluate ll pv p args
-  let UPLC.CekReport res (UPLC.RestrictingSt (ExRestrictingBudget final)) logs =
-        evaluateTerm (UPLC.restricting $ ExRestrictingBudget budget) pv verbose ectx appliedTerm
+  let ScriptNamedDeBruijn (UPLC.Program _ plcVersion _) = deserialisedScript p
+      UPLC.CekReport res (UPLC.RestrictingSt (ExRestrictingBudget final)) logs =
+        evaluateTerm (UPLC.restricting $ ExRestrictingBudget budget) pv plcVersion verbose ectx appliedTerm
   processLogsAndErrors ll logs res
   pure (budget `minusExBudget` final)
 
@@ -283,8 +300,9 @@ evaluateScriptCounting
   -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting ll pv verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
   appliedTerm <- mkTermToEvaluate ll pv p args
-  let UPLC.CekReport res (UPLC.CountingSt final) logs =
-        evaluateTerm UPLC.counting pv verbose ectx appliedTerm
+  let ScriptNamedDeBruijn (UPLC.Program _ plcVersion _) = deserialisedScript p
+      UPLC.CekReport res (UPLC.CountingSt final) logs =
+        evaluateTerm UPLC.counting pv plcVersion verbose ectx appliedTerm
   processLogsAndErrors ll logs res
   pure final
 

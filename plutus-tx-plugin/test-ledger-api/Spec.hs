@@ -11,6 +11,7 @@ import Spec.ReturnUnit.V1 qualified
 import Spec.ReturnUnit.V2 qualified
 import Spec.ReturnUnit.V3 qualified
 import Spec.ScriptSize qualified
+import Spec.V4.Encoding qualified
 import Spec.Value qualified
 import Spec.Value.WithCurrencySymbol qualified
 
@@ -42,6 +43,7 @@ tests =
     , Spec.ReturnUnit.V1.tests
     , Spec.ReturnUnit.V2.tests
     , Spec.ReturnUnit.V3.tests
+    , Spec.V4.Encoding.tests
     , Spec.MintValue.V3.tests
     , Spec.ScriptSize.tests
     , Spec.Value.test_EqValue

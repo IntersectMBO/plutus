@@ -16,6 +16,7 @@ module PlutusLedgerApi.Common
   , Eval.evaluateScriptCounting
   , Eval.evaluateScriptRestricting
   , Eval.evaluateTerm
+  , Eval.defaultCaserBuiltinFor
   , Eval.VerboseMode (..)
   , Eval.LogOutput
   , Eval.EvaluationError (..)

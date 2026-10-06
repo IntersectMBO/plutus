@@ -1,1 +1,1 @@
-(program 1.1.0 ((\x -> case (lessThanInteger 0 x) [False, True]) 1))
+(program 1.2.0 ((\x -> case (lessThanInteger 0 x) [False, True]) 1))

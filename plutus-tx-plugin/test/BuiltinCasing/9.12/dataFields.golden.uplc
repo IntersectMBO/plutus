@@ -1,0 +1,1 @@
+(program 1.2.0 (\d -> case d [(\xs -> xs)]))

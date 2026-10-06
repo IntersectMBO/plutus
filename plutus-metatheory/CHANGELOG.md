@@ -1,4 +1,11 @@
 
+<a id='changelog-1.69.0.0'></a>
+# 1.69.0.0 — 2026-09-11
+
+## Fixed
+
+- The `TRACE` builtin is no longer postulated and is implemented as a no-op in the Agda formalization of the semantics of UPLC.
+
 <a id='changelog-1.68.0.0'></a>
 # 1.68.0.0 — 2026-08-21
 

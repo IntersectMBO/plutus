@@ -1,1 +1,1 @@
-(program 1.1.0 (\n m -> addInteger n m))
+(program 1.2.0 (\n m -> addInteger n m))

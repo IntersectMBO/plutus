@@ -475,15 +475,10 @@ program
           \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
             case
               (Maybe a)
-              (unConstrData d)
-              [ (\(index : integer) (args : list data) ->
-                   case
-                     (list data -> Maybe a)
-                     index
-                     [ (\(ds : list data) ->
-                          Just {a} (`$dUnsafeFromData` (headList {data} ds)))
-                     , (\(ds : list data) -> Nothing {a}) ]
-                     args) ]
+              d
+              [ (\(ds : list data) ->
+                   Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+              , (\(ds : list data) -> Nothing {a}) ]
   in
   letrec
     ~matchData_go : list (pair data data) -> List (Tuple2 data data)
@@ -497,10 +492,12 @@ program
           (\(x : pair data data) (xs : list (pair data data)) ->
              Cons
                {Tuple2 data data}
-               (case
-                  (Tuple2 data data)
+               ((let
+                    r = Tuple2 data data
+                  in
+                  \(p : pair data data) (f : data -> data -> r) -> case r p [f])
                   x
-                  [(\(l : data) (r : data) -> Tuple2 {data} {data} l r)])
+                  (\(l : data) (r : data) -> Tuple2 {data} {data} l r))
                (matchData_go xs))
   in
   let

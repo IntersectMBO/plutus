@@ -22,12 +22,18 @@ data Inline
   deriving stock (Generic)
   deriving anyclass (NFData)
 
+data InlinePlus term
+  = InlOne Inline
+  | InlSeq Inline term (InlinePlus term)
+  deriving stock (Generic, Functor, Foldable, Traversable)
+  deriving anyclass (NFData)
+
 {-| Hints for the certifier.
 
 Note that there's a separate and unrelated notion of @InlineHints@. When there's
 ambiguity, this should be referred to as "certifier hints". -}
-data Hints
-  = Inline Inline
+data Hints term
+  = Inline (InlinePlus term)
   | NoHints
-  deriving stock (Generic)
+  deriving stock (Generic, Functor, Foldable, Traversable)
   deriving anyclass (NFData)

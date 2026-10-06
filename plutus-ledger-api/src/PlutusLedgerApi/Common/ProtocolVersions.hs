@@ -129,12 +129,12 @@ Semantics variants depend on both the protocol version and the ledger language.
 
 Here's a table specifying the mapping in full:
 
-  pv pre-Conway post-Conway post-van Rossem
+  pv pre-Conway post-Conway post-van Rossem post-Dijkstra
 ll
-1       A           B          D
-2       A           B          D
-3       -           C          E
-4       -           -          E? (TBD)
+1       A           B          D               F
+2       A           B          D               F
+3       -           C          E               G
+4       -           -          -               G
 
 I.e. for example
 
@@ -143,4 +143,6 @@ I.e. for example
 - post-Conway and pre-van Rossem 'PlutusV3' corresponds to 'DefaultFunSemanticsVariantC'
 - post-van Rossem 'PlutusV1' corresponds to 'DefaultFunSemanticsVariantD'
 - post-van Rossem 'PlutusV3' corresponds to 'DefaultFunSemanticsVariantE'
+- post-Dijkstra 'PlutusV1' corresponds to 'DefaultFunSemanticsVariantF'
+- post-Dijkstra 'PlutusV3' corresponds to 'DefaultFunSemanticsVariantG'
 -}

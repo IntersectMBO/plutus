@@ -123,7 +123,7 @@ function renderPlot() {
       borderwidth: 1
     },
     margin: { t: 50, r: 20, b: 60, l: 70 },
-    paper_bgcolor: 'rgba(0,0,0,0)'
+    paper_bgcolor: '#FAFAFA'
   };
 
   // Set Y-axis range based on mode

@@ -1,5 +1,5 @@
 {
     "type": "PlutusScriptV3",
     "description": "A trivial function that computes 2 + 2",
-    "cborHex": "46010100480201"
+    "cborHex": "46010200480201"
 }

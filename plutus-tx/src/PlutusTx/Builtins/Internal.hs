@@ -614,6 +614,15 @@ unsafeDataAsConstr (BuiltinData (PLC.Constr i args)) = BuiltinPair (i, BuiltinLi
 unsafeDataAsConstr _ = Haskell.error "not a Constr"
 {-# OPAQUE unsafeDataAsConstr #-}
 
+{-| Dispatches on the constructor index of a 'BuiltinData' value and passes its fields to the
+selected branch. This is a Plinth compiler marker: with builtin casing enabled it compiles to a
+single native @case@ on the data value. -}
+caseData :: BuiltinData -> [BuiltinList BuiltinData -> a] -> a
+caseData (BuiltinData (PLC.Constr i args)) branches =
+  caseInteger i branches (BuiltinList $ fmap dataToBuiltinData args)
+caseData _ _ = Haskell.error "not a Constr"
+{-# OPAQUE caseData #-}
+
 -- | Deconstructs the given data as a 'Map', failing if it is not a 'Map'.
 unsafeDataAsMap :: BuiltinData -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
 unsafeDataAsMap (BuiltinData (PLC.Map m)) = BuiltinList (fmap p2p m)
@@ -1182,13 +1191,23 @@ assetCount (BuiltinValue v) = fromIntegral (Value.totalSize v)
 {-# OPAQUE assetCount #-}
 
 keepPolicies :: BuiltinList BuiltinByteString -> BuiltinValue -> BuiltinValue
-keepPolicies (BuiltinList ps) (BuiltinValue v) =
-  BuiltinValue (Value.keepPolicies (fmap (\(BuiltinByteString b) -> b) ps) v)
+keepPolicies (BuiltinList ps) (BuiltinValue v0) =
+  case Value.keepPolicies (fmap (\(BuiltinByteString b) -> b) ps) v0 of
+    BuiltinSuccess v -> BuiltinValue v
+    BuiltinSuccessWithLogs logs v -> traceAll logs (BuiltinValue v)
+    BuiltinFailure logs err ->
+      traceAll (logs <> pure (display err)) $
+        Haskell.error "keepPolicies errored."
 {-# OPAQUE keepPolicies #-}
 
 dropPolicies :: BuiltinList BuiltinByteString -> BuiltinValue -> BuiltinValue
-dropPolicies (BuiltinList ps) (BuiltinValue v) =
-  BuiltinValue (Value.dropPolicies (fmap (\(BuiltinByteString b) -> b) ps) v)
+dropPolicies (BuiltinList ps) (BuiltinValue v0) =
+  case Value.dropPolicies (fmap (\(BuiltinByteString b) -> b) ps) v0 of
+    BuiltinSuccess v -> BuiltinValue v
+    BuiltinSuccessWithLogs logs v -> traceAll logs (BuiltinValue v)
+    BuiltinFailure logs err ->
+      traceAll (logs <> pure (display err)) $
+        Haskell.error "dropPolicies errored."
 {-# OPAQUE dropPolicies #-}
 
 caseInteger :: Integer -> [a] -> a

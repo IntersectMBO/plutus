@@ -4,7 +4,7 @@
 module Example.Ual.Auction.FormalSpec (annotations) where
 
 import Example.Ual.Auction.OnChain (auction, outbids)
-import PlutusTx.Prelude (BuiltinData, BuiltinUnit)
+import PlutusTx.Prelude (BuiltinData)
 import PlutusTx.Ual (ModuleUal)
 import PlutusTx.Ual.TH (ualModule)
 

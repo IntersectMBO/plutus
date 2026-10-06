@@ -47,3 +47,34 @@ Look at `windows-hydra-jobs = {..}` in [./nix/outputs.nix](https://github.com/in
 
 The nix builds can be overridden inside [./nix/project.nix](https://github.com/input-output-hk/haskell.nix).
 New cabal flags and configuration options can be defined there.
+
+### 10) Windows Template Haskell intermittently fails with `ghc-iserv terminated (1)`
+
+With GHC 9.6.7 and MinGW, an accompanying `scavenge_stack: weird activation record`
+error can be caused by incorrect `R_X86_64_PC64` relocations in GHC's runtime linker.
+GNU PE/COFF PC64 relocations are relative to the end of the eight-byte relocation field,
+but GHC omitted the eight-byte adjustment. This points large stack-frame bitmaps
+eight bytes past their intended address; failure depends on whether garbage
+collection encounters the affected frame. Retrying can therefore appear to fix it.
+The cost-model JSON splice exposes the bug rather than causing it.
+
+`project.nix` enables `-fbyte-code-and-object-code` and `-fprefer-byte-code` only
+for the Windows `plutus-core` library. Template Haskell then uses bytecode for
+home-package modules instead of loading their native objects through the faulty
+linker. The library still produces native object code for normal linking.
+These [GHC options](https://downloads.haskell.org/ghc/9.6.7/docs/users_guide/phases.html#ghc-flag--fprefer-byte-code)
+also retain simplified Core in interfaces, allowing incremental builds to use bytecode.
+
+This is a scoped workaround, not a fix to GHC's runtime linker. It reuses the
+existing compiler and interpreter without rebuilding GHC or changing non-Windows
+build options. Remove it once the selected compiler includes the linker correction.
+
+Run the affected Hydra target on x86_64 Linux:
+
+```sh
+nix build '.#hydraJobs.x86_64-linux."ghc96-mingsW64:packages:plutus-core:lib:plutus-core"'
+```
+
+Validation with the unpatched interpreter also covered fresh and incremental
+builds under GC stress (`+RTS -A16k -DS -RTS`, using an interpreter linked with
+`-rtsopts`). Preferring native objects instead reproduced `ghc-iserv terminated (1)`.

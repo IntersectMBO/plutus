@@ -17,14 +17,11 @@ import Transform.Lib (T, app, builtin, case_, delay, lam, name, var)
 import UntypedPlutusCore.AstSize (AstSize (..))
 import UntypedPlutusCore.Core (Term (..))
 import UntypedPlutusCore.Transform.Inline
-  ( Ann
-  , InlineHints (..)
+  ( InlineHints (..)
   , InlineInfo (..)
   , InlineM
-  , S (..)
-  , Subst (..)
-  , TermEnv (..)
   , effectSafe
+  , initialState
   , isFirstVarBeforeEffects
   , isStrictIn
   )
@@ -157,8 +154,6 @@ runInlineM preserveLogging m = result
         , _iiInlineCallsiteGrowth = AstSize 1_000_000
         , _iiPreserveLogging = preserveLogging
         }
-    initialState :: S Name DefaultUni DefaultFun (Ann ())
-    initialState = S {_subst = Subst (TermEnv mempty), _vars = mempty}
 
 --------------------------------------------------------------------------------
 -- Local helpers ---------------------------------------------------------------

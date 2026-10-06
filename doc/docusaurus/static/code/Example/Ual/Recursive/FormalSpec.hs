@@ -4,7 +4,7 @@
 module Example.Ual.Recursive.FormalSpec (annotations) where
 
 import Example.Ual.Recursive.OnChain (Tree, mirrorData, treeValidator)
-import PlutusTx.Prelude (BuiltinData, BuiltinUnit)
+import PlutusTx.Prelude (BuiltinData)
 import PlutusTx.Ual (ModuleUal)
 import PlutusTx.Ual.TH (ualModule)
 

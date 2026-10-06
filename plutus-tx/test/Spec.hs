@@ -8,6 +8,7 @@ module Main (main) where
 import Array.Spec (arrayTests)
 import Blueprint.Definition.Spec qualified
 import Blueprint.FieldNames.Spec qualified
+import Blueprint.Spec qualified
 import Bool.Spec (boolTests)
 import Builtins.Spec (builtinsTests)
 import Codec.CBOR.FlatTerm qualified as FlatTerm
@@ -61,6 +62,7 @@ tests =
     , Blueprint.Definition.Spec.tests
     , Blueprint.FieldNames.Spec.tests
     , Ual.Spec.tests
+    , Blueprint.Spec.tests
     ]
 
 sqrtTests :: TestTree

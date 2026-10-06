@@ -12,6 +12,7 @@ encoding of TPLC] and Note [Stable encoding of UPLC] before touching anything
 in this file. -}
 module PlutusCore.FlatInstances
   ( safeEncodeBits
+  , decodeKindedUniFlat
   ) where
 
 import Codec.Extras.FlatViaSerialise

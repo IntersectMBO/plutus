@@ -2,7 +2,6 @@ module PlutusLedgerApi.MachineParameters where
 
 import PlutusLedgerApi.Common
 
-import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekCostModelForVariant)
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -14,30 +13,32 @@ import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachinePa
 machineParametersFor
   :: PlutusLedgerLanguage
   -> MajorProtocolVersion
+  -> Version
   -> DefaultMachineParameters
-machineParametersFor ledgerLang majorPV =
+machineParametersFor ledgerLang majorPV plcVersion =
   MachineParameters
-    ( if majorPV < vanRossemPV
-        then unavailableCaserBuiltin $ getMajorProtocolVersion majorPV
-        else CaserBuiltin caseBuiltin
-    )
+    (defaultCaserBuiltinFor majorPV plcVersion)
     (mkMachineVariantParameters builtinSemVar $ cekCostModelForVariant builtinSemVar)
   where
     -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
-    builtinSemVar =
-      if majorPV < vanRossemPV
-        then case ledgerLang of
+    builtinSemVar
+      | majorPV < vanRossemPV = case ledgerLang of
           PlutusV1 -> conwayDependentVariant
           PlutusV2 -> conwayDependentVariant
           PlutusV3 -> DefaultFunSemanticsVariantC
           -- 'PlutusV4' doesn't exist before the Dijkstra HF, which comes after
           -- van Rossem, so this case is vacuous.
           PlutusV4 -> DefaultFunSemanticsVariantE
-        else case ledgerLang of
+      | majorPV < dijkstraPV = case ledgerLang of
           PlutusV1 -> DefaultFunSemanticsVariantD
           PlutusV2 -> DefaultFunSemanticsVariantD
           PlutusV3 -> DefaultFunSemanticsVariantE
           PlutusV4 -> DefaultFunSemanticsVariantE
+      | otherwise = case ledgerLang of
+          PlutusV1 -> DefaultFunSemanticsVariantF
+          PlutusV2 -> DefaultFunSemanticsVariantF
+          PlutusV3 -> DefaultFunSemanticsVariantG
+          PlutusV4 -> DefaultFunSemanticsVariantG
     conwayDependentVariant =
       if majorPV < changPV
         then DefaultFunSemanticsVariantA

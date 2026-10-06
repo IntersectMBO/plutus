@@ -4,17 +4,9 @@ let
 in
 \(d : data) ->
   Single_match
-    ((let
-         b = list data
-       in
-       /\r -> \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
-       {Single}
-       (unConstrData d)
-       (\(index : integer) (args : list data) ->
-          case
-            (list data -> Single)
-            index
-            [(\(ds : list data) -> Single (unIData (headList {data} ds)))]
-            args))
+    (case
+       Single
+       d
+       [(\(ds : list data) -> Single (unIData (headList {data} ds)))])
     {integer}
     (\(x : integer) -> x)

@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE PolyKinds #-}
@@ -13,15 +14,19 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 
 module Blueprint.Spec where
 
 import Prelude
 
+import Data.Aeson (object, toJSON, (.=))
 import Data.Kind (Type)
 import Data.Typeable (Typeable, (:~:) (Refl))
 import GHC.Generics (Generic)
+import Language.Haskell.TH qualified as TH
+import PlutusCore.Data (Data (..))
 import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
 import PlutusTx.Blueprint.Definition
@@ -29,14 +34,72 @@ import PlutusTx.Blueprint.Definition
   , HasBlueprintDefinition
   , UnrollAll
   , Unrolled
+  , definitionRef
   , definitionsFor
   )
 import PlutusTx.Blueprint.Definition.Id (definitionIdFromTypeK)
 import PlutusTx.Blueprint.Definition.Unroll (definitionId)
-import PlutusTx.Blueprint.Schema (Schema (..))
-import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo)
+import PlutusTx.Blueprint.Schema (Schema (..), withSchemaInfo)
+import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..), emptySchemaInfo)
+import PlutusTx.Blueprint.TH qualified as PlutusTx
+import PlutusTx.Builtins (BuiltinByteString)
 import PlutusTx.Builtins.Internal (BuiltinData, BuiltinList, BuiltinPair, BuiltinUnit)
 import PlutusTx.IsData ()
+import PlutusTx.IsData.Class qualified as PlutusTx
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (testCase, (@?=))
+
+data ListProduct = ListProduct Integer BuiltinByteString
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass (HasBlueprintDefinition)
+
+PlutusTx.makeIsDataSchemaAsList ''ListProduct
+
+data EmptyProduct = EmptyProduct
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass (HasBlueprintDefinition)
+
+PlutusTx.makeIsDataSchemaAsList ''EmptyProduct
+
+data SumProduct = SumFirst | SumSecond
+
+tests :: TestTree
+tests =
+  testGroup
+    "List product schemas"
+    [ testCase "codec roundtrip" $ do
+        let value = ListProduct 3 "token"
+        PlutusTx.toData value @?= List [I 3, B "token"]
+        PlutusTx.fromData (PlutusTx.toData value) @?= Just value
+        PlutusTx.unsafeFromBuiltinData (PlutusTx.toBuiltinData value) @?= value
+    , testCase "reject malformed products" $ do
+        let malformed = [Constr 0 [I 3, B "token"], List [], List [I 3], List [I 3, I 4]]
+        map (PlutusTx.fromData @ListProduct) malformed @?= replicate (length malformed) Nothing
+    , testCase "empty product" $ do
+        PlutusTx.toData EmptyProduct @?= List []
+        PlutusTx.fromData @EmptyProduct (List []) @?= Just EmptyProduct
+        schema @EmptyProduct @'[] @?= SchemaListTuple emptySchemaInfo []
+    , testCase "positional schema" $
+        schema @ListProduct @'[Integer, BuiltinByteString]
+          @?= SchemaListTuple
+            emptySchemaInfo
+            [ definitionRef @Integer @'[Integer, BuiltinByteString]
+            , definitionRef @BuiltinByteString @'[Integer, BuiltinByteString]
+            ]
+    , testCase "positional JSON and metadata" $ do
+        let fields = [schema @Integer @'[], schema @BuiltinByteString @'[]]
+            listSchema = withSchemaInfo (\info -> info {title = Just "Product"}) (SchemaListTuple emptySchemaInfo fields)
+        toJSON listSchema
+          @?= object ["dataType" .= ("list" :: String), "title" .= ("Product" :: String), "items" .= fields]
+    , testCase "reject sum schema" $
+        $(TH.recover [|True|] (PlutusTx.makeIsDataSchemaAsList ''SumProduct >> [|False|])) @?= True
+    , testCase "reject asDataAsList sum" $
+        $( TH.recover
+             [|True|]
+             (PlutusTx.asDataAsList [d|data RejectedSum = RejectedFirst | RejectedSecond|] >> [|False|])
+         )
+          @?= True
+    ]
 
 ----------------------------------------------------------------------------------------------------
 -- Test fixture ------------------------------------------------------------------------------------

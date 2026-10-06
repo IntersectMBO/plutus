@@ -37,22 +37,11 @@ in
              [ (\(ds : data) (ds : list data) ->
                   Maybe_match
                     {data}
-                    ((let
-                         b = list data
-                       in
-                       /\r ->
-                         \(p : pair integer b) (f : integer -> b -> r) ->
-                           case r p [f])
-                       {Maybe data}
-                       (unConstrData (headList {data} ds))
-                       (\(index : integer) (args : list data) ->
-                          case
-                            (list data -> Maybe data)
-                            index
-                            [ (\(ds : list data) ->
-                                 Just {data} (headList {data} ds))
-                            , (\(ds : list data) -> Nothing {data}) ]
-                            args))
+                    (case
+                       (Maybe data)
+                       (headList {data} ds)
+                       [ (\(ds : list data) -> Just {data} (headList {data} ds))
+                       , (\(ds : list data) -> Nothing {data}) ])
                     {all dead. bool}
                     (\(ds : data) -> /\dead -> True)
                     (/\dead -> False)

@@ -11,7 +11,6 @@ import Data.List (isInfixOf)
 import Data.Set qualified as Set
 import PlutusTx.Assurance.Interface (interfaceBlueprint)
 import PlutusTx.Blueprint
-import PlutusTx.Blueprint.Definition.Id (definitionIdFromType)
 import PlutusTx.Builtins (BuiltinData)
 import PlutusTx.Ual.Syntax
 import Test.Tasty (TestTree, testGroup)

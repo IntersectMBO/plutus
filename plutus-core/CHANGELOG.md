@@ -1,4 +1,50 @@
 
+<a id='changelog-1.71.0.0'></a>
+# 1.71.0.0 — 2026-09-29
+
+## Added
+
+- Cost models for the `keepPolicies` and `dropPolicies` builtins ([CIP-0168](https://cips.cardano.org/cip/CIP-0168)), with eight new cost model parameters. Both are proportional to the length of the policy list times the depth of the `Value`'s outer map.
+
+- Plutus Core version 1.2.0, which supports casing on `Data.Constr` constants.
+
+## Changed
+
+- `Value` now caches the number of negative amounts per currency, not only in total, which makes `keepPolicies` and `dropPolicies` logarithmic in the `Value` rather than linear in its size. The CPU and memory models of `insertCoin`, `unionValue`, `scaleValue` and `unValueData` account for maintaining it.
+- `keepPolicies` and `dropPolicies` fail on a `Value` with more than 8191 policies (`policyFilterMaxSize`).
+
+- Added builtin semantics variants F and G for Dijkstra era
+
+<a id='changelog-1.69.0.0'></a>
+# 1.69.0.0 — 2026-09-11
+
+## Added
+
+- A new `with-crypto` Cabal flag (enabled by default) for `plutus-core`. When
+  disabled (`-with-crypto`), `plutus-core` links no system cryptography C library
+  (libsodium / libblst / libsecp256k1): the hash builtins are computed by
+  `crypton` (byte-identical — see the `crypto-hash-parity-test`), the BLS12-381
+  constants stay as their real hardcoded values, and the signature-verification
+  and BLS12-381 group/pairing operations become compile-only stubs. This lets
+  Plinth/Plutus scripts *compile* in environments where those C libraries are not
+  installed (Cabal otherwise cannot even solve, because `cardano-crypto-class`
+  declares them as `pkgconfig-depends`). Those builtins can still be compiled and
+  serialised but not *evaluated*; the default build is unaffected.
+
+- Cost model for the `policies` builtin ([CIP-0168](https://cips.cardano.org/cip/CIP-0168)), with four new cost model parameters. Linear in the number of policies in the `Value`.
+
+- Cost model for the `assetCount` builtin ([CIP-0168](https://cips.cardano.org/cip/CIP-0168)), with two new cost model parameters. Costed as a constant, since the denotation reads a field the `Value` already maintains.
+
+- Casing on builtin `Data` values: the `Constr` tag selects the branch, which is applied to the list of fields. Casing on any other `Data` value fails.
+
+- The `keepPolicies` and `dropPolicies` builtins ([CIP-0168](https://cips.cardano.org/cip/CIP-0168)): retain, respectively remove, the listed currency symbols of a `Value`. Expected to be enabled at PV12.
+
+## Changed
+
+- Use transitive closure in UPLC inliner certifier to avoid exponential blowups.
+  The inliner is updated to perform multiple rounds of inlining, with a checkpoint
+  emitted in between two rounds.
+
 <a id='changelog-1.68.0.0'></a>
 # 1.68.0.0 — 2026-08-21
 

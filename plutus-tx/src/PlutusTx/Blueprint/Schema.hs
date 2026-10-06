@@ -43,6 +43,7 @@ data Schema (referencedTypes :: [Type])
   = SchemaInteger SchemaInfo IntegerSchema
   | SchemaBytes SchemaInfo BytesSchema
   | SchemaList SchemaInfo (ListSchema referencedTypes)
+  | SchemaListTuple SchemaInfo [Schema referencedTypes]
   | SchemaMap SchemaInfo (MapSchema referencedTypes)
   | SchemaConstructor SchemaInfo (ConstructorSchema referencedTypes)
   | SchemaBuiltInData SchemaInfo
@@ -87,6 +88,10 @@ instance ToJSON (Schema referencedTypes) where
         & optionalField "minItems" minItems
         & optionalField "maxItems" maxItems
         & optionalField "uniqueItems" uniqueItems
+        & Aeson.Object
+    SchemaListTuple info fields ->
+      dataType info "list"
+        & requiredField "items" fields
         & Aeson.Object
     SchemaMap info MkMapSchema {..} ->
       dataType info "map"
@@ -147,6 +152,7 @@ withSchemaInfo f = \case
   SchemaInteger info schema -> SchemaInteger (f info) schema
   SchemaBytes info schema -> SchemaBytes (f info) schema
   SchemaList info schema -> SchemaList (f info) schema
+  SchemaListTuple info fields -> SchemaListTuple (f info) fields
   SchemaMap info schema -> SchemaMap (f info) schema
   SchemaConstructor info schema -> SchemaConstructor (f info) schema
   SchemaBuiltInData info -> SchemaBuiltInData (f info)

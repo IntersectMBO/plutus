@@ -1,9 +1,12 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -18,6 +21,7 @@ import UntypedPlutusCore.Core.Type
 
 import Control.Lens
 import Control.Monad
+import Data.Proxy
 import Data.Vector qualified as V
 import PlutusCore.Flat
 import PlutusCore.Flat.Decoder
@@ -127,19 +131,14 @@ encodeTerm = \case
 
 decodeTerm
   :: forall name uni fun ann
-   . ( Closed uni
-     , uni `Everywhere` Flat
-     , Flat fun
-     , Flat ann
-     , Flat name
-     , Flat (Binder name)
-     )
-  => Version
-  -> (Some (ValueOf uni) -> Maybe String)
+   . (Closed uni, Flat fun, Flat ann, Flat name, Flat (Binder name))
+  => (forall a. uni (Esc a) -> Get a)
+  -> Version
+  -> (SomeTypeIn uni -> Maybe String)
   -> (fun -> Maybe String)
   -> (Int -> Maybe String)
   -> Get (Term name uni fun ann)
-decodeTerm version constantPred builtinPred constrPred = go
+decodeTerm decodeValue version constantPred builtinPred constrPred = go
   where
     go = handleTerm =<< decodeTermTag
     handleTerm 0 = Var <$> decode <*> decode
@@ -147,13 +146,14 @@ decodeTerm version constantPred builtinPred constrPred = go
     handleTerm 2 = LamAbs <$> decode <*> (unBinder <$> decode) <*> go
     handleTerm 3 = Apply <$> decode <*> go <*> go
     handleTerm 4 = do
-      ann <- decode
-      val <- decode
-      let c :: Term name uni fun ann
-          c = Constant ann val
-      case constantPred val of
-        Nothing -> pure c
-        Just e -> fail e
+      ann <- decode :: Get ann
+      SomeTypeIn (Kinded uni) <- decodeKindedUniFlat @uni
+      case checkStar uni of
+        Nothing -> fail "A non-star type can't have a value to decode"
+        Just Refl ->
+          case constantPred (SomeTypeIn uni) of
+            Nothing -> Constant ann . Some . ValueOf uni <$> decodeValue uni
+            Just e -> fail e
     handleTerm 5 = Force <$> decode <*> go
     handleTerm 6 = Error <$> decode
     handleTerm 7 = do
@@ -232,21 +232,16 @@ encodeProgram (Program ann v t) = encode ann <> encode v <> encodeTerm t
 
 decodeProgram
   :: forall name uni fun ann
-   . ( Closed uni
-     , uni `Everywhere` Flat
-     , Flat fun
-     , Flat ann
-     , Flat name
-     , Flat (Binder name)
-     )
-  => (Some (ValueOf uni) -> Maybe String)
+   . (Closed uni, Flat fun, Flat ann, Flat name, Flat (Binder name))
+  => (forall a. uni (Esc a) -> Get a)
+  -> (SomeTypeIn uni -> Maybe String)
   -> (fun -> Maybe String)
   -> (Int -> Maybe String)
   -> Get (Program name uni fun ann)
-decodeProgram constantPred builtinPred constrPred = do
+decodeProgram decodeValue constantPred builtinPred constrPred = do
   ann <- decode
   v <- decode
-  Program ann v <$> decodeTerm v constantPred builtinPred constrPred
+  Program ann v <$> decodeTerm decodeValue v constantPred builtinPred constrPred
 
 sizeProgram
   :: forall name uni fun ann
@@ -301,6 +296,12 @@ instance
   => Flat (UnrestrictedProgram name uni fun ann)
   where
   encode (UnrestrictedProgram p) = encodeProgram p
-  decode = UnrestrictedProgram <$> decodeProgram (const Nothing) (const Nothing) (const Nothing)
+  decode =
+    UnrestrictedProgram
+      <$> decodeProgram
+        (\uni -> bring (Proxy @Flat) uni decode)
+        (const Nothing)
+        (const Nothing)
+        (const Nothing)
 
   size (UnrestrictedProgram p) = sizeProgram p

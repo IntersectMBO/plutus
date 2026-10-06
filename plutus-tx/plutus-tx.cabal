@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx
-version:         1.68.0.0
+version:         1.71.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -57,9 +57,9 @@ library
     PlutusTx.AsData.Internal
     PlutusTx.AssocMap
     PlutusTx.Assurance
-    PlutusTx.Assurance.Interface
     PlutusTx.Assurance.Build
     PlutusTx.Assurance.Document
+    PlutusTx.Assurance.Interface
     PlutusTx.Assurance.Write
     PlutusTx.Base
     PlutusTx.Blueprint
@@ -163,7 +163,7 @@ library
     , lens
     , memory
     , mtl
-    , plutus-core            ^>=1.68
+    , plutus-core            ^>=1.71
     , plutus-core:flat
     , plutus-core:plutus-ir
     , prettyprinter
@@ -205,11 +205,11 @@ library plutus-tx-testlib
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.68
+    , plutus-core                      ^>=1.71
     , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
-    , plutus-tx                        ^>=1.68
+    , plutus-tx                        ^>=1.71
     , prettyprinter
     , serialise
     , tasty
@@ -254,8 +254,8 @@ test-suite plutus-tx-test
     Ual.Assurance.Spec
     Ual.Blueprint.Spec
     Ual.Error.Spec
-    Ual.InterfaceSpec
     Ual.Fixture
+    Ual.InterfaceSpec
     Ual.Lexer.Spec
     Ual.Parser.Spec
     Ual.Resolve.Spec
@@ -274,14 +274,15 @@ test-suite plutus-tx-test
     , hedgehog-fn
     , lens
     , mtl
-    , plutus-core                      ^>=1.68
+    , plutus-core                      ^>=1.71
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.68
+    , plutus-tx                        ^>=1.71
     , plutus-tx:plutus-tx-testlib
     , pretty-show
     , serialise
     , tasty
     , tasty-hedgehog
     , tasty-hunit
+    , template-haskell
     , text
     , vector

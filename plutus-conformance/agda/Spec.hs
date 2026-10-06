@@ -170,36 +170,42 @@ agdaEvalUplcProg WithoutCosting =
  all of the entries here. -}
 failingBudgetTests :: [FilePath]
 failingBudgetTests =
-  -- These fail their budget test only (evaluation succeeds), currently
-  -- because the Agda code doesn't know about the IntegerCostedLiterally
-  -- size measure used by `replicateByte` and `dropList`.
-  [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
-  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-03"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-04"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-05"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-06"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-07"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-08"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-09"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-10"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-11"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-13"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
-  , "test-cases/uplc/evaluation/builtin/semantics/appendString"
-  , "test-cases/uplc/evaluation/builtin/semantics/encodeUtf8"
-  , "test-cases/uplc/evaluation/builtin/semantics/equalsString/equalsString-02"
-  ]
+  failingEvaluationTests
+    <>
+    -- These fail their budget test only (evaluation succeeds), currently
+    -- because the Agda code doesn't know about the IntegerCostedLiterally
+    -- size measure used by `replicateByte` and `dropList`.
+    [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
+    , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-02"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-03"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-04"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-05"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-06"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-07"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-08"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-09"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-10"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-11"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-13"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
+    , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
+    , "test-cases/uplc/evaluation/builtin/semantics/appendString"
+    , "test-cases/uplc/evaluation/builtin/semantics/encodeUtf8"
+    , "test-cases/uplc/evaluation/builtin/semantics/equalsString/equalsString-02"
+    ]
 
 {-| A list of evaluation tests which are currently expected to fail.  Once a fix
 for a test is pushed, the test will succeed and should be removed from the list. -}
 failingEvaluationTests :: [FilePath]
-failingEvaluationTests = []
+failingEvaluationTests =
+  -- The Agda caser does not support casing on Data yet.
+  [ "test-cases/uplc/evaluation/term/constant-case/data/data-01"
+  , "test-cases/uplc/evaluation/term/constant-case/data/data-02"
+  ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
 main :: IO ()

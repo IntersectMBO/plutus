@@ -162,6 +162,8 @@ arity <- function(name) {
         "MultiIndexArray" = 2,
         "AssetCount" = 1,
         "Policies" = 1,
+        "KeepPolicies" = 2,
+        "DropPolicies" = 2,
         -1  ## Default for missing values
         )
 }
@@ -414,6 +416,38 @@ modelFun <- function(path) {
         m <- lm(t ~ 1, filtered)
         return (mk.result(m, "constant_cost"))
     }
+
+   ## Raise the intercept to 1000 ps if it is below that: CostModelSafety requires every
+   ## builtin to cost at least that at its smallest arguments.
+   floor.intercept <- function (m) {
+        m$coefficients[["(Intercept)"]] <- max (m$coefficients[["(Intercept)"]], 1/1000)
+        m
+   }
+
+   ## `fit.fan` fits a line in one size, so it gets the product of the two sizes instead of
+   ## one of them; the result is the intercept and slope of `multiplied_sizes`.  A row whose
+   ## product is zero is charged the intercept alone, so it is left out of the line and the
+   ## intercept is raised to cover it.  The coefficients are rounded up to whole picoseconds
+   ## when the Haskell side reads them (`microToPico`).
+   multipliedSizesViaFan <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            discard.overhead ()
+        product <- mutate (filtered, x_mem = x_mem * y_mem)
+        working <- product[product$x_mem > 0, ]
+        zero <- product[product$x_mem == 0, ]
+        m <- fit.fan (working)
+        v <- coefficients (m)
+        if (nrow (zero) > 0) {
+            v[["(Intercept)"]] <- max (v[["(Intercept)"]], max (zero$t))
+        }
+        names (v) <- c("(Intercept)", "I(x_mem * y_mem)")
+        ## ^ The name must match what `CreateBuiltinCostModel` looks up, spaces around `*` included.
+        m2 <- lm (t ~ I(x_mem * y_mem), filtered)
+        m2$coefficients <- v
+        ## ^ The rest of the data in the model now becomes nonsensical, but we don't use it.
+        return (mk.result (floor.intercept (m2), "multiplied_sizes"))
+   }
 
    linearInX <- function (fname) {
         filtered <- data %>%
@@ -856,12 +890,17 @@ modelFun <- function(path) {
     ## X wrapped with `ValueOuterSize`
     policiesModel <- linearInX ("Policies")
 
+    ## X is the policy list, Y wrapped with `ValueOuterDepth`.
+    ## See Note [Benchmarking keepPolicies and dropPolicies].
+    keepPoliciesModel <- multipliedSizesViaFan ("KeepPolicies")
+    dropPoliciesModel <- multipliedSizesViaFan ("DropPolicies")
+
     ## Values
 
-    # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
-    lookupCoinModel           <- linearInZ ("LookupCoin")    
-    # U wrapped with `Logarithmic . ValueOuterOrMaxInner`
-    insertCoinModel           <- linearInU ("InsertCoin")    
+    # Z wrapped with `ValueMaxDepth`
+    lookupCoinModel           <- linearInZ ("LookupCoin")
+    # U wrapped with `ValueMaxDepth`
+    insertCoinModel           <- linearInU ("InsertCoin")
 
     # X and Y wrapped with `ValueTotalSize` (contained value size)
     unionValueModel         <- {
@@ -1014,7 +1053,9 @@ modelFun <- function(path) {
         scaleValueModel                      = scaleValueModel,
         multiIndexArrayModel                 = multiIndexArrayModel,
         assetCountModel                      = assetCountModel,
-        policiesModel                        = policiesModel
+        policiesModel                        = policiesModel,
+        keepPoliciesModel                    = keepPoliciesModel,
+        dropPoliciesModel                    = dropPoliciesModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

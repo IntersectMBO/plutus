@@ -24,14 +24,6 @@ letrec
                  (go tl))
           , (Nil {Tuple integer integer}) ]
 in
-letrec
-  !go : list (pair data data) -> list (pair data data) -> list (pair data data)
-    = \(acc : list (pair data data)) (xs : list (pair data data)) ->
-        case
-          (list (pair data data))
-          xs
-          [(\(hd : pair data data) -> go (mkCons {pair data data} hd acc)), acc]
-in
 let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
@@ -118,65 +110,6 @@ in
                           (c
                              (Tuple2 {integer} {integer} (addInteger 7 n) 77)
                              n)))))
-  in
-  letrec
-    !go : list (pair data data) -> list (pair data data)
-      = \(xs : list (pair data data)) ->
-          case
-            (list (pair data data))
-            xs
-            [ (\(hd : pair data data) (tl : list (pair data data)) ->
-                 let
-                   !v' : data = case data hd [(\(l : data) (r : data) -> r)]
-                   !k' : data = case data hd [(\(l : data) (r : data) -> l)]
-                 in
-                 letrec
-                   !go : list (pair data data) -> Maybe data
-                     = \(xs : list (pair data data)) ->
-                         case
-                           (Maybe data)
-                           xs
-                           [ (\(hd : pair data data) ->
-                                case
-                                  (all dead.
-                                     list (pair data data) -> Maybe data)
-                                  (equalsData
-                                     k'
-                                     (case
-                                        data
-                                        hd
-                                        [(\(l : data) (r : data) -> l)]))
-                                  [ (/\dead -> go)
-                                  , (/\dead ->
-                                       \(ds : list (pair data data)) ->
-                                         Just
-                                           {data}
-                                           (case
-                                              data
-                                              hd
-                                              [ (\(l : data) (r : data) ->
-                                                   r) ])) ]
-                                  {all dead. dead})
-                           , (Nothing {data}) ]
-                 in
-                 Maybe_match
-                   {data}
-                   (go nt)
-                   {all dead. list (pair data data)}
-                   (\(r : data) ->
-                      /\dead ->
-                        mkCons
-                          {pair data data}
-                          (mkPairData
-                             k'
-                             (iData (addInteger (unIData v') (unIData r))))
-                          (go tl))
-                   (/\dead ->
-                      mkCons {pair data data} (mkPairData k' v') (go tl))
-                   {all dead. dead})
-            , [] ]
-  in
-  let
     !nt : list (pair data data)
       = unsafeFromSOPList
           {integer}
@@ -248,8 +181,64 @@ in
     !nt : list (pair data data)
       = let
         !rs' : list (pair data data) = go nt
-        !ls' : list (pair data data) = go nt
       in
-      go rs' ls'
+      letrec
+        !go : list (pair data data) -> list (pair data data)
+          = \(xs : list (pair data data)) ->
+              case
+                (list (pair data data))
+                xs
+                [ (\(hd : pair data data) (tl : list (pair data data)) ->
+                     let
+                       !v' : data = case data hd [(\(l : data) (r : data) -> r)]
+                       !k' : data = case data hd [(\(l : data) (r : data) -> l)]
+                     in
+                     letrec
+                       !go : list (pair data data) -> Maybe data
+                         = \(xs : list (pair data data)) ->
+                             case
+                               (Maybe data)
+                               xs
+                               [ (\(hd : pair data data) ->
+                                    case
+                                      (all dead.
+                                         list (pair data data) -> Maybe data)
+                                      (equalsData
+                                         k'
+                                         (case
+                                            data
+                                            hd
+                                            [(\(l : data) (r : data) -> l)]))
+                                      [ (/\dead -> go)
+                                      , (/\dead ->
+                                           \(ds : list (pair data data)) ->
+                                             Just
+                                               {data}
+                                               (case
+                                                  data
+                                                  hd
+                                                  [ (\(l : data) (r : data) ->
+                                                       r) ])) ]
+                                      {all dead. dead})
+                               , (Nothing {data}) ]
+                     in
+                     Maybe_match
+                       {data}
+                       (go nt)
+                       {all dead. list (pair data data)}
+                       (\(r : data) ->
+                          /\dead ->
+                            mkCons
+                              {pair data data}
+                              (mkPairData
+                                 k'
+                                 (iData (addInteger (unIData v') (unIData r))))
+                              (go tl))
+                       (/\dead ->
+                          mkCons {pair data data} (mkPairData k' v') (go tl))
+                       {all dead. dead})
+                , rs' ]
+      in
+      go nt
   in
   go nt

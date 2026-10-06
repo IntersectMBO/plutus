@@ -33,7 +33,7 @@ packages: plutus-core
 -- We never, ever, want this.
 write-ghc-environment-files: never
 
--- Always build tests and benchmarks.
+-- Only the PlutusTx test suite is required by this conformance workspace.
 tests: false
 benchmarks: false
 
@@ -67,6 +67,9 @@ package bitvec
   flags: -simd
 
 -- plutus-tx-plugin cannot be built with profiling enabled
+package plutus-tx
+  tests: True
+
 package plutus-tx-plugin
   profiling: False
 

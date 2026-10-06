@@ -108,7 +108,7 @@ defaultBuiltinCostModelExt = (defaultBuiltinCostModelForTesting, ())
 
    Here `def` is the default semantics variant defined in
    PlutusCore.Default.Builtins.  Currently that is equal to
-   `DefaultFunSemanticsVariantE`, and `defaultBuiltinCostModelForTesting` is the
+   `DefaultFunSemanticsVariantG`, and `defaultBuiltinCostModelForTesting` is the
    cost model for the same variant.  Can we couple these things together more
    tightly so that it's guaranteed that the two things refer to the same
    semantics variant?
@@ -1877,6 +1877,12 @@ test_ConsByteString =
       semVar@DefaultFunSemanticsVariantE ->
         Right EvaluationFailure
           @=? typecheckEvaluateCekNoEmit semVar defaultBuiltinCostModelForTesting expr1
+      semVar@DefaultFunSemanticsVariantF ->
+        Right (EvaluationSuccess $ cons @ByteString "!hello world")
+          @=? typecheckEvaluateCekNoEmit semVar defaultBuiltinCostModelForTesting expr1
+      semVar@DefaultFunSemanticsVariantG ->
+        Right EvaluationFailure
+          @=? typecheckEvaluateCekNoEmit semVar defaultBuiltinCostModelForTesting expr1
 
 -- shorthand
 cons :: (DefaultUni `HasTermLevel` a, TermLike term tyname name DefaultUni fun) => a -> term ()
@@ -2160,6 +2166,36 @@ test_Case =
                 Left _ -> False
                 Right EvaluationFailure -> 0 > scrut || scrut >= fromIntegral (length is)
                 Right (EvaluationSuccess res) -> res == mkConstant () (is !! fromIntegral scrut)
+    , QC.testProperty "Data.Constr fields" . BaseQC.withNumTests 99 $
+        \(QC.NonEmpty branchMarkers :: QC.NonEmptyList Integer) (fieldValues :: [Integer]) ->
+          QC.forAll (QC.chooseInt (0, length branchMarkers - 1)) $ \tag ->
+            let fields = I <$> fieldValues
+                term :: Term TyName Name DefaultUni DefaultFun ()
+                term = runQuote $ do
+                  xs <- freshName "xs"
+                  let listDataTy = mkTyBuiltin @_ @[Data] ()
+                      handler = lamAbs () xs listDataTy $ var () xs
+                  pure $
+                    kase
+                      ()
+                      listDataTy
+                      (mkConstant () $ Constr (toInteger tag) fields)
+                      (replicate (length branchMarkers) handler)
+             in Right (EvaluationSuccess $ mkConstant () fields)
+                  QC.=== typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
+    , testCase "Data non-Constr fails" $
+        let term :: Term TyName Name DefaultUni DefaultFun ()
+            term = runQuote $ do
+              xs <- freshName "xs"
+              let listDataTy = mkTyBuiltin @_ @[Data] ()
+              pure $
+                kase
+                  ()
+                  listDataTy
+                  (mkConstant () $ I 1)
+                  [lamAbs () xs listDataTy $ var () xs]
+         in Right EvaluationFailure
+              @?= typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
     , QC.testProperty "List, 1 branch" . BaseQC.withNumTests 99 $
         \(scrut :: [Integer]) ->
           let
@@ -2305,6 +2341,11 @@ test_KeepPolicies =
           @?= expectedValue (unsafeMkValue [("bbb", "t1", 1), ("bbb", "t2", 3)])
     , testCase "oversized policy id matches nothing" do
         evalKeepPolicies [pack (replicate 33 0)] mixedValue @?= expectedValue Value.empty
+    , testCase "accepts a Value at the policy bound" do
+        evalKeepPolicies [] (manyPolicies Value.policyFilterMaxSize) @?= expectedValue Value.empty
+    , testCase "refuses a Value above the policy bound" do
+        evalKeepPolicies [] (manyPolicies (Value.policyFilterMaxSize + 1))
+          @?= Right EvaluationFailure
     ]
   where
     evalKeepPolicies = evalPolicyFilter KeepPolicies
@@ -2337,6 +2378,12 @@ test_DropPolicies =
           @?= expectedValue (unsafeMkValue [("bbb", "t1", 1), ("bbb", "t2", 3)])
     , testCase "oversized policy id matches nothing" do
         evalDropPolicies [pack (replicate 33 0)] mixedValue @?= expectedValue mixedValue
+    , testCase "accepts a Value at the policy bound" do
+        let v = manyPolicies Value.policyFilterMaxSize
+        evalDropPolicies [] v @?= expectedValue v
+    , testCase "refuses a Value above the policy bound" do
+        evalDropPolicies [] (manyPolicies (Value.policyFilterMaxSize + 1))
+          @?= Right EvaluationFailure
     ]
   where
     evalDropPolicies = evalPolicyFilter DropPolicies
@@ -2350,6 +2397,11 @@ evalPolicyFilter fun ps v =
     mkIterAppNoAnn
       (builtin () fun)
       [mkConstant @[ByteString] () ps, mkConstant @Value () v]
+
+-- | A `Value` of @m@ policies holding one token each.
+manyPolicies :: Int -> Value
+manyPolicies m =
+  unsafeMkValue [(fromString (show i), "t", 1) | i <- [1 .. m]]
 
 -- | The expected result of a successful `evalPolicyFilter` evaluation.
 expectedFilteredValue :: Value -> Either PlcError (EvaluationResult UplcTerm)

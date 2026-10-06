@@ -1,5 +1,5 @@
 (program
-   1.1.0
+   1.2.0
    ((\forced ->
        (\revAppend xs -> force revAppend xs xs)
          ((\s -> s s (delay (\x -> x)))
