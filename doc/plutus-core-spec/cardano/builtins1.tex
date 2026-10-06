@@ -64,6 +64,19 @@ Figure~\ref{fig:untyped-term-reduction} and implemented in the CEK machine
 causes \texttt{(error)} if an attempt is made to case on a value of such a type
 during evaluation of a Plutus Core script.
 
+\medskip
+Casing on $\ty{data}$ is only available from Protocol Version 12 onwards, and
+only in scripts with Plutus Core language version 1.2.0 or
+later.\footnote{There's some inconsistency with casing on other types such as
+$\ty{integer}$ since that's permissible in Plutus Core 1.1.0.  This is due to an
+oversight.} In all other circumstances one should assume that
+$\maxbranch(\ty{data}) = \infty$ but that $\match{\ty{data}}(x) = \errorX$ for
+all $x$, so any attempt to case on a $\ty{data}$ value will
+cause \texttt{(error)}, regardless of the number of branches.  Only values of
+the form $\inj_C(k,l)$ (corresponding to \texttt{Constr}~$k$~$l$: see the
+description of $\ty{data}$ below) can be cased on; in this case the selected
+branch is applied to the list $l$, a constant of type $\ty{list}\,\ty{data}$.
+
 { % New scope: change the vertical spacing for this table only.
 % Casing functions for individual types are represented as embedded arrays.
 % We still use an array even if there's only one case: without this the
@@ -127,6 +140,19 @@ during evaluation of a Plutus Core script.
         \end{array}$
         }
         & $1$
+        \\
+% data
+  \hline
+        $\ty{data}$ &
+        {\renewcommand*{\arraystretch}{1}
+        % As for integer, the tag k is mapped to branch k+1, and negative tags give \errorX.
+        $ \begin{array}{lll}
+         \inj_C(k,l) & \mapsto (k+1,(l)) & (k \geq 0)\\
+         \inj_C(k,l) & \mapsto \errorX   & (k < 0)\\
+         d           & \mapsto \errorX   & \text{(otherwise)}
+        \end{array}$
+        }
+        & $\infty$
         \\
         \hline
         \end{tabular}
