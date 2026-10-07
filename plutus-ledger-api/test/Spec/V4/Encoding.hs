@@ -17,7 +17,7 @@ import PlutusLedgerApi.V4 qualified as V4
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Blueprint.Definition
-import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..))
+import PlutusTx.Blueprint.Schema (ConstructorSchema (MkConstructorSchema), Schema (..))
 import PlutusTx.Data.AssocMap qualified as DataMap
 import PlutusTx.Data.List qualified as DataList
 import PlutusTx.Ratio qualified as Ratio
