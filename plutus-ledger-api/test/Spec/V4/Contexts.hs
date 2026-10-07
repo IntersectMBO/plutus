@@ -168,7 +168,7 @@ genTxInfo = do
 genScriptInfo :: Gen SOP.ScriptInfo
 genScriptInfo =
   oneof
-    [ pure V4.ReceivingScript
+    [ V4.ReceivingScript <$> choose (0, 3) <*> genOutput
     , V4.MintingScript <$> elements [currency, otherCurrency]
     , V4.SpendingScript <$> genOutRef <*> oneof [pure Nothing, Just <$> elements datums]
     , V4.WithdrawingScript . V4.AccountId <$> genCredential

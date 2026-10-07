@@ -421,8 +421,8 @@ PlutusTx.asData
       | Voting V2.ScriptHash Voter
       | Proposing V2.ScriptHash Haskell.Integer ProposalProcedure
       | Guarding V2.ScriptHash Haskell.Integer
-      | Receiving V2.ScriptHash
-      -- \^ Authorize all protected outputs for this hash in one body.
+      | Receiving V2.ScriptHash Haskell.Integer
+      -- \^ Authorize one protected output at its index in the original body output list.
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow ScriptPurpose)
@@ -580,8 +580,8 @@ PlutusTx.asData
         -- information about potential sub-transactions. In other words for sub-transactions
         -- this is guaranteed to be `Nothing`, while for top level transactions this is
         -- guaranteed to be `Just`
-        ReceivingScript
-      -- \^ No implicit datum; use scriptContextScriptHash to select outputs.
+        ReceivingScript Haskell.Integer TxOut
+      -- \^ Original body output index and the exact output being authorized.
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow ScriptInfo)

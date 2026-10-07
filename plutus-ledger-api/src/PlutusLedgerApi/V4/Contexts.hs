@@ -331,8 +331,8 @@ data ScriptPurpose
   | Voting V2.ScriptHash Voter
   | Proposing V2.ScriptHash Haskell.Integer ProposalProcedure
   | Guarding V2.ScriptHash Haskell.Integer
-  | -- | Authorize creation of all protected outputs for this hash in one body.
-    Receiving V2.ScriptHash
+  | -- | Authorize one protected output at its index in the original body output list.
+    Receiving V2.ScriptHash Haskell.Integer
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
@@ -502,8 +502,8 @@ data ScriptInfo
     GuardingScript
       Haskell.Integer
       (Haskell.Maybe TopTxInfo)
-  | -- | No implicit datum; use the executing scriptContextScriptHash to select outputs.
-    ReceivingScript
+  | -- | Original body output index and the exact output being authorized.
+    ReceivingScript Haskell.Integer TxOut
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow ScriptInfo)

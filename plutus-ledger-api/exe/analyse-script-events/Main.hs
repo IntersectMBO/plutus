@@ -83,7 +83,7 @@ stringOfPurposeV4 = \case
   V4.VotingScript {} -> "V4 Voting"
   V4.ProposingScript {} -> "V4 Proposing"
   V4.GuardingScript {} -> "V4 Guarding"
-  V4.ReceivingScript -> "V4 Receiving"
+  V4.ReceivingScript _ _ -> "V4 Receiving"
 
 shapeOfValue :: V1.Value -> String
 shapeOfValue (V1.Value m) =

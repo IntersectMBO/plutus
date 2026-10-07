@@ -30,11 +30,23 @@ tests =
           )
     , assertResult "receiving purpose and info wrappers" $
         plinthc
-          ( let purpose = V4.Receiving (V4.ScriptHash "recipient")
-                info = PlutusTx.unsafeFromBuiltinData @DataV4.ScriptInfo (PlutusTx.toBuiltinData V4.ReceivingScript)
+          ( let output =
+                  V4.TxOut
+                    (V4.AddressProtected (V4.ScriptCredential (V4.ScriptHash "recipient")) Nothing)
+                    mempty
+                    V4.NoOutputDatum
+                    Nothing
+                purpose = V4.Receiving (V4.ScriptHash "recipient") 3
+                info =
+                  PlutusTx.unsafeFromBuiltinData @DataV4.ScriptInfo
+                    (PlutusTx.toBuiltinData (V4.ReceivingScript 3 output))
              in case PlutusTx.unsafeFromBuiltinData @DataV4.ScriptPurpose (PlutusTx.toBuiltinData purpose) of
-                  DataV4.Receiving hash -> case info of
-                    DataV4.ReceivingScript -> hash PlutusTx.== V4.ScriptHash "recipient"
+                  DataV4.Receiving hash index -> case info of
+                    DataV4.ReceivingScript infoIndex resolved ->
+                      hash PlutusTx.== V4.ScriptHash "recipient"
+                        && index PlutusTx.== 3
+                        && infoIndex PlutusTx.== index
+                        && PlutusTx.toBuiltinData resolved PlutusTx.== PlutusTx.toBuiltinData output
                     _ -> False
                   _ -> False
           )
@@ -77,8 +89,31 @@ tests =
                     , V4.txInfoTreasuryDonation = V4.Lovelace 0
                     }
                 backed = PlutusTx.unsafeFromBuiltinData @DataV4.TxInfo (PlutusTx.toBuiltinData info)
+                context1 =
+                  V4.ScriptContext
+                    info
+                    (V4.Redeemer (PlutusTx.toBuiltinData (1 :: Integer)))
+                    (V4.ReceivingScript 1 protected)
+                    recipient
+                context3 =
+                  V4.ScriptContext
+                    info
+                    (V4.Redeemer (PlutusTx.toBuiltinData (3 :: Integer)))
+                    (V4.ReceivingScript 3 protected)
+                    recipient
+                backedContext3 = PlutusTx.unsafeFromBuiltinData @DataV4.ScriptContext (PlutusTx.toBuiltinData context3)
              in PlutusList.map PlutusTx.fst (V4.protectedOutputsAt recipient info) PlutusTx.== [1, 3]
                   && PlutusList.map PlutusTx.fst (DataV4.protectedOutputsAt recipient backed) PlutusTx.== [1, 3]
+                  && PlutusTx.toBuiltinData context1 PlutusTx./= PlutusTx.toBuiltinData context3
+                  && PlutusTx.toBuiltinData (V4.Receiving recipient 1)
+                    PlutusTx./= PlutusTx.toBuiltinData (V4.Receiving recipient 3)
+                  && case DataV4.scriptContextScriptInfo backedContext3 of
+                    DataV4.ReceivingScript index resolved ->
+                      index PlutusTx.== 3
+                        && PlutusTx.toBuiltinData resolved PlutusTx.== PlutusTx.toBuiltinData protected
+                        && PlutusTx.toBuiltinData (DataV4.scriptContextRedeemer backedContext3)
+                          PlutusTx.== PlutusTx.toBuiltinData (3 :: Integer)
+                    _ -> False
           )
     , assertResult "transaction reference wrapper" $
         plinthc

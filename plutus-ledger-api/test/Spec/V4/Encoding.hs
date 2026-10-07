@@ -135,7 +135,7 @@ tests =
           @?= PlutusTx.toData (V4.TxInInfo reference emptyOutput)
         PlutusTx.toData (V4.SpendingScript reference Nothing)
           @?= V4.Constr 1 [V4.List referenceFields, nothingData]
-    , testCase "grouped protected selection retains authored indexes" $ do
+    , testCase "protected selection helper retains authored indexes" $ do
         let protected = output {V4.txOutAddress = V4.AddressProtected (V4.ScriptCredential scriptHash) Nothing}
             ordinary = output {V4.txOutAddress = V4.Address (V4.ScriptCredential scriptHash) Nothing}
             other =
@@ -151,10 +151,51 @@ tests =
         (V4.Constr 1 [credentialData, justData credentialData])
     , encodingTest
         "receiving purpose"
-        (V4.Receiving scriptHash)
-        (DataV4.Receiving scriptHash)
-        (V4.Constr 7 [scriptHashData])
-    , encodingTest "receiving script info" V4.ReceivingScript DataV4.ReceivingScript (V4.Constr 7 [])
+        (V4.Receiving scriptHash 3)
+        (DataV4.Receiving scriptHash 3)
+        (V4.Constr 7 [scriptHashData, V4.I 3])
+    , encodingTest
+        "receiving script info"
+        (V4.ReceivingScript 3 output)
+        (DataV4.ReceivingScript 3 dataOutput)
+        (V4.Constr 7 [V4.I 3, outputData])
+    , testCase "receiving fields retain order and reject obsolete arity" $ do
+        PlutusTx.fromData @V4.ScriptPurpose (V4.Constr 7 [scriptHashData]) @?= Nothing
+        PlutusTx.fromData @V4.ScriptPurpose (V4.Constr 7 [V4.I 3, scriptHashData]) @?= Nothing
+        PlutusTx.fromData @V4.ScriptInfo (V4.Constr 7 []) @?= Nothing
+        PlutusTx.fromData @V4.ScriptInfo (V4.Constr 7 [outputData, V4.I 3]) @?= Nothing
+    , testCase "identical receiving outputs retain separate purposes and contexts" $ do
+        let protected = output {V4.txOutAddress = V4.AddressProtected (V4.ScriptCredential scriptHash) Nothing}
+            ordinary = output {V4.txOutAddress = V4.Address (V4.ScriptCredential scriptHash) Nothing}
+            info =
+              txInfo
+                { V4.txInfoOutputs = [ordinary, protected, ordinary, protected]
+                , V4.txInfoRedeemers =
+                    AssocMap.unsafeFromList
+                      [(V4.Receiving scriptHash 1, redeemer), (V4.Receiving scriptHash 3, redeemer)]
+                }
+            contexts = [V4.ScriptContext info redeemer (V4.ReceivingScript ix protected) scriptHash | ix <- [1, 3]]
+            backedContexts = map (PlutusTx.unsafeFromBuiltinData @DataV4.ScriptContext . PlutusTx.toBuiltinData) contexts
+        length (AssocMap.toList (V4.txInfoRedeemers info)) @?= 2
+        length (nub (map PlutusTx.toData contexts)) @?= 2
+        map
+          ( \backed -> case DataV4.scriptContextScriptInfo backed of
+              DataV4.ReceivingScript ix resolved -> (ix, PlutusTx.toData resolved)
+              _ -> error "Expected ReceivingScript"
+          )
+          backedContexts
+          @?= [(1, PlutusTx.toData protected), (3, PlutusTx.toData protected)]
+    , testCase "ReceivingScript carries the indexed resolved output" $ do
+        let first = output {V4.txOutDatum = V4.OutputDatum (V4.Datum (PlutusTx.toBuiltinData (2 :: Integer)))}
+            second = output {V4.txOutDatum = V4.OutputDatum (V4.Datum (PlutusTx.toBuiltinData (4 :: Integer)))}
+            info = txInfo {V4.txInfoOutputs = [first, second]}
+            contexts =
+              [ V4.ScriptContext info redeemer (V4.ReceivingScript ix resolved) scriptHash
+              | (ix, resolved) <- [(0, first), (1, second)]
+              ]
+            backedContexts = map (PlutusTx.unsafeFromBuiltinData @DataV4.ScriptContext . PlutusTx.toBuiltinData) contexts
+        map (PlutusTx.toData . DataV4.scriptContextScriptInfo) backedContexts
+          @?= [V4.Constr 7 [V4.I 0, PlutusTx.toData first], V4.Constr 7 [V4.I 1, PlutusTx.toData second]]
     , testCase "time range" $ do
         assertProduct (V4.POSIXTimeRange Nothing Nothing) [nothingData, nothingData]
         PlutusTx.toData (DataV4.POSIXTimeRange Nothing Nothing) @?= V4.List [nothingData, nothingData]
@@ -457,6 +498,13 @@ tests =
         let definitions = deriveDefinitions @'[V4.Address]
             schemas = definitionsToMap definitions constructorIndexes
         Map.lookup (definitionId @V4.Address) schemas @?= Just [(0, 2), (1, 2)]
+    , testCase "receiving blueprint constructors carry two fields at index seven" $ do
+        let definitions = deriveDefinitions @'[V4.ScriptPurpose, V4.ScriptInfo]
+            schemas = definitionsToMap definitions constructorIndexes
+        Map.lookup (definitionId @V4.ScriptPurpose) schemas
+          @?= Just [(0, 2), (1, 2), (2, 2), (3, 3), (4, 2), (5, 3), (6, 2), (7, 2)]
+        Map.lookup (definitionId @V4.ScriptInfo) schemas
+          @?= Just [(0, 1), (1, 2), (2, 1), (3, 2), (4, 1), (5, 2), (6, 2), (7, 2)]
     , testCase "product blueprint definitions" $ do
         let definitions = deriveDefinitions @'[V4.ScriptContext, V4.Committee, V4.AssetClass]
             schemas = definitionsToMap definitions isListSchema
