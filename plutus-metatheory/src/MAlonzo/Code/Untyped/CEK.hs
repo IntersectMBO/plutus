@@ -7018,6 +7018,31 @@ d_caseCon_1230 v0 v1 v2 v3 v4 v5
                                              _ -> coe v6
                                       _ -> MAlonzo.RTE.mazUnreachableError
                                _ -> coe v6)
+                MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
+                  -> case coe v4 of
+                       MAlonzo.Code.Utils.C_ConstrDATA_620 v9 v10
+                         -> case coe v9 of
+                              _ | coe geqInt (coe v9) (coe (0 :: Integer)) ->
+                                  coe
+                                    MAlonzo.Code.Data.Maybe.Base.du_maybe_32
+                                    (coe
+                                       C__'894'_'9659'__222 (coe v0)
+                                       (coe
+                                          d_pushValueFrames_1168 (coe v1)
+                                          (coe
+                                             C__'44'__12 (coe C_ε_10)
+                                             (coe
+                                                C_V'45'con_50
+                                                (coe
+                                                   MAlonzo.Code.Builtin.Signature.C_list_16
+                                                   (coe
+                                                      MAlonzo.Code.Builtin.Signature.C_atomic_12
+                                                      v8))
+                                                (coe v10))))
+                                       (coe v2))
+                                    (coe C_'9670'_228) (coe du_lookup'63'_1180 (coe v9) (coe v5))
+                              _ -> coe v6
+                       _ -> coe v6
                 _ -> coe v6
          MAlonzo.Code.Builtin.Signature.C_list_16 v8
            -> case coe v4 of
@@ -7098,8 +7123,8 @@ d_caseCon_1230 v0 v1 v2 v3 v4 v5
                 _ -> MAlonzo.RTE.mazUnreachableError
          _ -> coe v6)
 -- Untyped.CEK.step
-d_step_1316 :: T_State_218 -> T_State_218
-d_step_1316 v0
+d_step_1328 :: T_State_218 -> T_State_218
+d_step_1328 v0
   = case coe v0 of
       C__'894'_'9659'__222 v1 v2 v3 v4
         -> case coe v4 of
@@ -7204,7 +7229,7 @@ d_step_1316 v0
                            C_V'45'con_50 v5 v6 -> coe C_'9670'_228
                            C_V'45'delay_54 v5 v6 v7
                              -> coe
-                                  d_step_1316
+                                  d_step_1328
                                   (coe C__'894'_'9659'__222 (coe v5) (coe v3) (coe v6) (coe v7))
                            C_V'45'constr_60 v5 v6 -> coe C_'9670'_228
                            C_V'45'I'8658'_74 v5 v6 v7 v8 v9 v10 v11 -> coe C_'9670'_228
@@ -7258,24 +7283,24 @@ d_step_1316 v0
       C_'9670'_228 -> coe v0
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.CEK.stepper
-d_stepper_1562 ::
+d_stepper_1574 ::
   Integer ->
   T_State_218 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Utils.T_RuntimeError_418 T_State_218
-d_stepper_1562 v0 v1
+d_stepper_1574 v0 v1
   = case coe v0 of
       0 -> coe
              MAlonzo.Code.Utils.C_inj'8321'_12
              (coe MAlonzo.Code.Utils.C_gasError_420)
       _ -> let v2 = subInt (coe v0) (coe (1 :: Integer)) in
            coe
-             (let v3 = d_step_1316 (coe v1) in
+             (let v3 = d_step_1328 (coe v1) in
               coe
                 (case coe v3 of
                    C__'894'_'9659'__222 v4 v5 v6 v7
-                     -> coe d_stepper_1562 (coe v2) (coe v3)
-                   C__'9669'__224 v4 v5 -> coe d_stepper_1562 (coe v2) (coe v3)
+                     -> coe d_stepper_1574 (coe v2) (coe v3)
+                   C__'9669'__224 v4 v5 -> coe d_stepper_1574 (coe v2) (coe v3)
                    C_'9633'_226 v4 -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v3)
                    C_'9670'_228 -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v3)
                    _ -> MAlonzo.RTE.mazUnreachableError))
