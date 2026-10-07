@@ -201,12 +201,7 @@ builtinSupported = \case
 not to hold for the Agda evaluator, with the reason. They are emitted as
 pending. -}
 excludedCases :: [(FilePath, String)]
-excludedCases =
-  [
-    ( "term/constant-case/data"
-    , "casing on `data` constants is not supported by the Agda CEK machine yet"
-    )
-  ]
+excludedCases = []
 
 {-| Why a constant cannot be used in a @refl@ test: either its type is a
 postulate on the Agda side (so it is opaque to the normaliser), or it cannot

@@ -28,9 +28,8 @@ test-data-01 = (UCase (UCon (tagCon pdata (ConstrDATA (ℤ.pos 0) ([])))) ((ULam
 expected-data-01 : Result
 expected-data-01 = success (UCon (tagCon integer (ℤ.pos 42)))
 
--- Pending: casing on `data` constants is not supported by the Agda CEK machine yet.
-pending-data-01 : Set
-pending-data-01 = Pending (evalRaw test-data-01 ≡ expected-data-01)
+_ : evalRaw test-data-01 ≡ expected-data-01
+_ = refl
 ```
 
 ## data-02
@@ -44,7 +43,7 @@ test-data-02 = (UCase (UCon (tagCon pdata (ConstrDATA (ℤ.pos 1) ((iDATA (ℤ.p
 expected-data-02 : Result
 expected-data-02 = success (UCon (tagCon (list pdata) ((iDATA (ℤ.pos 42)) ∷ (bDATA (mkByteString "\171\205")) ∷ (ListDATA ((iDATA (ℤ.pos 7)) ∷ [])) ∷ [])))
 
--- Pending: bytestring inside a `data` constant; casing on `data` constants is not supported by the Agda CEK machine yet.
+-- Pending: bytestring inside a `data` constant.
 pending-data-02 : Set
 pending-data-02 = Pending (evalRaw test-data-02 ≡ expected-data-02)
 ```
@@ -60,9 +59,8 @@ test-data-03 = (UCase (UCon (tagCon pdata (ConstrDATA (ℤ.pos 2) ([])))) ((ULam
 expected-data-03 : Result
 expected-data-03 = failure
 
--- Pending: casing on `data` constants is not supported by the Agda CEK machine yet.
-pending-data-03 : Set
-pending-data-03 = Pending (evalRaw test-data-03 ≡ expected-data-03)
+_ : evalRaw test-data-03 ≡ expected-data-03
+_ = refl
 ```
 
 ## data-04
@@ -76,9 +74,8 @@ test-data-04 = (UCase (UCon (tagCon pdata (ConstrDATA (ℤ.pos 0) ([])))) ((UCon
 expected-data-04 : Result
 expected-data-04 = failure
 
--- Pending: casing on `data` constants is not supported by the Agda CEK machine yet.
-pending-data-04 : Set
-pending-data-04 = Pending (evalRaw test-data-04 ≡ expected-data-04)
+_ : evalRaw test-data-04 ≡ expected-data-04
+_ = refl
 ```
 
 ## data-05
@@ -92,7 +89,6 @@ test-data-05 = (UCase (UCon (tagCon pdata (iDATA (ℤ.pos 42)))) ((ULambda (UVar
 expected-data-05 : Result
 expected-data-05 = failure
 
--- Pending: casing on `data` constants is not supported by the Agda CEK machine yet.
-pending-data-05 : Set
-pending-data-05 = Pending (evalRaw test-data-05 ≡ expected-data-05)
+_ : evalRaw test-data-05 ≡ expected-data-05
+_ = refl
 ```
