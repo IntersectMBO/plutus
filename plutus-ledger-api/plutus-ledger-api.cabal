@@ -14,7 +14,9 @@ description:
 
 category:           Language
 build-type:         Simple
-extra-doc-files:    CHANGELOG.md
+extra-doc-files:
+  CHANGELOG.md
+  doc/receiving-v4.md
 extra-source-files: CostModel/**/*.golden.txt
 
 source-repository head

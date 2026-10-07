@@ -7,6 +7,7 @@
 module Spec.V4.Encoding (tests) where
 
 import Data.List (nub)
+import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
 import PlutusLedgerApi.Data.V4 qualified as DataV4
 import PlutusLedgerApi.V3 qualified as V3
@@ -16,7 +17,7 @@ import PlutusLedgerApi.V4 qualified as V4
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Blueprint.Definition
-import PlutusTx.Blueprint.Schema (Schema (..))
+import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..))
 import PlutusTx.Data.AssocMap qualified as DataMap
 import PlutusTx.Data.List qualified as DataList
 import PlutusTx.Ratio qualified as Ratio
@@ -125,7 +126,7 @@ tests =
             emptyOutput = V4.TxOut unstakedAddress mempty V4.NoOutputDatum Nothing
             dataUnstakedAddress = DataV4.Address dataCredential Nothing
             dataEmptyOutput = DataV4.TxOut dataUnstakedAddress mempty DataV4.NoOutputDatum Nothing
-        assertProduct unstakedAddress [PlutusTx.toData credential, nothingData]
+        PlutusTx.toData unstakedAddress @?= V4.Constr 0 [PlutusTx.toData credential, nothingData]
         assertProduct emptyOutput [PlutusTx.toData unstakedAddress, V4.Map [], V4.Constr 0 [], nothingData]
         assertProduct
           (V4.TxInInfo reference emptyOutput)
@@ -134,6 +135,26 @@ tests =
           @?= PlutusTx.toData (V4.TxInInfo reference emptyOutput)
         PlutusTx.toData (V4.SpendingScript reference Nothing)
           @?= V4.Constr 1 [V4.List referenceFields, nothingData]
+    , testCase "grouped protected selection retains authored indexes" $ do
+        let protected = output {V4.txOutAddress = V4.AddressProtected (V4.ScriptCredential scriptHash) Nothing}
+            ordinary = output {V4.txOutAddress = V4.Address (V4.ScriptCredential scriptHash) Nothing}
+            other =
+              output {V4.txOutAddress = V4.AddressProtected (V4.ScriptCredential (V4.ScriptHash "other")) Nothing}
+            info = txInfo {V4.txInfoOutputs = [ordinary, protected, other, protected]}
+            backed = PlutusTx.unsafeFromBuiltinData @DataV4.TxInfo (PlutusTx.toBuiltinData info)
+        map fst (V4.protectedOutputsAt scriptHash info) @?= [1, 3]
+        map fst (DataV4.protectedOutputsAt scriptHash backed) @?= [1, 3]
+    , encodingTest
+        "protected address"
+        (V4.AddressProtected credential (Just account))
+        (DataV4.AddressProtected dataCredential (Just dataAccount))
+        (V4.Constr 1 [credentialData, justData credentialData])
+    , encodingTest
+        "receiving purpose"
+        (V4.Receiving scriptHash)
+        (DataV4.Receiving scriptHash)
+        (V4.Constr 7 [scriptHashData])
+    , encodingTest "receiving script info" V4.ReceivingScript DataV4.ReceivingScript (V4.Constr 7 [])
     , testCase "time range" $ do
         assertProduct (V4.POSIXTimeRange Nothing Nothing) [nothingData, nothingData]
         PlutusTx.toData (DataV4.POSIXTimeRange Nothing Nothing) @?= V4.List [nothingData, nothingData]
@@ -432,6 +453,10 @@ tests =
         PlutusTx.toData (Ratio.unsafeRatio 1 2) @?= V4.Constr 0 [V4.I 1, V4.I 2]
         PlutusTx.toData (V3.assetClass (V3.CurrencySymbol "currency") (V3.TokenName "token"))
           @?= V4.Constr 0 [V4.B "currency", V4.B "token"]
+    , testCase "address blueprint constructors preserve their assigned indexes" $ do
+        let definitions = deriveDefinitions @'[V4.Address]
+            schemas = definitionsToMap definitions constructorIndexes
+        Map.lookup (definitionId @V4.Address) schemas @?= Just [(0, 2), (1, 2)]
     , testCase "product blueprint definitions" $ do
         let definitions = deriveDefinitions @'[V4.ScriptContext, V4.Committee, V4.AssetClass]
             schemas = definitionsToMap definitions isListSchema
@@ -449,7 +474,6 @@ tests =
               , definitionId @V4.TxInfo
               , definitionId @V4.TopTxInfo
               , definitionId @V4.TopTxInfoSimplified
-              , definitionId @V4.Address
               , definitionId @V4.TxOut
               , definitionId @V4.TxInInfo
               , definitionId @V4.POSIXTimeRange
@@ -536,7 +560,7 @@ tests =
     datum = V4.Datum (PlutusTx.dataToBuiltinData datumData)
     address = V4.Address credential (Just account)
     dataAddress = DataV4.Address dataCredential (Just dataAccount)
-    addressData = V4.List [credentialData, justData credentialData]
+    addressData = V4.Constr 0 [credentialData, justData credentialData]
     output = V4.TxOut address value (V4.OutputDatum datum) (Just scriptHash)
     dataOutput = DataV4.TxOut dataAddress dataValue (DataV4.OutputDatum datum) (Just scriptHash)
     outputData = V4.List [addressData, assetMapData 6, V4.Constr 2 [datumData], justData scriptHashData]
@@ -721,3 +745,8 @@ isListSchema _ = False
 definitionIds :: Definitions referencedTypes -> [DefinitionId]
 definitionIds NoDefinitions = []
 definitionIds (AddDefinition (MkDefinition identifier _) rest) = identifier : definitionIds rest
+
+constructorIndexes :: Schema referencedTypes -> [(Integer, Int)]
+constructorIndexes (SchemaAnyOf schemas) = concatMap constructorIndexes (NE.toList schemas)
+constructorIndexes (SchemaConstructor _ (MkConstructorSchema tag fields)) = [(toInteger tag, length fields)]
+constructorIndexes _ = []

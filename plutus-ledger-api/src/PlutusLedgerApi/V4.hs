@@ -59,6 +59,7 @@ module PlutusLedgerApi.V4
   , Contexts.ProposalProcedure (..)
 
     -- * Context types
+  , Contexts.protectedOutputsAt
   , Contexts.ScriptContext (..)
   , Contexts.ScriptPurpose (..)
   , Contexts.ScriptInfo (..)
@@ -129,6 +130,7 @@ module PlutusLedgerApi.V4
   , Address.toPubKeyHash
   , Address.toScriptHash
   , Address.scriptHashAddress
+  , Address.isProtectedAddress
   , Address.stakingAccountId
   , V2.PubKeyHash (..)
   , Tx.TxId (..)
@@ -190,14 +192,16 @@ import PlutusLedgerApi.V4.Time qualified as Time
 import PlutusLedgerApi.V4.Tx qualified as Tx
 import PlutusLedgerApi.V4.Value qualified as Value
 
-{-| An alias to the Plutus ledger language this module exposes at runtime.
- MAYBE: Use CPP '__FILE__' + some TH to automate this. -}
+{- | An alias to the Plutus ledger language this module exposes at runtime.
+ MAYBE: Use CPP '__FILE__' + some TH to automate this.
+-}
 thisLedgerLanguage :: Common.PlutusLedgerLanguage
 thisLedgerLanguage = Common.PlutusV4
 
-{-| The deserialization from a serialised script into a `ScriptForEvaluation`,
+{- | The deserialization from a serialised script into a `ScriptForEvaluation`,
 ready to be evaluated on-chain.
-Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error). -}
+Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error).
+-}
 deserialiseScript
   :: forall m
    . Common.MonadError Common.ScriptDecodeError m
@@ -208,10 +212,11 @@ deserialiseScript
   -> m Common.ScriptForEvaluation
 deserialiseScript = Common.deserialiseScript thisLedgerLanguage
 
-{-| Evaluates a script, returning the minimum budget that the script would need
+{- | Evaluates a script, returning the minimum budget that the script would need
 to evaluate successfully. This will take as long as the script takes, if you need to
 limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
-also returns the used budget. -}
+also returns the used budget.
+-}
 evaluateScriptCounting
   :: Common.MajorProtocolVersion
   -- ^ Which protocol version to run the operation in
@@ -227,12 +232,13 @@ evaluateScriptCounting
 evaluateScriptCounting mpv verbose ec s arg =
   Common.evaluateScriptCounting thisLedgerLanguage mpv verbose ec s [arg]
 
-{-| Evaluates a script, with a cost model and a budget that restricts how many
+{- | Evaluates a script, with a cost model and a budget that restricts how many
 resources it can use according to the cost model. Also returns the budget that
 was actually used.
 
 Can be used to calculate budgets for scripts, but even in this case you must give
-a limit to guard against scripts that run for a long time or loop. -}
+a limit to guard against scripts that run for a long time or loop.
+-}
 evaluateScriptRestricting
   :: Common.MajorProtocolVersion
   -- ^ Which protocol version to run the operation in

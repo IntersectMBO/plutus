@@ -16,7 +16,28 @@ import Test.Tasty.Extras
 tests :: TestTree
 tests =
   runTestNested ["test-ledger-api", "Spec", "V4", "Encoding"] . pure . testNestedGhc $
-    [ assertResult "transaction reference wrapper" $
+    [ assertResult "protected address wrapper" $
+        plinthc
+          ( let value = V4.AddressProtected (V4.ScriptCredential (V4.ScriptHash "recipient")) Nothing
+                decoded = PlutusTx.unsafeFromBuiltinData @DataV4.Address (PlutusTx.toBuiltinData value)
+             in case decoded of
+                  DataV4.AddressProtected (DataV4.ScriptCredential hash) Nothing ->
+                    hash PlutusTx.== V4.ScriptHash "recipient"
+                      && DataV4.isProtectedAddress decoded
+                      && PlutusTx.toBuiltinData decoded PlutusTx.== PlutusTx.toBuiltinData value
+                  _ -> False
+          )
+    , assertResult "receiving purpose and info wrappers" $
+        plinthc
+          ( let purpose = V4.Receiving (V4.ScriptHash "recipient")
+                info = PlutusTx.unsafeFromBuiltinData @DataV4.ScriptInfo (PlutusTx.toBuiltinData V4.ReceivingScript)
+             in case PlutusTx.unsafeFromBuiltinData @DataV4.ScriptPurpose (PlutusTx.toBuiltinData purpose) of
+                  DataV4.Receiving hash -> case info of
+                    DataV4.ReceivingScript -> hash PlutusTx.== V4.ScriptHash "recipient"
+                    _ -> False
+                  _ -> False
+          )
+    , assertResult "transaction reference wrapper" $
         plinthc
           ( let value = V4.TxOutRef (V4.TxId "transaction") 2
              in case PlutusTx.fromBuiltinData @V4.TxOutRef (PlutusTx.toBuiltinData value) of

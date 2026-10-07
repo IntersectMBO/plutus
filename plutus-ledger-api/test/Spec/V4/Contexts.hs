@@ -2,8 +2,9 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
 
-{-| Parity tests between the helper functions in "PlutusLedgerApi.V4.Contexts"
-and "PlutusLedgerApi.V4.Data.Contexts". -}
+{- | Parity tests between the helper functions in "PlutusLedgerApi.V4.Contexts"
+and "PlutusLedgerApi.V4.Data.Contexts".
+-}
 module Spec.V4.Contexts (tests) where
 
 import Control.Exception
@@ -61,7 +62,11 @@ data Helper = Helper
 
 helpers :: TestInput -> [Helper]
 helpers TestInput {..} =
-  [ check "findOwnInput" (SOP.findOwnInput ctx) (DataV4.findOwnInput ctxD)
+  [ check
+      "protectedOutputsAt"
+      (SOP.protectedOutputsAt scriptHash ti)
+      (DataV4.protectedOutputsAt scriptHash tiD)
+  , check "findOwnInput" (SOP.findOwnInput ctx) (DataV4.findOwnInput ctxD)
   , check
       "findDatum"
       (SOP.findDatum tiDatumHash ti)
@@ -163,7 +168,8 @@ genTxInfo = do
 genScriptInfo :: Gen SOP.ScriptInfo
 genScriptInfo =
   oneof
-    [ V4.MintingScript <$> elements [currency, otherCurrency]
+    [ pure V4.ReceivingScript
+    , V4.MintingScript <$> elements [currency, otherCurrency]
     , V4.SpendingScript <$> genOutRef <*> oneof [pure Nothing, Just <$> elements datums]
     , V4.WithdrawingScript . V4.AccountId <$> genCredential
     , pure (V4.CertifyingScript 0 certificate)
@@ -200,7 +206,9 @@ genOutput = do
   pure (V4.TxOut address value outputDatum referenceScript)
 
 genAddress :: Gen V4.Address
-genAddress = V4.Address <$> genCredential <*> elements [Nothing, Just account, Just otherAccount]
+genAddress = do
+  constructor <- elements [V4.Address, V4.AddressProtected]
+  constructor <$> genCredential <*> elements [Nothing, Just account, Just otherAccount]
 
 genCredential :: Gen V4.Credential
 genCredential =

@@ -100,6 +100,7 @@ module PlutusLedgerApi.V4.Data.Contexts
   , pattern Voting
   , pattern Proposing
   , pattern Guarding
+  , pattern Receiving
   , TxInInfo
   , pattern TxInInfo
   , matchTxInInfo
@@ -164,6 +165,7 @@ module PlutusLedgerApi.V4.Data.Contexts
   , pattern VotingScript
   , pattern ProposingScript
   , pattern GuardingScript
+  , pattern ReceivingScript
   , ScriptContext
   , pattern ScriptContext
   , matchScriptContext
@@ -187,6 +189,7 @@ module PlutusLedgerApi.V4.Data.Contexts
   , spendsOutput
   , isTopLevelTx
   , guardingTopTxInfo
+  , protectedOutputsAt
   ) where
 
 import GHC.Generics (Generic)
@@ -222,7 +225,7 @@ import PlutusLedgerApi.V3.Data.Contexts
   )
 import PlutusLedgerApi.V3.Data.MintValue qualified as V3
 import PlutusLedgerApi.V3.Data.Tx qualified as V3
-import PlutusLedgerApi.V4.Data.Address (AccountId (..), pattern Address)
+import PlutusLedgerApi.V4.Data.Address (AccountId (..), pattern Address, pattern AddressProtected)
 import PlutusLedgerApi.V4.Data.Time (POSIXTimeRange)
 import PlutusLedgerApi.V4.Data.Tx (TxOut, txOutAddress, txOutValue, pattern TxOut)
 import PlutusLedgerApi.V4.Data.Tx qualified as V4
@@ -418,6 +421,8 @@ PlutusTx.asData
       | Voting V2.ScriptHash Voter
       | Proposing V2.ScriptHash Haskell.Integer ProposalProcedure
       | Guarding V2.ScriptHash Haskell.Integer
+      | Receiving V2.ScriptHash
+      -- \^ Authorize all protected outputs for this hash in one body.
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow ScriptPurpose)
@@ -571,10 +576,12 @@ PlutusTx.asData
       | GuardingScript
           Haskell.Integer
           (Haskell.Maybe TopTxInfo)
-      -- \^ Whenever a `Guard` is executed at the top transaction level it will include extra
-      -- information about potential sub-transactions. In other words for sub-transactions
-      -- this is guaranteed to be `Nothing`, while for top level transactions this is
-      -- guaranteed to be `Just`
+      | -- \^ Whenever a `Guard` is executed at the top transaction level it will include extra
+        -- information about potential sub-transactions. In other words for sub-transactions
+        -- this is guaranteed to be `Nothing`, while for top level transactions this is
+        -- guaranteed to be `Just`
+        ReceivingScript
+      -- \^ No implicit datum; use scriptContextScriptHash to select outputs.
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow ScriptInfo)
@@ -634,9 +641,10 @@ findTxInByTxOutRef outRef TxInfo {txInfoInputs} =
 
 {-# INLINEABLE findContinuingOutputs #-}
 
-{-| Find the indices of outputs in the current sub-transaction or top-level transaction
+{- | Find the indices of outputs in the current sub-transaction or top-level transaction
 that pay to the same script address we are currently spending from. This does not search
-the outputs of the whole transaction. -}
+the outputs of the whole transaction.
+-}
 findContinuingOutputs :: ScriptContext -> List Haskell.Integer
 findContinuingOutputs ctx
   | Haskell.Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx =
@@ -649,9 +657,10 @@ findContinuingOutputs _ = PlutusTx.traceError "Le"
 
 {-# INLINEABLE getContinuingOutputs #-}
 
-{-| Get the outputs in the current sub-transaction or top-level transaction that pay to
+{- | Get the outputs in the current sub-transaction or top-level transaction that pay to
 the same script address we are currently spending from. This does not search the outputs
-of the whole transaction. -}
+of the whole transaction.
+-}
 getContinuingOutputs :: ScriptContext -> List TxOut
 getContinuingOutputs ctx
   | Haskell.Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx =
@@ -673,6 +682,8 @@ txGuardedBy TxInfo {txInfoGuards} credential =
 pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> List V2.Value
 pubKeyOutputsAt pk p =
   let flt TxOut {txOutAddress = Address (V2.PubKeyCredential pk') _, txOutValue}
+        | pk PlutusTx.== pk' = Haskell.Just txOutValue
+      flt TxOut {txOutAddress = AddressProtected (V2.PubKeyCredential pk') _, txOutValue}
         | pk PlutusTx.== pk' = Haskell.Just txOutValue
       flt _ = Haskell.Nothing
    in Data.List.mapMaybe flt (txInfoOutputs p)
@@ -746,3 +757,17 @@ instance Pretty ScriptContext where
       , nest 2 (vsep ["TxInfo:", pretty scriptContextTxInfo])
       , nest 2 (vsep ["Redeemer:", pretty scriptContextRedeemer])
       ]
+
+{- | Select every protected script output for a recipient, retaining its authored body index.
+This does not select ordinary addresses with the same script credential.
+-}
+{-# INLINEABLE protectedOutputsAt #-}
+protectedOutputsAt :: V2.ScriptHash -> TxInfo -> [(Haskell.Integer, TxOut)]
+protectedOutputsAt recipient info = go 0 (Data.List.toSOP (txInfoOutputs info))
+  where
+    go _ [] = []
+    go index (output : rest) =
+      case txOutAddress output of
+        AddressProtected (V2.ScriptCredential hash) _
+          | hash PlutusTx.== recipient -> (index, output) : go (index PlutusTx.+ 1) rest
+        _ -> go (index PlutusTx.+ 1) rest

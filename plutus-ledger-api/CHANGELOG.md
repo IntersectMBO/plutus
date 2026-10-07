@@ -1,3 +1,13 @@
+## Unreleased: proposed CIP-160 interface
+
+- Add protected Address and Receiving purpose/info to the unfrozen V4 interface,
+  including its data-backed API. V4 Address changes from a positional list product
+  to constructor-indexed ordinary (0) and protected (1) forms. V1-V3 are unchanged.
+- Add `protectedOutputsAt` retaining original body output indexes and teach payment
+  and staking helpers to inspect protected addresses.
+- Receiving ScriptPurpose and ScriptInfo use Data index 7; ReceivingScript has no
+  implicit datum and uses ScriptContext's existing executing script hash.
+
 
 <a id='changelog-1.71.0.0'></a>
 # 1.71.0.0 — 2026-09-29

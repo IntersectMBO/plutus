@@ -108,6 +108,7 @@ module PlutusLedgerApi.Data.V4
   , Contexts.ppGovernanceAction
 
     -- * Context types
+  , Contexts.protectedOutputsAt
   , Contexts.ScriptContext
   , pattern Contexts.ScriptContext
   , Contexts.scriptContextTxInfo
@@ -122,6 +123,7 @@ module PlutusLedgerApi.Data.V4
   , pattern Contexts.Voting
   , pattern Contexts.Proposing
   , pattern Contexts.Guarding
+  , pattern Contexts.Receiving
   , Contexts.ScriptInfo
   , pattern Contexts.MintingScript
   , pattern Contexts.SpendingScript
@@ -130,6 +132,7 @@ module PlutusLedgerApi.Data.V4
   , pattern Contexts.VotingScript
   , pattern Contexts.ProposingScript
   , pattern Contexts.GuardingScript
+  , pattern Contexts.ReceivingScript
   , Contexts.TopTxInfo
   , pattern Contexts.TopTxInfo
   , Contexts.topTxInfoSubTransactions
@@ -224,12 +227,14 @@ module PlutusLedgerApi.Data.V4
     -- *** Types for representing transactions
   , Address.Address
   , pattern Address.Address
+  , pattern Address.AddressProtected
   , Address.addressCredential
   , Address.addressStakingAccountId
   , Address.pubKeyHashAddress
   , Address.toPubKeyHash
   , Address.toScriptHash
   , Address.scriptHashAddress
+  , Address.isProtectedAddress
   , Address.stakingAccountId
   , V2.PubKeyHash (..)
   , Tx.TxId (..)

@@ -62,6 +62,7 @@ module PlutusLedgerApi.V4.Contexts
   , spendsOutput
   , isTopLevelTx
   , guardingTopTxInfo
+  , protectedOutputsAt
   ) where
 
 import Data.Function ((&))
@@ -328,6 +329,8 @@ data ScriptPurpose
   | Voting V2.ScriptHash Voter
   | Proposing V2.ScriptHash Haskell.Integer ProposalProcedure
   | Guarding V2.ScriptHash Haskell.Integer
+  | -- | Authorize creation of all protected outputs for this hash in one body.
+    Receiving V2.ScriptHash
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
@@ -396,8 +399,9 @@ instance Pretty TxInfo where
 
 data TopTxInfoSimplified = TopTxInfoSimplified
   { ttisIds :: [V3.TxId]
-  {-^ List of all `TxId`s fro the whole transaction, including the top-level transaction, which is
-  always going to be the last one in the list. -}
+  {- ^ List of all `TxId`s fro the whole transaction, including the top-level transaction, which is
+  always going to be the last one in the list.
+  -}
   , ttisInputs :: [TxInInfo]
   -- ^ Concatenated list of all `txInfoInputs`'
   , ttisReferenceInputs :: [TxInInfo]
@@ -409,8 +413,9 @@ data TopTxInfoSimplified = TopTxInfoSimplified
   , ttisBurns :: V3.MintValue
   -- ^ `MintValue`s from all `txInfoMint` with negative amounts
   , ttisTxCerts :: [TxCert]
-  {-^ Concatenated list of all `ttisTxCerts`'. Note, that unlike individual lists in each
-  `txInfoTxCerts`, this one can contain duplicates. -}
+  {- ^ Concatenated list of all `ttisTxCerts`'. Note, that unlike individual lists in each
+  `txInfoTxCerts`, this one can contain duplicates.
+  -}
   , ttisWithdrawals :: Map V2.Credential V2.Lovelace
   -- ^ Union of all `txInfoWithdrawals` with a sum on the range for duplicate credentials
   , ttisDirectDeposits :: Map V2.Credential V2.Lovelace
@@ -420,25 +425,30 @@ data TopTxInfoSimplified = TopTxInfoSimplified
   , ttisGuards :: [V2.Credential]
   -- ^ Concatenated list of all `txInfoGuards`'
   , ttisRequiredTopLevelGuards :: [V2.Credential]
-  {-^ Deduplicated set of required top level guards. It is impossible to keep the range of the Map
+  {- ^ Deduplicated set of required top level guards. It is impossible to keep the range of the Map
   due to potential presence of duplicates in the domain between different sub-transactions,
-  therefore the range is eliminated. -}
+  therefore the range is eliminated.
+  -}
   , ttisRedeemerHashes :: [V2.ScriptHash]
-  {-^ Union of all of the `ScriptHash`es from all of the `Redeemer`s. Note that it is
+  {- ^ Union of all of the `ScriptHash`es from all of the `Redeemer`s. Note that it is
   not possible to preserve actual `Redeemer`s or `ScriptPurpose`s
   upon `union` operation due to potential duplicates in the domain. Therefore it is collapsed to
-  a list of `ScriptHash`s with duplicates removed. -}
+  a list of `ScriptHash`s with duplicates removed.
+  -}
   , ttisData :: Map V2.DatumHash V2.Datum
-  {-^ Union of all `txInfoData`. Duplicates are simply removed, since domain and range are
-  a one-to-one mapping. -}
+  {- ^ Union of all `txInfoData`. Duplicates are simply removed, since domain and range are
+  a one-to-one mapping.
+  -}
   , ttisVotes :: Map Voter (Map GovernanceActionId Vote)
-  {-^ Union of all of the votes. Note that a vote in a sub-sequent sub-transaction or a top level
-  transaction can replace a vote from a prior sub-transaction. -}
+  {- ^ Union of all of the votes. Note that a vote in a sub-sequent sub-transaction or a top level
+  transaction can replace a vote from a prior sub-transaction.
+  -}
   , ttisProposalProcedures :: [ProposalProcedure]
   -- ^ Concatenated list of all `ProposalPrecedure`s.
   , ttisCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
-  {-^ Value of the treasury, which will be present if any of sub-transactions or top level
-  transaction included such value -}
+  {- ^ Value of the treasury, which will be present if any of sub-transactions or top level
+  transaction included such value
+  -}
   , ttisTreasuryDonations :: V2.Lovelace
   -- ^ Sum of all `txInfoTreasuryDonation`s
   }
@@ -448,18 +458,22 @@ data TopTxInfoSimplified = TopTxInfoSimplified
 
 data TopTxInfo = TopTxInfo
   { topTxInfoSubTransactions :: [TxInfo]
-  {-^ List of `TxInfo`s for all sub-transactions. Not that `TxInfo` for the top level transaction
-  itslef is not present in this list. -}
+  {- ^ List of `TxInfo`s for all sub-transactions. Not that `TxInfo` for the top level transaction
+  itslef is not present in this list.
+  -}
   , topTxInfoDatums :: Map V3.TxId V2.Datum
-  {-^ Datums supplied in `requiredTopLevelGuards` for that script. Plutus scripts require a datum
+  {- ^ Datums supplied in `requiredTopLevelGuards` for that script. Plutus scripts require a datum
   to be supplied when listed `requiredTopLevelGuards`. That `Map` will be empty if none of the
-  transactions within the whole transaction require Plutus scripts to be present in `Guards` -}
+  transactions within the whole transaction require Plutus scripts to be present in `Guards`
+  -}
   , topTxInfoStartingAccountBalanceIntervals :: AccountBalanceIntervals
-  {-^ This is a field that allows top level transaction to specify the balance intervals before
-  the whole transaction is applied -}
+  {- ^ This is a field that allows top level transaction to specify the balance intervals before
+  the whole transaction is applied
+  -}
   , topTxInfoSimplified :: TopTxInfoSimplified
-  {-^ Aggregated view on the whole transaction, namely information about sub-transactions and the
-  top level transaction all concatenated together with loss of some information -}
+  {- ^ Aggregated view on the whole transaction, namely information about sub-transactions and the
+  top level transaction all concatenated together with loss of some information
+  -}
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
@@ -478,13 +492,16 @@ data ScriptInfo
       Haskell.Integer
       -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       ProposalProcedure
-  | {-| Whenever a `Guard` is executed at the top transaction level it will include extra
+  | {- | Whenever a `Guard` is executed at the top transaction level it will include extra
     information about potential sub-transactions. In other words for sub-transactions this is
     guaranteed to be `Nothing`, while for top level transactions this is guaranteed to be
-    `Just` -}
+    `Just`
+    -}
     GuardingScript
       Haskell.Integer
       (Haskell.Maybe TopTxInfo)
+  | -- | No implicit datum; use the executing scriptContextScriptHash to select outputs.
+    ReceivingScript
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow ScriptInfo)
@@ -495,8 +512,9 @@ data ScriptContext = ScriptContext
   , scriptContextRedeemer :: V2.Redeemer
   -- ^ Redeemer for the currently-executing script
   , scriptContextScriptInfo :: ScriptInfo
-  {-^ the purpose of the currently-executing script, along with information associated
-  with the purpose -}
+  {- ^ the purpose of the currently-executing script, along with information associated
+  with the purpose
+  -}
   , scriptContextScriptHash :: V2.ScriptHash
   -- ^ Hash of the script that is being executed
   }
@@ -540,9 +558,10 @@ findTxInByTxOutRef outRef TxInfo {txInfoInputs} =
     txInfoInputs
 {-# INLINEABLE findTxInByTxOutRef #-}
 
-{-| Find the indices of outputs in the current sub-transaction or top-level transaction
+{- | Find the indices of outputs in the current sub-transaction or top-level transaction
 that pay to the same script address we are currently spending from. This does not search
-the outputs of the whole transaction. -}
+the outputs of the whole transaction.
+-}
 findContinuingOutputs :: ScriptContext -> [Haskell.Integer]
 findContinuingOutputs ctx
   | Haskell.Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx =
@@ -552,9 +571,10 @@ findContinuingOutputs ctx
 findContinuingOutputs _ = PlutusTx.traceError "Le"
 {-# INLINEABLE findContinuingOutputs #-}
 
-{-| Get the outputs in the current sub-transaction or top-level transaction that pay to
+{- | Get the outputs in the current sub-transaction or top-level transaction that pay to
 the same script address we are currently spending from. This does not search the outputs
-of the whole transaction. -}
+of the whole transaction.
+-}
 getContinuingOutputs :: ScriptContext -> [TxOut]
 getContinuingOutputs ctx
   | Haskell.Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx =
@@ -576,6 +596,8 @@ txGuardedBy TxInfo {txInfoGuards} credential =
 pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> [V2.Value]
 pubKeyOutputsAt pk txInfo =
   let atPubKey TxOut {txOutAddress = Address (V2.PubKeyCredential pk') _, txOutValue}
+        | pk PlutusTx.== pk' = Haskell.Just txOutValue
+      atPubKey TxOut {txOutAddress = AddressProtected (V2.PubKeyCredential pk') _, txOutValue}
         | pk PlutusTx.== pk' = Haskell.Just txOutValue
       atPubKey _ = Haskell.Nothing
    in PlutusTx.mapMaybe atPubKey (txInfoOutputs txInfo)
@@ -645,6 +667,7 @@ $( makeIsDataSchemaIndexed
      , ('Voting, 4)
      , ('Proposing, 5)
      , ('Guarding, 6)
+     , ('Receiving, 7)
      ]
  )
 
@@ -670,8 +693,23 @@ $( makeIsDataSchemaIndexed
      , ('VotingScript, 4)
      , ('ProposingScript, 5)
      , ('GuardingScript, 6)
+     , ('ReceivingScript, 7)
      ]
  )
 
 $(makeLift ''ScriptContext)
 $(makeIsDataSchemaAsList ''ScriptContext)
+
+{- | Select every protected script output for a recipient, retaining its authored body index.
+This does not select ordinary addresses with the same script credential.
+-}
+{-# INLINEABLE protectedOutputsAt #-}
+protectedOutputsAt :: V2.ScriptHash -> TxInfo -> [(Haskell.Integer, TxOut)]
+protectedOutputsAt recipient info = go 0 (txInfoOutputs info)
+  where
+    go _ [] = []
+    go index (output : rest) =
+      case txOutAddress output of
+        AddressProtected (V2.ScriptCredential hash) _
+          | hash PlutusTx.== recipient -> (index, output) : go (index PlutusTx.+ 1) rest
+        _ -> go (index PlutusTx.+ 1) rest
