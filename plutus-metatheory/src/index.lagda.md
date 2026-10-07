@@ -227,3 +227,12 @@ translation relations and their (semi-)decision procedures.
 import VerifiedCompilation
 ```
 
+## Conformance tests
+
+Unit tests generated from the UPLC evaluation conformance test cases
+(see `Conformance.Eval`).
+
+```
+import Conformance
+```
+

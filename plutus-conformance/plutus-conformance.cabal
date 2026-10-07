@@ -117,6 +117,22 @@ test-suite agda-conformance
     , plutus-metatheory   ^>=1.71
     , transformers
 
+executable generate-agda-conformance
+  import:         lang, os-support, ghc-version-support
+  main-is:        Main.hs
+  hs-source-dirs: agda-gen
+  build-depends:
+    , base                >=4.9   && <5
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , plutus-conformance
+    , plutus-core         ^>=1.71
+    , plutus-metatheory   ^>=1.71
+    , text
+    , transformers
+
 test-suite conformance-consistency
   import:         lang, os-support
   type:           exitcode-stdio-1.0

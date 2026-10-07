@@ -92,6 +92,7 @@ let
     agda-tools.agda-mode
 
     metatheory.generate-malonzo-code
+    metatheory.generate-agda-conformance
     metatheory.agda-with-stdlib-and-metatheory
 
     r-with-packages

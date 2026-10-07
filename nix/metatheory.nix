@@ -35,6 +35,13 @@ let
     agda-with-stdlib --compile --ghc-dont-call-ghc src/Main.lagda.md
   '';
 
+  # Developer helper: regenerates the Agda unit tests under
+  # plutus-metatheory/src/Conformance from the UPLC conformance test cases.
+  generate-agda-conformance = pkgs.writeShellScriptBin "generate-agda-conformance" ''
+    cd "$(git rev-parse --show-toplevel)"
+    cabal run plutus-conformance:generate-agda-conformance
+  '';
+
   # Agda executable wrapper that includes both stdlib and the metatheory package.
   agda-with-stdlib-and-metatheory = pkgs.stdenv.mkDerivation {
     name = "agda-with-stdlib-and-metatheory";
@@ -113,6 +120,7 @@ in
     metatheory-agda-library
     metatheory-site
     generate-malonzo-code
+    generate-agda-conformance
     agda-with-stdlib-and-metatheory;
 }
 
