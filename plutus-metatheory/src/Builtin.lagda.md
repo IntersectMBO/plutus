@@ -539,19 +539,6 @@ postulate
   BLS12-381-finalVerify       : Bls12-381-MlResult → Bls12-381-MlResult → Bool
   KECCAK-256                  : ByteString → ByteString
   BLAKE2B-224                 : ByteString → ByteString
-  BStoI                       : Bool -> ByteString -> Int
-  ItoBS                       : Bool -> Int -> Int -> Maybe ByteString
-  andBYTESTRING               : Bool -> ByteString -> ByteString -> ByteString
-  orBYTESTRING                : Bool -> ByteString -> ByteString -> ByteString
-  xorBYTESTRING               : Bool -> ByteString -> ByteString -> ByteString
-  complementBYTESTRING        : ByteString -> ByteString
-  readBIT                     : ByteString -> Int -> Maybe Bool
-  writeBITS                   : ByteString -> List Int -> Bool -> Maybe ByteString
-  replicateBYTE               : Int -> Int -> Maybe ByteString
-  shiftBYTESTRING             : ByteString -> Int -> Maybe ByteString
-  rotateBYTESTRING            : ByteString -> Int -> Maybe ByteString
-  countSetBITS                : ByteString -> Int
-  findFirstSetBIT             : ByteString -> Int
   RIPEMD-160                  : ByteString → ByteString
   expModINTEGER               : Int -> Int -> Int -> Maybe Int
   BLS12-381-G1-multiScalarMul : List Int → List Bls12-381-G1-Element → Maybe Bls12-381-G1-Element
@@ -721,35 +708,202 @@ index bs ix = Data.Maybe.map U.byteToℤ (go 0ℤ bs)
 {-# COMPILE GHC KECCAK-256 = Hash.keccak_256 #-}
 {-# COMPILE GHC BLAKE2B-224 = Hash.blake2b_224 #-}
 
-{-# FOREIGN GHC import PlutusCore.Bitwise qualified as Bitwise #-}
-{-# COMPILE GHC BStoI = Bitwise.byteStringToInteger #-}
-{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Bitwise.integerToByteString e w n #-}
-{-# COMPILE GHC andBYTESTRING = Bitwise.andByteString #-}
-{-# COMPILE GHC orBYTESTRING = Bitwise.orByteString #-}
-{-# COMPILE GHC xorBYTESTRING = Bitwise.xorByteString #-}
-{-# COMPILE GHC complementBYTESTRING = Bitwise.complementByteString #-}
-{-# COMPILE GHC readBIT = \s n -> builtinResultToMaybe $ Bitwise.readBit s (fromIntegral n) #-}
-{-# COMPILE GHC writeBITS = \s ps u -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) u #-}
--- The Plutus Core version of `replicateByte n w` can fail in two ways: if n < 0 or n >= 8192 then
--- the implementation PlutusCore.Bitwise will return BuiltinFailure; if w < 0 or w >= 256 then the
--- denotation in `PlutusCore.Default.Builtins` will fail when the builtin machinery tries to convert
--- it to a Word8.  We have to replicate this behaviour here. -}
-{-# COMPILE GHC replicateBYTE = \n w8 ->
-        case toIntegralSized w8 of { Nothing -> Nothing; Just w -> builtinResultToMaybe $ Bitwise.replicateByte n w } #-}
--- {-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteString #-}
--- {-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteString #-}
-{-# COMPILE GHC shiftBYTESTRING = \s i ->
-        if fromIntegral (minBound :: Int) <= i
-        && i <= fromIntegral (maxBound :: Int)
-        then Just $ Bitwise.shiftByteString s i
-        else Nothing #-}
-{-# COMPILE GHC rotateBYTESTRING = \s i ->
-        if fromIntegral (minBound :: Int) <= i
-        && i <= fromIntegral (maxBound :: Int)
-        then Just $ Bitwise.rotateByteString s i
-        else Nothing #-}
-{-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}
-{-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit s #-}
+-- Bitwise operations and integer conversions (CIP-121, CIP-122, CIP-123).
+
+open import Data.Integer using (_<?_)
+open import Data.List using (foldr)
+open import Data.Bool.ListAction using (all)
+
+-- The number of bits in a bytestring.
+bitLength : ByteString → Int
+bitLength bs = lengthBS bs * (+ 8)
+
+-- Is i a valid bit index for a bytestring with n bits?
+validBitIndex : Int → Int → Bool
+validBitIndex n i = (0ℤ ≤ᵇ i) ∧ does (i <? n)
+
+-- The production implementation takes the shift/rotation amount as a 64-bit
+-- Haskell `Int`, so amounts outside its range fail; we reproduce that here.
+fitsInt : Int → Bool
+fitsInt i = (-[1+ 9223372036854775807 ] ≤ᵇ i) ∧ (i ≤ᵇ + 9223372036854775807)
+
+BStoI : Bool → ByteString → Int
+BStoI true  bs = + U.byteStringToℕ bs
+BStoI false bs = + U.byteStringToℕ (U.reverseBS bs)
+
+ItoBS : Bool → Int → Int → Maybe ByteString
+ItoBS e w n =
+  if (0ℤ ≤ᵇ w) ∧ (w ≤ᵇ + 8192) ∧ (0ℤ ≤ᵇ n)
+  then U.ℕToByteString e ∣ w ∣ ∣ n ∣
+  else nothing
+
+andBYTESTRING : Bool → ByteString → ByteString → ByteString
+andBYTESTRING pad = U.zipWithBS U.andByte pad U.255B
+
+orBYTESTRING : Bool → ByteString → ByteString → ByteString
+orBYTESTRING pad = U.zipWithBS U.orByte pad U.0B
+
+xorBYTESTRING : Bool → ByteString → ByteString → ByteString
+xorBYTESTRING pad = U.zipWithBS U.xorByte pad U.0B
+
+complementBYTESTRING : ByteString → ByteString
+complementBYTESTRING = U.mapBS U.notByte
+
+readBIT : ByteString → Int → Maybe Bool
+readBIT bs i =
+  if validBitIndex (bitLength bs) i
+  then U.lookupBit (U.toBits bs) ∣ i ∣
+  else nothing
+
+writeBITS : ByteString → List Int → Bool → Maybe ByteString
+writeBITS bs ixs u =
+  if all (validBitIndex (bitLength bs)) ixs
+  then just (U.fromBits (foldr (λ i → U.setBit ∣ i ∣ u) (U.toBits bs) ixs))
+  else nothing
+
+replicateBYTE : Int → Int → Maybe ByteString
+replicateBYTE l w with U.toByte w
+... | nothing = nothing
+... | just b  =
+  if (0ℤ ≤ᵇ l) ∧ (l ≤ᵇ + 8192)
+  then just (U.replicateBS ∣ l ∣ b)
+  else nothing
+
+shiftBYTESTRING : ByteString → Int → Maybe ByteString
+shiftBYTESTRING bs k =
+  if fitsInt k
+  then just (U.fromBits (U.shiftBits k (U.toBits bs)))
+  else nothing
+
+rotateBYTESTRING : ByteString → Int → Maybe ByteString
+rotateBYTESTRING bs k =
+  if fitsInt k
+  then just (U.fromBits (U.rotateBits k (U.toBits bs)))
+  else nothing
+
+countSetBITS : ByteString → Int
+countSetBITS []       = 0ℤ
+countSetBITS (b ∷ bs) = (+ U.popCount b) + countSetBITS bs
+
+findFirstSetBIT : ByteString → Int
+findFirstSetBIT bs = U.firstSetBit (U.toBits bs)
+```
+A few examples, taken from the conformance tests.
+
+```
+private module BitwiseExamples where
+  open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+  open import Data.Nat using (ℕ)
+
+  bs : List ℕ → ByteString
+  bs []       = []
+  bs (n ∷ ns) = U.ℕToByte n ∷ bs ns
+
+  _ : andBYTESTRING false (bs (0x4f ∷ 0x00 ∷ [])) (bs (0xf4 ∷ [])) ≡ bs (0x44 ∷ [])
+  _ = refl
+  _ : andBYTESTRING true (bs (0x4f ∷ 0x00 ∷ [])) (bs (0xf4 ∷ [])) ≡ bs (0x44 ∷ 0x00 ∷ [])
+  _ = refl
+  _ : orBYTESTRING true (bs (0x4f ∷ 0x00 ∷ [])) (bs (0xf4 ∷ [])) ≡ bs (0xff ∷ 0x00 ∷ [])
+  _ = refl
+  _ : xorBYTESTRING false (bs (0x4f ∷ 0x00 ∷ [])) (bs (0xf4 ∷ [])) ≡ bs (0xbb ∷ [])
+  _ = refl
+  _ : xorBYTESTRING true [] (bs (0xff ∷ [])) ≡ bs (0xff ∷ [])
+  _ = refl
+  _ : complementBYTESTRING (bs (0xb0 ∷ 0x0b ∷ [])) ≡ bs (0x4f ∷ 0xf4 ∷ [])
+  _ = refl
+
+  _ : shiftBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (+ 5) ≡ just (bs (0x7f ∷ 0x80 ∷ []))
+  _ = refl
+  _ : shiftBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (- (+ 5)) ≡ just (bs (0x07 ∷ 0x5f ∷ []))
+  _ = refl
+  _ : shiftBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (+ 16) ≡ just (bs (0x00 ∷ 0x00 ∷ []))
+  _ = refl
+  _ : shiftBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (+ 9223372036854775808) ≡ nothing
+  _ = refl
+  _ : rotateBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (+ 5) ≡ just (bs (0x7f ∷ 0x9d ∷ []))
+  _ = refl
+  _ : rotateBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (- (+ 5)) ≡ just (bs (0xe7 ∷ 0x5f ∷ []))
+  _ = refl
+  _ : rotateBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (+ 21) ≡ just (bs (0x7f ∷ 0x9d ∷ []))
+  _ = refl
+  _ : rotateBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (- (+ 21)) ≡ just (bs (0xe7 ∷ 0x5f ∷ []))
+  _ = refl
+  _ : rotateBYTESTRING [] (- (+ 1)) ≡ just []
+  _ = refl
+
+  _ : readBIT (bs (0xf4 ∷ [])) (+ 0) ≡ just false
+  _ = refl
+  _ : readBIT (bs (0xf4 ∷ [])) (+ 2) ≡ just true
+  _ = refl
+  _ : readBIT (bs (0xf4 ∷ [])) (+ 8) ≡ nothing
+  _ = refl
+  _ : readBIT (bs (0xf4 ∷ 0xff ∷ [])) (+ 10) ≡ just true
+  _ = refl
+  _ : readBIT (bs (0xff ∷ [])) (- (+ 1)) ≡ nothing
+  _ = refl
+  _ : readBIT [] (+ 0) ≡ nothing
+  _ = refl
+
+  _ : writeBITS (bs (0xff ∷ [])) (+ 0 ∷ []) false ≡ just (bs (0xfe ∷ []))
+  _ = refl
+  _ : writeBITS (bs (0x00 ∷ [])) (+ 7 ∷ []) true ≡ just (bs (0x80 ∷ []))
+  _ = refl
+  _ : writeBITS (bs (0xf4 ∷ 0xff ∷ [])) (+ 10 ∷ + 1 ∷ []) false ≡ just (bs (0xf0 ∷ 0xfd ∷ []))
+  _ = refl
+  _ : writeBITS (bs (0xff ∷ [])) (+ 1 ∷ + 8 ∷ []) false ≡ nothing
+  _ = refl
+  _ : writeBITS [] [] true ≡ just []
+  _ = refl
+  _ : writeBITS [] (- (+ 1) ∷ []) true ≡ nothing
+  _ = refl
+
+  _ : replicateBYTE (+ 4) (+ 255) ≡ just (bs (0xff ∷ 0xff ∷ 0xff ∷ 0xff ∷ []))
+  _ = refl
+  _ : replicateBYTE (+ 0) (+ 255) ≡ just []
+  _ = refl
+  _ : replicateBYTE (+ 1) (+ 256) ≡ nothing
+  _ = refl
+  _ : replicateBYTE (- (+ 1)) (+ 0) ≡ nothing
+  _ = refl
+  _ : replicateBYTE (+ 8193) (+ 141) ≡ nothing
+  _ = refl
+
+  _ : countSetBITS (bs (0x01 ∷ 0x00 ∷ [])) ≡ + 1
+  _ = refl
+  _ : countSetBITS [] ≡ + 0
+  _ = refl
+  _ : findFirstSetBIT (bs (0xff ∷ 0xf2 ∷ [])) ≡ + 1
+  _ = refl
+  _ : findFirstSetBIT (bs (0x00 ∷ 0x00 ∷ [])) ≡ - (+ 1)
+  _ = refl
+  _ : findFirstSetBIT [] ≡ - (+ 1)
+  _ = refl
+
+  _ : BStoI true (bs (0x12 ∷ 0x34 ∷ [])) ≡ + 0x1234
+  _ = refl
+  _ : BStoI false (bs (0x12 ∷ 0x34 ∷ [])) ≡ + 0x3412
+  _ = refl
+  _ : BStoI true [] ≡ + 0
+  _ = refl
+  _ : ItoBS true (+ 5) (+ 0x123456) ≡ just (bs (0x00 ∷ 0x00 ∷ 0x12 ∷ 0x34 ∷ 0x56 ∷ []))
+  _ = refl
+  _ : ItoBS false (+ 5) (+ 0x123456) ≡ just (bs (0x56 ∷ 0x34 ∷ 0x12 ∷ 0x00 ∷ 0x00 ∷ []))
+  _ = refl
+  _ : ItoBS true (+ 0) (+ 0x123456) ≡ just (bs (0x12 ∷ 0x34 ∷ 0x56 ∷ []))
+  _ = refl
+  _ : ItoBS true (+ 2) (+ 0x123456) ≡ nothing
+  _ = refl
+  _ : ItoBS true (+ 0) (+ 0) ≡ just []
+  _ = refl
+  _ : ItoBS false (+ 3) (+ 0) ≡ just (bs (0x00 ∷ 0x00 ∷ 0x00 ∷ []))
+  _ = refl
+  _ : ItoBS true (+ 20) (- (+ 5)) ≡ nothing
+  _ = refl
+  _ : ItoBS true (+ 8193) (+ 0) ≡ nothing
+  _ = refl
+```
+
+```
 
 {-# COMPILE GHC RIPEMD-160 = Hash.ripemd_160 #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.ExpMod qualified as ExpMod #-}

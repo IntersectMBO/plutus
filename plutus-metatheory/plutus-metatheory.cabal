@@ -191,6 +191,7 @@ library
     MAlonzo.Code.Data.Float.Properties
     MAlonzo.Code.Data.Integer
     MAlonzo.Code.Data.Integer.Base
+    MAlonzo.Code.Data.Integer.DivMod
     MAlonzo.Code.Data.Integer.Properties
     MAlonzo.Code.Data.Integer.Show
     MAlonzo.Code.Data.Irrelevant

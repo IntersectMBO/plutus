@@ -9,7 +9,7 @@ module Utils where
 ```
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂;subst)
 open import Function using (const;_∘_)
-open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_;_<_;_<?_)
+open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_;_∸_;_<_;_<?_)
 open import Data.Fin using (Fin;suc;zero;toℕ;fromℕ<)
 open _≤_
 open _≤‴_
@@ -238,7 +238,7 @@ pattern 3B = byte false false false false false false true true
 
 pattern 4B = byte false false false false false true false false
 
-pattern 256B = byte true true true true true true true true
+pattern 255B = byte true true true true true true true true
 
 open import Data.Vec.Base using (Vec; _∷_; []) renaming (map to vmap)
 open import Data.Nat.Base using (⌊_/2⌋; parity)
@@ -345,7 +345,171 @@ dropB z bs =
         [] → []
       ; (_ ∷ xs) → dropB (z Data.Integer.- Data.Integer.1ℤ) xs
       }
-        
+
+open import Data.Vec.Base using (zipWith) renaming (toList to vecToList)
+
+andByte : Byte → Byte → Byte
+andByte x y = bitsToByte (zipWith _∧_ (byteToBits x) (byteToBits y))
+
+orByte : Byte → Byte → Byte
+orByte x y = bitsToByte (zipWith _∨_ (byteToBits x) (byteToBits y))
+
+xorByte : Byte → Byte → Byte
+xorByte x y = bitsToByte (zipWith _xor_ (byteToBits x) (byteToBits y))
+
+notByte : Byte → Byte
+notByte x = bitsToByte (vmap not (byteToBits x))
+
+popCount : Byte → ℕ
+popCount b = count (byteToBits b)
+  where
+    count : ∀ {n} → Bits n → ℕ
+    count [] = 0
+    count (x ∷ xs) = (if x then 1 else 0) + count xs
+
+-- conversion from an integer, which must lie in [0, 255].
+toByte : ℤ → Maybe Byte
+toByte (+ n)    = if n Data.Nat.≤ᵇ 255 then just (ℕToByte n) else nothing
+toByte -[1+ _ ] = nothing
+
+lengthℕ : ByteString → ℕ
+lengthℕ []       = 0
+lengthℕ (_ ∷ xs) = suc (lengthℕ xs)
+
+replicateBS : ℕ → Byte → ByteString
+replicateBS zero    _ = []
+replicateBS (suc n) b = b ∷ replicateBS n b
+
+_++ᵇ_ : ByteString → ByteString → ByteString
+[]       ++ᵇ ys = ys
+(x ∷ xs) ++ᵇ ys = x ∷ (xs ++ᵇ ys)
+
+reverseBS : ByteString → ByteString
+reverseBS = go []
+  where
+    go : ByteString → ByteString → ByteString
+    go acc []       = acc
+    go acc (x ∷ xs) = go (x ∷ acc) xs
+
+mapBS : (Byte → Byte) → ByteString → ByteString
+mapBS f []       = []
+mapBS f (x ∷ xs) = f x ∷ mapBS f xs
+
+-- Combine two bytestrings byte by byte. If they have different lengths then,
+-- depending on `pad`, either the longer one is truncated on the right or the
+-- shorter one is extended on the right with `padByte`.
+zipWithBS : (Byte → Byte → Byte) → (pad : Bool) → (padByte : Byte)
+          → ByteString → ByteString → ByteString
+zipWithBS f pad padByte []       []       = []
+zipWithBS f pad padByte []       (y ∷ ys) = if pad then f padByte y ∷ zipWithBS f pad padByte [] ys else []
+zipWithBS f pad padByte (x ∷ xs) []       = if pad then f x padByte ∷ zipWithBS f pad padByte xs [] else []
+zipWithBS f pad padByte (x ∷ xs) (y ∷ ys) = f x y ∷ zipWithBS f pad padByte xs ys
+
+-- ### Bitstring representation of bytestrings
+
+-- Bit indexing follows CIP-122: bit 0 is the least significant bit of the
+-- last byte and bit 8n-1 is the most significant bit of the first byte. The
+-- functions below convert between a bytestring and the list of its bits in
+-- index order, i.e. the element at position i of `toBits bs` is bit i of `bs`.
+
+Bits* : Set
+Bits* = L.List Bool
+
+toBits : ByteString → Bits*
+toBits = go L.[]
+  where
+    go : Bits* → ByteString → Bits*
+    go acc []       = acc
+    go acc (x ∷ xs) = go (vecToList (byteToBits x) L.++ acc) xs
+
+-- Inverse of `toBits`. The input is consumed eight bits at a time; a trailing
+-- incomplete byte is dropped.
+fromBits : Bits* → ByteString
+fromBits = go []
+  where
+    go : ByteString → Bits* → ByteString
+    go acc (b₀ L.∷ b₁ L.∷ b₂ L.∷ b₃ L.∷ b₄ L.∷ b₅ L.∷ b₆ L.∷ b₇ L.∷ rest) =
+      go (bitsToByte (b₀ ∷ b₁ ∷ b₂ ∷ b₃ ∷ b₄ ∷ b₅ ∷ b₆ ∷ b₇ ∷ []) ∷ acc) rest
+    go acc _ = acc
+
+lookupBit : Bits* → ℕ → Maybe Bool
+lookupBit L.[]       _       = nothing
+lookupBit (b L.∷ bs) zero    = just b
+lookupBit (b L.∷ bs) (suc i) = lookupBit bs i
+
+setBit : ℕ → Bool → Bits* → Bits*
+setBit _       _ L.[]       = L.[]
+setBit zero    u (b L.∷ bs) = u L.∷ bs
+setBit (suc i) u (b L.∷ bs) = b L.∷ setBit i u bs
+
+-- Index of the first set bit, or -1 if there is none.
+firstSetBit : Bits* → ℤ
+firstSetBit = go 0
+  where
+    go : ℕ → Bits* → ℤ
+    go i L.[]             = -[1+ 0 ]
+    go i (true  L.∷ _)    = + i
+    go i (false L.∷ bs)   = go (suc i) bs
+
+-- Shift the bits k places to the left (k ≥ 0) or right (k < 0), filling the
+-- vacated positions with 0 and keeping the length unchanged.
+shiftBits : ℤ → Bits* → Bits*
+shiftBits k bits =
+  if n Data.Nat.≤ᵇ I.∣ k ∣
+  then L.replicate n false
+  else shifted k
+  where
+    n : ℕ
+    n = L.length bits
+    shifted : ℤ → Bits*
+    shifted (+ k)    = L.replicate k false L.++ L.take (n ∸ k) bits
+    shifted -[1+ k ] = L.drop (suc k) bits L.++ L.replicate (suc k) false
+
+-- Rotate the bits k places to the left (k ≥ 0) or right (k < 0).
+rotateBits : ℤ → Bits* → Bits*
+rotateBits k L.[]             = L.[]
+rotateBits k bits@(_ L.∷ _)   = L.drop (n ∸ r) bits L.++ L.take (n ∸ r) bits
+  where
+    open import Data.Integer.DivMod using (_%ℕ_)
+    n : ℕ
+    n = L.length bits
+    r : ℕ
+    r = k %ℕ n
+
+-- ### Conversion between bytestrings and natural numbers
+
+-- Big-endian interpretation of a bytestring.
+byteStringToℕ : ByteString → ℕ
+byteStringToℕ = go 0
+  where
+    go : ℕ → ByteString → ℕ
+    go acc []       = acc
+    go acc (b ∷ bs) = go (acc Data.Nat.* 256 + byteToℕ b) bs
+
+-- Base-256 digits of a natural number, least significant first. The first
+-- argument bounds the number of digits; `nothing` is returned if it is
+-- exceeded. (The bound makes the recursion structural.)
+digits256 : ℕ → ℕ → Maybe ByteString
+digits256 _          zero    = just []
+digits256 zero       (suc _) = nothing
+digits256 (suc fuel) (suc k) =
+  Data.Maybe.map (ℕToByte (suc k % 256) ∷_) (digits256 fuel (suc k / 256))
+  where open import Data.Nat.Base using (_%_; _/_)
+
+-- Big-endian (if the flag is true) or little-endian encoding of a natural
+-- number as a bytestring of width w (or of minimal width if w = 0), as
+-- specified for the `integerToByteString` builtin. The result is `nothing` if
+-- the number does not fit in w bytes, or if it needs more than 8192 bytes.
+ℕToByteString : Bool → ℕ → ℕ → Maybe ByteString
+ℕToByteString e w zero    = just (replicateBS w 0B)
+ℕToByteString e w (suc n) with digits256 8192 (suc n)
+... | nothing = nothing
+... | just ds =
+  if (w == 0) ∨ (lengthℕ ds Data.Nat.≤ᵇ w)
+  then just (if e then replicateBS (w ∸ lengthℕ ds) 0B ++ᵇ reverseBS ds
+                  else ds ++ᵇ replicateBS (w ∸ lengthℕ ds) 0B)
+  else nothing
+  where open import Agda.Builtin.Nat using (_==_)
 
 {-# FOREIGN GHC import Data.ByteString qualified as Haskell #-}
 
