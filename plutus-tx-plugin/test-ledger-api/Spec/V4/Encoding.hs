@@ -37,6 +37,48 @@ tests =
                     _ -> False
                   _ -> False
           )
+    , assertResult "protected output selection keeps body indexes in both interfaces" $
+        plinthc
+          ( let recipient = V4.ScriptHash "recipient"
+                ordinary = V4.TxOut (V4.Address (V4.ScriptCredential recipient) Nothing) mempty V4.NoOutputDatum Nothing
+                protected =
+                  V4.TxOut
+                    (V4.AddressProtected (V4.ScriptCredential recipient) Nothing)
+                    mempty
+                    V4.NoOutputDatum
+                    Nothing
+                other =
+                  V4.TxOut
+                    (V4.AddressProtected (V4.ScriptCredential (V4.ScriptHash "other")) Nothing)
+                    mempty
+                    V4.NoOutputDatum
+                    Nothing
+                info =
+                  V4.TxInfo
+                    { V4.txInfoId = V4.TxId "transaction"
+                    , V4.txInfoSubTxIx = Nothing
+                    , V4.txInfoInputs = []
+                    , V4.txInfoReferenceInputs = []
+                    , V4.txInfoOutputs = [ordinary, protected, other, protected]
+                    , V4.txInfoMint = V4.emptyMintValue
+                    , V4.txInfoTxCerts = []
+                    , V4.txInfoWithdrawals = V4.unsafeFromList []
+                    , V4.txInfoDirectDeposits = V4.unsafeFromList []
+                    , V4.txInfoAccountBalanceIntervals = V4.AccountBalanceIntervals (V4.unsafeFromList [])
+                    , V4.txInfoValidRange = V4.POSIXTimeRange Nothing Nothing
+                    , V4.txInfoGuards = []
+                    , V4.txInfoRequiredTopLevelGuards = V4.unsafeFromList []
+                    , V4.txInfoRedeemers = V4.unsafeFromList []
+                    , V4.txInfoData = V4.unsafeFromList []
+                    , V4.txInfoVotes = V4.unsafeFromList []
+                    , V4.txInfoProposalProcedures = []
+                    , V4.txInfoCurrentTreasuryAmount = Nothing
+                    , V4.txInfoTreasuryDonation = V4.Lovelace 0
+                    }
+                backed = PlutusTx.unsafeFromBuiltinData @DataV4.TxInfo (PlutusTx.toBuiltinData info)
+             in PlutusTx.map PlutusTx.fst (V4.protectedOutputsAt recipient info) PlutusTx.== [1, 3]
+                  && PlutusTx.map PlutusTx.fst (DataV4.protectedOutputsAt recipient backed) PlutusTx.== [1, 3]
+          )
     , assertResult "transaction reference wrapper" $
         plinthc
           ( let value = V4.TxOutRef (V4.TxId "transaction") 2
