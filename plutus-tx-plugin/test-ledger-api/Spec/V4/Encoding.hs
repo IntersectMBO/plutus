@@ -8,6 +8,7 @@ module Spec.V4.Encoding (tests) where
 import Plinth.Plugin (plinthc)
 import PlutusLedgerApi.Data.V4 qualified as DataV4
 import PlutusLedgerApi.V4 qualified as V4
+import PlutusTx.List qualified as PlutusList
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Test (assertResult)
 import Test.Tasty (TestTree)
@@ -76,8 +77,8 @@ tests =
                     , V4.txInfoTreasuryDonation = V4.Lovelace 0
                     }
                 backed = PlutusTx.unsafeFromBuiltinData @DataV4.TxInfo (PlutusTx.toBuiltinData info)
-             in PlutusTx.map PlutusTx.fst (V4.protectedOutputsAt recipient info) PlutusTx.== [1, 3]
-                  && PlutusTx.map PlutusTx.fst (DataV4.protectedOutputsAt recipient backed) PlutusTx.== [1, 3]
+             in PlutusList.map PlutusTx.fst (V4.protectedOutputsAt recipient info) PlutusTx.== [1, 3]
+                  && PlutusList.map PlutusTx.fst (DataV4.protectedOutputsAt recipient backed) PlutusTx.== [1, 3]
           )
     , assertResult "transaction reference wrapper" $
         plinthc
