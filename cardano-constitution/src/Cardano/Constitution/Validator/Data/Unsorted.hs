@@ -21,22 +21,24 @@ import Cardano.Constitution.Config
 import Cardano.Constitution.Validator.Data.Common as Common
 import PlutusCore.Version (plcVersion110)
 import PlutusTx as Tx
+import PlutusTx.BuiltinList qualified as BuiltinList
 import PlutusTx.Builtins as B
-import PlutusTx.List
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Prelude as Tx
 
 -- | Expects a constitution-configuration, statically *OR* at runtime via Tx.liftCode
 constitutionValidator :: ConstitutionConfig -> ConstitutionValidator
 constitutionValidator cfg =
   Common.withChangedParams
-    (all (validateParam cfg))
+    (BuiltinList.all (validateParam cfg))
 
-validateParam :: ConstitutionConfig -> (BuiltinData, BuiltinData) -> Bool
-validateParam (ConstitutionConfig cfg) (B.unsafeDataAsI -> actualPid, actualValueData) =
-  Common.validateParamValue
-    -- If param not found, it will error
-    (lookupUnsafe actualPid cfg)
-    actualValueData
+validateParam :: ConstitutionConfig -> BI.BuiltinPair BuiltinData BuiltinData -> Bool
+validateParam (ConstitutionConfig cfg) cparam =
+  BI.casePair cparam $ \actualPidData actualValueData ->
+    Common.validateParamValue
+      -- If param not found, it will error
+      (lookupUnsafe (B.unsafeDataAsI actualPidData) cfg)
+      actualValueData
 
 -- | An unsafe version of PlutusTx.AssocMap.lookup, specialised to Integer keys
 lookupUnsafe :: Integer -> [(Integer, v)] -> v
