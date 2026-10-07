@@ -76,6 +76,13 @@ let
         stages = [ "pre-push" ];
         pass_filenames = false;
       };
+      generate-agda-conformance = {
+        enable = true;
+        entry = "${metatheory.generate-agda-conformance}/bin/generate-agda-conformance";
+        files = "^(plutus-conformance/(test-cases/uplc/evaluation|agda-gen)|plutus-metatheory/src/(Conformance|FFI))";
+        stages = [ "pre-push" ];
+        pass_filenames = false;
+      };
     };
   };
 
