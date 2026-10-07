@@ -18,7 +18,7 @@ Run from the repository root:
 
 > cabal run plutus-conformance:generate-agda-conformance
 
-The sets of supported builtins and constant types, and the list of excluded
+The classification of builtins and constant types, and the list of excluded
 cases, are the tables at the top of this file. -}
 module Main (main) where
 
@@ -74,52 +74,128 @@ import UntypedPlutusCore.DeBruijn (NamedDeBruijn, deBruijnTerm)
 
 -- * Tables
 
-{-| Builtins whose semantics are fully defined in Agda (see @BUILTIN@ in
-@Untyped/CEK.lagda.md@), so that applying them reduces at type-checking time.
-Everything else is bound to a Haskell implementation by a postulate. -}
-supportedBuiltins :: [DefaultFun]
-supportedBuiltins =
-  [ AddInteger
-  , SubtractInteger
-  , MultiplyInteger
-  , DivideInteger
-  , QuotientInteger
-  , RemainderInteger
-  , ModInteger
-  , EqualsInteger
-  , LessThanInteger
-  , LessThanEqualsInteger
-  , AppendString
-  , EqualsString
-  , IfThenElse
-  , Trace
-  , ChooseUnit
-  , FstPair
-  , SndPair
-  , ChooseList
-  , MkCons
-  , HeadList
-  , TailList
-  , NullList
-  , DropList
-  , IData
-  , BData
-  , UnIData
-  , UnBData
-  , ChooseData
-  , ConstrData
-  , MapData
-  , ListData
-  , UnConstrData
-  , UnMapData
-  , UnListData
-  , MkPairData
-  , MkNilData
-  , MkNilPairData
-  , -- Agda-side equality on `Data` is structural except for bytestrings, which
-    -- are excluded by `constantProblems`.
-    EqualsData
-  ]
+{-| Whether a builtin has its semantics fully defined in Agda (see @BUILTIN@ in
+@Untyped/CEK.lagda.md@), so that applying it reduces at type-checking time.
+Everything else is bound to a Haskell implementation by a postulate in
+@Builtin.lagda.md@ and makes a test case pending. The match is exhaustive on
+purpose: adding a constructor to @DefaultFun@ must fail here until it is
+classified. -}
+builtinSupported :: DefaultFun -> Bool
+builtinSupported = \case
+  -- Defined in Agda.
+  AddInteger -> True
+  SubtractInteger -> True
+  MultiplyInteger -> True
+  DivideInteger -> True
+  QuotientInteger -> True
+  RemainderInteger -> True
+  ModInteger -> True
+  EqualsInteger -> True
+  LessThanInteger -> True
+  LessThanEqualsInteger -> True
+  AppendString -> True
+  EqualsString -> True
+  IfThenElse -> True
+  ChooseUnit -> True
+  Trace -> True
+  FstPair -> True
+  SndPair -> True
+  ChooseList -> True
+  MkCons -> True
+  HeadList -> True
+  TailList -> True
+  NullList -> True
+  ChooseData -> True
+  ConstrData -> True
+  MapData -> True
+  ListData -> True
+  IData -> True
+  BData -> True
+  UnConstrData -> True
+  UnMapData -> True
+  UnListData -> True
+  UnIData -> True
+  UnBData -> True
+  EqualsData -> True
+  MkPairData -> True
+  MkNilData -> True
+  MkNilPairData -> True
+  DropList -> True
+  -- Postulated: bytestring and bitwise.
+  AppendByteString -> False
+  ConsByteString -> False
+  SliceByteString -> False
+  LengthOfByteString -> False
+  IndexByteString -> False
+  EqualsByteString -> False
+  LessThanByteString -> False
+  LessThanEqualsByteString -> False
+  IntegerToByteString -> False
+  ByteStringToInteger -> False
+  AndByteString -> False
+  OrByteString -> False
+  XorByteString -> False
+  ComplementByteString -> False
+  ReadBit -> False
+  WriteBits -> False
+  ReplicateByte -> False
+  ShiftByteString -> False
+  RotateByteString -> False
+  CountSetBits -> False
+  FindFirstSetBit -> False
+  -- Postulated: hashes and signatures.
+  Sha2_256 -> False
+  Sha3_256 -> False
+  Blake2b_256 -> False
+  VerifyEd25519Signature -> False
+  VerifyEcdsaSecp256k1Signature -> False
+  VerifySchnorrSecp256k1Signature -> False
+  Keccak_256 -> False
+  Blake2b_224 -> False
+  Ripemd_160 -> False
+  -- Postulated: encoding and serialisation.
+  EncodeUtf8 -> False
+  DecodeUtf8 -> False
+  SerialiseData -> False
+  -- Postulated: not formalised yet.
+  ExpModInteger -> False
+  -- Postulated: array.
+  LengthOfArray -> False
+  ListToArray -> False
+  IndexArray -> False
+  MultiIndexArray -> False
+  -- Postulated: value.
+  InsertCoin -> False
+  LookupCoin -> False
+  UnionValue -> False
+  ValueContains -> False
+  ValueData -> False
+  UnValueData -> False
+  ScaleValue -> False
+  Policies -> False
+  AssetCount -> False
+  KeepPolicies -> False
+  DropPolicies -> False
+  -- Postulated: BLS12-381.
+  Bls12_381_G1_add -> False
+  Bls12_381_G1_neg -> False
+  Bls12_381_G1_scalarMul -> False
+  Bls12_381_G1_equal -> False
+  Bls12_381_G1_hashToGroup -> False
+  Bls12_381_G1_compress -> False
+  Bls12_381_G1_uncompress -> False
+  Bls12_381_G2_add -> False
+  Bls12_381_G2_neg -> False
+  Bls12_381_G2_scalarMul -> False
+  Bls12_381_G2_equal -> False
+  Bls12_381_G2_hashToGroup -> False
+  Bls12_381_G2_compress -> False
+  Bls12_381_G2_uncompress -> False
+  Bls12_381_millerLoop -> False
+  Bls12_381_mulMlResult -> False
+  Bls12_381_finalVerify -> False
+  Bls12_381_G1_multiScalarMul -> False
+  Bls12_381_G2_multiScalarMul -> False
 
 {-| Test cases (by path prefix relative to the test-case root) that are known
 not to hold for the Agda evaluator, with the reason. They are emitted as
@@ -256,7 +332,7 @@ readCase root dir = do
             Right t -> pure (Just t)
         let terms = term : toList expectedTerm
             problems = nub (concatMap constantProblems (concatMap termConstants terms))
-            unsupported = nub [f | f <- concatMap termBuiltins terms, f `notElem` supportedBuiltins]
+            unsupported = nub [f | f <- concatMap termBuiltins terms, not (builtinSupported f)]
             reasons =
               [reason | Postulated reason <- problems]
                 ++ ["postulated builtin `" <> renderAgdaUnparse f <> "`" | f <- unsupported]

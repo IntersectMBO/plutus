@@ -502,6 +502,12 @@ Each Agda built-in name must be mapped to a Haskell name.
 We need to postulate the Agda type of built-in functions
 whose semantics are provided by a Haskell function.
 
+Note that the conformance unit tests under `Conformance` (see
+`Conformance.Eval`) are only proved for builtins whose semantics are fully
+defined in Agda. If you replace one of these postulates with a definition,
+mark it as supported in `builtinSupported` in `plutus-conformance/agda-gen/Main.hs`
+and regenerate the tests with `generate-agda-conformance`.
+
 ```
 postulate
   lengthBS                    : ByteString → Int
