@@ -747,6 +747,6 @@ definitionIds NoDefinitions = []
 definitionIds (AddDefinition (MkDefinition identifier _) rest) = identifier : definitionIds rest
 
 constructorIndexes :: Schema referencedTypes -> [(Integer, Int)]
-constructorIndexes (SchemaAnyOf schemas) = concatMap constructorIndexes (NE.toList schemas)
+constructorIndexes (SchemaOneOf schemas) = concatMap constructorIndexes (NE.toList schemas)
 constructorIndexes (SchemaConstructor _ (MkConstructorSchema tag fields)) = [(toInteger tag, length fields)]
 constructorIndexes _ = []
