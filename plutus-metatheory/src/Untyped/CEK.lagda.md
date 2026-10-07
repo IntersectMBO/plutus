@@ -715,10 +715,7 @@ lookup?-deterministic n xs p₁ p₂ with trans (sym p₁) p₂
 ... | refl = refl
 
 -- Casing on a constant of a builtin type, mirroring the Haskell
--- 'CaseBuiltin DefaultUni' instance: the number of branches must match the
--- type exactly (except for integer, which selects among any number of
--- branches), and list/pair components are passed to the selected branch as
--- already-evaluated constants. Any other combination fails.
+-- 'CaseBuiltin DefaultUni' instance.
 caseCon : ∀{Γ} → Stack Frame → Env Γ → (ty : TyTag) → ⟦ ty ⟧tag → List (Γ ⊢) → State
 caseCon s ρ unit tt (t ∷ []) = s ; ρ ▻ t
 caseCon s ρ bool false (t ∷ []) = s ; ρ ▻ t
@@ -729,6 +726,7 @@ caseCon s ρ (list ty) (x ∷ xs) (t ∷ []) = pushValueFrames s ((ε , V-con ty
 caseCon s ρ (list ty) (x ∷ xs) (t ∷ _ ∷ []) = pushValueFrames s ((ε , V-con ty x) , V-con (list ty) xs) ; ρ ▻ t
 caseCon s ρ (list ty) [] (_ ∷ t ∷ []) = s ; ρ ▻ t
 caseCon s ρ (pair ty₁ ty₂) (x , y) (t ∷ []) = pushValueFrames s ((ε , V-con ty₁ x) , V-con ty₂ y) ; ρ ▻ t
+caseCon s ρ pdata (ConstrDATA (ℤ.pos i) fields) ts = maybe (pushValueFrames s (ε , V-con (list pdata) fields) ; ρ ▻_) ◆ (lookup? i ts)
 caseCon s ρ _ _ _ = ◆
 
 step : State → State
