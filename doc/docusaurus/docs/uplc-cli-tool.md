@@ -35,7 +35,7 @@ Replace `plutus` with `plutus/<version>` (e.g. `plutus/1.68.0.0`) to pin a relea
 The first invocation may take a while, since Nix may need to download or build the toolchain.
 
 **Cabal (from CHaP).**
-Starting with release 1.71.0.0, `plutus-executables` is published to the [Cardano Haskell Packages](https://chap.intersectmbo.org/) repository (CHaP) alongside the Plutus libraries, so with GHC 9.6 and `cabal` installed you can build and install `uplc` (plus `plc`, `pir` and `plutus`) without cloning anything.
+Starting with release 1.72.0.0, `plutus-executables` is published to the [Cardano Haskell Packages](https://chap.intersectmbo.org/) repository (CHaP) alongside the Plutus libraries, so with GHC 9.6 and `cabal` installed you can build and install `uplc` (plus `plc`, `pir` and `plutus`) without cloning anything.
 Add the CHaP repository to your `~/.cabal/config` (or `~/.config/cabal/config`) if you don't have it already — the `repository` stanza to paste is given in the [CHaP README](https://github.com/IntersectMBO/cardano-haskell-packages#how-to-use-chap) — then:
 
 ```bash
