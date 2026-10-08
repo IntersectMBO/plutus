@@ -205,7 +205,7 @@ function renderPlot() {
       borderwidth: 1
     },
     plot_bgcolor: '#FAFAFA',
-    paper_bgcolor: 'rgba(0,0,0,0)'
+    paper_bgcolor: '#FAFAFA'
   };
 
   // Set Y-axis range based on mode
@@ -293,7 +293,7 @@ function renderPerIndex() {
       borderwidth: 1
     },
     plot_bgcolor: '#FAFAFA',
-    paper_bgcolor: 'rgba(0,0,0,0)'
+    paper_bgcolor: '#FAFAFA'
   };
 
   const config = {
@@ -352,7 +352,7 @@ function renderHistogram() {
     },
     bargap: 0.05,
     plot_bgcolor: '#FAFAFA',
-    paper_bgcolor: 'rgba(0,0,0,0)',
+    paper_bgcolor: '#FAFAFA',
     shapes: [],
     annotations: []
   };

@@ -1,4 +1,14 @@
 
+<a id='changelog-1.71.0.0'></a>
+# 1.71.0.0 — 2026-09-29
+
+## Changed
+
+- `keepPolicies` and `dropPolicies` fail on a `Value` with more than 8191 policies, matching the builtins.
+
+- Improved efficiency and consistency of the `union` and `unionWith` operations of
+  `PlutusTx.Data.AssocMap`.
+
 <a id='changelog-1.69.0.0'></a>
 # 1.69.0.0 — 2026-09-11
 

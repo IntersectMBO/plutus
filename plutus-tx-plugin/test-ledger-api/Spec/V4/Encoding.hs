@@ -34,6 +34,23 @@ tests =
                   && V4.denominator decoded PlutusTx.== 2
                   && PlutusTx.toBuiltinData decoded PlutusTx.== PlutusTx.toBuiltinData ([1, 2] :: [Integer])
           )
+    , assertResult "nested proposal" $
+        plinthc
+          ( let value =
+                  V4.ProposalProcedure
+                    (V4.Lovelace 10)
+                    (V4.PubKeyCredential (V4.PubKeyHash "key"))
+                    (V4.HardForkInitiation Nothing (V4.ProtocolVersion 11 0))
+                decoded = PlutusTx.unsafeFromBuiltinData @V4.ProposalProcedure (PlutusTx.toBuiltinData value)
+             in case V4.ppGovernanceAction decoded of
+                  V4.HardForkInitiation Nothing version ->
+                    V4.ppDeposit decoded PlutusTx.== V4.Lovelace 10
+                      && V4.ppReturnAddr decoded PlutusTx.== V4.PubKeyCredential (V4.PubKeyHash "key")
+                      && V4.pvMajor version PlutusTx.== 11
+                      && V4.pvMinor version PlutusTx.== 0
+                      && PlutusTx.toBuiltinData decoded PlutusTx.== PlutusTx.toBuiltinData value
+                  _ -> False
+          )
     , assertResult "nested data-backed proposal" $
         plinthc
           ( let value =

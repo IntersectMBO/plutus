@@ -9,8 +9,9 @@ module BuiltinCasing.Spec where
 
 import Test.Tasty.Extras
 
+import BuiltinCasing.WithGHCOptimisations
 import PlutusTx (compile)
-import PlutusTx.Builtins (caseData, caseInteger, caseList, casePair)
+import PlutusTx.Builtins (caseData, caseInteger, caseList, casePair, mkConstr)
 import PlutusTx.Builtins.Internal (chooseUnit, unitval)
 import PlutusTx.Prelude
 import PlutusTx.Test
@@ -45,4 +46,22 @@ tests =
       , goldenUPlcReadable "integerABC" $$(compile [||integerABC||])
       , goldenUPlcReadable "head" $$(compile [||head||])
       , goldenUPlcReadable "dataFields" $$(compile [||dataFields||])
+      , assertResult
+          "floatedIntegerBranches"
+          $$( compile
+                [||
+                (selectIntegerBranch 0 == 10)
+                  && (selectIntegerBranch 1 == 20)
+                  && (selectIntegerBranch 2 == 30)
+                ||]
+            )
+      , assertResult
+          "floatedDataBranches"
+          $$( compile
+                [||
+                (selectDataBranch (mkConstr 0 []) == 10)
+                  && (selectDataBranch (mkConstr 1 []) == 20)
+                  && (selectDataBranch (mkConstr 2 []) == 30)
+                ||]
+            )
       ]

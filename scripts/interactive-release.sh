@@ -236,17 +236,23 @@ generate-release-notes() {
 
 
 publish-gh-release() {
-  for EXEC in uplc pir plc plutus; do
-    nix build "path:.#packages.x86_64-linux.musl64-$EXEC"
-    upx -9 ./result/bin/$EXEC -o $EXEC-x86_64-linux-ghc96 --force-overwrite
+  local COMMIT_SHA=$(git rev-parse --verify --quiet "origin/release/$VERSION")
+  # The prebuilt executables are built by Hydra for the release branch (see
+  # nix/static-executables.nix), so fetch them from the cache rather than
+  # building: --max-jobs 0 fails instead of building locally if they are missing.
+  local SYSTEMS=(x86_64-linux aarch64-darwin)
+  local ASSETS=(plutus-metatheory.tar.gz)
+  for SYSTEM in "${SYSTEMS[@]}"; do
+    nix build --max-jobs 0 --out-link "result-$SYSTEM" \
+      "github:IntersectMBO/plutus/$COMMIT_SHA#packages.$SYSTEM.release-executables"
+    ASSETS+=("result-$SYSTEM"/*)
   done
   nix build "path:.#metatheory-agda-library"
   cp -f ./result/plutus-metatheory.tar.gz .
   local NOTES_FILE=$(mktemp)
   generate-release-notes > $NOTES_FILE
-  local COMMIT_SHA=$(git rev-parse --verify --quiet "origin/release/$VERSION")
   gh release create $VERSION --target $COMMIT_SHA --title $VERSION --notes-file $NOTES_FILE --latest
-  gh release upload $VERSION {uplc,plc,pir,plutus}-x86_64-linux-ghc96 plutus-metatheory.tar.gz --clobber
+  gh release upload $VERSION "${ASSETS[@]}" --clobber
   tell "Published the release"
 }
 

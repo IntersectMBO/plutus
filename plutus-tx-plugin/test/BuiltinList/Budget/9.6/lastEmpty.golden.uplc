@@ -1,5 +1,5 @@
 (program
-   1.1.0
+   1.2.0
    ((\forced ->
        (\last ds -> force last [])
          ((\s -> s s (delay (\x -> x)))

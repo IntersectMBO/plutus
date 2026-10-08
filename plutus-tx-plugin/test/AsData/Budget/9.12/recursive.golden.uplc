@@ -1,5 +1,5 @@
 (program
-   1.1.0
+   1.2.0
    ((\factorial x y z ->
        multiplyInteger
          (multiplyInteger (factorial x) (factorial y))

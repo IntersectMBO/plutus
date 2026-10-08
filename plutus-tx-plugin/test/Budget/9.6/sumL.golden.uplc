@@ -1,5 +1,5 @@
 (program
-   1.1.0
+   1.2.0
    ((\go ->
        (\ls -> go 0 ls)
          ((\s -> case (constr 0 [s, 1, 1000]) [s])

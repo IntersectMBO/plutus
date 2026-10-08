@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-executables
-version:         1.70.0.0
+version:         1.71.0.0
 synopsis:        Tools for running plutus core programs
 description:
   Command-line tools for working with Plutus Core programs: @uplc@ (evaluate,
@@ -83,7 +83,7 @@ executable pir
     , megaparsec
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.70
+    , plutus-core                       ^>=1.71
     , plutus-core:plutus-ir
     , plutus-ledger-api:plutus-execlib
     , text
@@ -99,7 +99,7 @@ executable plc
     , bytestring
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.70
+    , plutus-core                       ^>=1.71
     , plutus-core:flat
     , plutus-ledger-api:plutus-execlib
 
@@ -120,10 +120,10 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.70
+    , plutus-core                       ^>=1.71
     , plutus-core:flat
     , plutus-ledger-api:plutus-execlib
-    , plutus-metatheory                 ^>=1.70
+    , plutus-metatheory                 ^>=1.71
     , prettyprinter
     , serialise
     , split
@@ -179,7 +179,7 @@ executable plutus
     , microlens-th           ^>=0.4
     , mono-traversable
     , mtl
-    , plutus-core            ^>=1.70
+    , plutus-core            ^>=1.71
     , plutus-core:flat
     , plutus-core:plutus-ir
     , prettyprinter
@@ -205,7 +205,7 @@ test-suite test-simple
   build-depends:
     , base               >=4.9   && <5
     , extra
-    , plutus-metatheory  ^>=1.70
+    , plutus-metatheory  ^>=1.71
     , process
 
   build-tool-depends:
@@ -224,8 +224,8 @@ test-suite test-detailed
     , directory
     , extra
     , filepath
-    , plutus-core        ^>=1.70
-    , plutus-metatheory  ^>=1.70
+    , plutus-core        ^>=1.71
+    , plutus-metatheory  ^>=1.71
     , process
     , tasty
     , tasty-hunit

@@ -68,6 +68,9 @@ v100script =
 v110script :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 v110script = UPLC.Program () PLC.plcVersion110 $ UPLC.Constr () 0 mempty
 
+v120script :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+v120script = UPLC.Program () PLC.plcVersion120 $ UPLC.Constr () 0 mempty
+
 badConstrScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 badConstrScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Constr () 0 mempty
 
@@ -160,6 +163,13 @@ testLanguageVersions =
             , testOkFrom "v110" PlutusV2 vanRossemPV v110script
             , testOkFrom "v110" PlutusV3 changPV v110script
             , testOkFrom "v110" PlutusV4 dijkstraPV v110script
+            ]
+        , testGroup
+            "v1.2.0 availability"
+            [ testOkFrom "v120" PlutusV1 dijkstraPV v120script
+            , testOkFrom "v120" PlutusV2 dijkstraPV v120script
+            , testOkFrom "v120" PlutusV3 dijkstraPV v120script
+            , testOkFrom "v120" PlutusV4 dijkstraPV v120script
             ]
         , -- Check that case and constr are not allowed in 1.1.0 in any LL/PV combination
           testCase "case is not available in v1.0.0 ever" $

@@ -16,6 +16,7 @@ import PlutusCore.Evaluation.Machine.MachineParameters.Default
   ( mkMachineVariantParametersFor
   )
 import PlutusCore.Name.Unique (Name)
+import PlutusLedgerApi.Common (defaultCaserBuiltinFor, newestPV)
 import PlutusPrelude (def)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
@@ -50,7 +51,7 @@ mkCekEvaluator runCekNoEmit = UplcEvaluatorWithCosting $ \modelParams (UPLC.Prog
       case lookup def machParamsList of
         Nothing -> BadMachineParameters
         Just p ->
-          let params = UPLC.MachineParameters def p
+          let params = UPLC.MachineParameters (defaultCaserBuiltinFor newestPV v) p
            in -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with
               -- free variables, that is why we manually check first for any free vars
               case UPLC.deBruijnTerm t of
