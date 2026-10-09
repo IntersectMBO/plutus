@@ -166,6 +166,28 @@ Finally, it's important to put bang patterns on any 'Int' arguments to ensure th
 this can make a surprisingly large difference.
 -}
 
+{- Note [Inlining budgeting modes]
+When a caller chooses a budgeting mode, we want GHC to inline that mode's spending function
+into the CEK machine's spending loops. This lets GHC optimize the budget checks together with
+the machine, while we keep a single source definition of the machine.
+
+The INLINE pragmas on 'runCekDeBruijn' and 'runCekM' expose the machine call to the caller.
+The budgeting mode constructors, including 'restrictingEnormous', are also INLINE so that GHC
+can see which spending function the caller supplies (see the ExBudgetMode module).
+
+We mark 'enterComputeCek' INLINE [1] so that GHC inlines the wrappers before expanding the
+large recursive machine. Until phase 1, their INLINE unfoldings contain a call to
+'enterComputeCek' rather than its body. Once the caller's budgeting mode is visible, the
+machine can expand and its spending calls can inline. This avoids explicit 'inline' calls
+in the ledger API.
+
+The spending function has an INLINE pragma, but we don't force it to inline when constructing
+'CekBudgetSpender'. This allows GHC to inline it later, at the spending calls inside the
+machine. We tried 'CekBudgetSpender (inline spend)', but inspecting Core showed that GHC
+expanded 'spend' there and then extracted a helper that wasn't inlined into the spending
+loops. The loops called that helper instead of containing the spending arithmetic directly.
+-}
+
 {-| The 'Term's that CEK can execute must have DeBruijn binders
 'Name' is not necessary but we leave it here for simplicity and debuggability. -}
 type NTerm uni fun = Term NamedDeBruijn uni fun
@@ -816,6 +838,7 @@ enterComputeCek
   -> CekValEnv uni fun ann
   -> NTerm uni fun ann
   -> CekM uni fun s (DischargeResult uni fun)
+{-# INLINE [1] enterComputeCek #-}
 enterComputeCek = computeCek
   where
     -- \| The computing part of the CEK machine.
@@ -1101,6 +1124,7 @@ runCekDeBruijn params mode emitMode term =
   runCekM params mode emitMode $ do
     unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts
     enterComputeCek NoFrame Env.empty term
+{-# INLINE runCekDeBruijn #-}
 
 {- Note [Accumulators for terms]
 At a couple of points in the CEK machine (notably building the arguments to a constructor value)
