@@ -4,8 +4,9 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
-     Regenerate with `cabal run plutus-conformance:generate-agda-conformance`
-     from the repository root. -->
+     Regenerate with `generate-agda-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-conformance` from the
+     repository root. -->
 
 Conformance tests generated from
 `plutus-conformance/test-cases/uplc/evaluation/builtin/parser/value`.
@@ -19,27 +20,27 @@ open import Conformance.Eval
 
 ## currencyID-too-long-1
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## currencyID-too-long-2
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## currencyIDs-unordered
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## duplicate-currencyIDs
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## duplicate-tokenIDs
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## empty-tokens
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## empty-value
 
@@ -58,7 +59,7 @@ pending-empty-value = Pending (evalRaw test-empty-value ≡ expected-empty-value
 
 ## ill-formed
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## max-currencyID-length
 
@@ -122,23 +123,23 @@ pending-no-underflow = Pending (evalRaw test-no-underflow ≡ expected-no-underf
 
 ## overflow
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## tokenID-too-long-1
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## tokenID-too-long-2
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## tokenIDs-unordered
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## underflow
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## value-ok-1
 
@@ -173,4 +174,4 @@ pending-value-ok-2 = Pending (evalRaw test-value-ok-2 ≡ expected-value-ok-2)
 
 ## zero-asset
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).

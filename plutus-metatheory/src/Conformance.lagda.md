@@ -4,8 +4,9 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
-     Regenerate with `cabal run plutus-conformance:generate-agda-conformance`
-     from the repository root. -->
+     Regenerate with `generate-agda-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-conformance` from the
+     repository root. -->
 
 Unit tests generated from the UPLC evaluation conformance test cases in
 `plutus-conformance/test-cases/uplc/evaluation`. Each case is a `refl` proof
@@ -18,7 +19,7 @@ Test cases:
 - proved by `refl`: 228
 - pending (postulated constants or builtins, or known failures): 711
 - skipped, constant not expressible in Agda: 6
-- skipped, program does not parse: 66
+- skipped, program does not parse or has free variables: 66
 
 ```
 module Conformance where

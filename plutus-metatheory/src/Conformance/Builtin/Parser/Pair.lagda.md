@@ -4,8 +4,9 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
-     Regenerate with `cabal run plutus-conformance:generate-agda-conformance`
-     from the repository root. -->
+     Regenerate with `generate-agda-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-conformance` from the
+     repository root. -->
 
 Conformance tests generated from
 `plutus-conformance/test-cases/uplc/evaluation/builtin/parser/pair`.
@@ -19,15 +20,15 @@ open import Conformance.Eval
 
 ## illTypedNestedPair
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## illTypedPair-01
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## illTypedPair-02
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
 
 ## nestedPair
 

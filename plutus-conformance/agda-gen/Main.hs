@@ -14,7 +14,11 @@ because they involve constants or builtins that are still postulates on the
 Agda side, are emitted as /pending/: the proposition is stated (and therefore
 type-checked) but not proved.  See @Conformance.Eval@ in the metatheory.
 
-Run from the repository root:
+Run from the nix shell:
+
+> generate-agda-conformance
+
+or, without nix, from the repository root:
 
 > cabal run plutus-conformance:generate-agda-conformance
 
@@ -273,7 +277,7 @@ data Outcome
   deriving stock (Show)
 
 data Body
-  = -- | The program (or, inconsistently, the expected result) does not parse.
+  = -- | The program does not parse, or parses but has free variables.
     ParseError
   | -- | A constant in the case cannot be written in Agda.
     Skipped String
@@ -380,8 +384,9 @@ moduleName comps = intercalate "." ("Conformance" : comps)
 generatedNote :: [String]
 generatedNote =
   [ "<!-- GENERATED FILE: do not edit."
-  , "     Regenerate with `cabal run plutus-conformance:generate-agda-conformance`"
-  , "     from the repository root. -->"
+  , "     Regenerate with `generate-agda-conformance` from the nix shell, or with"
+  , "     `cabal run plutus-conformance:generate-agda-conformance` from the"
+  , "     repository root. -->"
   ]
 
 header :: String -> [String]
@@ -411,7 +416,7 @@ renderCase :: Case -> [String]
 renderCase Case {casePath = path, caseBody = body} =
   ["", "## " <> caseName, ""] <> case body of
     ParseError ->
-      ["Skipped: the program does not parse (`parse/decode error`)."]
+      ["Skipped: the program does not parse or has free variables (`parse/decode error`)."]
     Skipped reason ->
       ["Skipped: a " <> reason <> " cannot be written in Agda."]
     Test
@@ -462,7 +467,7 @@ renderIndex groups summary =
          , "- pending (postulated constants or builtins, or known failures): "
              <> show (summaryPending summary)
          , "- skipped, constant not expressible in Agda: " <> show (summarySkipped summary)
-         , "- skipped, program does not parse: " <> show (summaryParseErrors summary)
+         , "- skipped, program does not parse or has free variables: " <> show (summaryParseErrors summary)
          , ""
          , "```"
          , "module Conformance where"
@@ -495,11 +500,10 @@ writeUtf8 path = BS.writeFile path . TE.encodeUtf8 . T.pack
 
 main :: IO ()
 main = do
-  (root, outDir) <-
-    getArgs >>= \case
-      [] -> pure ("plutus-conformance/test-cases/uplc/evaluation", "plutus-metatheory/src")
-      [r, o] -> pure (r, o)
-      _ -> die "usage: generate-agda-conformance [TEST-CASE-ROOT AGDA-SRC-DIR]"
+  args <- getArgs
+  unless (null args) $ die "usage: generate-agda-conformance (takes no arguments)"
+  let root = "plutus-conformance/test-cases/uplc/evaluation"
+      outDir = "plutus-metatheory/src"
   rootExists <- doesDirectoryExist root
   unless rootExists $ die $ "test-case root " <> root <> " not found (run from the repository root)"
   cases <- findCases root >>= mapM (readCase root)
@@ -539,4 +543,4 @@ main = do
   putStrLn $ "  proved by refl:                " <> show (summaryActive summary)
   putStrLn $ "  pending:                       " <> show (summaryPending summary)
   putStrLn $ "  skipped (unprintable constant): " <> show (summarySkipped summary)
-  putStrLn $ "  skipped (parse error):         " <> show (summaryParseErrors summary)
+  putStrLn $ "  skipped (parse/scope error):   " <> show (summaryParseErrors summary)

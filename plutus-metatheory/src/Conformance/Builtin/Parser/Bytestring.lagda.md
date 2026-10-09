@@ -4,8 +4,9 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
-     Regenerate with `cabal run plutus-conformance:generate-agda-conformance`
-     from the repository root. -->
+     Regenerate with `generate-agda-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-conformance` from the
+     repository root. -->
 
 Conformance tests generated from
 `plutus-conformance/test-cases/uplc/evaluation/builtin/parser/bytestring`.
@@ -64,4 +65,4 @@ pending-bytestring-03 = Pending (evalRaw test-bytestring-03 ≡ expected-bytestr
 
 ## bytestring-04
 
-Skipped: the program does not parse (`parse/decode error`).
+Skipped: the program does not parse or has free variables (`parse/decode error`).
