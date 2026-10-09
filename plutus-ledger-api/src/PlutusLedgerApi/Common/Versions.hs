@@ -247,11 +247,11 @@ batch4a =
   ]
 
 {- batch4b: IntegerToByteString and ByteStringToInteger.  These were enabled in
- PlutusV3 at PV9, along with batch4a, They were enabled in PlutusV2 at PV10 in
+ PlutusV3 at PV9, along with batch4a. They were enabled in PlutusV2 at PV10 in
  #6056 and #6065.  They are available on the chain, but they're prohibitively
  expensive because the proposal to update the relevant protocol parameters has
- not (yet) been enacted.  This has left a "gap" in the cost model paramters: for
- PlutusV3, the parameters for Batch 3 are followed those for 4a, then 4b, but
+ not (yet) been enacted.  This has left a "gap" in the cost model parameters: for
+ PlutusV3, the parameters for Batch 3 are followed by those for 4a, then 4b, but
  for PlutusV2 those for Batch3 are followed by those for Batch 4a, and those for
  4b aren't in use yet.  Since you can't actually use the 4b builtins in PlutusV2
  at the moment, it's tempting to insert the 4a parameter before the 4b
@@ -285,9 +285,8 @@ batch5 =
   , Ripemd_160
   ]
 
--- Add new builtins for release in the van Rossem HF here (PV10 -> PV11).
--- Once the van Rossem HF has happened, mark this as not to be
--- changed and open a new batch.
+-- Batches 1-6 were enabled for all ledger languages at PV11
+-- DO NOT CHANGE THIS.
 batch6 :: [DefaultFun]
 batch6 =
   [ ExpModInteger
