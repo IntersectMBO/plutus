@@ -19,8 +19,6 @@ import PlutusCore.Quote
 
 import PlutusCore.StdLib.Type
 
-import Universe
-
 {- Note [Tree]
 Here we encode the following:
 
@@ -174,7 +172,7 @@ forestData = runQuote $ do
 
 > /\(a :: *) -> \(x : a) (fr : forest a) ->
 >     wrapTree [a] /\(r :: *) -> \(f : a -> forest a -> r) -> f x fr -}
-treeNode :: HasUniApply uni => Term TyName Name uni fun ()
+treeNode :: Term TyName Name uni fun ()
 treeNode =
   runQuote $
     normalizeTypesIn =<< do
@@ -205,7 +203,7 @@ treeNode =
 
 > /\(a :: *) ->
 >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> z -}
-forestNil :: HasUniApply uni => Term TyName Name uni fun ()
+forestNil :: Term TyName Name uni fun ()
 forestNil =
   runQuote $
     normalizeTypesIn =<< do
@@ -231,7 +229,7 @@ forestNil =
 
 > /\(a :: *) -> \(tr : tree a) (fr : forest a)
 >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> f tr fr -}
-forestCons :: HasUniApply uni => Term TyName Name uni fun ()
+forestCons :: Term TyName Name uni fun ()
 forestCons =
   runQuote $
     normalizeTypesIn =<< do

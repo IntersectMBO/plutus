@@ -11,8 +11,6 @@ module PlutusTx.Compiler.Utils where
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Types
 
-import PlutusCore qualified as PLC
-
 import GHC.Core qualified as GHC
 import GHC.Plugins qualified as GHC
 import GHC.Types.TyThing qualified as GHC
@@ -23,15 +21,8 @@ import Control.Monad.Reader (MonadReader, ask)
 
 import Language.Haskell.TH.Syntax qualified as TH
 
-import Data.Kind qualified as Kind
 import Data.Map qualified as Map
 import Data.Text qualified as T
-
-{-| Identical to `SomeTypeIn` but without existential kind. Having kind fixed to
-`Type` makes it easier to pattern match and construct a different type within
-universe. See how it's used in 'compileMkNil'. -}
-type SomeStarIn :: (Kind.Type -> Kind.Type) -> Kind.Type
-data SomeStarIn uni = forall a. SomeStarIn !(uni (PLC.Esc a))
 
 {-| Get the 'GHC.TyCon' for a given 'TH.Name' stored in the builtin name info,
 failing if it is missing. -}

@@ -91,10 +91,10 @@ du_eraseVar_28 v0 v1 v2
 -- Algorithmic.Erasure.eraseTC
 d_eraseTC_36 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  AgdaAny -> MAlonzo.Code.RawU.T_TmCon_204
+  AgdaAny -> MAlonzo.Code.RawU.T_TmCon_198
 d_eraseTC_36 v0 v1
   = coe
-      MAlonzo.Code.RawU.C_tmCon_208
+      MAlonzo.Code.RawU.C_tmCon_202
       (coe MAlonzo.Code.Algorithmic.d_ty2sty_64 (coe v0)) (coe v1)
 -- Algorithmic.Erasure.erase
 d_erase_48 ::
@@ -380,7 +380,7 @@ d_lemcon''_294 ::
   Integer ->
   Integer ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  MAlonzo.Code.RawU.T_TmCon_204 ->
+  MAlonzo.Code.RawU.T_TmCon_198 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_lemcon''_294 = erased
 -- Algorithmic.Erasure.lemerror

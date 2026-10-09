@@ -804,7 +804,7 @@ entryExitTracing
   -> PLC.Type PLC.TyName PLC.DefaultUni Ann
   -> PIRTerm PLC.DefaultUni PLC.DefaultFun
 entryExitTracing lamName displayName e ty =
-  let defaultUnitTy = PLC.TyBuiltin annMayInline (PLC.SomeTypeIn PLC.DefaultUniUnit)
+  let defaultUnitTy = PLC.mkTyBuiltin @_ @() annMayInline
       defaultUnit = PIR.Constant annMayInline (PLC.someValueOf PLC.DefaultUniUnit ())
    in -- (trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
       PIR.Apply
@@ -964,35 +964,35 @@ compileExpr mloc e = do
       -> m (PIRTerm uni fun)
     compileMkNil ty =
       let
-        tyToUniverse :: GHC.Type -> Maybe (SomeStarIn PLC.DefaultUni)
+        tyToUniverse :: GHC.Type -> Maybe (PLC.Some PLC.DefaultUni)
         tyToUniverse (GHC.TyConApp tyCon [tyArg1, tyArg2])
           | tyCon == builtinPairTyCon = do
-              (SomeStarIn a) <- tyToUniverse tyArg1
-              (SomeStarIn b) <- tyToUniverse tyArg2
-              pure $ SomeStarIn (PLC.DefaultUniPair a b)
+              PLC.Some a <- tyToUniverse tyArg1
+              PLC.Some b <- tyToUniverse tyArg2
+              pure $ PLC.Some (PLC.DefaultUniPair a b)
           | otherwise = Nothing
         tyToUniverse (GHC.TyConApp tyCon [tyArg1])
           | tyCon == builtinListTyCon = do
-              (SomeStarIn a) <- tyToUniverse tyArg1
-              pure $ SomeStarIn (PLC.DefaultUniList a)
+              PLC.Some a <- tyToUniverse tyArg1
+              pure $ PLC.Some (PLC.DefaultUniList a)
           | tyCon == builtinArrayTyCon = do
-              (SomeStarIn a) <- tyToUniverse tyArg1
-              pure $ SomeStarIn (PLC.DefaultUniArray a)
+              PLC.Some a <- tyToUniverse tyArg1
+              pure $ PLC.Some (PLC.DefaultUniArray a)
           | otherwise = Nothing
         tyToUniverse (GHC.TyConApp tyCon [])
           | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon =
-              pure $ SomeStarIn PLC.DefaultUniInteger
-          | tyCon == builtinByteStringTyCon = pure $ SomeStarIn PLC.DefaultUniByteString
-          | tyCon == GHC.boolTyCon = pure $ SomeStarIn PLC.DefaultUniBool
-          | tyCon == builtinDataTyCon = pure $ SomeStarIn PLC.DefaultUniData
-          | tyCon == builtinBLS12_G1_TyCon = pure $ SomeStarIn PLC.DefaultUniBLS12_381_G1_Element
-          | tyCon == builtinBLS12_G2_TyCon = pure $ SomeStarIn PLC.DefaultUniBLS12_381_G2_Element
-          | tyCon == builtinValueTyCon = pure $ SomeStarIn PLC.DefaultUniValue
+              pure $ PLC.Some PLC.DefaultUniInteger
+          | tyCon == builtinByteStringTyCon = pure $ PLC.Some PLC.DefaultUniByteString
+          | tyCon == GHC.boolTyCon = pure $ PLC.Some PLC.DefaultUniBool
+          | tyCon == builtinDataTyCon = pure $ PLC.Some PLC.DefaultUniData
+          | tyCon == builtinBLS12_G1_TyCon = pure $ PLC.Some PLC.DefaultUniBLS12_381_G1_Element
+          | tyCon == builtinBLS12_G2_TyCon = pure $ PLC.Some PLC.DefaultUniBLS12_381_G2_Element
+          | tyCon == builtinValueTyCon = pure $ PLC.Some PLC.DefaultUniValue
           | otherwise = Nothing
         tyToUniverse _ = Nothing
        in
         case tyToUniverse ty of
-          Just (SomeStarIn (ty' :: PLC.DefaultUni (PLC.Esc a))) ->
+          Just (PLC.Some (ty' :: PLC.DefaultUni a)) ->
             pure $ PLC.constant annMayInline $ PLC.Some $ PLC.ValueOf (PLC.DefaultUniList ty') []
           Nothing -> throwPlain $ CompilationError "'mkNil' applied to an unknown type"
 

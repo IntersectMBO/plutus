@@ -1054,7 +1054,7 @@ But since we're ignoring the actual list, can't we just not pass it in the first
 pass around our good old friends, singletons. We should be able to do that, but it hasn't been
 investigated. Perhaps something along the lines of adding the following constructor to 'DefaultUni':
 
-    DefaultUniProtoSing :: DefaultUni (Esc (Proxy @GHC.Type))
+    DefaultUniProtoSing :: DefaultUni (Proxy @GHC.Type)
 
 and then defining
 

@@ -8,7 +8,6 @@ import PlutusCore.Generators.QuickCheck.Common
 import PlutusCore.Generators.QuickCheck.GenTm
 import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 
-import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Name.Unique
@@ -55,7 +54,7 @@ genAtomicType k = do
   let atoms =
         [TyVar () x | (x, k') <- Map.toList tys, k == k']
           ++ [TyVar () x | (x, Datatype _ (TyVarDecl _ _ k') _ _ _) <- Map.toList dts, k == k']
-      genBuiltin = fmap (TyBuiltin ()) <$> genBuiltinTypeOf k
+      genBuiltin = genBuiltinTypeOf k
       lam k1 k2 = do
         x <- genMaybeFreshTyName "a"
         TyLam () x k1 <$> bindTyName x k1 (genAtomicType k2)
@@ -166,10 +165,6 @@ genKindAndTypeWithCtx :: TypeCtx -> Gen (Kind (), Type TyName DefaultUni ())
 genKindAndTypeWithCtx ctx = do
   k <- arbitrary
   runGenTm $ local (\e -> e {geTypes = ctx}) ((k,) <$> genType k)
-
--- | Get the kind of a builtin
-builtinKind :: SomeTypeIn DefaultUni -> Kind ()
-builtinKind (SomeTypeIn t) = kindOfBuiltinType t
 
 -- | Generate an arbitrary kind and closed type of that kind.
 genKindAndType :: Gen (Kind (), Type TyName DefaultUni ())

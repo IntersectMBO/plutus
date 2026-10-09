@@ -11,13 +11,13 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
@@ -35,12 +35,9 @@
 -- | The universe used by default and its instances.
 module PlutusCore.Default.Universe
   ( DefaultUni (..)
-  , pattern DefaultUniList
-  , pattern DefaultUniArray
-  , pattern DefaultUniPair
+  , SomeTypeHead (..)
   , defaultUniSize
   , decodeDefaultUniValue
-  , noMoreTypeFunctions
   , caseBuiltinDefault
   , caseBuiltinNoData
   , module Export -- Re-exporting universes infrastructure for convenience.
@@ -49,7 +46,7 @@ module PlutusCore.Default.Universe
 import PlutusPrelude
 
 import PlutusCore.Builtin
-import PlutusCore.Core.Type (Type (..))
+import PlutusCore.Core.Type (Kind (..), Type (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -66,16 +63,21 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , ValueOuterSize (..)
   , ValueTotalSize (..)
   )
-import PlutusCore.Flat (Flat (decode))
-import PlutusCore.Flat.Decoder (Get, decodeListWith)
-import PlutusCore.FlatInstances ()
+import PlutusCore.Flat (Flat (..))
+import PlutusCore.Flat.Decoder (Get, dBEBits8, dBool, decodeListWith)
+import PlutusCore.Flat.Encoder (encodeListWith)
+import PlutusCore.FlatInstances (safeEncodeBits)
 import PlutusCore.Pretty.Extra (juxtRenderContext)
+import PlutusCore.Pretty.Readable (iterAppPrettyM)
 import PlutusCore.Value (Value)
 
 import Control.Applicative.Lift (Lift (..), unLift)
+import Control.Monad (unless, when)
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
+import Data.GADT.DeepSeq (GNFData (..))
+import Data.Hashable (Hashable (..))
 import Data.Int
   ( Int16
   , Int32
@@ -102,9 +104,10 @@ import Universe as Export
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
 see Note [Universes]. A built-in type in PLC is an inhabitant of
 
-    Some (TypeIn uni)
+    SomeTypeHead uni
 
 where @uni@ is some universe, i.e. a collection of tags that have meta-types associated with them.
+Only bare heads are embedded this way; applications use the ordinary 'TyApp' constructor.
 
 A value of a built-in type is a regular Haskell value stored in
 
@@ -112,7 +115,7 @@ A value of a built-in type is a regular Haskell value stored in
 
 (together with the tag associated with its type) and such a value is also called a meta-constant.
 
-The default universe has the following constructor (pattern synonym actually):
+The default universe has the following constructor:
 
     DefaultUniList :: !(DefaultUni a) -> DefaultUni [a]
 
@@ -132,50 +135,97 @@ We already allow built-in functions with polymorphic types. There might be a way
 feature and have meta-constructors as built-in functions.
 -}
 
--- See Note [Representing polymorphism].
--- | The universe used by default.
+-- | Tags for fully instantiated constant types.
 data DefaultUni a where
-  DefaultUniInteger :: DefaultUni (Esc Integer)
-  DefaultUniByteString :: DefaultUni (Esc ByteString)
-  DefaultUniString :: DefaultUni (Esc Text)
-  DefaultUniUnit :: DefaultUni (Esc ())
-  DefaultUniBool :: DefaultUni (Esc Bool)
-  DefaultUniProtoArray :: DefaultUni (Esc Strict.Vector)
-  DefaultUniProtoList :: DefaultUni (Esc [])
-  DefaultUniProtoPair :: DefaultUni (Esc (,))
-  DefaultUniApply :: !(DefaultUni (Esc f)) -> !(DefaultUni (Esc a)) -> DefaultUni (Esc (f a))
-  DefaultUniData :: DefaultUni (Esc Data)
-  DefaultUniBLS12_381_G1_Element :: DefaultUni (Esc BLS12_381.G1.Element)
-  DefaultUniBLS12_381_G2_Element :: DefaultUni (Esc BLS12_381.G2.Element)
-  DefaultUniBLS12_381_MlResult :: DefaultUni (Esc BLS12_381.Pairing.MlResult)
-  DefaultUniValue :: DefaultUni (Esc Value)
+  DefaultUniInteger :: DefaultUni Integer
+  DefaultUniByteString :: DefaultUni ByteString
+  DefaultUniString :: DefaultUni Text
+  DefaultUniUnit :: DefaultUni ()
+  DefaultUniBool :: DefaultUni Bool
+  DefaultUniData :: DefaultUni Data
+  DefaultUniBLS12_381_G1_Element :: DefaultUni BLS12_381.G1.Element
+  DefaultUniBLS12_381_G2_Element :: DefaultUni BLS12_381.G2.Element
+  DefaultUniBLS12_381_MlResult :: DefaultUni BLS12_381.Pairing.MlResult
+  DefaultUniValue :: DefaultUni Value
+  DefaultUniList :: !(DefaultUni a) -> DefaultUni [a]
+  DefaultUniPair :: !(DefaultUni a) -> !(DefaultUni b) -> DefaultUni (a, b)
+  DefaultUniArray :: !(DefaultUni a) -> DefaultUni (Strict.Vector a)
 
--- GHC infers crazy types for these two and the straightforward ones break pattern matching,
--- so we just leave GHC with its craziness.
-pattern DefaultUniList uniA =
-  DefaultUniProtoList `DefaultUniApply` uniA
-pattern DefaultUniArray uniA =
-  DefaultUniProtoArray `DefaultUniApply` uniA
-pattern DefaultUniPair uniA uniB =
-  DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
+-- | Bare type constructors used by the type AST.
+data instance SomeTypeHead DefaultUni
+  = DefaultUniIntegerHead
+  | DefaultUniByteStringHead
+  | DefaultUniStringHead
+  | DefaultUniUnitHead
+  | DefaultUniBoolHead
+  | DefaultUniListHead
+  | DefaultUniPairHead
+  | DefaultUniDataHead
+  | DefaultUniBLS12_381_G1_ElementHead
+  | DefaultUniBLS12_381_G2_ElementHead
+  | DefaultUniBLS12_381_MlResultHead
+  | DefaultUniArrayHead
+  | DefaultUniValueHead
+  deriving stock (Eq, Ord, Show, Enum, Bounded, Generic)
+  deriving anyclass (NFData, Hashable)
 
-defaultUniSize :: forall k (a :: k). DefaultUni (Esc a) -> Int
-defaultUniSize = \case
-  DefaultUniApply uniF uniA -> defaultUniSize uniF + defaultUniSize uniA + 1
-  _ -> 1
+instance KnownTypeHead DefaultUni Integer where
+  knownTypeHead = DefaultUniIntegerHead
+instance KnownTypeHead DefaultUni ByteString where
+  knownTypeHead = DefaultUniByteStringHead
+instance KnownTypeHead DefaultUni Text where
+  knownTypeHead = DefaultUniStringHead
+instance KnownTypeHead DefaultUni () where
+  knownTypeHead = DefaultUniUnitHead
+instance KnownTypeHead DefaultUni Bool where
+  knownTypeHead = DefaultUniBoolHead
+instance KnownTypeHead DefaultUni [] where
+  knownTypeHead = DefaultUniListHead
+instance KnownTypeHead DefaultUni (,) where
+  knownTypeHead = DefaultUniPairHead
+instance KnownTypeHead DefaultUni Data where
+  knownTypeHead = DefaultUniDataHead
+instance KnownTypeHead DefaultUni BLS12_381.G1.Element where
+  knownTypeHead = DefaultUniBLS12_381_G1_ElementHead
+instance KnownTypeHead DefaultUni BLS12_381.G2.Element where
+  knownTypeHead = DefaultUniBLS12_381_G2_ElementHead
+instance KnownTypeHead DefaultUni BLS12_381.Pairing.MlResult where
+  knownTypeHead = DefaultUniBLS12_381_MlResultHead
+instance KnownTypeHead DefaultUni Strict.Vector where
+  knownTypeHead = DefaultUniArrayHead
+instance KnownTypeHead DefaultUni Value where
+  knownTypeHead = DefaultUniValueHead
+
+-- | Number of tags in the stable encoding.
+defaultUniSize :: DefaultUni a -> Int
+defaultUniSize (DefaultUniList a) = 2 + defaultUniSize a
+defaultUniSize (DefaultUniArray a) = 2 + defaultUniSize a
+defaultUniSize (DefaultUniPair a b) = 3 + defaultUniSize a + defaultUniSize b
+defaultUniSize DefaultUniInteger = 1
+defaultUniSize DefaultUniByteString = 1
+defaultUniSize DefaultUniString = 1
+defaultUniSize DefaultUniUnit = 1
+defaultUniSize DefaultUniBool = 1
+defaultUniSize DefaultUniData = 1
+defaultUniSize DefaultUniBLS12_381_G1_Element = 1
+defaultUniSize DefaultUniBLS12_381_G2_Element = 1
+defaultUniSize DefaultUniBLS12_381_MlResult = 1
+defaultUniSize DefaultUniValue = 1
 
 -- | Build a Flat decoder from the parsed type, sharing all-unit subtrees across values.
-decodeDefaultUniValue :: DefaultUni (Esc a) -> Get a
+decodeDefaultUniValue :: DefaultUni a -> Get a
 decodeDefaultUniValue uni = unLift (compile uni)
   where
-    compile :: DefaultUni (Esc a) -> Lift Get a
+    compile :: DefaultUni a -> Lift Get a
     compile DefaultUniUnit = pure ()
     compile (DefaultUniPair a b) =
       case (compile a, compile b) of
         -- Deserialiser behave identically without this pattern; however, having this pattern
         -- makes it run about 40%~60% faster in some cases.
         (Other dx, Pure y) -> Other ((\x -> (x, y)) <$> dx)
-        (da, db) -> (,) <$> da <*> db
+        (Pure x, Pure y) -> Pure (x, y)
+        (Pure x, Other dy) -> Other ((\y -> (x, y)) <$> dy)
+        (Other dx, Other dy) -> Other ((,) <$> dx <*> dy)
     compile (DefaultUniList a) =
       case compile a of
         Pure value -> Other (decodeListWith (pure value))
@@ -184,7 +234,15 @@ decodeDefaultUniValue uni = unLift (compile uni)
       case compile a of
         Pure value -> Other (Strict.fromList <$> decodeListWith (pure value))
         Other decoder -> Other (Strict.fromList <$> decodeListWith decoder)
-    compile other = Other (bring (Proxy @Flat) other decode)
+    compile DefaultUniInteger = Other decode
+    compile DefaultUniByteString = Other decode
+    compile DefaultUniString = Other decode
+    compile DefaultUniBool = Other decode
+    compile DefaultUniData = Other decode
+    compile DefaultUniBLS12_381_G1_Element = Other decode
+    compile DefaultUniBLS12_381_G2_Element = Other decode
+    compile DefaultUniBLS12_381_MlResult = Other decode
+    compile DefaultUniValue = Other decode
 
 -- Removing 'LoopBreaker' didn't change anything at the time this comment was written, but we kept
 -- it, because it hopefully provides some additional assurance that 'geqL' will not get elaborated
@@ -205,21 +263,19 @@ instance AllBuiltinArgs DefaultUni (GEqL DefaultUni) a => GEqL DefaultUni a wher
   geqL DefaultUniBool a2 = do
     DefaultUniBool <- pure a2
     pure Refl
-  geqL (DefaultUniProtoList `DefaultUniApply` a1) listA2 = do
-    DefaultUniProtoList `DefaultUniApply` a2 <- pure listA2
+  geqL (DefaultUniList a1) listA2 = do
+    DefaultUniList a2 <- pure listA2
     Refl <- geqL (LoopBreaker a1) (LoopBreaker a2)
     pure Refl
-  geqL (DefaultUniProtoArray `DefaultUniApply` a1) arrayA2 = do
-    DefaultUniProtoArray `DefaultUniApply` a2 <- pure arrayA2
+  geqL (DefaultUniArray a1) arrayA2 = do
+    DefaultUniArray a2 <- pure arrayA2
     Refl <- geqL (LoopBreaker a1) (LoopBreaker a2)
     pure Refl
-  geqL (DefaultUniProtoPair `DefaultUniApply` a1 `DefaultUniApply` b1) pairA2 = do
-    DefaultUniProtoPair `DefaultUniApply` a2 `DefaultUniApply` b2 <- pure pairA2
+  geqL (DefaultUniPair a1 b1) pairA2 = do
+    DefaultUniPair a2 b2 <- pure pairA2
     Refl <- geqL (LoopBreaker a1) (LoopBreaker a2)
     Refl <- geqL (LoopBreaker b1) (LoopBreaker b2)
     pure Refl
-  geqL (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
-    noMoreTypeFunctions f
   geqL DefaultUniData a2 = do
     DefaultUniData <- pure a2
     pure Refl
@@ -271,19 +327,18 @@ instance GEq DefaultUni where
       goStep DefaultUniBool a2 = do
         DefaultUniBool <- pure a2
         pure Refl
-      goStep DefaultUniProtoList a2 = do
-        DefaultUniProtoList <- pure a2
+      goStep (DefaultUniList a1) a2 = do
+        DefaultUniList a2' <- pure a2
+        Refl <- goRec a1 a2'
         pure Refl
-      goStep DefaultUniProtoArray a2 = do
-        DefaultUniProtoArray <- pure a2
+      goStep (DefaultUniArray a1) a2 = do
+        DefaultUniArray a2' <- pure a2
+        Refl <- goRec a1 a2'
         pure Refl
-      goStep DefaultUniProtoPair a2 = do
-        DefaultUniProtoPair <- pure a2
-        pure Refl
-      goStep (DefaultUniApply f1 x1) a2 = do
-        DefaultUniApply f2 x2 <- pure a2
-        Refl <- goRec f1 f2
-        Refl <- goRec x1 x2
+      goStep (DefaultUniPair a1 b1) a2 = do
+        DefaultUniPair a2' b2' <- pure a2
+        Refl <- goRec a1 a2'
+        Refl <- goRec b1 b2'
         pure Refl
       goStep DefaultUniData a2 = do
         DefaultUniData <- pure a2
@@ -305,34 +360,46 @@ instance GEq DefaultUni where
       goRec = goStep
       {-# NOINLINE goRec #-}
 
--- | For pleasing the coverage checker.
-noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any
-noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
-
 instance ToKind DefaultUni where
-  toSingKind DefaultUniInteger = knownKind
-  toSingKind DefaultUniByteString = knownKind
-  toSingKind DefaultUniString = knownKind
-  toSingKind DefaultUniUnit = knownKind
-  toSingKind DefaultUniBool = knownKind
-  toSingKind DefaultUniProtoList = knownKind
-  toSingKind DefaultUniProtoArray = knownKind
-  toSingKind DefaultUniProtoPair = knownKind
-  toSingKind (DefaultUniApply uniF _) = case toSingKind uniF of _ `SingKindArrow` cod -> cod
-  toSingKind DefaultUniData = knownKind
-  toSingKind DefaultUniBLS12_381_G1_Element = knownKind
-  toSingKind DefaultUniBLS12_381_G2_Element = knownKind
-  toSingKind DefaultUniBLS12_381_MlResult = knownKind
-  toSingKind DefaultUniValue = knownKind
-
-instance HasUniApply DefaultUni where
-  uniApply = DefaultUniApply
-
-  matchUniApply (DefaultUniApply f a) _ h = h f a
-  matchUniApply _ z _ = z
+  kindOfBuiltinType DefaultUniListHead = KindArrow () (Type ()) (Type ())
+  kindOfBuiltinType DefaultUniArrayHead = KindArrow () (Type ()) (Type ())
+  kindOfBuiltinType DefaultUniPairHead = KindArrow () (Type ()) $ KindArrow () (Type ()) (Type ())
+  kindOfBuiltinType DefaultUniIntegerHead = Type ()
+  kindOfBuiltinType DefaultUniByteStringHead = Type ()
+  kindOfBuiltinType DefaultUniStringHead = Type ()
+  kindOfBuiltinType DefaultUniUnitHead = Type ()
+  kindOfBuiltinType DefaultUniBoolHead = Type ()
+  kindOfBuiltinType DefaultUniDataHead = Type ()
+  kindOfBuiltinType DefaultUniBLS12_381_G1_ElementHead = Type ()
+  kindOfBuiltinType DefaultUniBLS12_381_G2_ElementHead = Type ()
+  kindOfBuiltinType DefaultUniBLS12_381_MlResultHead = Type ()
+  kindOfBuiltinType DefaultUniValueHead = Type ()
 
 deriving stock instance Show (DefaultUni a)
 instance GShow DefaultUni where gshowsPrec = showsPrec
+
+instance GNFData DefaultUni where
+  grnf (DefaultUniList a) = grnf a
+  grnf (DefaultUniArray a) = grnf a
+  grnf (DefaultUniPair a b) = grnf a `seq` grnf b
+  grnf DefaultUniInteger = ()
+  grnf DefaultUniByteString = ()
+  grnf DefaultUniString = ()
+  grnf DefaultUniUnit = ()
+  grnf DefaultUniBool = ()
+  grnf DefaultUniData = ()
+  grnf DefaultUniBLS12_381_G1_Element = ()
+  grnf DefaultUniBLS12_381_G2_Element = ()
+  grnf DefaultUniBLS12_381_MlResult = ()
+  grnf DefaultUniValue = ()
+
+instance Flat (Some DefaultUni) where
+  encode (Some uni) = encodeListWith (safeEncodeBits 4) (encodeUni uni)
+  decode = decodeUni
+  size (Some uni) acc = acc + 5 * defaultUniSize uni + 1
+
+instance Hashable (Some DefaultUni) where
+  hashWithSalt salt (Some uni) = hashWithSalt salt $ encodeUni uni
 
 instance PrettyBy RenderContext (DefaultUni a) where
   prettyBy = inContextM $ \case
@@ -341,26 +408,44 @@ instance PrettyBy RenderContext (DefaultUni a) where
     DefaultUniString -> "string"
     DefaultUniUnit -> "unit"
     DefaultUniBool -> "bool"
-    DefaultUniProtoList -> "list"
-    DefaultUniProtoArray -> "array"
-    DefaultUniProtoPair -> "pair"
-    DefaultUniApply uniF uniA -> uniF `juxtPrettyM` uniA
+    DefaultUniList a -> DefaultUniListHead `juxtPrettyM` a
+    DefaultUniArray a -> DefaultUniArrayHead `juxtPrettyM` a
+    DefaultUniPair a b -> iterAppPrettyM DefaultUniPairHead [Some a, Some b]
     DefaultUniData -> "data"
     DefaultUniBLS12_381_G1_Element -> "bls12_381_G1_element"
     DefaultUniBLS12_381_G2_Element -> "bls12_381_G2_element"
     DefaultUniBLS12_381_MlResult -> "bls12_381_mlresult"
     DefaultUniValue -> "value"
 
-instance PrettyBy RenderContext (SomeTypeIn DefaultUni) where
-  prettyBy config (SomeTypeIn uni) = prettyBy config uni
+instance PrettyBy RenderContext (SomeTypeHead DefaultUni) where
+  prettyBy _ = \case
+    DefaultUniIntegerHead -> "integer"
+    DefaultUniByteStringHead -> "bytestring"
+    DefaultUniStringHead -> "string"
+    DefaultUniUnitHead -> "unit"
+    DefaultUniBoolHead -> "bool"
+    DefaultUniListHead -> "list"
+    DefaultUniPairHead -> "pair"
+    DefaultUniDataHead -> "data"
+    DefaultUniBLS12_381_G1_ElementHead -> "bls12_381_G1_element"
+    DefaultUniBLS12_381_G2_ElementHead -> "bls12_381_G2_element"
+    DefaultUniBLS12_381_MlResultHead -> "bls12_381_mlresult"
+    DefaultUniArrayHead -> "array"
+    DefaultUniValueHead -> "value"
+
+instance Pretty (SomeTypeHead DefaultUni) where
+  pretty = prettyBy juxtRenderContext
+
+instance PrettyBy RenderContext (Some DefaultUni) where
+  prettyBy config (Some uni) = prettyBy config uni
 
 {-| This always pretty-prints parens around type applications (e.g. @(list bool)@) and
 doesn't pretty-print them otherwise (e.g. @integer@). -}
 instance Pretty (DefaultUni a) where
   pretty = prettyBy juxtRenderContext
 
-instance Pretty (SomeTypeIn DefaultUni) where
-  pretty (SomeTypeIn uni) = pretty uni
+instance Pretty (Some DefaultUni) where
+  pretty (Some uni) = pretty uni
 
 -- | Elaborate a built-in type (see 'ElaborateBuiltin') from 'DefaultUni'.
 type ElaborateBuiltinDefaultUni :: forall a. a -> a
@@ -370,8 +455,12 @@ type family ElaborateBuiltinDefaultUni x where
 
 type instance ElaborateBuiltin DefaultUni x = ElaborateBuiltinDefaultUni x
 
-instance (DefaultUni `Contains` f, DefaultUni `Contains` a) => DefaultUni `Contains` f a where
-  knownUni = knownUni `DefaultUniApply` knownUni
+instance DefaultUni `Contains` a => DefaultUni `Contains` [a] where
+  knownUni = DefaultUniList knownUni
+instance (DefaultUni `Contains` a, DefaultUni `Contains` b) => DefaultUni `Contains` (a, b) where
+  knownUni = DefaultUniPair knownUni knownUni
+instance DefaultUni `Contains` a => DefaultUni `Contains` Strict.Vector a where
+  knownUni = DefaultUniArray knownUni
 
 instance DefaultUni `Contains` Integer where
   knownUni = DefaultUniInteger
@@ -385,12 +474,6 @@ instance DefaultUni `Contains` Bool where
   knownUni = DefaultUniBool
 instance DefaultUni `Contains` Value where
   knownUni = DefaultUniValue
-instance DefaultUni `Contains` [] where
-  knownUni = DefaultUniProtoList
-instance DefaultUni `Contains` Strict.Vector where
-  knownUni = DefaultUniProtoArray
-instance DefaultUni `Contains` (,) where
-  knownUni = DefaultUniProtoPair
 instance DefaultUni `Contains` Data where
   knownUni = DefaultUniData
 instance DefaultUni `Contains` BLS12_381.G1.Element where
@@ -952,27 +1035,27 @@ outOfBoundsErr x branches =
 
 instance AnnotateCaseBuiltin DefaultUni where
   annotateCaseBuiltin ty branches = case ty of
-    TyBuiltin _ (SomeTypeIn DefaultUniUnit) ->
+    TyBuiltin _ DefaultUniUnitHead ->
       case branches of
         [x] -> Right [(x, [])]
         _ -> Left "Casing on unit only allows exactly one branch"
-    TyBuiltin _ (SomeTypeIn DefaultUniBool) ->
+    TyBuiltin _ DefaultUniBoolHead ->
       case branches of
         [f] -> Right [(f, [])]
         [f, t] -> Right [(f, []), (t, [])]
         _ -> Left "Casing on bool requires exactly one branch or two branches"
-    TyBuiltin _ (SomeTypeIn DefaultUniInteger) ->
+    TyBuiltin _ DefaultUniIntegerHead ->
       Right $ map (,[]) branches
-    dataTy@(TyBuiltin ann (SomeTypeIn DefaultUniData)) ->
+    dataTy@(TyBuiltin ann DefaultUniDataHead) ->
       let listDataTy =
-            TyApp ann (TyBuiltin ann $ SomeTypeIn DefaultUniProtoList) dataTy
+            TyApp ann (TyBuiltin ann DefaultUniListHead) dataTy
        in Right $ map (,[listDataTy]) branches
-    listTy@(TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoList)) argTy) ->
+    listTy@(TyApp _ (TyBuiltin _ DefaultUniListHead) argTy) ->
       case branches of
         [cons] -> Right [(cons, [argTy, listTy])]
         [cons, nil] -> Right [(cons, [argTy, listTy]), (nil, [])]
         _ -> Left "Casing on list requires exactly one branch or two branches"
-    (TyApp _ (TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoPair)) lTyArg) rTyArg) ->
+    TyApp _ (TyApp _ (TyBuiltin _ DefaultUniPairHead) lTyArg) rTyArg ->
       case branches of
         [f] -> Right [(f, [lTyArg, rTyArg])]
         _ -> Left "Casing on pair requires exactly one branch"
@@ -1079,65 +1162,108 @@ instance Closed DefaultUni where
       , constr `Permits` BLS12_381.Pairing.MlResult
       )
 
+  encodeTypeHead DefaultUniIntegerHead = 0
+  encodeTypeHead DefaultUniByteStringHead = 1
+  encodeTypeHead DefaultUniStringHead = 2
+  encodeTypeHead DefaultUniUnitHead = 3
+  encodeTypeHead DefaultUniBoolHead = 4
+  encodeTypeHead DefaultUniListHead = 5
+  encodeTypeHead DefaultUniPairHead = 6
+  encodeTypeHead DefaultUniDataHead = 8
+  encodeTypeHead DefaultUniBLS12_381_G1_ElementHead = 9
+  encodeTypeHead DefaultUniBLS12_381_G2_ElementHead = 10
+  encodeTypeHead DefaultUniBLS12_381_MlResultHead = 11
+  encodeTypeHead DefaultUniArrayHead = 12
+  encodeTypeHead DefaultUniValueHead = 13
+
+  decodeTypeHead 0 = Just DefaultUniIntegerHead
+  decodeTypeHead 1 = Just DefaultUniByteStringHead
+  decodeTypeHead 2 = Just DefaultUniStringHead
+  decodeTypeHead 3 = Just DefaultUniUnitHead
+  decodeTypeHead 4 = Just DefaultUniBoolHead
+  decodeTypeHead 5 = Just DefaultUniListHead
+  decodeTypeHead 6 = Just DefaultUniPairHead
+  decodeTypeHead 8 = Just DefaultUniDataHead
+  decodeTypeHead 9 = Just DefaultUniBLS12_381_G1_ElementHead
+  decodeTypeHead 10 = Just DefaultUniBLS12_381_G2_ElementHead
+  decodeTypeHead 11 = Just DefaultUniBLS12_381_MlResultHead
+  decodeTypeHead 12 = Just DefaultUniArrayHead
+  decodeTypeHead 13 = Just DefaultUniValueHead
+  decodeTypeHead _ = Nothing
+
   -- See Note [Stable encoding of tags].
-  -- IF YOU'RE GETTING A WARNING HERE, DON'T FORGET TO AMEND 'withDecodedUni' RIGHT BELOW.
+  -- IF YOU'RE GETTING A WARNING HERE, DON'T FORGET TO AMEND 'decodeUni' RIGHT BELOW.
   encodeUni DefaultUniInteger = [0]
   encodeUni DefaultUniByteString = [1]
   encodeUni DefaultUniString = [2]
   encodeUni DefaultUniUnit = [3]
   encodeUni DefaultUniBool = [4]
-  encodeUni DefaultUniProtoList = [5]
-  encodeUni DefaultUniProtoPair = [6]
-  encodeUni (DefaultUniApply uniF uniA) = 7 : encodeUni uniF ++ encodeUni uniA
+  encodeUni (DefaultUniList a) = 7 : 5 : encodeUni a
+  encodeUni (DefaultUniArray a) = 7 : 12 : encodeUni a
+  encodeUni (DefaultUniPair a b) = 7 : 7 : 6 : encodeUni a ++ encodeUni b
   encodeUni DefaultUniData = [8]
   encodeUni DefaultUniBLS12_381_G1_Element = [9]
   encodeUni DefaultUniBLS12_381_G2_Element = [10]
   encodeUni DefaultUniBLS12_381_MlResult = [11]
-  encodeUni DefaultUniProtoArray = [12]
   encodeUni DefaultUniValue = [13]
 
-  -- See Note [Decoding universes].
   -- See Note [Stable encoding of tags].
-  withDecodedUni k =
-    peelUniTag >>= \case
-      0 -> k DefaultUniInteger
-      1 -> k DefaultUniByteString
-      2 -> k DefaultUniString
-      3 -> k DefaultUniUnit
-      4 -> k DefaultUniBool
-      5 -> k DefaultUniProtoList
-      6 -> k DefaultUniProtoPair
-      7 ->
-        withDecodedUni @DefaultUni $ \uniF ->
-          withDecodedUni @DefaultUni $ \uniA ->
-            withApplicable uniF uniA $
-              k $
-                uniF `DefaultUniApply` uniA
-      8 -> k DefaultUniData
-      9 -> k DefaultUniBLS12_381_G1_Element
-      10 -> k DefaultUniBLS12_381_G2_Element
-      11 -> k DefaultUniBLS12_381_MlResult
-      12 -> k DefaultUniProtoArray
-      13 -> k DefaultUniValue
-      _ -> empty
+  decodeUni = do
+    uni <- go
+    more <- dBool
+    when more $ fail "Trailing tags in a constant type"
+    pure uni
+    where
+      readTag :: Get Word8
+      readTag = do
+        more <- dBool
+        unless more $ fail "Incomplete constant type"
+        dBEBits8 4
+      {-# INLINE readTag #-}
+      go =
+        readTag >>= \case
+          0 -> pure $! Some DefaultUniInteger
+          1 -> pure $! Some DefaultUniByteString
+          2 -> pure $! Some DefaultUniString
+          3 -> pure $! Some DefaultUniUnit
+          4 -> pure $! Some DefaultUniBool
+          8 -> pure $! Some DefaultUniData
+          9 -> pure $! Some DefaultUniBLS12_381_G1_Element
+          10 -> pure $! Some DefaultUniBLS12_381_G2_Element
+          11 -> pure $! Some DefaultUniBLS12_381_MlResult
+          13 -> pure $! Some DefaultUniValue
+          7 ->
+            readTag >>= \case
+              5 -> do
+                Some a <- go
+                pure $! Some $ DefaultUniList a
+              12 -> do
+                Some a <- go
+                pure $! Some $ DefaultUniArray a
+              7 -> do
+                6 <- readTag
+                Some a <- go
+                Some b <- go
+                pure $! Some $ DefaultUniPair a b
+              _ -> fail "Invalid constant type application"
+          _ -> fail "Invalid constant type tag"
+  {-# INLINE decodeUni #-}
 
   bring
     :: forall constr a r proxy
      . DefaultUni `Everywhere` constr
-    => proxy constr -> DefaultUni (Esc a) -> (constr a => r) -> r
+    => proxy constr -> DefaultUni a -> (constr a => r) -> r
   bring _ DefaultUniInteger r = r
   bring _ DefaultUniByteString r = r
   bring _ DefaultUniString r = r
   bring _ DefaultUniUnit r = r
   bring _ DefaultUniBool r = r
-  bring p (DefaultUniProtoList `DefaultUniApply` uniA) r =
+  bring p (DefaultUniList uniA) r =
     bring p uniA r
-  bring p (DefaultUniProtoArray `DefaultUniApply` uniA) r =
+  bring p (DefaultUniArray uniA) r =
     bring p uniA r
-  bring p (DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB) r =
+  bring p (DefaultUniPair uniA uniB) r =
     bring p uniA $ bring p uniB r
-  bring _ (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =
-    noMoreTypeFunctions f
   bring _ DefaultUniData r = r
   bring _ DefaultUniBLS12_381_G1_Element r = r
   bring _ DefaultUniBLS12_381_G2_Element r = r

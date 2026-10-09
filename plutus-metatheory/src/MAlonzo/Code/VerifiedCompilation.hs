@@ -219,7 +219,7 @@ du_cert_96 v0 v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.checkScope
 d_checkScope_100 ::
-  MAlonzo.Code.RawU.T_Untyped_210 ->
+  MAlonzo.Code.RawU.T_Untyped_204 ->
   Maybe MAlonzo.Code.Untyped.T__'8866'_14
 d_checkScope_100 v0
   = coe
@@ -228,7 +228,7 @@ d_checkScope_100 v0
 -- VerifiedCompilation.checkScopeˢ
 d_checkScope'738'_102 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints'8314'_82
-    MAlonzo.Code.RawU.T_Untyped_210 ->
+    MAlonzo.Code.RawU.T_Untyped_204 ->
   Maybe
     (MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints'8314'_82
        MAlonzo.Code.Untyped.T__'8866'_14)
@@ -256,7 +256,7 @@ d_checkScope'738'_102 v0
 -- VerifiedCompilation.checkScopeʰ
 d_checkScope'688'_116 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_92
-    MAlonzo.Code.RawU.T_Untyped_210 ->
+    MAlonzo.Code.RawU.T_Untyped_204 ->
   Maybe
     (MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_92
        MAlonzo.Code.Untyped.T__'8866'_14)
@@ -282,8 +282,8 @@ d_checkScope'7511'_122 ::
           MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
           MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
        (MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_92
-          MAlonzo.Code.RawU.T_Untyped_210))
-    MAlonzo.Code.RawU.T_Untyped_210 ->
+          MAlonzo.Code.RawU.T_Untyped_204))
+    MAlonzo.Code.RawU.T_Untyped_204 ->
   Maybe
     (MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_104
        (MAlonzo.Code.Utils.T__'215'__436

@@ -49,7 +49,7 @@ d_prettyPrintTy_8 ::
 d_prettyPrintTy_8 = display @T.Text . unconvT 0
 -- Evaluator.Base.prettyPrintUTm
 d_prettyPrintUTm_10 ::
-  MAlonzo.Code.RawU.T_Untyped_210 ->
+  MAlonzo.Code.RawU.T_Untyped_204 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_prettyPrintUTm_10 = display @T.Text . U.uconv 0
 -- Evaluator.Base.ERROR

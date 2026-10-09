@@ -25,7 +25,7 @@ import Prettyprinter.Custom
 instance
   ( PLC.PrettyClassicBy configName tyname
   , PLC.PrettyClassicBy configName name
-  , PLC.PrettyParens (PLC.SomeTypeIn uni)
+  , PLC.PrettyParens (PLC.SomeTypeHead uni)
   , Pretty ann
   )
   => PrettyBy (PLC.PrettyConfigClassic configName) (VarDecl tyname name uni ann)
@@ -55,7 +55,7 @@ instance PrettyBy (PLC.PrettyConfigClassic configName) Strictness where
 instance
   ( PLC.PrettyClassicBy configName tyname
   , PLC.PrettyClassicBy configName name
-  , PLC.PrettyParens (PLC.SomeTypeIn uni)
+  , PLC.PrettyParens (PLC.SomeTypeHead uni)
   , Pretty ann
   )
   => PrettyBy (PLC.PrettyConfigClassic configName) (Datatype tyname name uni ann)
@@ -220,7 +220,7 @@ instance
     where
       prettyTypeOf :: PLC.Some (PLC.ValueOf uni) -> Doc dann
       prettyTypeOf (PLC.Some (PLC.ValueOf uni _)) =
-        PLC.prettyBy PLC.juxtRenderContext $ PLC.SomeTypeIn uni
+        PLC.prettyBy PLC.juxtRenderContext $ PLC.Some uni
 
 instance
   ( PLC.PrettyClassicBy configName tyname
@@ -243,7 +243,7 @@ instance
 instance
   ( PLC.PrettyClassic tyname
   , PLC.PrettyClassic name
-  , PLC.PrettyParens (PLC.SomeTypeIn uni)
+  , PLC.PrettyParens (PLC.SomeTypeHead uni)
   , Pretty ann
   )
   => Pretty (VarDecl tyname name uni ann)

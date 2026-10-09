@@ -20,7 +20,7 @@ import PlutusCore.Rename.Monad
 
 import Universe
 
-instance (GEq uni, Eq ann) => Eq (Type TyName uni ann) where
+instance (Eq (SomeTypeHead uni), Eq ann) => Eq (Type TyName uni ann) where
   ty1 == ty2 = runEqRename @TypeRenaming $ eqTypeM ty1 ty2
 
 instance
@@ -48,11 +48,11 @@ deriving stock instance
   => Eq (Term TyDeBruijn DeBruijn uni fun ann)
 
 deriving stock instance
-  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq ann)
+  (Eq (SomeTypeHead uni), Eq ann)
   => Eq (Type NamedTyDeBruijn uni ann)
 
 deriving stock instance
-  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq ann)
+  (Eq (SomeTypeHead uni), Eq ann)
   => Eq (Type TyDeBruijn uni ann)
 
 deriving stock instance
@@ -92,7 +92,8 @@ arguments gets extended with additional constructors.
 -- See Note [Side tracking]
 -- See Note [No catch-all].
 -- | Check equality of two 'Type's.
-eqTypeM :: (HasRenaming ren TypeUnique, GEq uni, Eq ann) => EqRenameOf ren (Type tyname uni ann)
+eqTypeM
+  :: (HasRenaming ren TypeUnique, Eq (SomeTypeHead uni), Eq ann) => EqRenameOf ren (Type tyname uni ann)
 eqTypeM (TyVar ann1 name1) (TyVar ann2 name2) = do
   eqM ann1 ann2
   eqNameM name1 name2

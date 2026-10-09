@@ -47,6 +47,7 @@ import PlutusCore.Builtin (typeOfBuiltinFunction)
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Generators.NEAT.Common
+import PlutusCore.MkPlc (mkTyBuiltinOf)
 import Text.Printf
 
 import PlutusCore.Generators.NEAT.Type
@@ -155,43 +156,15 @@ type ClosedTermG = TermG Z Z
 -- * Converting types
 
 -- | Convert generated builtin types to Plutus builtin types.
-convertTypeBuiltin :: TypeBuiltinG -> SomeTypeIn DefaultUni
-convertTypeBuiltin TyByteStringG = SomeTypeIn DefaultUniByteString
-convertTypeBuiltin TyIntegerG = SomeTypeIn DefaultUniInteger
-convertTypeBuiltin TyBoolG = SomeTypeIn DefaultUniBool
-convertTypeBuiltin TyUnitG = SomeTypeIn DefaultUniUnit
-convertTypeBuiltin (TyListG a) =
-  case convertTypeBuiltin a of
-    SomeTypeIn a' -> case decodeKindedUni (encodeUni a') of
-      Nothing -> error "encode;decode failed"
-      Just (SomeTypeIn (Kinded ka)) -> case checkStar @DefaultUni ka of
-        Nothing -> error "higher kinded thing in list"
-        Just Refl -> SomeTypeIn (DefaultUniList ka)
-convertTypeBuiltin TyStringG = SomeTypeIn DefaultUniString
-convertTypeBuiltin TyDataG = SomeTypeIn DefaultUniData
-
-{-| Convert a real Plutus meta-type to a generated builtin type, when
-'TypeBuiltinG' can express it. Fails ('Nothing') for the BLS12-381
-element/pairing types, 'Array' and 'Value' -- 'TypeBuiltinG' has no
-constructor for any of these -- and for any uni-level type other than a
-fully-applied list of a convertible type. -}
-convertUniToTypeBuiltin :: SomeTypeIn DefaultUni -> Maybe TypeBuiltinG
-convertUniToTypeBuiltin (SomeTypeIn uni) = case uni of
-  DefaultUniInteger -> Just TyIntegerG
-  DefaultUniByteString -> Just TyByteStringG
-  DefaultUniString -> Just TyStringG
-  DefaultUniUnit -> Just TyUnitG
-  DefaultUniBool -> Just TyBoolG
-  DefaultUniData -> Just TyDataG
-  DefaultUniList uniA -> TyListG <$> convertUniToTypeBuiltin (SomeTypeIn uniA)
-  DefaultUniProtoList -> Nothing
-  DefaultUniProtoArray -> Nothing
-  DefaultUniProtoPair -> Nothing
-  DefaultUniApply {} -> Nothing
-  DefaultUniBLS12_381_G1_Element -> Nothing
-  DefaultUniBLS12_381_G2_Element -> Nothing
-  DefaultUniBLS12_381_MlResult -> Nothing
-  DefaultUniValue -> Nothing
+convertTypeBuiltin :: TypeBuiltinG -> Some DefaultUni
+convertTypeBuiltin TyByteStringG = Some DefaultUniByteString
+convertTypeBuiltin TyIntegerG = Some DefaultUniInteger
+convertTypeBuiltin TyBoolG = Some DefaultUniBool
+convertTypeBuiltin TyUnitG = Some DefaultUniUnit
+convertTypeBuiltin (TyListG a) = case convertTypeBuiltin a of
+  Some uni -> Some $ DefaultUniList uni
+convertTypeBuiltin TyStringG = Some DefaultUniString
+convertTypeBuiltin TyDataG = Some DefaultUniData
 
 {-| Convert well-kinded generated types to Plutus types.
 
@@ -222,7 +195,8 @@ convertType tns (Type _) (TyForallG k ty) = do
   tns' <- extTyNameState tns
   TyForall () (tynameOf tns' FZ) k <$> convertType tns' (Type ()) ty
 convertType _ _ (TyBuiltinG tyBuiltin) =
-  pure $ TyBuiltin () (convertTypeBuiltin tyBuiltin)
+  case convertTypeBuiltin tyBuiltin of
+    Some uni -> pure $ mkTyBuiltinOf () uni
 convertType tns (KindArrow _ k1 k2) (TyLamG ty) = do
   tns' <- extTyNameState tns
   TyLam () (tynameOf tns' FZ) k1 <$> convertType tns' k2 ty
@@ -250,7 +224,7 @@ starts as @const Nothing@.
 
 Fails ('Nothing') for:
 
-* meta-types 'convertUniToTypeBuiltin' can't express (BLS12-381, 'Array',
+* meta-types 'TypeBuiltinG' can't express (BLS12-381, 'Array',
   'Value'),
 * @list@ applied to anything other than a fully-converted 'TypeBuiltinG' --
   'TyListG' can only hold a fixed element type, so a builtin polymorphic
@@ -273,11 +247,24 @@ convertTypeToTypeG look (TyForall _ name k ty) =
     look' name'
       | name' == name = Just FZ
       | otherwise = FS <$> look name'
-convertTypeToTypeG _ (TyBuiltin _ someUni) =
-  TyBuiltinG <$> convertUniToTypeBuiltin someUni
-convertTypeToTypeG look (TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoList)) argTy) =
-  case convertTypeToTypeG look argTy of
-    Just (TyBuiltinG argBuiltin) -> Just (TyBuiltinG (TyListG argBuiltin))
+convertTypeToTypeG _ (TyBuiltin _ headRep) =
+  TyBuiltinG <$> case headRep of
+    DefaultUniIntegerHead -> Just TyIntegerG
+    DefaultUniByteStringHead -> Just TyByteStringG
+    DefaultUniStringHead -> Just TyStringG
+    DefaultUniUnitHead -> Just TyUnitG
+    DefaultUniBoolHead -> Just TyBoolG
+    DefaultUniDataHead -> Just TyDataG
+    DefaultUniListHead -> Nothing
+    DefaultUniPairHead -> Nothing
+    DefaultUniBLS12_381_G1_ElementHead -> Nothing
+    DefaultUniBLS12_381_G2_ElementHead -> Nothing
+    DefaultUniBLS12_381_MlResultHead -> Nothing
+    DefaultUniArrayHead -> Nothing
+    DefaultUniValueHead -> Nothing
+convertTypeToTypeG look (TyApp _ (TyBuiltin _ DefaultUniListHead) arg) =
+  case convertTypeToTypeG look arg of
+    Just (TyBuiltinG elemTy) -> Just $ TyBuiltinG $ TyListG elemTy
     _ -> Nothing
 convertTypeToTypeG _ _ = Nothing
 

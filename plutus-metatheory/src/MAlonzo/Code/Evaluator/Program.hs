@@ -112,7 +112,7 @@ d_deBruijnifyU_30 ::
 d_deBruijnifyU_30
   = \ (U.Program ann ver tm) -> second (void . U.Program ann ver) . runExcept $ U.deBruijnTerm tm
 -- Evaluator.Program.convPU
-d_convPU_32 :: T_ProgramU_28 -> MAlonzo.Code.RawU.T_Untyped_210
+d_convPU_32 :: T_ProgramU_28 -> MAlonzo.Code.RawU.T_Untyped_204
 d_convPU_32 = U.convP
 -- Evaluator.Program.BudgetMode
 d_BudgetMode_36 a0 = ()

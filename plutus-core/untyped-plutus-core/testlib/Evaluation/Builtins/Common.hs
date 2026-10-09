@@ -62,9 +62,7 @@ import Test.Tasty.QuickCheck (Property, property, (===))
 typecheckAnd
   :: ( MonadError (TypeErrorPlc uni fun ()) m
      , TPLC.Typecheckable uni fun
-     , GEq uni
      , CaseBuiltin uni
-     , Closed uni
      , uni `Everywhere` ExMemoryUsage
      )
   => BuiltinSemanticsVariant fun
@@ -91,7 +89,6 @@ typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
 typecheckEvaluateCek
   :: ( MonadError (TypeErrorPlc uni fun ()) m
      , TPLC.Typecheckable uni fun
-     , GEq uni
      , uni `Everywhere` ExMemoryUsage
      , PrettyUni uni
      , Pretty fun
@@ -109,7 +106,6 @@ typecheckEvaluateCek semvar =
 typecheckEvaluateCekNoEmit
   :: ( MonadError (TypeErrorPlc uni fun ()) m
      , TPLC.Typecheckable uni fun
-     , GEq uni
      , uni `Everywhere` ExMemoryUsage
      , PrettyUni uni
      , Pretty fun
@@ -127,7 +123,6 @@ typecheckEvaluateCekNoEmit semvar =
 typecheckReadKnownCek
   :: ( MonadError (TypeErrorPlc uni fun ()) m
      , TPLC.Typecheckable uni fun
-     , GEq uni
      , uni `Everywhere` ExMemoryUsage
      , PrettyUni uni
      , Pretty fun

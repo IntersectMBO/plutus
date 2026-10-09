@@ -139,10 +139,10 @@ d_convTy_42 = convT
 d_unconvTy_44 :: MAlonzo.Code.Raw.T_RawTy_2 -> T_Type_16
 d_unconvTy_44 = unconvT 0
 -- Evaluator.Term.convTmU
-d_convTmU_46 :: T_TermU_24 -> MAlonzo.Code.RawU.T_Untyped_210
+d_convTmU_46 :: T_TermU_24 -> MAlonzo.Code.RawU.T_Untyped_204
 d_convTmU_46 = U.conv
 -- Evaluator.Term.unconvTmU
-d_unconvTmU_48 :: MAlonzo.Code.RawU.T_Untyped_210 -> T_TermU_24
+d_unconvTmU_48 :: MAlonzo.Code.RawU.T_Untyped_204 -> T_TermU_24
 d_unconvTmU_48 = U.uconv 0
 -- Evaluator.Term.checkKindX
 checkKindAgda ::

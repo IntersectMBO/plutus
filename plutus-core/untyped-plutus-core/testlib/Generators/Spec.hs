@@ -8,12 +8,13 @@ module Generators.Spec where
 import PlutusPrelude (display, fold, getAnn, void, (&&&))
 
 import Control.Lens (view)
+import Data.Either (isLeft)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Hedgehog (annotate, annotateShow, failure, property, tripping, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (Name)
+import PlutusCore (Name, Some)
 import PlutusCore.Annotation (SrcSpan (..))
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
@@ -26,7 +27,7 @@ import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Test (isSerialisable)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
-import Test.Tasty.HUnit (testCase, (@?=))
+import Test.Tasty.HUnit (assertBool, testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Text.Megaparsec (errorBundlePretty)
 
@@ -149,19 +150,26 @@ propDefaultUni =
   testCase "DefaultUni" $
     fold
       [ pDefaultUni "bool" @?= "bool"
-      , pDefaultUni "list" @?= "list"
       , pDefaultUni "(list integer)" @?= "(list integer)"
-      , pDefaultUni "(pair (list bool))" @?= "(pair (list bool))"
+      , pDefaultUni "(array (list integer))" @?= "(array (list integer))"
+      , pDefaultUni "(pair (list bool)   (array integer))" @?= "(pair (list bool) (array integer))"
       , pDefaultUni "(pair (list unit) integer)" @?= "(pair (list unit) integer)"
       , pDefaultUni "(list (pair unit integer))" @?= "(list (pair unit integer))"
       , pDefaultUni "(pair unit (pair bool integer))" @?= "(pair unit (pair bool integer))"
+      , fold
+          [ assertBool ("Accepted incomplete constant type: " <> T.unpack input) $
+              isLeft (parseDefaultUni input)
+          | input <- ["list", "pair", "array", "(pair (list bool))", "(array)"]
+          ]
       ]
   where
+    parseDefaultUni :: Text -> Either ParserErrorBundle (Some DefaultUni)
+    parseDefaultUni = runQuoteT . parseGen defaultUni
+
     pDefaultUni :: String -> Text
     pDefaultUni =
       either (error . display) display
-        . runQuoteT
-        . parseGen defaultUni
+        . parseDefaultUni
         . T.pack
 
 {-| Test that parser errors for list element type mismatches point to the correct location.

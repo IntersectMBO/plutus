@@ -103,7 +103,7 @@ d_discharge_126 v0
       C_V'45'con_50 v1 v2
         -> coe
              MAlonzo.Code.Untyped.C_con_28
-             (coe MAlonzo.Code.RawU.C_tmCon_208 (coe v1) (coe v2))
+             (coe MAlonzo.Code.RawU.C_tmCon_202 (coe v1) (coe v2))
       C_V'45'delay_54 v1 v2 v3
         -> coe
              MAlonzo.Code.Untyped.C_delay_26
@@ -2646,7 +2646,7 @@ d_BUILTIN_294 v0
                                                              -> case coe v27 of
                                                                   MAlonzo.Code.Builtin.Signature.C_list_16 v30
                                                                     -> let v31
-                                                                             = MAlonzo.Code.RawU.d_decTyTag_70
+                                                                             = MAlonzo.Code.RawU.d_decTyTag_64
                                                                                  (coe v25)
                                                                                  (coe v30) in
                                                                        coe
@@ -7127,7 +7127,7 @@ d_step_1316 v0
                     (coe C_V'45'delay_54 (coe v1) (coe v3) (coe v5))
              MAlonzo.Code.Untyped.C_con_28 v5
                -> case coe v5 of
-                    MAlonzo.Code.RawU.C_tmCon_208 v6 v7
+                    MAlonzo.Code.RawU.C_tmCon_202 v6 v7
                       -> coe
                            C__'9669'__224 (coe v2) (coe C_V'45'con_50 (coe v6) (coe v7))
                     _ -> MAlonzo.RTE.mazUnreachableError

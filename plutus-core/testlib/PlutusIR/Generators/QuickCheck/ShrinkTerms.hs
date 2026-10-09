@@ -12,6 +12,7 @@ import PlutusPrelude
 
 import PlutusIR.Generators.QuickCheck.Common
 
+import PlutusCore.Generators.QuickCheck.Builtin (constantTypeTag)
 import PlutusCore.Generators.QuickCheck.Common
 import PlutusCore.Generators.QuickCheck.ShrinkTypes
 import PlutusCore.Generators.QuickCheck.Substitutions
@@ -70,7 +71,7 @@ mkHelp
   :: Map Name (Type TyName DefaultUni ())
   -> Type TyName DefaultUni ()
   -> Term TyName Name DefaultUni DefaultFun ()
-mkHelp _ (TyBuiltin _ someUni) = minimalBuiltin someUni
+mkHelp _ (constantTypeTag -> Just someUni) = minimalBuiltin someUni
 mkHelp (findHelp -> Just help) ty = TyInst () (Var () help) ty
 mkHelp _ ty = Error () ty
 
@@ -103,7 +104,7 @@ fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm0 =
         let (ty', tm') = fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm
          in (ty', Apply () (Apply () (TyInst () (Builtin () Trace) ty') s) tm')
       _
-        | TyBuiltin _ someUni <- tyNew -> (tyNew, minimalBuiltin someUni)
+        | Just someUni <- constantTypeTag tyNew -> (tyNew, minimalBuiltin someUni)
         | otherwise -> (tyNew, mkHelp ctxNew tyNew)
     Right ty -> (ty, tm0)
 
@@ -120,12 +121,10 @@ fixupTerm _ _ tyctxNew ctxNew tyNew tm
   | isRight (typeCheckTermInContext tyctxNew ctxNew tm tyNew) = tm
   | otherwise = mkHelp ctxNew tyNew
 
-minimalBuiltin :: SomeTypeIn DefaultUni -> Term TyName Name DefaultUni DefaultFun ()
-minimalBuiltin (SomeTypeIn uni) = case toSingKind uni of
-  SingType -> mkConstantOf () uni $ go uni
-  _ -> error "Higher-kinded built-in types cannot be used here"
+minimalBuiltin :: Some DefaultUni -> Term TyName Name DefaultUni DefaultFun ()
+minimalBuiltin (Some uni) = mkConstantOf () uni $ go uni
   where
-    go :: DefaultUni (Esc a) -> a
+    go :: DefaultUni a -> a
     go DefaultUniUnit = ()
     go DefaultUniInteger = 0
     go DefaultUniBool = False
@@ -133,10 +132,9 @@ minimalBuiltin (SomeTypeIn uni) = case toSingKind uni of
     go DefaultUniByteString = ""
     go DefaultUniData = I 0
     go DefaultUniValue = Value.empty
-    go (DefaultUniProtoList `DefaultUniApply` _) = []
-    go (DefaultUniProtoArray `DefaultUniApply` _) = Vector.empty
-    go (DefaultUniProtoPair `DefaultUniApply` a `DefaultUniApply` b) = (go a, go b)
-    go (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) = noMoreTypeFunctions f
+    go (DefaultUniList _) = []
+    go (DefaultUniArray _) = Vector.empty
+    go (DefaultUniPair a b) = (go a, go b)
     go DefaultUniBLS12_381_G1_Element = BLS12_381.G1.offchain_zero
     go DefaultUniBLS12_381_G2_Element = BLS12_381.G2.offchain_zero
     go DefaultUniBLS12_381_MlResult = BLS12_381.Pairing.identityMlResult

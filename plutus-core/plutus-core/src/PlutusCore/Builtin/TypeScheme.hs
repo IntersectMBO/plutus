@@ -80,7 +80,7 @@ typeSchemeToType (TypeSchemeAll (_ :: Proxy '(text, uniq, kind)) schB) =
   let text = Text.pack $ symbolVal @text Proxy
       uniq = fromIntegral $ natVal @uniq Proxy
       a = TyName $ Name text $ Unique uniq
-   in TyForall () a (demoteKind $ knownKind @kind) $ typeSchemeToType schB
+   in TyForall () a (knownKind @kind) $ typeSchemeToType schB
 
 -- The precedence of @->@ is @-1@, which is why this number appears in the implementation of the
 -- instance.

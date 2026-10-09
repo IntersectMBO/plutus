@@ -40,9 +40,10 @@ instance
   ( PLC.Everywhere uni Flat
   , PLC.Everywhere uni PrettyConst
   , PLC.Closed uni
+  , PrettyBy RenderContext (PLC.SomeTypeHead uni)
   , Flat fun
   , Pretty fun
-  , PrettyBy RenderContext (PLC.SomeTypeIn uni)
+  , PrettyBy RenderContext (PLC.Some uni)
   , CompiledCodeFuncToHask b r uni fun
   , CompiledCodeFuncToHaskType (CompiledCodeIn uni fun (a -> b)) r
       ~ (CompiledCodeIn uni fun a -> CompiledCodeFuncToHaskType (CompiledCodeIn uni fun b) r)

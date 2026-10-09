@@ -531,7 +531,7 @@ data T_ScopedTm_522
     C__'183''8902'__532 T_ScopedTm_522 T_ScopedTy_14 |
     C_ƛ_534 T_ScopedTy_14 T_ScopedTm_522 |
     C__'183'__536 T_ScopedTm_522 T_ScopedTm_522 |
-    C_con_538 MAlonzo.Code.RawU.T_TmCon_204 |
+    C_con_538 MAlonzo.Code.RawU.T_TmCon_198 |
     C_error_540 T_ScopedTy_14 |
     C_builtin_544 MAlonzo.Code.Builtin.T_Builtin_2 |
     C_wrap_546 T_ScopedTy_14 T_ScopedTy_14 T_ScopedTm_522 |
@@ -853,7 +853,7 @@ d_scopeCheckTm_686 v0 v1 v2
       MAlonzo.Code.Raw.C_con_44 v3
         -> coe
              MAlonzo.Code.Utils.C_inj'8322'_14
-             (coe C_con_538 (coe MAlonzo.Code.RawU.d_tagCon2TmCon_258 (coe v3)))
+             (coe C_con_538 (coe MAlonzo.Code.RawU.d_tagCon2TmCon_252 (coe v3)))
       MAlonzo.Code.Raw.C_error_46 v3
         -> coe
              MAlonzo.Code.Utils.du_fmap_292
@@ -1064,7 +1064,7 @@ d_extricateScope_828 v0 v1 v2
       C_con_538 v3
         -> coe
              MAlonzo.Code.Raw.C_con_44
-             (coe MAlonzo.Code.RawU.d_tmCon2TagCon_372 (coe v3))
+             (coe MAlonzo.Code.RawU.d_tmCon2TagCon_366 (coe v3))
       C_error_540 v3
         -> coe
              MAlonzo.Code.Raw.C_error_46
@@ -1144,11 +1144,11 @@ du_uglyWeirdFin_888 v0 v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Scoped.uglyTmCon
 d_uglyTmCon_894 ::
-  MAlonzo.Code.RawU.T_TmCon_204 ->
+  MAlonzo.Code.RawU.T_TmCon_198 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_uglyTmCon_894 v0
   = case coe v0 of
-      MAlonzo.Code.RawU.C_tmCon_208 v1 v2
+      MAlonzo.Code.RawU.C_tmCon_202 v1 v2
         -> let v3 = "size" :: Data.Text.Text in
            coe
              (case coe v1 of

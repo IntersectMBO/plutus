@@ -66,6 +66,7 @@ import PlutusCore.Core
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
+import Data.Proxy (Proxy (..))
 import Universe
 
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
@@ -89,17 +90,19 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
   termLet = mkImmediateLamAbs
   typeLet = mkImmediateTyAbs
 
--- TODO: make it @forall {k}@ once we have that.
--- (see https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0099-explicit-specificity.rst)
 -- | Embed a type (given its explicit type tag) into a PLC type.
-mkTyBuiltinOf :: forall k (a :: k) uni tyname ann. ann -> uni (Esc a) -> Type tyname uni ann
-mkTyBuiltinOf ann = TyBuiltin ann . SomeTypeIn
+mkTyBuiltinOf
+  :: forall a uni tyname ann
+   . (Closed uni, uni `Everywhere` KnownTypeAst tyname uni)
+  => ann -> uni a -> Type tyname uni ann
+mkTyBuiltinOf ann uni = bring (Proxy @(KnownTypeAst tyname uni)) uni $ ann <$ toTypeAst (Proxy @a)
+{-# INLINE mkTyBuiltinOf #-}
 
 -- | Embed a Haskell value (given its explicit type tag) into a PLC term.
 mkConstantOf
   :: forall a uni fun term tyname name ann
    . TermLike term tyname name uni fun
-  => ann -> uni (Esc a) -> a -> term ann
+  => ann -> uni a -> a -> term ann
 mkConstantOf ann uni = constant ann . someValueOf uni
 
 -- | Embed a Haskell value (provided its type is in the universe) into a PLC term.

@@ -8,7 +8,6 @@ may or may not behave correctly, we don't really know. If shrinking ever loops, 
 this module or reverse-engineer the shrinker and fix the problem. -}
 module PlutusCore.Generators.QuickCheck.ShrinkTypes where
 
-import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Common
 import PlutusCore.Generators.QuickCheck.GenTm
 import PlutusCore.Generators.QuickCheck.GenerateKinds
@@ -253,9 +252,11 @@ shrinkKindAndType ctx (k0, ty) =
                     b' <- shrinkType (Map.insert x ka ctx) b
                     ]
                   ]
-            TyBuiltin _ someUni ->
-              [ (kindOfBuiltinType uni', TyBuiltin () $ SomeTypeIn uni')
-              | SomeTypeIn uni' <- shrinkBuiltinType someUni
+            TyBuiltin _ headRep ->
+              [ (kindOfBuiltinType smaller, TyBuiltin () smaller)
+              | smaller <- [DefaultUniUnitHead, DefaultUniListHead]
+              , smaller /= headRep
+              , kindOfBuiltinType smaller == kindOfBuiltinType headRep
               ]
             TyIFix _ pat arg ->
               map (Type (),) $

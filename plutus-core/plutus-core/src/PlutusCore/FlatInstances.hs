@@ -12,7 +12,6 @@ encoding of TPLC] and Note [Stable encoding of UPLC] before touching anything
 in this file. -}
 module PlutusCore.FlatInstances
   ( safeEncodeBits
-  , decodeKindedUniFlat
   ) where
 
 import Codec.Extras.FlatViaSerialise
@@ -123,47 +122,24 @@ encodeConstant = safeEncodeBits constantWidth
 
 decodeConstant :: Get Word8
 decodeConstant = dBEBits8 constantWidth
+{-# INLINE decodeConstant #-}
 
 deriving via FlatViaSerialise Data instance Flat Data
 
-decodeKindedUniFlat :: Closed uni => Get (SomeTypeIn (Kinded uni))
-decodeKindedUniFlat =
-  go . decodeKindedUni . map (fromIntegral :: Word8 -> Int)
-    =<< decodeListWith decodeConstant
-  where
-    go Nothing = fail "Failed to decode a universe"
-    go (Just uni) = pure uni
-
--- See Note [The G, the Tag and the Auto].
-instance Closed uni => Flat (SomeTypeIn uni) where
-  encode (SomeTypeIn uni) =
-    encodeListWith encodeConstant
-      . map (fromIntegral :: Int -> Word8)
-      $ encodeUni uni
-
-  decode = decodeKindedUniFlat <&> \(SomeTypeIn (Kinded uni)) -> SomeTypeIn uni
-
-  -- Encode a view of the universe, not the universe itself.
-  size (SomeTypeIn uni) acc =
-    acc
-      + length (encodeUni uni) * (1 + constantWidth)
-      + 1 -- List Cons (1 bit) + constant
-      -- List Nil (1 bit)
-
 -- See Note [The G, the Tag and the Auto].
 instance (Closed uni, uni `Everywhere` Flat) => Flat (Some (ValueOf uni)) where
-  encode (Some (ValueOf uni x)) = encode (SomeTypeIn uni) <> bring (Proxy @Flat) uni (encode x)
+  encode (Some (ValueOf uni x)) =
+    encodeListWith encodeConstant (encodeUni uni) <> bring (Proxy @Flat) uni (encode x)
 
   decode =
-    decodeKindedUniFlat @uni >>= \(SomeTypeIn (Kinded uni)) ->
-      -- See Note [Decoding universes].
-      case checkStar uni of
-        Nothing -> fail "A non-star type can't have a value to decode"
-        Just Refl -> Some . ValueOf uni <$> bring (Proxy @Flat) uni decode
+    decodeUni @uni >>= \(Some uni) ->
+      Some . ValueOf uni <$> bring (Proxy @Flat) uni decode
 
   -- We need to get the flat instance in scope.
   size (Some (ValueOf uni x)) acc =
-    size (SomeTypeIn uni) acc
+    acc
+      + length (encodeUni uni) * (1 + constantWidth)
+      + 1
       + bring (Proxy @Flat) uni (size x 0)
 
 deriving newtype instance Flat Unique -- via int
@@ -223,7 +199,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
     TyFun ann t t' -> encodeType 1 <> encode ann <> encode t <> encode t'
     TyIFix ann pat arg -> encodeType 2 <> encode ann <> encode pat <> encode arg
     TyForall ann tn k t -> encodeType 3 <> encode ann <> encode tn <> encode k <> encode t
-    TyBuiltin ann con -> encodeType 4 <> encode ann <> encode con
+    TyBuiltin ann con -> encodeType 4 <> encode ann <> encodeConstant (encodeTypeHead con)
     TyLam ann n k t -> encodeType 5 <> encode ann <> encode n <> encode k <> encode t
     TyApp ann t t' -> encodeType 6 <> encode ann <> encode t <> encode t'
     -- Note that this relies on the instance for lists. We shouldn't use this in the
@@ -236,7 +212,12 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
       go 1 = TyFun <$> decode <*> decode <*> decode
       go 2 = TyIFix <$> decode <*> decode <*> decode
       go 3 = TyForall <$> decode <*> decode <*> decode <*> decode
-      go 4 = TyBuiltin <$> decode <*> decode
+      go 4 = do
+        ann <- decode
+        tag <- decodeConstant
+        case decodeTypeHead tag of
+          Just headRep -> pure $ TyBuiltin ann headRep
+          Nothing -> fail "Failed to decode a built-in type head"
       go 5 = TyLam <$> decode <*> decode <*> decode <*> decode
       go 6 = TyApp <$> decode <*> decode <*> decode
       go 7 = TySOP <$> decode <*> decode
@@ -251,7 +232,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyFun ann t t' -> size ann $ size t $ size t' sz'
         TyIFix ann pat arg -> size ann $ size pat $ size arg sz'
         TyForall ann tn k t -> size ann $ size tn $ size k $ size t sz'
-        TyBuiltin ann con -> size ann $ size con sz'
+        TyBuiltin ann _ -> size ann $ sz' + constantWidth
         TyLam ann n k t -> size ann $ size n $ size k $ size t sz'
         TyApp ann t t' -> size ann $ size t $ size t' sz'
         TySOP ann tyls -> size ann $ size tyls sz'

@@ -123,7 +123,7 @@ check_ƛ_40 :: T_RawTy_2 -> T_RawTm_32 -> T_RawTm_32
 check_ƛ_40 = RLambda
 check__'183'__42 :: T_RawTm_32 -> T_RawTm_32 -> T_RawTm_32
 check__'183'__42 = RApp
-check_con_44 :: MAlonzo.Code.RawU.T_TagCon_108 -> T_RawTm_32
+check_con_44 :: MAlonzo.Code.RawU.T_TagCon_102 -> T_RawTm_32
 check_con_44 = RCon
 check_error_46 :: T_RawTy_2 -> T_RawTm_32
 check_error_46 = RError
@@ -375,7 +375,7 @@ d_decRTm_188 v0 v1
          C_con_44 v3
            -> case coe v1 of
                 C_con_44 v4
-                  -> coe MAlonzo.Code.RawU.d_decTagCon_194 (coe v3) (coe v4)
+                  -> coe MAlonzo.Code.RawU.d_decTagCon_188 (coe v3) (coe v4)
                 _ -> coe v2
          C_error_46 v3
            -> case coe v1 of

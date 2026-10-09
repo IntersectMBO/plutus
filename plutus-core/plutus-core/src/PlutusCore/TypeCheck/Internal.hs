@@ -2,6 +2,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -12,8 +13,7 @@
 but not the user-facing API. -}
 module PlutusCore.TypeCheck.Internal
   ( -- export all because a lot are used by the pir-typechecker
-    module PlutusCore.TypeCheck.Internal
-  , MonadNormalizeType
+      module PlutusCore.TypeCheck.Internal
   ) where
 
 import PlutusCore.Builtin
@@ -30,7 +30,6 @@ import PlutusCore.Name.Unique
   , theUnique
   )
 import PlutusCore.Name.UniqueMap (UniqueMap, insertNamed, lookupName)
-import PlutusCore.Normalize.Internal (MonadNormalizeType)
 import PlutusCore.Normalize.Internal qualified as Norm
 import PlutusCore.Quote (MonadQuote (liftQuote), freshTyName)
 import PlutusCore.Rename (Dupable, Rename (rename), dupable, liftDupable)
@@ -47,7 +46,11 @@ import Data.Array (Array, Ix)
 import Data.Foldable (for_)
 import Data.List.Extras (wix)
 import Data.Text qualified as Text
-import Universe.Core (GEq, Some (Some), SomeTypeIn (SomeTypeIn), ValueOf (ValueOf))
+import Universe.Core
+  ( Closed (..)
+  , Some (Some)
+  , ValueOf (ValueOf)
+  )
 
 {- Note [Global uniqueness in the type checker]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
@@ -207,11 +210,12 @@ type MonadKindCheck err term uni fun ann m =
 
 -- | The general constraints that are required for type checking a Plutus AST.
 type MonadTypeCheck err term uni fun ann m =
-  ( MonadKindCheck err term uni fun ann m -- Kind checking is run during type checking (this
+  ( Closed uni
+  , uni `Everywhere` KnownTypeAst TyName uni
+  , MonadKindCheck err term uni fun ann m -- Kind checking is run during type checking (this
   -- includes the constraint for throwing errors).
-  , Norm.MonadNormalizeType uni m -- Type lambdas open up type computation.
+  , MonadQuote m -- Type lambdas open up type computation.
   , AnnotateCaseBuiltin uni
-  , GEq uni -- For checking equality of built-in types.
   , Ix fun -- For indexing into the precomputed array of
   -- types of built-in functions.
   )
@@ -306,14 +310,14 @@ lookupVarM ann name = do
 
 -- | Normalize a 'Type'.
 normalizeTypeM
-  :: MonadNormalizeType uni m
+  :: MonadQuote m
   => Type TyName uni ann
   -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ann))
 normalizeTypeM ty = Norm.runNormalizeTypeT $ Norm.normalizeTypeM ty
 
 -- | Substitute a type for a variable in a type and normalize the result.
 substNormalizeTypeM
-  :: MonadNormalizeType uni m
+  :: MonadQuote m
   => Normalized (Type TyName uni ())
   -- ^ @ty@
   -> TyName
@@ -334,8 +338,7 @@ inferKindM
 -- b :: k
 -- ------------------------
 -- [infer| G !- con b :: k]
-inferKindM (TyBuiltin _ (SomeTypeIn uni)) =
-  pure $ kindOfBuiltinType uni
+inferKindM (TyBuiltin _ headRep) = pure $ kindOfBuiltinType headRep
 -- [infer| G !- v :: k]
 -- ------------------------
 -- [infer| G !- var v :: k]
@@ -410,7 +413,7 @@ checkKindM ann ty k = do
 
 -- | @unfoldIFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
 unfoldIFixOf
-  :: MonadNormalizeType uni m
+  :: MonadQuote m
   => Normalized (Type TyName uni ())
   -- ^ @vPat@
   -> Normalized (Type TyName uni ())
@@ -448,8 +451,7 @@ inferTypeM
 -- -------------------------
 -- [infer| G !- con c : vTy]
 inferTypeM (Constant _ (Some (ValueOf uni _))) =
-  -- See Note [Normalization of built-in types].
-  normalizeTypeM $ mkTyBuiltinOf () uni
+  pure $ Normalized $ mkTyBuiltinOf () uni
 -- [infer| G !- bi : vTy]
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]

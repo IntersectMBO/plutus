@@ -289,11 +289,11 @@ toTyNameAst _ =
       (Text.pack $ symbolVal @text Proxy)
       (Unique . fromIntegral $ natVal @uniq Proxy)
 
-instance uni `Contains` f => KnownTypeAst tyname uni (BuiltinHead f) where
+instance KnownTypeHead uni f => KnownTypeAst tyname uni (BuiltinHead f) where
   type IsBuiltin _ (BuiltinHead f) = 'True
   type ToHoles _ _ (BuiltinHead f) = '[]
   type ToBinds _ acc (BuiltinHead f) = acc
-  typeAst = TyBuiltin () $ someType @_ @f
+  typeAst = TyBuiltin () $ knownTypeHead @_ @uni @f
 
 instance KnownTypeAst tyname uni y => KnownTypeAst tyname uni (LastArg x y) where
   type IsBuiltin uni (LastArg x y) = IsBuiltin uni y
@@ -345,7 +345,7 @@ instance
     TyForall
       ()
       (toTyNameAst $ Proxy @('TyNameRep text uniq))
-      (demoteKind $ knownKind @kind)
+      (knownKind @kind)
       (toTypeAst $ Proxy @a)
 
 -- Utils

@@ -27,7 +27,7 @@ instance Pretty ann => Pretty (Kind ann) where
   pretty = prettyClassic
 
 instance
-  (PrettyClassic tyname, PrettyParens (SomeTypeIn uni), Pretty ann)
+  (PrettyClassic tyname, PrettyParens (SomeTypeHead uni), Pretty ann)
   => Pretty (Type tyname uni ann)
   where
   pretty = prettyClassic
