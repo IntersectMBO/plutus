@@ -13,12 +13,12 @@ that the untyped CEK machine (`Untyped.CEK`) produces the expected result, or a
 pending statement of that proposition when the case involves constants or
 builtins that are still postulated on the Agda side. See `Conformance.Eval`.
 
-| | cases |
-|---|---|
-| proved by `refl` | 228 |
-| pending (postulated constants or builtins, or known failures) | 711 |
-| skipped: constant not expressible in Agda | 6 |
-| skipped: program does not parse | 66 |
+Test cases:
+
+- proved by `refl`: 228
+- pending (postulated constants or builtins, or known failures): 711
+- skipped, constant not expressible in Agda: 6
+- skipped, program does not parse: 66
 
 ```
 module Conformance where

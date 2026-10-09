@@ -456,14 +456,13 @@ renderIndex groups summary =
          , "pending statement of that proposition when the case involves constants or"
          , "builtins that are still postulated on the Agda side. See `Conformance.Eval`."
          , ""
-         , "| | cases |"
-         , "|---|---|"
-         , "| proved by `refl` | " <> show (summaryActive summary) <> " |"
-         , "| pending (postulated constants or builtins, or known failures) | "
+         , "Test cases:"
+         , ""
+         , "- proved by `refl`: " <> show (summaryActive summary)
+         , "- pending (postulated constants or builtins, or known failures): "
              <> show (summaryPending summary)
-             <> " |"
-         , "| skipped: constant not expressible in Agda | " <> show (summarySkipped summary) <> " |"
-         , "| skipped: program does not parse | " <> show (summaryParseErrors summary) <> " |"
+         , "- skipped, constant not expressible in Agda: " <> show (summarySkipped summary)
+         , "- skipped, program does not parse: " <> show (summaryParseErrors summary)
          , ""
          , "```"
          , "module Conformance where"
