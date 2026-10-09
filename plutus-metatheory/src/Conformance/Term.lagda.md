@@ -89,7 +89,3 @@ expected-unlifting-unsat = success (UApp (UBuiltin addInteger) (UCon (tagCon uni
 _ : evalRaw test-unlifting-unsat ≡ expected-unlifting-unsat
 _ = refl
 ```
-
-## var
-
-Skipped: the program does not parse (`parse/decode error`).

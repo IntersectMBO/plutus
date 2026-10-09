@@ -18,7 +18,7 @@ builtins that are still postulated on the Agda side. See `Conformance.Eval`.
 | proved by `refl` | 228 |
 | pending (postulated constants or builtins, or known failures) | 711 |
 | skipped: constant not expressible in Agda | 6 |
-| skipped: program does not parse | 64 |
+| skipped: program does not parse | 66 |
 
 ```
 module Conformance where
@@ -146,6 +146,7 @@ import Conformance.Term.ConstantCase.Unit
 import Conformance.Term.Constr
 import Conformance.Term.Delay
 import Conformance.Term.Force
+import Conformance.Term.FreeVars
 import Conformance.Term.Lam
 import Conformance.Term.Parser.Constr
 ```
