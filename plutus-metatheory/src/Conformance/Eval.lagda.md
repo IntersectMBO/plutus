@@ -70,8 +70,9 @@ evalRaw raw with scopeCheckU0 raw
 
 `Pending P` is just `P`. A generated module states `Pending (evalRaw t ≡ r)`
 as a type, without proving it, for cases that cannot be decided by `refl` yet.
-This still checks that the terms are well-formed, and makes the diff a one-line
-change once the case can be proved.
+This still checks that the terms are well-formed, and once the case can be
+proved, regenerating only replaces that statement with a `refl` proof; the
+program and expected result stay unchanged.
 
 ```
 Pending : Set → Set
