@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Algebra.Solver.Ring.Simple</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Instantiates the ring solver with two copies of the same ring with</a>
+<a id="176" class="Comment">-- decidable equality</a>
+<a id="198" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="272" class="Symbol">{-#</a> <a id="276" class="Keyword">OPTIONS</a> <a id="284" class="Pragma">--cubical-compatible</a> <a id="305" class="Pragma">--safe</a> <a id="312" class="Symbol">#-}</a>
+
+<a id="317" class="Keyword">open</a> <a id="322" class="Keyword">import</a> <a id="329" href="Algebra.Solver.Ring.AlmostCommutativeRing.html" class="Module">Algebra.Solver.Ring.AlmostCommutativeRing</a> <a id="371" class="Keyword">using</a>
+  <a id="379" class="Symbol">(</a><a id="380" href="Algebra.Solver.Ring.AlmostCommutativeRing.html#1356" class="Record">AlmostCommutativeRing</a><a id="401" class="Symbol">;</a> <a id="403" href="Algebra.Solver.Ring.AlmostCommutativeRing.html#3047" class="Function">-raw-almostCommutative⟶</a><a id="426" class="Symbol">)</a>
+<a id="428" class="Keyword">open</a> <a id="433" class="Keyword">import</a> <a id="440" href="Relation.Binary.Definitions.html" class="Module">Relation.Binary.Definitions</a> <a id="468" class="Keyword">using</a> <a id="474" class="Symbol">(</a><a id="475" href="Relation.Binary.Definitions.html#6907" class="Function">Decidable</a><a id="484" class="Symbol">)</a>
+
+<a id="487" class="Keyword">module</a> <a id="494" href="Algebra.Solver.Ring.Simple.html" class="Module">Algebra.Solver.Ring.Simple</a>
+  <a id="523" class="Symbol">{</a><a id="524" href="Algebra.Solver.Ring.Simple.html#524" class="Bound">r₁</a> <a id="527" href="Algebra.Solver.Ring.Simple.html#527" class="Bound">r₂</a><a id="529" class="Symbol">}</a> <a id="531" class="Symbol">(</a><a id="532" href="Algebra.Solver.Ring.Simple.html#532" class="Bound">R</a> <a id="534" class="Symbol">:</a> <a id="536" href="Algebra.Solver.Ring.AlmostCommutativeRing.html#1356" class="Record">AlmostCommutativeRing</a> <a id="558" href="Algebra.Solver.Ring.Simple.html#524" class="Bound">r₁</a> <a id="561" href="Algebra.Solver.Ring.Simple.html#527" class="Bound">r₂</a><a id="563" class="Symbol">)</a>
+  <a id="567" class="Symbol">(</a><a id="568" href="Algebra.Solver.Ring.Simple.html#568" class="Bound Operator">_≟_</a> <a id="572" class="Symbol">:</a> <a id="574" href="Relation.Binary.Definitions.html#6907" class="Function">Decidable</a> <a id="584" class="Symbol">(</a><a id="585" href="Algebra.Solver.Ring.AlmostCommutativeRing.html#1515" class="Field Operator">AlmostCommutativeRing._≈_</a> <a id="611" href="Algebra.Solver.Ring.Simple.html#532" class="Bound">R</a><a id="612" class="Symbol">))</a>
+  <a id="617" class="Keyword">where</a>
+
+<a id="624" class="Keyword">open</a> <a id="629" class="Keyword">import</a> <a id="636" href="Relation.Binary.Consequences.html" class="Module">Relation.Binary.Consequences</a> <a id="665" class="Keyword">using</a> <a id="671" class="Symbol">(</a><a id="672" href="Relation.Binary.Consequences.html#7518" class="Function">dec⇒weaklyDec</a><a id="685" class="Symbol">)</a>
+
+<a id="688" class="Keyword">open</a> <a id="693" href="Algebra.Solver.Ring.AlmostCommutativeRing.html#1356" class="Module">AlmostCommutativeRing</a> <a id="715" href="Algebra.Solver.Ring.Simple.html#532" class="Bound">R</a>
+<a id="717" class="Keyword">import</a> <a id="724" href="Algebra.Solver.Ring.html" class="Module">Algebra.Solver.Ring</a> <a id="744" class="Symbol">as</a> <a id="747" class="Module">RS</a>
+<a id="750" class="Keyword">open</a> <a id="755" href="Algebra.Solver.Ring.html" class="Module">RS</a> <a id="758" href="Algebra.Solver.Ring.AlmostCommutativeRing.html#2272" class="Function">rawRing</a> <a id="766" href="Algebra.Solver.Ring.Simple.html#532" class="Bound">R</a> <a id="768" class="Symbol">(</a><a id="769" href="Algebra.Solver.Ring.AlmostCommutativeRing.html#3047" class="Function">-raw-almostCommutative⟶</a> <a id="793" href="Algebra.Solver.Ring.Simple.html#532" class="Bound">R</a><a id="794" class="Symbol">)</a> <a id="796" class="Symbol">(</a><a id="797" href="Relation.Binary.Consequences.html#7518" class="Function">dec⇒weaklyDec</a> <a id="811" href="Algebra.Solver.Ring.Simple.html#568" class="Bound Operator">_≟_</a><a id="814" class="Symbol">)</a> <a id="816" class="Keyword">public</a>
+</pre></body></html>

@@ -1,0 +1,56 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE FlexibleContexts #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>-- | Functions for computing variable usage inside terms.
+<span class="lineno">    5 </span>module UntypedPlutusCore.Analysis.Usages (termUsages, Usages, getUsageCount, allUsed) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import UntypedPlutusCore.Core.Type
+<span class="lineno">    8 </span>import UntypedPlutusCore.Subst
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import PlutusCore qualified as PLC
+<span class="lineno">   11 </span>import PlutusCore.Name.Unique qualified as PLC
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import Control.Lens
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.MultiSet qualified as MSet
+<span class="lineno">   16 </span>import Data.MultiSet.Lens
+<span class="lineno">   17 </span>import Data.Set qualified as Set
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>type Usages = MSet.MultiSet PLC.Unique
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>-- | Get the usage count of @n@.
+<span class="lineno">   22 </span>getUsageCount :: PLC.HasUnique n unique =&gt; n -&gt; Usages -&gt; Int
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">getUsageCount n = MSet.occur (n ^. PLC.unique . coerced)</span></span>
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>-- | Get a set of @n@s which are used at least once.
+<span class="lineno">   26 </span>allUsed :: Usages -&gt; Set.Set PLC.Unique
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">allUsed = MSet.toSet</span></span>
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>termUsages
+<span class="lineno">   30 </span>  :: PLC.HasUnique name PLC.TermUnique
+<span class="lineno">   31 </span>  =&gt; Term name uni fun a
+<span class="lineno">   32 </span>  -&gt; Usages
+<span class="lineno">   33 </span><span class="decl"><span class="istickedoff">termUsages = multiSetOf (vTerm . PLC.theUnique)</span></span>
+
+</pre>
+</body>
+</html>

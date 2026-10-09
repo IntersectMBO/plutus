@@ -1,0 +1,388 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE AllowAmbiguousTypes #-}
+<span class="lineno">    3 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    4 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    5 </span>{-# LANGUAGE DefaultSignatures #-}
+<span class="lineno">    6 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    7 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    8 </span>{-# LANGUAGE PolyKinds #-}
+<span class="lineno">    9 </span>{-# LANGUAGE StandaloneKindSignatures #-}
+<span class="lineno">   10 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">   11 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">   12 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">   13 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>module PlutusCore.Builtin.KnownTypeAst
+<span class="lineno">   16 </span>  ( TyNameRep (..)
+<span class="lineno">   17 </span>  , TyVarRep
+<span class="lineno">   18 </span>  , TyAppRep
+<span class="lineno">   19 </span>  , TyForallRep
+<span class="lineno">   20 </span>  , Hole
+<span class="lineno">   21 </span>  , RepHole
+<span class="lineno">   22 </span>  , TypeHole
+<span class="lineno">   23 </span>  , RunHole
+<span class="lineno">   24 </span>  , HasTermLevel
+<span class="lineno">   25 </span>  , HasTypeLevel
+<span class="lineno">   26 </span>  , HasTypeAndTermLevel
+<span class="lineno">   27 </span>  , mkTyBuiltin
+<span class="lineno">   28 </span>  , KnownBuiltinTypeAst
+<span class="lineno">   29 </span>  , KnownTypeAst (..)
+<span class="lineno">   30 </span>  , toTypeAst
+<span class="lineno">   31 </span>  , Insert
+<span class="lineno">   32 </span>  , Delete
+<span class="lineno">   33 </span>  ) where
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>import PlutusCore.Builtin.KnownKind
+<span class="lineno">   36 </span>import PlutusCore.Builtin.Polymorphism
+<span class="lineno">   37 </span>import PlutusCore.Builtin.Result
+<span class="lineno">   38 </span>import PlutusCore.Core
+<span class="lineno">   39 </span>import PlutusCore.Evaluation.Result
+<span class="lineno">   40 </span>import PlutusCore.Name.Unique
+<span class="lineno">   41 </span>import PlutusCore.Subst (typeMapNames)
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>import Data.Kind qualified as GHC (Constraint, Type)
+<span class="lineno">   44 </span>import Data.Proxy
+<span class="lineno">   45 </span>import Data.Some.GADT qualified as GADT
+<span class="lineno">   46 </span>import Data.Text qualified as Text
+<span class="lineno">   47 </span>import Data.Type.Bool
+<span class="lineno">   48 </span>import Data.Void
+<span class="lineno">   49 </span>import GHC.TypeLits
+<span class="lineno">   50 </span>import Universe
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>{- Note [Rep vs Type context]
+<span class="lineno">   53 </span>Say you define an @Id@ built-in function and specify its Haskell type signature:
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>    id :: forall a. a -&gt; a
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>This gets picked up by the 'TypeScheme' inference machinery, which detects @a@ and instantiates it
+<span class="lineno">   58 </span>to @Opaque val Var0@ where @Var0@ is some concrete type (the exact details don't matter here)
+<span class="lineno">   59 </span>representing a Plutus type variable of kind @*@ with the @0@ unique, so @id@ elaborates to
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>    id :: Opaque val Var0 -&gt; Opaque val Var0
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>But consider also the case where you want to define @id@ only over lists. The signature of the
+<span class="lineno">   64 </span>built-in function then is
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>    idList :: forall a. Opaque val [a] -&gt; Opaque val [a]
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>Now the 'Opaque' is explicit and the 'TypeScheme' inference machinery needs to go under it in order
+<span class="lineno">   69 </span>to instantiate @a@. Which now does not get instantiated to an 'Opaque' as before, since we're
+<span class="lineno">   70 </span>already inside an 'Opaque' and can just use @Var0@ directly. So @idList@ elaborates to
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>    idList :: Opaque val [Var0] -&gt; Opaque val [Var0]
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>Now let's make up some syntax for annotating contexts so that it's clear what's going on:
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>    idList @Type |
+<span class="lineno">   77 </span>        :: (@Type | Opaque val (@Rep | [Var0]))
+<span class="lineno">   78 </span>        -&gt; (@Type | Opaque val (@Rep | [Var0]))
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>'@ann |' annotates everything to the right of it. The whole thing then reads as
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>1. a builtin is always defined in the Type context
+<span class="lineno">   83 </span>2. @-&gt;@ preserves the Type context, i.e. it accepts it and passes it down to the domain and codomain
+<span class="lineno">   84 </span>3. @Opaque val@ switches the context from Type to Rep, i.e. it accepts the Type context, but
+<span class="lineno">   85 </span>creates the Rep context for its argument that represents a Plutus type
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>So why the distinction?
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>The difference between the Rep and the Type contexts that we've seen so far is that in the Rep
+<span class="lineno">   90 </span>context we don't need any @Opaque@, but this is a very superficial reason to keep the distinction
+<span class="lineno">   91 </span>between contexts, since everything that is legal in the Type context is legal in the Rep context
+<span class="lineno">   92 </span>as well. For example we could've elaborated @idList@ into a bit more verbose
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>    idList :: Opaque val [Opaque val Var0] -&gt; Opaque val [Opaque val Var0]
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>and the world wouldn't end because of that, everything would work correctly.
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>The opposite however is not true: certain types that are legal in the Rep context are not legal in
+<span class="lineno">   99 </span>the Type one and this is the reason why the distinction exists. The simplest example is
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>    id :: Var0 -&gt; Var0
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>@Var0@ represents a Plutus type variable and it's a data family with no inhabitants, so it does not
+<span class="lineno">  104 </span>make sense to try to unlift a value of that type.
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span>Now let's say we added a @term@ argument to @Var0@ and said that when @Var0 term@ is a @GHC.Type@,
+<span class="lineno">  107 </span>it has a @term@ inside, just like 'Opaque'. Then we would be able to unlift it, but we also have
+<span class="lineno">  108 </span>things like @TyAppRep@, @TyForallRep@ and that set is open, any Plutus type can be represented
+<span class="lineno">  109 </span>using such combinators and we can even name particular types, e.g. we could have @PlcListRep@,
+<span class="lineno">  110 </span>so we'd have to special-case @GHC.Type@ for each of them and it would be a huge mess.
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>So instead of mixing up types whose values are actually unliftable with types that are only used
+<span class="lineno">  113 </span>for type checking, we keep the distinction explicit.
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>The barrier between Haskell and Plutus is the barrier between the Type and the Rep contexts and
+<span class="lineno">  116 </span>that barrier must always be some explicit type constructor that switches the context from Type to
+<span class="lineno">  117 </span>Rep. We've only considered 'Opaque' as an example of such type constructor, but we also have
+<span class="lineno">  118 </span>'SomeConstant' as another example.
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>Some type constructors turn any context into the Type one, for example 'BuiltinResult' and
+<span class="lineno">  121 </span>'Emitter', although they are useless inside the Rep context, given that it's only for type checking
+<span class="lineno">  122 </span>Plutus and they don't exist in the type language of Plutus.
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>These @*Rep@ data families like 'TyVarRep', 'TyForallRep' etc all require the Rep context and
+<span class="lineno">  125 </span>preserve it, since they're only for representing Plutus types for type checking purposes. There's
+<span class="lineno">  126 </span>however an exception: builtin applications get elaborated to iterated 'TyAppRep' calls (see e.g.
+<span class="lineno">  127 </span>'ElaborateBuiltinDefaultUni') and those do appear in the Type context. This is purely for historical
+<span class="lineno">  128 </span>reasons and what we should have instead is 'TyAppRep' that preserves the current context, whether
+<span class="lineno">  129 </span>it's Rep or Type. The only reason why we can't have that right now is the Type context not including
+<span class="lineno">  130 </span>higher-kinded types, which is also purely for historical reasons.
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>Some type constructors preserve the current context, i.e. turn the Rep one back into Rep and the
+<span class="lineno">  133 </span>Type one back into Type. @(-&gt;)@ is a prime example of such a type constructor.
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>The context-switching logic is mostly internal to the 'ToHoles' type family, however none of the
+<span class="lineno">  136 </span>requirements are checked there, e.g. from the 'ToHoles' point of view it's totally fine to have
+<span class="lineno">  137 </span>'TyVarRep' within the Type context. Instead, some of those requirements are checked in the
+<span class="lineno">  138 </span>elaboration machinery, just to give the user some helpful type error. We do it later in the
+<span class="lineno">  139 </span>pipeline, because this way if the elaborator fails we can at least check what it failed on (see
+<span class="lineno">  140 </span>'elaborateDebug'), while if we entangled it all together, it would be very hard to debug the
+<span class="lineno">  141 </span>elaborator (and it's very complex).
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>We call a thing in a Rep or Type context a 'RepHole' or 'TypeHole' respectively. The reason for the
+<span class="lineno">  144 </span>name is that the elaboration machinery looks at the thing and tries to instantiate it, like fill a
+<span class="lineno">  145 </span>hole.
+<span class="lineno">  146 </span>
+<span class="lineno">  147 </span>We could also have a third type of hole/context, Name, because binders bind names rather than
+<span class="lineno">  148 </span>variables and so it makes sense to infer names sometimes, like for 'TyForallRep' for example.
+<span class="lineno">  149 </span>We don't do that currently, because we don't have such builtins anyway.
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span>And there could be even fancier kinds of holes like &quot;infer anything&quot; for cases where the hole
+<span class="lineno">  152 </span>is determined by some other part of the signature. We don't have that either, for the same reason.
+<span class="lineno">  153 </span>
+<span class="lineno">  154 </span>For the user defining a builtin this all is pretty much invisible.
+<span class="lineno">  155 </span>-}
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>-- See Note [Rep vs Type context].
+<span class="lineno">  158 </span>-- | The kind of holes.
+<span class="lineno">  159 </span>data Hole
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>-- See Note [Rep vs Type context].
+<span class="lineno">  162 </span>-- | A hole in the Rep context.
+<span class="lineno">  163 </span>type RepHole :: forall a hole. a -&gt; hole
+<span class="lineno">  164 </span>data family RepHole x
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>-- See Note [Rep vs Type context].
+<span class="lineno">  167 </span>-- | A hole in the Type context.
+<span class="lineno">  168 </span>type TypeHole :: forall hole. GHC.Type -&gt; hole
+<span class="lineno">  169 </span>data family TypeHole a
+<span class="lineno">  170 </span>
+<span class="lineno">  171 </span>{-| Turn a hole in the @GHC.Type -&gt; GHC.Type@ form into one of the 'Hole' form. This only changes
+<span class="lineno">  172 </span>the kind of the given argument. This is a way of encoding @forall a. a -&gt; Hole@ at the kind
+<span class="lineno">  173 </span>level, which we don't attempt to use, because GHC apparently hates polymorphism at the kind
+<span class="lineno">  174 </span>level and chokes upon encountering it. -}
+<span class="lineno">  175 </span>type RunHole :: (GHC.Type -&gt; GHC.Type) -&gt; a -&gt; Hole
+<span class="lineno">  176 </span>type family RunHole hole where
+<span class="lineno">  177 </span>  RunHole RepHole = RepHole
+<span class="lineno">  178 </span>  RunHole TypeHole = TypeHole
+<span class="lineno">  179 </span>
+<span class="lineno">  180 </span>{- Note [Name generality of KnownTypeAst]
+<span class="lineno">  181 </span>The 'KnownTypeAst' class takes a @tyname@ argument. The reason for this is that we want to be able
+<span class="lineno">  182 </span>to define 'mkTyBuiltin' such that it's generic over the type of names, because in addition to
+<span class="lineno">  183 </span>'TyName' we also have 'TyDeBruijn' and it's convenient to seemlessly embed built-in types into a
+<span class="lineno">  184 </span>'Type' regardless of which kind of names it expects.
+<span class="lineno">  185 </span>
+<span class="lineno">  186 </span>However we don't want that @tyname@ to proliferate through the entire code base. For example,
+<span class="lineno">  187 </span>'HasTypeLevel' propagates up to PlutusTx and it doesn't make sense to mention implementation details
+<span class="lineno">  188 </span>such as 'TyName' there. For this reason we instantiate @tyname@ as soon as possible. When we want
+<span class="lineno">  189 </span>and can have full generality, we instantiate @tyname@ with 'Void', because anything can be recovered
+<span class="lineno">  190 </span>from 'Void' via 'absurd' while allowing us not to thread the @tyname@ parameter through half the
+<span class="lineno">  191 </span>codebase. And when we don't want or can't have generality, we instantiate @tyname@ with 'TyName'.
+<span class="lineno">  192 </span>-}
+<span class="lineno">  193 </span>
+<span class="lineno">  194 </span>-- | Specifies that the given type is a built-in one and can be embedded into a 'Type'.
+<span class="lineno">  195 </span>type HasTypeLevel :: forall a. (GHC.Type -&gt; GHC.Type) -&gt; a -&gt; GHC.Constraint
+<span class="lineno">  196 </span>type HasTypeLevel uni x = KnownTypeAst Void uni (ElaborateBuiltin uni x)
+<span class="lineno">  197 </span>
+<span class="lineno">  198 </span>-- | The product of 'HasTypeLevel' and 'HasTermLevel'.
+<span class="lineno">  199 </span>type HasTypeAndTermLevel :: forall a. (GHC.Type -&gt; GHC.Type) -&gt; a -&gt; GHC.Constraint
+<span class="lineno">  200 </span>type HasTypeAndTermLevel uni x = (uni `HasTypeLevel` x, uni `HasTermLevel` x)
+<span class="lineno">  201 </span>
+<span class="lineno">  202 </span>-- See Note [Name generality of KnownTypeAst].
+<span class="lineno">  203 </span>-- TODO: make it @forall {a}@ once we have that.
+<span class="lineno">  204 </span>-- (see https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0099-explicit-specificity.rst)
+<span class="lineno">  205 </span>{-| Convert a Haskell representation of a possibly 0-ary application of a built-in type to
+<span class="lineno">  206 </span>arbitrary types implementing 'KnownTypeAst'. -}
+<span class="lineno">  207 </span>mkTyBuiltin :: forall a (x :: a) uni ann tyname. uni `HasTypeLevel` x =&gt; ann -&gt; Type tyname uni ann
+<span class="lineno">  208 </span><span class="decl"><span class="istickedoff">mkTyBuiltin ann = ann &lt;$ typeMapNames <span class="nottickedoff">absurd</span> (toTypeAst $ <span class="nottickedoff">Proxy @(ElaborateBuiltin uni x)</span>)</span></span>
+<span class="lineno">  209 </span>
+<span class="lineno">  210 </span>-- | A constraint for \&quot;@a@ is a 'KnownTypeAst' by means of being included in @uni@\&quot;.
+<span class="lineno">  211 </span>type KnownBuiltinTypeAst :: forall a. GHC.Type -&gt; (GHC.Type -&gt; GHC.Type) -&gt; a -&gt; GHC.Constraint
+<span class="lineno">  212 </span>type KnownBuiltinTypeAst tyname uni x = AllBuiltinArgs uni (KnownTypeAst tyname uni) x
+<span class="lineno">  213 </span>
+<span class="lineno">  214 </span>-- See Note [Name generality of KnownTypeAst].
+<span class="lineno">  215 </span>{-| This class allows one to convert the type-level Haskell representation of a Plutus type into
+<span class="lineno">  216 </span>the corresponding Plutus type. Associated type families are needed to help elaboration.
+<span class="lineno">  217 </span>
+<span class="lineno">  218 </span>Depending on the universe converting a Haskell type to a Plutus team can give different results
+<span class="lineno">  219 </span>(e.g. 'Int' can be a built-in type instead of being encoded via built-in 'Integer'), hence this
+<span class="lineno">  220 </span>class takes a @uni@ argument. Plus, elaboration is universe-specific too. -}
+<span class="lineno">  221 </span>type KnownTypeAst :: forall a. GHC.Type -&gt; (GHC.Type -&gt; GHC.Type) -&gt; a -&gt; GHC.Constraint
+<span class="lineno">  222 </span>class KnownTypeAst tyname uni x where
+<span class="lineno">  223 </span>  -- | Whether @x@ is a built-in type.
+<span class="lineno">  224 </span>  type IsBuiltin uni x :: Bool
+<span class="lineno">  225 </span>
+<span class="lineno">  226 </span>  type IsBuiltin uni x = IsBuiltin uni (ElaborateBuiltin uni x)
+<span class="lineno">  227 </span>
+<span class="lineno">  228 </span>  {-| Return every part of the type that can be a to-be-instantiated type variable.
+<span class="lineno">  229 </span>  For example, in @Integer@ there's no such types and in @(a, b)@ it's the two arguments
+<span class="lineno">  230 </span>  (@a@ and @b@) and the same applies to @a -&gt; b@ (to mention a type that is not built-in).
+<span class="lineno">  231 </span>
+<span class="lineno">  232 </span>  Takes a @hole@ in the @GHC.Type -&gt; GHC.Type@ form (a convention originally adopted in the
+<span class="lineno">  233 </span>  elaborator, perhaps not a very helpful one), which can be turned into an actual 'Hole' via
+<span class="lineno">  234 </span>  'RunHole'. -}
+<span class="lineno">  235 </span>  type ToHoles uni (hole :: GHC.Type -&gt; GHC.Type) x :: [Hole]
+<span class="lineno">  236 </span>
+<span class="lineno">  237 </span>  type ToHoles uni hole x = ToHoles uni hole (ElaborateBuiltin uni x)
+<span class="lineno">  238 </span>
+<span class="lineno">  239 </span>  {-| Collect all unique variables (a variable consists of a textual name, a unique and a kind)
+<span class="lineno">  240 </span>  in an accumulator and return the accumulator once a leaf is reached. -}
+<span class="lineno">  241 </span>  type ToBinds uni (acc :: [GADT.Some TyNameRep]) x :: [GADT.Some TyNameRep]
+<span class="lineno">  242 </span>
+<span class="lineno">  243 </span>  type ToBinds uni acc x = ToBinds uni acc (ElaborateBuiltin uni x)
+<span class="lineno">  244 </span>
+<span class="lineno">  245 </span>  -- Doesn't take a @proxy@, so that newtype- and via-deriving are available.
+<span class="lineno">  246 </span>  -- | The Plutus counterpart of the @x@ type.
+<span class="lineno">  247 </span>  typeAst :: Type tyname uni ()
+<span class="lineno">  248 </span>  default typeAst :: KnownTypeAst tyname uni (ElaborateBuiltin uni x) =&gt; Type tyname uni ()
+<span class="lineno">  249 </span>  <span class="decl"><span class="istickedoff">typeAst = toTypeAst $ <span class="nottickedoff">Proxy @(ElaborateBuiltin uni x)</span></span></span>
+<span class="lineno">  250 </span>
+<span class="lineno">  251 </span>instance KnownTypeAst tyname uni a =&gt; KnownTypeAst tyname uni (EvaluationResult a) where
+<span class="lineno">  252 </span>  type IsBuiltin _ (EvaluationResult a) = 'False
+<span class="lineno">  253 </span>  type ToHoles _ _ (EvaluationResult a) = '[TypeHole a]
+<span class="lineno">  254 </span>  type ToBinds uni acc (EvaluationResult a) = ToBinds uni acc a
+<span class="lineno">  255 </span>  <span class="decl"><span class="nottickedoff">typeAst = toTypeAst $ Proxy @a</span></span>
+<span class="lineno">  256 </span>
+<span class="lineno">  257 </span>instance KnownTypeAst tyname uni a =&gt; KnownTypeAst tyname uni (BuiltinResult a) where
+<span class="lineno">  258 </span>  type IsBuiltin _ (BuiltinResult a) = 'False
+<span class="lineno">  259 </span>  type ToHoles _ _ (BuiltinResult a) = '[TypeHole a]
+<span class="lineno">  260 </span>  type ToBinds uni acc (BuiltinResult a) = ToBinds uni acc a
+<span class="lineno">  261 </span>  <span class="decl"><span class="istickedoff">typeAst = toTypeAst $ <span class="nottickedoff">Proxy @a</span></span></span>
+<span class="lineno">  262 </span>
+<span class="lineno">  263 </span>instance KnownTypeAst tyname uni rep =&gt; KnownTypeAst tyname uni (SomeConstant uni rep) where
+<span class="lineno">  264 </span>  type IsBuiltin _ (SomeConstant uni rep) = 'False
+<span class="lineno">  265 </span>  type ToHoles _ _ (SomeConstant _ rep) = '[RepHole rep]
+<span class="lineno">  266 </span>  type ToBinds uni acc (SomeConstant _ rep) = ToBinds uni acc rep
+<span class="lineno">  267 </span>  <span class="decl"><span class="istickedoff">typeAst = toTypeAst $ <span class="nottickedoff">Proxy @rep</span></span></span>
+<span class="lineno">  268 </span>
+<span class="lineno">  269 </span>instance KnownTypeAst tyname uni rep =&gt; KnownTypeAst tyname uni (Opaque val rep) where
+<span class="lineno">  270 </span>  type IsBuiltin _ (Opaque val rep) = 'False
+<span class="lineno">  271 </span>  type ToHoles _ _ (Opaque _ rep) = '[RepHole rep]
+<span class="lineno">  272 </span>  type ToBinds uni acc (Opaque _ rep) = ToBinds uni acc rep
+<span class="lineno">  273 </span>  <span class="decl"><span class="istickedoff">typeAst = toTypeAst $ <span class="nottickedoff">Proxy @rep</span></span></span>
+<span class="lineno">  274 </span>
+<span class="lineno">  275 </span>-- | Return the Plutus counterpart of the @x@ type.
+<span class="lineno">  276 </span>toTypeAst
+<span class="lineno">  277 </span>  :: forall a tyname uni (x :: a) proxy
+<span class="lineno">  278 </span>   . KnownTypeAst tyname uni x
+<span class="lineno">  279 </span>  =&gt; proxy x -&gt; Type tyname uni ()
+<span class="lineno">  280 </span><span class="decl"><span class="istickedoff">toTypeAst _ = typeAst @_ @tyname @uni @x</span></span>
+<span class="lineno">  281 </span>
+<span class="lineno">  282 </span>toTyNameAst
+<span class="lineno">  283 </span>  :: forall text uniq
+<span class="lineno">  284 </span>   . (KnownSymbol text, KnownNat uniq)
+<span class="lineno">  285 </span>  =&gt; Proxy ('TyNameRep text uniq) -&gt; TyName
+<span class="lineno">  286 </span><span class="decl"><span class="istickedoff">toTyNameAst _ =</span>
+<span class="lineno">  287 </span><span class="spaces">  </span><span class="istickedoff">TyName $</span>
+<span class="lineno">  288 </span><span class="spaces">    </span><span class="istickedoff">Name</span>
+<span class="lineno">  289 </span><span class="spaces">      </span><span class="istickedoff">(Text.pack $ symbolVal @text <span class="nottickedoff">Proxy</span>)</span>
+<span class="lineno">  290 </span><span class="spaces">      </span><span class="istickedoff">(Unique . fromIntegral $ natVal @uniq <span class="nottickedoff">Proxy</span>)</span></span>
+<span class="lineno">  291 </span>
+<span class="lineno">  292 </span>instance uni `Contains` f =&gt; KnownTypeAst tyname uni (BuiltinHead f) where
+<span class="lineno">  293 </span>  type IsBuiltin _ (BuiltinHead f) = 'True
+<span class="lineno">  294 </span>  type ToHoles _ _ (BuiltinHead f) = '[]
+<span class="lineno">  295 </span>  type ToBinds _ acc (BuiltinHead f) = acc
+<span class="lineno">  296 </span>  <span class="decl"><span class="istickedoff">typeAst = TyBuiltin () $ someType @_ @f</span></span>
+<span class="lineno">  297 </span>
+<span class="lineno">  298 </span>instance KnownTypeAst tyname uni y =&gt; KnownTypeAst tyname uni (LastArg x y) where
+<span class="lineno">  299 </span>  type IsBuiltin uni (LastArg x y) = IsBuiltin uni y
+<span class="lineno">  300 </span>  type ToHoles _ hole (LastArg x y) = '[RunHole hole x, RunHole hole y]
+<span class="lineno">  301 </span>  type ToBinds uni acc (LastArg x y) = ToBinds uni (ToBinds uni acc x) y
+<span class="lineno">  302 </span>  <span class="decl"><span class="nottickedoff">typeAst = toTypeAst $ Proxy @y</span></span>
+<span class="lineno">  303 </span>
+<span class="lineno">  304 </span>instance
+<span class="lineno">  305 </span>  (KnownTypeAst tyname uni a, KnownTypeAst tyname uni b)
+<span class="lineno">  306 </span>  =&gt; KnownTypeAst tyname uni (a -&gt; b)
+<span class="lineno">  307 </span>  where
+<span class="lineno">  308 </span>  type IsBuiltin _ (a -&gt; b) = 'False
+<span class="lineno">  309 </span>  type ToHoles _ hole (a -&gt; b) = '[RunHole hole a, RunHole hole b]
+<span class="lineno">  310 </span>  type ToBinds uni acc (a -&gt; b) = ToBinds uni (ToBinds uni acc a) b
+<span class="lineno">  311 </span>  <span class="decl"><span class="istickedoff">typeAst = TyFun () (toTypeAst $ <span class="nottickedoff">Proxy @a</span>) (toTypeAst $ <span class="nottickedoff">Proxy @b</span>)</span></span>
+<span class="lineno">  312 </span>
+<span class="lineno">  313 </span>instance
+<span class="lineno">  314 </span>  (tyname ~ TyName, name ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq)
+<span class="lineno">  315 </span>  =&gt; KnownTypeAst tyname uni (TyVarRep name)
+<span class="lineno">  316 </span>  where
+<span class="lineno">  317 </span>  type IsBuiltin _ (TyVarRep name) = 'False
+<span class="lineno">  318 </span>  type ToHoles _ _ (TyVarRep name) = '[]
+<span class="lineno">  319 </span>  type ToBinds _ acc (TyVarRep name) = Insert ('GADT.Some name) acc
+<span class="lineno">  320 </span>  <span class="decl"><span class="istickedoff">typeAst = TyVar () . toTyNameAst $ <span class="nottickedoff">Proxy @('TyNameRep text uniq)</span></span></span>
+<span class="lineno">  321 </span>
+<span class="lineno">  322 </span>instance
+<span class="lineno">  323 </span>  (KnownTypeAst tyname uni fun, KnownTypeAst tyname uni arg)
+<span class="lineno">  324 </span>  =&gt; KnownTypeAst tyname uni (TyAppRep fun arg)
+<span class="lineno">  325 </span>  where
+<span class="lineno">  326 </span>  type IsBuiltin uni (TyAppRep fun arg) = IsBuiltin uni fun &amp;&amp; IsBuiltin uni arg
+<span class="lineno">  327 </span>  type ToHoles _ _ (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
+<span class="lineno">  328 </span>  type ToBinds uni acc (TyAppRep fun arg) = ToBinds uni (ToBinds uni acc fun) arg
+<span class="lineno">  329 </span>  <span class="decl"><span class="istickedoff">typeAst = TyApp () (toTypeAst $ <span class="nottickedoff">Proxy @fun</span>) (toTypeAst $ <span class="nottickedoff">Proxy @arg</span>)</span></span>
+<span class="lineno">  330 </span>
+<span class="lineno">  331 </span>instance
+<span class="lineno">  332 </span>  ( tyname ~ TyName
+<span class="lineno">  333 </span>  , name ~ 'TyNameRep @kind text uniq
+<span class="lineno">  334 </span>  , KnownSymbol text
+<span class="lineno">  335 </span>  , KnownNat uniq
+<span class="lineno">  336 </span>  , KnownKind kind
+<span class="lineno">  337 </span>  , KnownTypeAst tyname uni a
+<span class="lineno">  338 </span>  )
+<span class="lineno">  339 </span>  =&gt; KnownTypeAst tyname uni (TyForallRep name a)
+<span class="lineno">  340 </span>  where
+<span class="lineno">  341 </span>  type IsBuiltin _ (TyForallRep name a) = 'False
+<span class="lineno">  342 </span>  type ToHoles _ _ (TyForallRep name a) = '[RepHole a]
+<span class="lineno">  343 </span>  type ToBinds uni acc (TyForallRep name a) = Delete ('GADT.Some name) (ToBinds uni acc a)
+<span class="lineno">  344 </span>  <span class="decl"><span class="istickedoff">typeAst =</span>
+<span class="lineno">  345 </span><span class="spaces">    </span><span class="istickedoff">TyForall</span>
+<span class="lineno">  346 </span><span class="spaces">      </span><span class="istickedoff">()</span>
+<span class="lineno">  347 </span><span class="spaces">      </span><span class="istickedoff">(toTyNameAst $ <span class="nottickedoff">Proxy @('TyNameRep text uniq)</span>)</span>
+<span class="lineno">  348 </span><span class="spaces">      </span><span class="istickedoff">(demoteKind $ knownKind @kind)</span>
+<span class="lineno">  349 </span><span class="spaces">      </span><span class="istickedoff">(toTypeAst $ <span class="nottickedoff">Proxy @a</span>)</span></span>
+<span class="lineno">  350 </span>
+<span class="lineno">  351 </span>-- Utils
+<span class="lineno">  352 </span>
+<span class="lineno">  353 </span>-- | Insert @x@ into @xs@ unless it's already there.
+<span class="lineno">  354 </span>type Insert :: forall a. a -&gt; [a] -&gt; [a]
+<span class="lineno">  355 </span>type family Insert x xs where
+<span class="lineno">  356 </span>  Insert x '[] = '[x]
+<span class="lineno">  357 </span>  Insert x (x : xs) = x ': xs
+<span class="lineno">  358 </span>  Insert x (y : xs) = y ': Insert x xs
+<span class="lineno">  359 </span>
+<span class="lineno">  360 </span>-- | Delete the first @x@ from a list. Which is okay since we only ever put things in once.
+<span class="lineno">  361 </span>type Delete :: forall a. a -&gt; [a] -&gt; [a]
+<span class="lineno">  362 </span>type family Delete x xs where
+<span class="lineno">  363 </span>  Delete _ '[] = '[]
+<span class="lineno">  364 </span>  Delete x (x ': xs) = xs
+<span class="lineno">  365 </span>  Delete x (y ': xs) = y ': Delete x xs
+
+</pre>
+</body>
+</html>

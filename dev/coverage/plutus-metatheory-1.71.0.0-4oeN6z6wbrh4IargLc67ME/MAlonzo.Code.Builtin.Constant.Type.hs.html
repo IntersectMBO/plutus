@@ -1,0 +1,49 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Builtin.Constant.Type where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Builtin.Constant.AtomicType
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>-- Builtin.Constant.Type.TyCon
+<span class="lineno">   23 </span><span class="decl"><span class="nottickedoff">d_TyCon_6 a0 = ()</span></span>
+<span class="lineno">   24 </span>data T_TyCon_6
+<span class="lineno">   25 </span>  = C_atomic_8 MAlonzo.Code.Builtin.Constant.AtomicType.T_AtomicTyCon_6 |
+<span class="lineno">   26 </span>    C_list_10 | C_array_12 | C_pair_14
+
+</pre>
+</body>
+</html>

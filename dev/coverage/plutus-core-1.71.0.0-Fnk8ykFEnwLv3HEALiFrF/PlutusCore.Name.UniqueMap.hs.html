@@ -1,0 +1,135 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-| A type for maps (key-value associations), where the key type can be
+<span class="lineno">    2 </span> identified by 'Unique's. In practice, these types are usually names.
+<span class="lineno">    3 </span> This approach is preferred when it is more efficient to compare the associated
+<span class="lineno">    4 </span> 'Unique's instead of the underlying type. -}
+<span class="lineno">    5 </span>module PlutusCore.Name.UniqueMap
+<span class="lineno">    6 </span>  ( UniqueMap (..)
+<span class="lineno">    7 </span>  , insertByUnique
+<span class="lineno">    8 </span>  , insertByName
+<span class="lineno">    9 </span>  , singletonByName
+<span class="lineno">   10 </span>  , insertNamed
+<span class="lineno">   11 </span>  , insertByNameIndex
+<span class="lineno">   12 </span>  , fromFoldable
+<span class="lineno">   13 </span>  , fromUniques
+<span class="lineno">   14 </span>  , fromNames
+<span class="lineno">   15 </span>  , lookupUnique
+<span class="lineno">   16 </span>  , lookupName
+<span class="lineno">   17 </span>  , restrictKeys
+<span class="lineno">   18 </span>  , lookupNameIndex
+<span class="lineno">   19 </span>  ) where
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Control.Lens (view)
+<span class="lineno">   22 </span>import Control.Lens.Getter ((^.))
+<span class="lineno">   23 </span>import Data.Coerce (Coercible, coerce)
+<span class="lineno">   24 </span>import Data.IntMap.Strict qualified as IM
+<span class="lineno">   25 </span>import Data.List as List (foldl')
+<span class="lineno">   26 </span>import PlutusCore.Name.Unique (HasText (..), HasUnique (..), Named (Named), Unique (Unique))
+<span class="lineno">   27 </span>import PlutusCore.Name.UniqueSet (UniqueSet (UniqueSet))
+<span class="lineno">   28 </span>import Prelude hiding (foldr)
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>{-| A mapping from 'Unique's to arbitrary values of type @a@.
+<span class="lineno">   31 </span> Since 'Unique' is equivalent to 'Int' (see &quot;PlutusCore.Name.Unique&quot;),
+<span class="lineno">   32 </span> we can use an 'IntMap' representation for this type. -}
+<span class="lineno">   33 </span>newtype UniqueMap unique a = UniqueMap
+<span class="lineno">   34 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">unUniqueMap</span></span></span> :: IM.IntMap a
+<span class="lineno">   35 </span>  }
+<span class="lineno">   36 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   37 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Monoid</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>-- | Insert a value @a@ by a @unique@.
+<span class="lineno">   40 </span>insertByUnique
+<span class="lineno">   41 </span>  :: Coercible unique Unique
+<span class="lineno">   42 </span>  =&gt; unique
+<span class="lineno">   43 </span>  -&gt; a
+<span class="lineno">   44 </span>  -&gt; UniqueMap unique a
+<span class="lineno">   45 </span>  -&gt; UniqueMap unique a
+<span class="lineno">   46 </span><span class="decl"><span class="istickedoff">insertByUnique uniq = coerce . IM.insert (coerce uniq)</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>-- | Insert a value @a@ by the @unique@ of a @name@.
+<span class="lineno">   49 </span>insertByName :: HasUnique name unique =&gt; name -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a
+<span class="lineno">   50 </span><span class="decl"><span class="istickedoff">insertByName = insertByUnique . view unique</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>-- | Create the singleton map of the @unique@ of a @name@ and a value @a@.
+<span class="lineno">   53 </span>singletonByName :: HasUnique name unique =&gt; name -&gt; a -&gt; UniqueMap unique a
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">singletonByName n a = insertByName n a mempty</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>-- | Insert a named value @a@ by the index of the @unique@ of the @name@.
+<span class="lineno">   57 </span>insertNamed
+<span class="lineno">   58 </span>  :: (HasText name, HasUnique name unique)
+<span class="lineno">   59 </span>  =&gt; name
+<span class="lineno">   60 </span>  -&gt; a
+<span class="lineno">   61 </span>  -&gt; UniqueMap unique (Named a)
+<span class="lineno">   62 </span>  -&gt; UniqueMap unique (Named a)
+<span class="lineno">   63 </span><span class="decl"><span class="istickedoff">insertNamed name = insertByName name . Named (name ^. theText)</span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>{-| Insert a value by the index of the unique of a name.
+<span class="lineno">   66 </span>Unlike 'insertByUnique' and 'insertByName', this function does not provide any static guarantees,
+<span class="lineno">   67 </span>so you can for example insert by a type-level name in a map from term-level uniques. -}
+<span class="lineno">   68 </span>insertByNameIndex
+<span class="lineno">   69 </span>  :: (HasUnique name unique1, Coercible unique2 Unique)
+<span class="lineno">   70 </span>  =&gt; name
+<span class="lineno">   71 </span>  -&gt; a
+<span class="lineno">   72 </span>  -&gt; UniqueMap unique2 a
+<span class="lineno">   73 </span>  -&gt; UniqueMap unique2 a
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">insertByNameIndex = insertByUnique . coerce . view unique</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>-- | Convert a 'Foldable' into a 'UniqueMap' using the given insertion function.
+<span class="lineno">   77 </span>fromFoldable
+<span class="lineno">   78 </span>  :: Foldable f
+<span class="lineno">   79 </span>  =&gt; (i -&gt; a -&gt; UniqueMap unique a -&gt; UniqueMap unique a)
+<span class="lineno">   80 </span>  -&gt; f (i, a)
+<span class="lineno">   81 </span>  -&gt; UniqueMap unique a
+<span class="lineno">   82 </span><span class="decl"><span class="istickedoff">fromFoldable ins = List.foldl' (flip $ uncurry ins) mempty</span></span>
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>-- | Convert a 'Foldable' with uniques into a 'UniqueMap'.
+<span class="lineno">   85 </span>fromUniques :: Foldable f =&gt; Coercible Unique unique =&gt; f (unique, a) -&gt; UniqueMap unique a
+<span class="lineno">   86 </span><span class="decl"><span class="istickedoff">fromUniques = fromFoldable insertByUnique</span></span>
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>-- | Convert a 'Foldable' with names into a 'UniqueMap'.
+<span class="lineno">   89 </span>fromNames :: Foldable f =&gt; HasUnique name unique =&gt; f (name, a) -&gt; UniqueMap unique a
+<span class="lineno">   90 </span><span class="decl"><span class="nottickedoff">fromNames = fromFoldable insertByName</span></span>
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>-- | Look up a value by a unique.
+<span class="lineno">   93 </span>lookupUnique :: Coercible unique Unique =&gt; unique -&gt; UniqueMap unique a -&gt; Maybe a
+<span class="lineno">   94 </span><span class="decl"><span class="istickedoff">lookupUnique uniq = IM.lookup (coerce uniq) . unUniqueMap</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>-- | Look up a value by the unique of a name.
+<span class="lineno">   97 </span>lookupName :: HasUnique name unique =&gt; name -&gt; UniqueMap unique a -&gt; Maybe a
+<span class="lineno">   98 </span><span class="decl"><span class="istickedoff">lookupName = lookupUnique . view unique</span></span>
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>restrictKeys :: UniqueMap unique v -&gt; UniqueSet unique -&gt; UniqueMap unique v
+<span class="lineno">  101 </span><span class="decl"><span class="istickedoff">restrictKeys (UniqueMap m) (UniqueSet s) =</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="istickedoff">UniqueMap $ IM.restrictKeys m s</span></span>
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>{-| Look up a value by the index of the unique of a name.
+<span class="lineno">  105 </span>Unlike 'lookupUnique' and 'lookupName', this function does not provide any static guarantees,
+<span class="lineno">  106 </span>so you can for example look up a type-level name in a map from term-level uniques. -}
+<span class="lineno">  107 </span>lookupNameIndex
+<span class="lineno">  108 </span>  :: (HasUnique name unique1, Coercible unique2 Unique)
+<span class="lineno">  109 </span>  =&gt; name
+<span class="lineno">  110 </span>  -&gt; UniqueMap unique2 a
+<span class="lineno">  111 </span>  -&gt; Maybe a
+<span class="lineno">  112 </span><span class="decl"><span class="istickedoff">lookupNameIndex = lookupUnique . coerce . view unique</span></span>
+
+</pre>
+</body>
+</html>

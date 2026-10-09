@@ -1,0 +1,69 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module PlutusCore.Examples.Data.List
+<span class="lineno">    4 </span>  ( omapList
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import PlutusCore.Core
+<span class="lineno">    8 </span>import PlutusCore.Default
+<span class="lineno">    9 </span>import PlutusCore.MkPlc
+<span class="lineno">   10 </span>import PlutusCore.Name.Unique
+<span class="lineno">   11 </span>import PlutusCore.Quote
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import PlutusCore.StdLib.Data.Function
+<span class="lineno">   14 </span>import PlutusCore.StdLib.Data.List
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import PlutusCore.Examples.Builtins
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>{-| Monomorphic @map@ over built-in lists.
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>/\(a :: *) -&gt; \(f : a -&gt; a) -&gt;
+<span class="lineno">   21 </span>    fix {list a} {list a} \(rec : list a -&gt; list a) (xs : list a) -&gt;
+<span class="lineno">   22 </span>        matchList {a} xs {list a} xs \(x : a) (xs' : list a) -&gt; cons {a} (f x) (rec xs') -}
+<span class="lineno">   23 </span>omapList :: MatchOption -&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+<span class="lineno">   24 </span><span class="decl"><span class="istickedoff">omapList optMatch = runQuote $ do</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">   27 </span><span class="spaces">  </span><span class="istickedoff">rec &lt;- freshName &quot;rec&quot;</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="istickedoff">xs &lt;- freshName &quot;xs&quot;</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="istickedoff">xs' &lt;- freshName &quot;xs'&quot;</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="istickedoff">let listA = TyApp <span class="nottickedoff">()</span> list $ TyVar <span class="nottickedoff">()</span> a</span>
+<span class="lineno">   32 </span><span class="spaces">      </span><span class="istickedoff">unwrap' ann = apply ann . tyInst () (mapFun Left (matchList optMatch)) $ TyVar <span class="nottickedoff">()</span> a</span>
+<span class="lineno">   33 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   34 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   35 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () f (TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> a) $ TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="istickedoff">. apply () (mkIterInstNoAnn fix [listA, listA])</span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () rec (TyFun <span class="nottickedoff">()</span> listA listA)</span>
+<span class="lineno">   38 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () xs listA</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff">. apply () (apply () (tyInst () (unwrap' () (var () xs)) listA) $ var () xs)</span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () x (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () xs' listA</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="istickedoff">(tyInst () (builtin () $ Left MkCons) $ TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff">[ apply () (var () f) $ var () x</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="istickedoff">, apply () (var () rec) $ var () xs'</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+
+</pre>
+</body>
+</html>

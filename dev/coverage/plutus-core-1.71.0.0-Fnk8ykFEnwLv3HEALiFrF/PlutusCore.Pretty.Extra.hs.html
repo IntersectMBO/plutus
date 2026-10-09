@@ -1,0 +1,97 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    3 </span>{-# LANGUAGE InstanceSigs #-}
+<span class="lineno">    4 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    6 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    7 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>-- | Pretty-printing stuff, some of which should probably go into the main library.
+<span class="lineno">   10 </span>module PlutusCore.Pretty.Extra
+<span class="lineno">   11 </span>  ( PrettyParens
+<span class="lineno">   12 </span>  , juxtRenderContext
+<span class="lineno">   13 </span>  ) where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import PlutusPrelude
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Control.Monad.Trans.Reader
+<span class="lineno">   18 </span>import Data.Map (Map)
+<span class="lineno">   19 </span>import Data.Map qualified as Map
+<span class="lineno">   20 </span>import Data.Profunctor
+<span class="lineno">   21 </span>import Data.Set (Set)
+<span class="lineno">   22 </span>import Data.Set qualified as Set
+<span class="lineno">   23 </span>import Data.Vector.Strict (Vector)
+<span class="lineno">   24 </span>import Text.PrettyBy.Fixity
+<span class="lineno">   25 </span>import Text.PrettyBy.Internal
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>type instance HasPrettyDefaults (Sole config) = HasPrettyDefaults config
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Profunctor InContextM</span></span></span></span></span></span> where
+<span class="lineno">   30 </span>  lmap
+<span class="lineno">   31 </span>    :: forall config' config a
+<span class="lineno">   32 </span>     . (config' -&gt; config)
+<span class="lineno">   33 </span>    -&gt; InContextM config a
+<span class="lineno">   34 </span>    -&gt; InContextM config' a
+<span class="lineno">   35 </span>  <span class="decl"><span class="istickedoff">lmap = coerce (withReader :: (config' -&gt; config) -&gt; Reader config a -&gt; Reader config' a)</span></span>
+<span class="lineno">   36 </span>  {-# INLINE lmap #-}
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>  rmap
+<span class="lineno">   39 </span>    :: forall config a b
+<span class="lineno">   40 </span>     . (a -&gt; b)
+<span class="lineno">   41 </span>    -&gt; InContextM config a
+<span class="lineno">   42 </span>    -&gt; InContextM config b
+<span class="lineno">   43 </span>  <span class="decl"><span class="nottickedoff">rmap = coerce (mapReader :: (a -&gt; b) -&gt; Reader config a -&gt; Reader config b)</span></span>
+<span class="lineno">   44 </span>  {-# INLINE rmap #-}
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>-- | For pretty-printing a value with a minimum amount of parens.
+<span class="lineno">   47 </span>type PrettyParens = PrettyBy RenderContext
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>{-| An initial 'RenderContext'.
+<span class="lineno">   50 </span>An expression printed in this context gets enclosed in parens unless its outermost operator (if
+<span class="lineno">   51 </span>any) binds even stronger than function application. -}
+<span class="lineno">   52 </span>juxtRenderContext :: RenderContext
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">juxtRenderContext = RenderContext ToTheRight juxtFixity</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>instance <span class="decl"><span class="nottickedoff">PrettyDefaultBy config [(k, v)] =&gt; DefaultPrettyBy config (Map k v)</span></span> where
+<span class="lineno">   56 </span>  <span class="decl"><span class="nottickedoff">defaultPrettyBy config = prettyBy config . Map.toList</span></span>
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">PrettyCommon (Map k v)</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">PrettyDefaultBy config (Map k v) =&gt; PrettyBy config (Map k v)</span></span></span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>instance <span class="decl"><span class="nottickedoff">PrettyDefaultBy config [a] =&gt; DefaultPrettyBy config (Set a)</span></span> where
+<span class="lineno">   63 </span>  <span class="decl"><span class="nottickedoff">defaultPrettyBy config = prettyBy config . Set.toList</span></span>
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">PrettyCommon (Set a)</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="nottickedoff">PrettyDefaultBy config (Set a) =&gt; PrettyBy config (Set a)</span></span></span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>instance <span class="decl"><span class="istickedoff">PrettyDefaultBy config [a] =&gt; DefaultPrettyBy config (Vector a)</span></span> where
+<span class="lineno">   70 </span>  <span class="decl"><span class="istickedoff">defaultPrettyBy config = prettyBy <span class="nottickedoff">config</span> . toList</span></span>
+<span class="lineno">   71 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">deriving via</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">PrettyCommon (Vector a)</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">instance</span>
+<span class="lineno">   74 </span><span class="spaces">    </span><span class="istickedoff">PrettyDefaultBy config (Vector a) =&gt; PrettyBy config (Vector a)</span></span></span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LookupCoin - Plutus Cost Model Visualization</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../valuedata/index.html">ValueData</a></li>
+      <li><a href="../unvaluedata/index.html">UnValueData</a></li>
+      <li><a href="../valuecontains/index.html">ValueContains</a></li>
+      <li><a href="../lookupcoin/index.html" class="active">LookupCoin</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1>LookupCoin Cost Model Visualization</h1>
+    <p>
+      Interactive visualization of benchmark data and fitted cost model for the <code>LookupCoin</code> builtin function.
+      This function looks up a specific coin (currency symbol and token name) in a Plutus <code>Value</code>.
+    </p>
+
+    <div class="controls" id="data-source-controls">
+      <h3 id="data-source-toggle">Data Source Configuration</h3>
+      <div class="controls-content">
+        <div class="control-group-vertical">
+          <label for="branch-name">Branch name:</label>
+          <input type="text" id="branch-name" placeholder="master" style="width: 100%; font-family: monospace;">
+        </div>
+        <div class="control-group-vertical">
+          <label for="csv-url">CSV file URL:</label>
+          <input type="text" id="csv-url" style="width: 100%; font-family: monospace;">
+        </div>
+        <div class="control-group-vertical">
+          <label for="json-url">JSON file URL:</label>
+          <input type="text" id="json-url" style="width: 100%; font-family: monospace;">
+        </div>
+        <div class="control-group">
+          <button id="reload-data">Load Data</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls" id="plot-controls">
+      <h3 id="plot-controls-toggle">Plot Controls</h3>
+      <div class="controls-content">
+        <div class="control-group">
+          <input type="checkbox" id="show-model" checked>
+          <label for="show-model">Show model predictions</label>
+        </div>
+        <div class="control-group">
+          <label for="y-axis-mode">Y-axis range:</label>
+          <select id="y-axis-mode">
+            <option value="zero">Start from 0</option>
+            <option value="auto">Auto-scale from min</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="plot-wrapper">
+      <div id="plot-container">
+        <div class="loading">Loading data and generating plot...</div>
+      </div>
+
+      <div class="info-panel">
+        <h3>Plot Information</h3>
+
+        <div class="info-section">
+          <dl>
+            <dt>X-axis:</dt>
+            <dd id="info-x-axis">Value Size</dd>
+
+            <dt>Y-axis:</dt>
+            <dd id="info-y-axis">Time (nanoseconds)</dd>
+
+            <dt>Description:</dt>
+            <dd id="info-description">Each point represents one benchmark run</dd>
+          </dl>
+        </div>
+
+        <div class="info-section">
+          <dt>Cost Model Type:</dt>
+          <dd id="info-model-type">Loading...</dd>
+
+          <dt>Model Formula (net):</dt>
+          <dd class="formula" id="info-model-formula">Loading...</dd>
+
+          <dt>Overhead:</dt>
+          <dd id="info-overhead">Loading...</dd>
+        </div>
+
+        <div class="info-section">
+          <dl>
+            <dt>Data points:</dt>
+            <dd id="info-data-points">-</dd>
+
+            <dt>Value Size range:</dt>
+            <dd id="info-x-range">-</dd>
+
+            <dt>Time range:</dt>
+            <dd id="info-time-range">-</dd>
+          </dl>
+        </div>
+
+        <div class="info-section">
+          <dt>Data sources:</dt>
+          <dd><a href="https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/benching-conway.csv" target="_blank">benching-conway.csv</a></dd>
+          <dd><a href="https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/builtinCostModelC.json" target="_blank">builtinCostModelC.json</a></dd>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Plutus Cost Model Visualization | <a href="https://github.com/IntersectMBO/plutus" target="_blank">Plutus Repository</a></p>
+  </footer>
+
+  <script src="../shared/utils.js"></script>
+  <script src="plot.js"></script>
+</body>
+</html>
