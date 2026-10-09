@@ -130,8 +130,15 @@ data TypeError term uni fun ann
   | FreeVariableE !ann !Name
   | UnknownBuiltinFunctionE !ann !fun
   | UnsupportedCaseBuiltin !ann !T.Text
-  deriving stock (Show, Eq, Generic, Functor)
-  deriving anyclass (NFData)
+  deriving stock (Generic, Functor)
+
+deriving stock instance
+  (Show (SomeTypeHead uni), Show term, Show fun, Show ann) => Show (TypeError term uni fun ann)
+deriving stock instance
+  (Eq (SomeTypeHead uni), Eq term, Eq fun, Eq ann) => Eq (TypeError term uni fun ann)
+deriving anyclass instance
+  (NFData (SomeTypeHead uni), NFData term, NFData fun, NFData ann)
+  => NFData (TypeError term uni fun ann)
 
 -- Make a custom data type and wrap @ParseErrorBundle@ in it so I can use @makeClassyPrisms@
 -- on @ParseErrorBundle@.

@@ -43,7 +43,7 @@ data T__'8866'_14
   = C_'96'_18 MAlonzo.Code.Data.Fin.Base.T_Fin_10 |
     C_ƛ_20 T__'8866'_14 | C__'183'__22 T__'8866'_14 T__'8866'_14 |
     C_force_24 T__'8866'_14 | C_delay_26 T__'8866'_14 |
-    C_con_28 MAlonzo.Code.RawU.T_TmCon_204 |
+    C_con_28 MAlonzo.Code.RawU.T_TmCon_198 |
     C_constr_34 Integer [T__'8866'_14] |
     C_case_40 T__'8866'_14 [T__'8866'_14] |
     C_builtin_44 MAlonzo.Code.Builtin.T_Builtin_2 | C_error_46
@@ -56,11 +56,11 @@ du_uglyDATA_76 :: MAlonzo.Code.Agda.Builtin.String.T_String_6
 du_uglyDATA_76 = coe ("(DATA)" :: Data.Text.Text)
 -- Untyped.uglyTmCon
 d_uglyTmCon_80 ::
-  MAlonzo.Code.RawU.T_TmCon_204 ->
+  MAlonzo.Code.RawU.T_TmCon_198 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_uglyTmCon_80 v0
   = case coe v0 of
-      MAlonzo.Code.RawU.C_tmCon_208 v1 v2
+      MAlonzo.Code.RawU.C_tmCon_202 v1 v2
         -> case coe v1 of
              MAlonzo.Code.Builtin.Signature.C_atomic_12 v4
                -> case coe v4 of
@@ -116,14 +116,14 @@ d_uglyTmCon_80 v0
                            (coe
                               MAlonzo.Code.Data.String.Base.d__'43''43'__20
                               (d_uglyTmCon_80
-                                 (coe MAlonzo.Code.RawU.C_tmCon_208 (coe v4) (coe v6)))
+                                 (coe MAlonzo.Code.RawU.C_tmCon_202 (coe v4) (coe v6)))
                               (coe
                                  MAlonzo.Code.Data.String.Base.d__'43''43'__20
                                  (" , " :: Data.Text.Text)
                                  (coe
                                     MAlonzo.Code.Data.String.Base.d__'43''43'__20
                                     (d_uglyTmCon_80
-                                       (coe MAlonzo.Code.RawU.C_tmCon_208 (coe v5) (coe v7)))
+                                       (coe MAlonzo.Code.RawU.C_tmCon_202 (coe v5) (coe v7)))
                                     (") )" :: Data.Text.Text))))
                     _ -> MAlonzo.RTE.mazUnreachableError
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -141,12 +141,12 @@ d_uglyTmConList_84 v0 v1
              MAlonzo.Code.Utils.C_'91''93'_458
                -> coe
                     d_uglyTmCon_80
-                    (coe MAlonzo.Code.RawU.C_tmCon_208 (coe v0) (coe v2))
+                    (coe MAlonzo.Code.RawU.C_tmCon_202 (coe v0) (coe v2))
              MAlonzo.Code.Utils.C__'8759'__460 v4 v5
                -> coe
                     MAlonzo.Code.Data.String.Base.d__'43''43'__20
                     (d_uglyTmCon_80
-                       (coe MAlonzo.Code.RawU.C_tmCon_208 (coe v0) (coe v2)))
+                       (coe MAlonzo.Code.RawU.C_tmCon_202 (coe v0) (coe v2)))
                     (coe
                        MAlonzo.Code.Data.String.Base.d__'43''43'__20
                        (" , " :: Data.Text.Text) (d_uglyTmConList_84 (coe v0) (coe v3)))
@@ -289,7 +289,7 @@ du_extG_180 v0 v1
 d_extricateUList_190 ::
   Integer ->
   [T__'8866'_14] ->
-  MAlonzo.Code.Utils.T_List_454 MAlonzo.Code.RawU.T_Untyped_210
+  MAlonzo.Code.Utils.T_List_454 MAlonzo.Code.RawU.T_Untyped_204
 d_extricateUList_190 v0 v1
   = case coe v1 of
       [] -> coe MAlonzo.Code.Utils.C_'91''93'_458
@@ -301,45 +301,45 @@ d_extricateUList_190 v0 v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.extricateU
 d_extricateU_194 ::
-  Integer -> T__'8866'_14 -> MAlonzo.Code.RawU.T_Untyped_210
+  Integer -> T__'8866'_14 -> MAlonzo.Code.RawU.T_Untyped_204
 d_extricateU_194 v0 v1
   = case coe v1 of
       C_'96'_18 v2
         -> coe
-             MAlonzo.Code.RawU.C_UVar_212
+             MAlonzo.Code.RawU.C_UVar_206
              (coe MAlonzo.Code.Data.Fin.Base.du_toℕ_18 (coe v2))
       C_ƛ_20 v2
         -> coe
-             MAlonzo.Code.RawU.C_ULambda_214
+             MAlonzo.Code.RawU.C_ULambda_208
              (coe
                 d_extricateU_194 (coe addInt (coe (1 :: Integer)) (coe v0))
                 (coe v2))
       C__'183'__22 v2 v3
         -> coe
-             MAlonzo.Code.RawU.C_UApp_216
+             MAlonzo.Code.RawU.C_UApp_210
              (coe d_extricateU_194 (coe v0) (coe v2))
              (coe d_extricateU_194 (coe v0) (coe v3))
       C_force_24 v2
         -> coe
-             MAlonzo.Code.RawU.C_UForce_226
+             MAlonzo.Code.RawU.C_UForce_220
              (coe d_extricateU_194 (coe v0) (coe v2))
       C_delay_26 v2
         -> coe
-             MAlonzo.Code.RawU.C_UDelay_224
+             MAlonzo.Code.RawU.C_UDelay_218
              (coe d_extricateU_194 (coe v0) (coe v2))
       C_con_28 v2
         -> coe
-             MAlonzo.Code.RawU.C_UCon_218
-             (coe MAlonzo.Code.RawU.d_tmCon2TagCon_372 (coe v2))
+             MAlonzo.Code.RawU.C_UCon_212
+             (coe MAlonzo.Code.RawU.d_tmCon2TagCon_366 (coe v2))
       C_constr_34 v2 v3
         -> case coe v3 of
              []
                -> coe
-                    MAlonzo.Code.RawU.C_UConstr_228 (coe v2)
+                    MAlonzo.Code.RawU.C_UConstr_222 (coe v2)
                     (coe MAlonzo.Code.Utils.C_'91''93'_458)
              (:) v4 v5
                -> coe
-                    MAlonzo.Code.RawU.C_UConstr_228 (coe v2)
+                    MAlonzo.Code.RawU.C_UConstr_222 (coe v2)
                     (coe
                        MAlonzo.Code.Utils.C__'8759'__460
                        (coe d_extricateU_194 (coe v0) (coe v4))
@@ -347,15 +347,15 @@ d_extricateU_194 v0 v1
              _ -> MAlonzo.RTE.mazUnreachableError
       C_case_40 v2 v3
         -> coe
-             MAlonzo.Code.RawU.C_UCase_230
+             MAlonzo.Code.RawU.C_UCase_224
              (coe d_extricateU_194 (coe v0) (coe v2))
              (coe d_extricateUList_190 (coe v0) (coe v3))
-      C_builtin_44 v2 -> coe MAlonzo.Code.RawU.C_UBuiltin_222 (coe v2)
-      C_error_46 -> coe MAlonzo.Code.RawU.C_UError_220
+      C_builtin_44 v2 -> coe MAlonzo.Code.RawU.C_UBuiltin_216 (coe v2)
+      C_error_46 -> coe MAlonzo.Code.RawU.C_UError_214
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.extricateU0
 d_extricateU0_228 ::
-  T__'8866'_14 -> MAlonzo.Code.RawU.T_Untyped_210
+  T__'8866'_14 -> MAlonzo.Code.RawU.T_Untyped_204
 d_extricateU0_228 v0
   = coe d_extricateU_194 (coe (0 :: Integer)) (coe v0)
 -- Untyped.extG'
@@ -389,7 +389,7 @@ du_extG''_234 v0 v1
 -- Untyped.scopeCheckUList
 d_scopeCheckUList_244 ::
   Integer ->
-  MAlonzo.Code.Utils.T_List_454 MAlonzo.Code.RawU.T_Untyped_210 ->
+  MAlonzo.Code.Utils.T_List_454 MAlonzo.Code.RawU.T_Untyped_204 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Scoped.T_ScopeError_576 [T__'8866'_14]
 d_scopeCheckUList_244 v0 v1
@@ -417,12 +417,12 @@ d_scopeCheckUList_244 v0 v1
 -- Untyped.scopeCheckU
 d_scopeCheckU_248 ::
   Integer ->
-  MAlonzo.Code.RawU.T_Untyped_210 ->
+  MAlonzo.Code.RawU.T_Untyped_204 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Scoped.T_ScopeError_576 T__'8866'_14
 d_scopeCheckU_248 v0 v1
   = case coe v1 of
-      MAlonzo.Code.RawU.C_UVar_212 v2
+      MAlonzo.Code.RawU.C_UVar_206 v2
         -> coe
              MAlonzo.Code.Utils.du_fmap_292
              (coe MAlonzo.Code.Utils.du_EitherP_344) (coe C_'96'_18)
@@ -430,14 +430,14 @@ d_scopeCheckU_248 v0 v1
                 MAlonzo.Code.Utils.du_maybeToEither_94
                 (coe MAlonzo.Code.Scoped.C_deBError_578)
                 (MAlonzo.Code.Utils.d_natToFin_118 (coe v0) (coe v2)))
-      MAlonzo.Code.RawU.C_ULambda_214 v2
+      MAlonzo.Code.RawU.C_ULambda_208 v2
         -> coe
              MAlonzo.Code.Utils.du_fmap_292
              (coe MAlonzo.Code.Utils.du_EitherP_344) (coe C_ƛ_20)
              (coe
                 d_scopeCheckU_248 (coe addInt (coe (1 :: Integer)) (coe v0))
                 (coe v2))
-      MAlonzo.Code.RawU.C_UApp_216 v2 v3
+      MAlonzo.Code.RawU.C_UApp_210 v2 v3
         -> coe
              MAlonzo.Code.Utils.du_eitherBind_54
              (coe d_scopeCheckU_248 (coe v0) (coe v2))
@@ -451,31 +451,31 @@ d_scopeCheckU_248 v0 v1
                            coe
                              MAlonzo.Code.Utils.C_inj'8322'_14
                              (coe C__'183'__22 (coe v4) (coe v5))))))
-      MAlonzo.Code.RawU.C_UCon_218 v2
+      MAlonzo.Code.RawU.C_UCon_212 v2
         -> coe
              MAlonzo.Code.Utils.C_inj'8322'_14
-             (coe C_con_28 (coe MAlonzo.Code.RawU.d_tagCon2TmCon_258 (coe v2)))
-      MAlonzo.Code.RawU.C_UError_220
+             (coe C_con_28 (coe MAlonzo.Code.RawU.d_tagCon2TmCon_252 (coe v2)))
+      MAlonzo.Code.RawU.C_UError_214
         -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_error_46)
-      MAlonzo.Code.RawU.C_UBuiltin_222 v2
+      MAlonzo.Code.RawU.C_UBuiltin_216 v2
         -> coe
              MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_builtin_44 (coe v2))
-      MAlonzo.Code.RawU.C_UDelay_224 v2
+      MAlonzo.Code.RawU.C_UDelay_218 v2
         -> coe
              MAlonzo.Code.Utils.du_fmap_292
              (coe MAlonzo.Code.Utils.du_EitherP_344) (coe C_delay_26)
              (coe d_scopeCheckU_248 (coe v0) (coe v2))
-      MAlonzo.Code.RawU.C_UForce_226 v2
+      MAlonzo.Code.RawU.C_UForce_220 v2
         -> coe
              MAlonzo.Code.Utils.du_fmap_292
              (coe MAlonzo.Code.Utils.du_EitherP_344) (coe C_force_24)
              (coe d_scopeCheckU_248 (coe v0) (coe v2))
-      MAlonzo.Code.RawU.C_UConstr_228 v2 v3
+      MAlonzo.Code.RawU.C_UConstr_222 v2 v3
         -> coe
              MAlonzo.Code.Utils.du_fmap_292
              (coe MAlonzo.Code.Utils.du_EitherP_344) (coe C_constr_34 (coe v2))
              (coe d_scopeCheckUList_244 (coe v0) (coe v3))
-      MAlonzo.Code.RawU.C_UCase_230 v2 v3
+      MAlonzo.Code.RawU.C_UCase_224 v2 v3
         -> coe
              MAlonzo.Code.Utils.du_eitherBind_54
              (coe d_scopeCheckU_248 (coe v0) (coe v2))
@@ -492,65 +492,65 @@ d_scopeCheckU_248 v0 v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.scopeCheckU0
 d_scopeCheckU0_290 ::
-  MAlonzo.Code.RawU.T_Untyped_210 ->
+  MAlonzo.Code.RawU.T_Untyped_204 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Scoped.T_ScopeError_576 T__'8866'_14
 d_scopeCheckU0_290 v0
   = coe d_scopeCheckU_248 (coe (0 :: Integer)) (coe v0)
 -- Untyped.decUTm
 d_decUTm_298 ::
-  MAlonzo.Code.RawU.T_Untyped_210 ->
-  MAlonzo.Code.RawU.T_Untyped_210 -> Bool
+  MAlonzo.Code.RawU.T_Untyped_204 ->
+  MAlonzo.Code.RawU.T_Untyped_204 -> Bool
 d_decUTm_298 v0 v1
   = let v2 = coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8 in
     coe
       (case coe v0 of
-         MAlonzo.Code.RawU.C_UVar_212 v3
+         MAlonzo.Code.RawU.C_UVar_206 v3
            -> case coe v1 of
-                MAlonzo.Code.RawU.C_UVar_212 v4
+                MAlonzo.Code.RawU.C_UVar_206 v4
                   -> coe
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
                        (coe
                           MAlonzo.Code.Data.Nat.Properties.d__'8799'__2796 (coe v3) (coe v3))
                 _ -> coe v2
-         MAlonzo.Code.RawU.C_ULambda_214 v3
+         MAlonzo.Code.RawU.C_ULambda_208 v3
            -> case coe v1 of
-                MAlonzo.Code.RawU.C_ULambda_214 v4
+                MAlonzo.Code.RawU.C_ULambda_208 v4
                   -> coe d_decUTm_298 (coe v3) (coe v4)
                 _ -> coe v2
-         MAlonzo.Code.RawU.C_UApp_216 v3 v4
+         MAlonzo.Code.RawU.C_UApp_210 v3 v4
            -> case coe v1 of
-                MAlonzo.Code.RawU.C_UApp_216 v5 v6
+                MAlonzo.Code.RawU.C_UApp_210 v5 v6
                   -> coe
                        MAlonzo.Code.Data.Bool.Base.d__'8743'__24
                        (coe d_decUTm_298 (coe v3) (coe v5))
                        (coe d_decUTm_298 (coe v4) (coe v6))
                 _ -> coe v2
-         MAlonzo.Code.RawU.C_UCon_218 v3
+         MAlonzo.Code.RawU.C_UCon_212 v3
            -> case coe v1 of
-                MAlonzo.Code.RawU.C_UCon_218 v4
-                  -> coe MAlonzo.Code.RawU.d_decTagCon_194 (coe v3) (coe v4)
+                MAlonzo.Code.RawU.C_UCon_212 v4
+                  -> coe MAlonzo.Code.RawU.d_decTagCon_188 (coe v3) (coe v4)
                 _ -> coe v2
-         MAlonzo.Code.RawU.C_UError_220
+         MAlonzo.Code.RawU.C_UError_214
            -> case coe v1 of
-                MAlonzo.Code.RawU.C_UError_220
+                MAlonzo.Code.RawU.C_UError_214
                   -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
                 _ -> coe v2
-         MAlonzo.Code.RawU.C_UBuiltin_222 v3
+         MAlonzo.Code.RawU.C_UBuiltin_216 v3
            -> case coe v1 of
-                MAlonzo.Code.RawU.C_UBuiltin_222 v4
+                MAlonzo.Code.RawU.C_UBuiltin_216 v4
                   -> coe
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
                        (coe MAlonzo.Code.Builtin.d_decBuiltin_456 (coe v3) (coe v4))
                 _ -> coe v2
-         MAlonzo.Code.RawU.C_UDelay_224 v3
+         MAlonzo.Code.RawU.C_UDelay_218 v3
            -> case coe v1 of
-                MAlonzo.Code.RawU.C_UDelay_224 v4
+                MAlonzo.Code.RawU.C_UDelay_218 v4
                   -> coe d_decUTm_298 (coe v3) (coe v4)
                 _ -> coe v2
-         MAlonzo.Code.RawU.C_UForce_226 v3
+         MAlonzo.Code.RawU.C_UForce_220 v3
            -> case coe v1 of
-                MAlonzo.Code.RawU.C_UForce_226 v4
+                MAlonzo.Code.RawU.C_UForce_220 v4
                   -> coe d_decUTm_298 (coe v3) (coe v4)
                 _ -> coe v2
          _ -> coe v2)
@@ -580,8 +580,8 @@ d_make'45'integer_340 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4
 d_make'45'integer_340
   = coe
-      MAlonzo.Code.RawU.du_tag2TyTag_234
-      (coe MAlonzo.Code.RawU.C_integer_30)
+      MAlonzo.Code.RawU.du_tag2TyTag_228
+      (coe MAlonzo.Code.RawU.C_integer_24)
 -- Untyped.con-integer
 d_con'45'integer_344 :: Integer -> Integer -> T__'8866'_14
 d_con'45'integer_344 ~v0 v1 = du_con'45'integer_344 v1
@@ -590,4 +590,4 @@ du_con'45'integer_344 v0
   = coe
       C_con_28
       (coe
-         MAlonzo.Code.RawU.C_tmCon_208 (coe d_make'45'integer_340) (coe v0))
+         MAlonzo.Code.RawU.C_tmCon_202 (coe d_make'45'integer_340) (coe v0))

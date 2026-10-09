@@ -41,7 +41,7 @@ instance Pretty ann => PrettyBy (PrettyConfigClassic configName) (Kind ann) wher
         )
 
 instance
-  (PrettyClassicBy configName tyname, PrettyParens (SomeTypeIn uni), Pretty ann)
+  (PrettyClassicBy configName tyname, PrettyParens (SomeTypeHead uni), Pretty ann)
   => PrettyBy (PrettyConfigClassic configName) (Type tyname uni ann)
   where
   prettyBy config = \case
@@ -184,7 +184,7 @@ instance
         )
     where
       prettyTypeOf :: Some (ValueOf uni) -> Doc dann
-      prettyTypeOf (Some (ValueOf uni _)) = prettyBy juxtRenderContext $ SomeTypeIn uni
+      prettyTypeOf (Some (ValueOf uni _)) = prettyBy juxtRenderContext $ Some uni
 
 instance
   (PrettyClassicBy configName (Term tyname name uni fun ann), Pretty ann)

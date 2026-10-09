@@ -132,9 +132,9 @@ encodeTerm = \case
 decodeTerm
   :: forall name uni fun ann
    . (Closed uni, Flat fun, Flat ann, Flat name, Flat (Binder name))
-  => (forall a. uni (Esc a) -> Get a)
+  => (forall a. uni a -> Get a)
   -> Version
-  -> (SomeTypeIn uni -> Maybe String)
+  -> (Some uni -> Maybe String)
   -> (fun -> Maybe String)
   -> (Int -> Maybe String)
   -> Get (Term name uni fun ann)
@@ -147,13 +147,10 @@ decodeTerm decodeValue version constantPred builtinPred constrPred = go
     handleTerm 3 = Apply <$> decode <*> go <*> go
     handleTerm 4 = do
       ann <- decode :: Get ann
-      SomeTypeIn (Kinded uni) <- decodeKindedUniFlat @uni
-      case checkStar uni of
-        Nothing -> fail "A non-star type can't have a value to decode"
-        Just Refl ->
-          case constantPred (SomeTypeIn uni) of
-            Nothing -> Constant ann . Some . ValueOf uni <$> decodeValue uni
-            Just e -> fail e
+      Some uni <- decodeUni @uni
+      case constantPred (Some uni) of
+        Nothing -> Constant ann . Some . ValueOf uni <$> decodeValue uni
+        Just e -> fail e
     handleTerm 5 = Force <$> decode <*> go
     handleTerm 6 = Error <$> decode
     handleTerm 7 = do
@@ -233,8 +230,8 @@ encodeProgram (Program ann v t) = encode ann <> encode v <> encodeTerm t
 decodeProgram
   :: forall name uni fun ann
    . (Closed uni, Flat fun, Flat ann, Flat name, Flat (Binder name))
-  => (forall a. uni (Esc a) -> Get a)
-  -> (SomeTypeIn uni -> Maybe String)
+  => (forall a. uni a -> Get a)
+  -> (Some uni -> Maybe String)
   -> (fun -> Maybe String)
   -> (Int -> Maybe String)
   -> Get (Program name uni fun ann)

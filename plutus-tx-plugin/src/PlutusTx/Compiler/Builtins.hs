@@ -860,11 +860,11 @@ defineBuiltinTypes = do
   defineBuiltinType ''Builtins.BuiltinString . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Text
   defineBuiltinType ''Builtins.BuiltinData . ($> annMayInline) $ PLC.toTypeAst $ Proxy @PLC.Data
   defineBuiltinType ''Builtins.BuiltinPair . ($> annMayInline) $
-    PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoPair)
+    PLC.mkTyBuiltin @_ @(,) ()
   defineBuiltinType ''Builtins.BuiltinList . ($> annMayInline) $
-    PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoList)
+    PLC.mkTyBuiltin @_ @[] ()
   defineBuiltinType ''Builtins.BuiltinArray . ($> annMayInline) $
-    PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoArray)
+    PLC.TyBuiltin () PLC.DefaultUniArrayHead
   defineBuiltinType ''Builtins.BuiltinBLS12_381_G1_Element . ($> annMayInline) $
     PLC.toTypeAst $
       Proxy @BLS12_381.G1.Element

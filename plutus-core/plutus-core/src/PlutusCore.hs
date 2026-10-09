@@ -1,6 +1,5 @@
 -- Why is it needed here, but not in "Universe.Core"?
 {-# LANGUAGE ExplicitNamespaces #-}
-{-# LANGUAGE PatternSynonyms #-}
 
 module PlutusCore
   ( -- * Parser
@@ -13,13 +12,12 @@ module PlutusCore
 
     -- * Builtins
   , Some (..)
-  , SomeTypeIn (..)
-  , Kinded (..)
+  , SomeTypeHead (..)
+  , KnownTypeHead (..)
   , ValueOf (..)
   , someValueOf
   , someValue
   , someValueType
-  , Esc
   , Contains (..)
   , Closed (..)
   , EverywhereAll
@@ -27,18 +25,12 @@ module PlutusCore
   , GShow (..)
   , show
   , GEq (..)
-  , HasUniApply (..)
-  , checkStar
-  , withApplicable
   , (:~:) (..)
   , type (<:)
   , HasTypeLevel
   , HasTermLevel
   , HasTypeAndTermLevel
   , DefaultUni (..)
-  , pattern DefaultUniList
-  , pattern DefaultUniPair
-  , pattern DefaultUniArray
   , DefaultFun (..)
 
     -- * AST

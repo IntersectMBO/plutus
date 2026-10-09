@@ -9,20 +9,11 @@ import PlutusPrelude
 
 import PlutusCore.Annotation
 import PlutusCore.Core.Type
-import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
-import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2
-import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
-import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.MkPlc (mkIterTyApp)
 import PlutusCore.Name.Unique
 import PlutusCore.Parser.ParserCommon
-import PlutusCore.Value (Value)
 
-import Control.Monad
-import Data.ByteString (ByteString)
-import Data.Text (Text)
-import Data.Vector.Strict qualified as Strict
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
 {-| A PLC @Type@ to be parsed. ATM the parser only works
@@ -50,9 +41,17 @@ ifixType = withSpan $ \sp ->
   inParens $ TyIFix sp <$> (symbol "ifix" *> pType) <*> pType
 
 builtinType :: Parser PType
-builtinType = withSpan $ \sp -> inParens $ do
-  SomeTypeIn (Kinded uni) <- symbol "con" *> defaultUni
-  pure $ TyBuiltin sp (SomeTypeIn uni)
+builtinType = withSpan $ \sp -> inParens $ symbol "con" *> builtin sp
+  where
+    builtin sp =
+      trailingWhitespace $
+        choice
+          [ TyBuiltin sp <$> defaultUniHead
+          , inParens $ do
+              fun <- builtin sp
+              args <- some (builtin sp)
+              pure $ foldl (TyApp sp) fun args
+          ]
 
 sopType :: Parser PType
 sopType = withSpan $ \sp -> inParens $ TySOP sp <$> (symbol "sop" *> many tyList)
@@ -88,71 +87,58 @@ pType =
       , sopType
       ]
 
-{-| Parser for built-in type applications.  The textual names here should match
-the ones in the PrettyBy instance for DefaultUni in PlutusCore.Default.Universe. -}
-defaultUniApplication :: Parser (SomeTypeIn (Kinded DefaultUni))
-defaultUniApplication = do
-  -- Parse the head of the application.
-  f <- defaultUni
-  -- Parse the arguments.
-  as <- many defaultUni
-  -- Iteratively apply the head to the arguments checking that the kinds match and
-  -- failing otherwise.
-  foldM tryUniApply f as
+-- | Bare heads, used only in the type AST.
+defaultUniHead :: Parser (SomeTypeHead DefaultUni)
+defaultUniHead =
+  choice
+    [ DefaultUniIntegerHead <$ symbol "integer"
+    , DefaultUniByteStringHead <$ symbol "bytestring"
+    , DefaultUniStringHead <$ symbol "string"
+    , DefaultUniUnitHead <$ symbol "unit"
+    , DefaultUniBoolHead <$ symbol "bool"
+    , DefaultUniListHead <$ symbol "list"
+    , DefaultUniPairHead <$ symbol "pair"
+    , DefaultUniDataHead <$ symbol "data"
+    , DefaultUniBLS12_381_G1_ElementHead <$ symbol "bls12_381_G1_element"
+    , DefaultUniBLS12_381_G2_ElementHead <$ symbol "bls12_381_G2_element"
+    , DefaultUniBLS12_381_MlResultHead <$ symbol "bls12_381_mlresult"
+    , DefaultUniArrayHead <$ symbol "array"
+    , DefaultUniValueHead <$ symbol "value"
+    ]
 
-{-| Parser for built-in types (the ones from 'DefaultUni' specifically).
-
-'Kinded' is needed for checking that a type function can be applied to its argument.
-I.e. we do Plutus kind checking of builtin type applications during parsing, which is
-unfortunate, but there's no way we could construct a 'DefaultUni' otherwise.
-
-In case of kind error no sensible message is shown, only an overly general one:
-
->>> :set -XTypeApplications
->>> :set -XOverloadedStrings
->>> import PlutusCore.Error
->>> import PlutusCore.Quote
->>> let runP = putStrLn . either display display . runQuoteT . parseGen @ParserErrorBundle defaultUni
->>> runP "(list integer)"
-(list integer)
->>> runP "(bool integer)"
-test:1:14:
-  |
-1 | (bool integer)
-  |              ^
-expecting "bool", "bytestring", "data", "integer", "list", "pair", "string", "unit", or '('
-
-This is to be fixed.
-
-One thing we could do to avoid doing kind checking during parsing is to parse into
-
-    data TextualUni a where
-        TextualUni :: TextualUni (Esc (Tree Text))
-
-i.e. parse into @Tree Text@ and do the kind checking afterwards, but given that we'll still need
-to do the kind checking of builtins regardless (even for UPLC), we don't win much by deferring
-doing it. -}
-defaultUni :: Parser (SomeTypeIn (Kinded DefaultUni))
+-- | Fully instantiated constant tags. Arity is enforced by the grammar.
+defaultUni :: Parser (Some DefaultUni)
 defaultUni =
-  ( choice $
-      map
-        try
-        [ trailingWhitespace (inParens defaultUniApplication)
-        , someType @_ @Integer <$ symbol "integer"
-        , someType @_ @ByteString <$ symbol "bytestring"
-        , someType @_ @Text <$ symbol "string"
-        , someType @_ @() <$ symbol "unit"
-        , someType @_ @Bool <$ symbol "bool"
-        , someType @_ @[] <$ symbol "list"
-        , someType @_ @Strict.Vector <$ symbol "array"
-        , someType @_ @(,) <$ symbol "pair"
-        , someType @_ @Data <$ symbol "data"
-        , someType @_ @BLS12_381.G1.Element <$ symbol "bls12_381_G1_element"
-        , someType @_ @BLS12_381.G2.Element <$ symbol "bls12_381_G2_element"
-        , someType @_ @BLS12_381.Pairing.MlResult <$ symbol "bls12_381_mlresult"
-        , someType @_ @Value <$ symbol "value"
+  trailingWhitespace
+    ( choice
+        [ inParens $
+            choice
+              [ do
+                  _ <- symbol "list"
+                  Some a <- defaultUni
+                  pure $ Some $ DefaultUniList a
+              , do
+                  _ <- symbol "array"
+                  Some a <- defaultUni
+                  pure $ Some $ DefaultUniArray a
+              , do
+                  _ <- symbol "pair"
+                  Some a <- defaultUni
+                  Some b <- defaultUni
+                  pure $ Some $ DefaultUniPair a b
+              ]
+        , Some DefaultUniInteger <$ symbol "integer"
+        , Some DefaultUniByteString <$ symbol "bytestring"
+        , Some DefaultUniString <$ symbol "string"
+        , Some DefaultUniUnit <$ symbol "unit"
+        , Some DefaultUniBool <$ symbol "bool"
+        , Some DefaultUniData <$ symbol "data"
+        , Some DefaultUniBLS12_381_G1_Element <$ symbol "bls12_381_G1_element"
+        , Some DefaultUniBLS12_381_G2_Element <$ symbol "bls12_381_G2_element"
+        , Some DefaultUniBLS12_381_MlResult <$ symbol "bls12_381_mlresult"
+        , Some DefaultUniValue <$ symbol "value"
         ]
-  )
+    )
     <?> "type name (integer, bytestring, string, unit, bool, list, array, pair,\
         \ data, value, bls12_381_G1_element, bls12_381_G2_element,\
         \ bls12_381_mlresult, or type application)"

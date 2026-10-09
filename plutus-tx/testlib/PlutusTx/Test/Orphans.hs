@@ -31,11 +31,11 @@ instance
   toUPlc compiledCode = toUPlc =<< catchAll (getPlcNoAnn compiledCode)
 
 instance
-  ( PLC.PrettyParens (PLC.SomeTypeIn uni)
+  ( PLC.PrettyParens (PLC.Some uni)
+  , PLC.PrettyParens (PLC.SomeTypeHead uni)
   , PLC.GEq uni
   , PLC.Typecheckable uni fun
   , PLC.CaseBuiltin uni
-  , PLC.Closed uni
   , uni `PLC.Everywhere` PrettyConst
   , Pretty fun
   , uni `PLC.Everywhere` Flat

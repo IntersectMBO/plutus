@@ -7,7 +7,7 @@ import Control.Monad (replicateM)
 import Control.Monad.Except
 import Data.Either
 import PlutusBenchmark.Common (Term)
-import PlutusCore (DefaultUni (..), SomeTypeIn (..), Type (..), freshName, runQuote)
+import PlutusCore (DefaultUni (..), freshName, runQuote)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.MkPlc
@@ -33,13 +33,13 @@ casingBool i
   | i `mod` 2 == 0 =
       kase
         ()
-        (TyBuiltin () (SomeTypeIn DefaultUniInteger))
+        (mkTyBuiltinOf () DefaultUniInteger)
         (mkConstant @Bool () False)
         [casingBool (i - 1), nonMatchingBranch]
   | otherwise =
       kase
         ()
-        (TyBuiltin () (SomeTypeIn DefaultUniInteger))
+        (mkTyBuiltinOf () DefaultUniInteger)
         (mkConstant @Bool () True)
         [nonMatchingBranch, casingBool (i - 1)]
 
@@ -49,7 +49,7 @@ casingBoolOneBranch 0 = mkConstant @Integer () 42
 casingBoolOneBranch i =
   kase
     ()
-    (TyBuiltin () (SomeTypeIn DefaultUniInteger))
+    (mkTyBuiltinOf () DefaultUniInteger)
     (mkConstant @Bool () False)
     [casingBoolOneBranch (i - 1)]
 
@@ -64,7 +64,7 @@ casingInteger i =
    in
     kase
       ()
-      (TyBuiltin () (SomeTypeIn DefaultUniInteger))
+      (mkTyBuiltinOf () DefaultUniInteger)
       (mkConstant @Integer () currentI)
       ( replicate (fromIntegral currentI) nonMatchingBranch
           <> [casingInteger (i - 1)]
@@ -79,8 +79,8 @@ listConsHandler f = runQuote $ do
   x <- freshName "x"
   xs <- freshName "xs"
   pure $
-    lamAbs () x (TyBuiltin () (SomeTypeIn DefaultUniInteger)) $
-      lamAbs () xs (TyBuiltin () (SomeTypeIn $ DefaultUniApply DefaultUniProtoList DefaultUniInteger)) $
+    lamAbs () x (mkTyBuiltinOf () DefaultUniInteger) $
+      lamAbs () xs (mkTyBuiltinOf () (DefaultUniList DefaultUniInteger)) $
         f (var () x) (var () xs)
 
 -- | Generate a term that does a lot of casing on list.
@@ -92,7 +92,7 @@ casingList i = debruijnTermUnsafe $ go i arg
     go n t =
       kase
         ()
-        (TyBuiltin () (SomeTypeIn $ DefaultUniApply DefaultUniProtoList DefaultUniInteger))
+        (mkTyBuiltinOf () (DefaultUniList DefaultUniInteger))
         t
         [listConsHandler (\_x xs -> go (n - 1) xs), nonMatchingBranch]
 
@@ -108,7 +108,7 @@ casingListOneBranch i = debruijnTermUnsafe $ go i arg
     go n t =
       kase
         ()
-        (TyBuiltin () (SomeTypeIn $ DefaultUniApply DefaultUniProtoList DefaultUniInteger))
+        (mkTyBuiltinOf () (DefaultUniList DefaultUniInteger))
         t
         [listConsHandler (\_x xs -> go (n - 1) xs)]
 

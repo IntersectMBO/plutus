@@ -85,7 +85,12 @@ instance HasRenderContext ConstConfig where
 type PrettyConst = PrettyBy ConstConfig
 
 -- | The set of constraints we need to be able to print built-in types and their values.
-type PrettyUni uni = (PrettyParens (SomeTypeIn uni), Closed uni, uni `Everywhere` PrettyConst)
+type PrettyUni uni =
+  ( PrettyParens (Some uni)
+  , PrettyParens (SomeTypeHead uni)
+  , Closed uni
+  , uni `Everywhere` PrettyConst
+  )
 
 {-| The set of constraints we need to be able to throw exceptions with things with built-in types
 and functions in them. -}
@@ -171,9 +176,6 @@ instance PrettyBy ConstConfig Value where
 
 instance PrettyBy ConstConfig BS.ByteString where
   prettyBy _ b = "#" <> toBytes b
-
-instance Pretty (SomeTypeIn uni) => Pretty (SomeTypeIn (Kinded uni)) where
-  pretty (SomeTypeIn (Kinded uni)) = pretty (SomeTypeIn uni)
 
 -- See Note [Prettyprinting built-in constants].
 instance (Closed uni, uni `Everywhere` PrettyConst) => PrettyBy ConstConfig (ValueOf uni a) where

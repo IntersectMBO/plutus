@@ -88,15 +88,15 @@ d_eqArray_46 ::
 d_eqArray_46 = \ _ HasEq -> (==)
 -- Untyped.Equality.decEq-TmCon
 d_decEq'45'TmCon_48 ::
-  MAlonzo.Code.RawU.T_TmCon_204 ->
-  MAlonzo.Code.RawU.T_TmCon_204 ->
+  MAlonzo.Code.RawU.T_TmCon_198 ->
+  MAlonzo.Code.RawU.T_TmCon_198 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
 d_decEq'45'TmCon_48 v0 v1
   = case coe v0 of
-      MAlonzo.Code.RawU.C_tmCon_208 v2 v3
+      MAlonzo.Code.RawU.C_tmCon_202 v2 v3
         -> case coe v1 of
-             MAlonzo.Code.RawU.C_tmCon_208 v4 v5
-               -> let v6 = MAlonzo.Code.RawU.d_decTyTag_70 (coe v2) (coe v4) in
+             MAlonzo.Code.RawU.C_tmCon_202 v4 v5
+               -> let v6 = MAlonzo.Code.RawU.d_decTyTag_64 (coe v2) (coe v4) in
                   coe
                     (case coe v6 of
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v7 v8
@@ -1312,7 +1312,7 @@ d_DecEq'45'Bool_178
 -- Untyped.Equality.DecEq-TyTag
 d_DecEq'45'TyTag_180 :: T_DecEq_6
 d_DecEq'45'TyTag_180
-  = coe C_constructor_14 (coe MAlonzo.Code.RawU.d_decTyTag_70)
+  = coe C_constructor_14 (coe MAlonzo.Code.RawU.d_decTyTag_64)
 -- Untyped.Equality.DecEq-⟦_⟧tag
 d_DecEq'45''10214'_'10215'tag_184 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 -> T_DecEq_6

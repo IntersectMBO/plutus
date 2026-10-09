@@ -29,12 +29,13 @@ import UntypedPlutusCore qualified as UPLC
 import PlutusPrelude
 import Prelude as Haskell
 
+-- The universe parameter is nominal because its type-head data family is nominal.
 -- The final type parameter is inferred to be phantom, but we give it a nominal
 -- role, since it corresponds to the Haskell type of the program that was compiled into
 -- this 'CompiledCodeIn'. It could be okay to give it a representational role, since
 -- we compile newtypes the same as their underlying types, but people probably just
 -- shouldn't coerce the final parameter regardless, so we play it safe with a nominal role.
-type role CompiledCodeIn representational representational nominal
+type role CompiledCodeIn nominal representational nominal
 
 -- NOTE: any changes to this type must be paralleled by changes
 -- in the plugin code that generates values of this type. That is
@@ -68,11 +69,12 @@ type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
 -- | Apply a compiled function to a compiled argument. Will fail if the versions don't match.
 applyCode
   :: ( PLC.Closed uni
+     , PrettyBy RenderContext (PLC.SomeTypeHead uni)
      , uni `PLC.Everywhere` Flat
      , Flat fun
      , Pretty fun
      , PLC.Everywhere uni PrettyConst
-     , PrettyBy RenderContext (PLC.SomeTypeIn uni)
+     , PrettyBy RenderContext (PLC.Some uni)
      )
   => CompiledCodeIn uni fun (a -> b)
   -> CompiledCodeIn uni fun a
@@ -106,11 +108,12 @@ applyCode fun arg = do
 should only be used in non-production code. -}
 unsafeApplyCode
   :: ( PLC.Closed uni
+     , PrettyBy RenderContext (PLC.SomeTypeHead uni)
      , uni `PLC.Everywhere` Flat
      , Flat fun
      , Pretty fun
      , PLC.Everywhere uni PrettyConst
-     , PrettyBy RenderContext (PLC.SomeTypeIn uni)
+     , PrettyBy RenderContext (PLC.Some uni)
      )
   => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
 unsafeApplyCode fun arg = case applyCode fun arg of

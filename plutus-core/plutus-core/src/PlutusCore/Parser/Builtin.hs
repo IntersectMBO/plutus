@@ -4,7 +4,7 @@
 
 module PlutusCore.Parser.Builtin where
 
-import PlutusPrelude (Word8, reoption, void)
+import PlutusPrelude (Word8, void)
 
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -40,10 +40,7 @@ cachedBuiltin = Map.fromList [(display fn, fn) | fn <- [minBound .. maxBound]]
 constant :: Parser (Some (ValueOf DefaultUni))
 constant = do
   -- Parse the type tag.
-  SomeTypeIn (Kinded uni) <- defaultUni
-  -- Check it's of kind @*@, because a constant that we're about to parse can only be of type of
-  -- kind @*@.
-  Refl <- reoption $ checkStar uni
+  Some uni <- defaultUni
   -- Parse the constant of the type represented by the type tag.
   someValueOf uni <$> constantOf ExpectParensYes uni
 
@@ -99,17 +96,17 @@ conBool =
     ]
 
 -- | Parser for lists.
-conList :: DefaultUni (Esc a) -> Parser [a]
+conList :: DefaultUni a -> Parser [a]
 conList uniA =
   trailingWhitespace . inBrackets $
     constantOf ExpectParensNo uniA `sepBy` symbol ","
 
 -- | Parser for arrays.
-conArray :: DefaultUni (Esc a) -> Parser (Vector a)
+conArray :: DefaultUni a -> Parser (Vector a)
 conArray uniA = Vector.fromList <$> conList uniA
 
 -- | Parser for pairs.
-conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
+conPair :: DefaultUni a -> DefaultUni b -> Parser (a, b)
 conPair uniA uniB = trailingWhitespace . inParens $ do
   a <- constantOf ExpectParensNo uniA
   _ <- symbol ","
@@ -150,7 +147,7 @@ conBLS12_381_G2_Element = do
     Right e -> pure e
 
 -- | Parser for constants of the given type.
-constantOf :: ExpectParens -> DefaultUni (Esc a) -> Parser a
+constantOf :: ExpectParens -> DefaultUni a -> Parser a
 constantOf expectParens uni =
   case uni of
     DefaultUniInteger -> conInteger
@@ -159,10 +156,9 @@ constantOf expectParens uni =
     DefaultUniUnit -> conUnit
     DefaultUniBool -> conBool
     DefaultUniValue -> conValue
-    DefaultUniProtoList `DefaultUniApply` uniA -> conList uniA
-    DefaultUniProtoArray `DefaultUniApply` uniA -> conArray uniA
-    DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB -> conPair uniA uniB
-    f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _ -> noMoreTypeFunctions f
+    DefaultUniList uniA -> conList uniA
+    DefaultUniArray uniA -> conArray uniA
+    DefaultUniPair uniA uniB -> conPair uniA uniB
     DefaultUniData -> conData expectParens
     DefaultUniBLS12_381_G1_Element -> conBLS12_381_G1_Element
     DefaultUniBLS12_381_G2_Element -> conBLS12_381_G2_Element

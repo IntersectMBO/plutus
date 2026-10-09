@@ -26,6 +26,7 @@ import PlutusPrelude
 
 import PlutusCore
 import PlutusCore.Generators.QuickCheck.Builtin ()
+import PlutusCore.MkPlc (mkTyBuiltinOf)
 import PlutusCore.Name.Unique (isQuotedIdentifierChar)
 import PlutusCore.Subst
 
@@ -134,10 +135,6 @@ genConstant :: MonadGen m => m (Some (ValueOf DefaultUni))
 -- The @QuickCheck@ generator is a good one, so we reuse it in @hedgehog@ via @hedgehog-quickcheck@.
 genConstant = arbitrary
 
-genSomeTypeIn :: MonadGen m => m (SomeTypeIn DefaultUni)
--- The @QuickCheck@ generator is a good one, so we reuse it in @hedgehog@ via @hedgehog-quickcheck@.
-genSomeTypeIn = arbitrary
-
 genType :: AstGen (Type TyName DefaultUni ())
 genType = simpleRecursive nonRecursive recursive
   where
@@ -147,7 +144,7 @@ genType = simpleRecursive nonRecursive recursive
     forallGen = TyForall () <$> genTyName <*> genKind <*> genType
     applyGen = TyApp () <$> genType <*> genType
     sopGen = TySOP () <$> (Gen.list (Range.linear 0 10) (Gen.list (Range.linear 0 10) genType))
-    tyBuiltinGen = TyBuiltin () <$> genSomeTypeIn
+    tyBuiltinGen = (\(Some uni) -> mkTyBuiltinOf () uni) <$> arbitrary
     recursive = [funGen, applyGen, sopGen]
     nonRecursive = [varGen, lamGen, forallGen, tyBuiltinGen]
 

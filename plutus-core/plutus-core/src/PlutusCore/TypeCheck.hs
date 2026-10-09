@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- | Kind/type inference/checking.
 module PlutusCore.TypeCheck
@@ -47,7 +48,12 @@ instantiated and builtins don't. Another reason is that 'Typecheckable' is not r
 type checking, since it's only needed for computing 'BuiltinTypes', which is passed as a regular
 argument to the worker of the type checker. -}
 type Typecheckable uni fun =
-  (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun, AnnotateCaseBuiltin uni)
+  ( ToKind uni
+  , Closed uni
+  , uni `Everywhere` KnownTypeAst TyName uni
+  , ToBuiltinMeaning uni fun
+  , AnnotateCaseBuiltin uni
+  )
 
 -- | The default kind checking config.
 defKindCheckConfig :: KindCheckConfig

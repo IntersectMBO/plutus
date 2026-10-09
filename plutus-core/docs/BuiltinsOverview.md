@@ -287,6 +287,27 @@ The elaborator is an extremely convoluted piece of type-level code, which is why
 
 `PlutusCore.Builtin.Debug` provides more examples of custom type errors.
 
+### Built-in type heads
+
+Constant tags describe fully instantiated Haskell types. `DefaultUniList :: DefaultUni a ->
+DefaultUni [a]`, `DefaultUniPair`, and `DefaultUniArray` store their argument tags directly.
+The constant universe is indexed by `Type`, so it cannot contain bare type constructors or
+partially applied types. Constant deserialization reads these tags directly from the Flat bit stream without
+an intermediate numeric-tag list or runtime kind checking. Existential tags use `Some DefaultUni`;
+`decodeUni` reads Flat tags directly and returns a tag without a continuation. Numeric tags
+use `Word8`, matching the bit reader. `Some DefaultUni` has its own concrete Flat instance.
+
+The type AST instead stores bare heads from the `SomeTypeHead uni` data family in `TyBuiltin`.
+For `DefaultUni`, these are ordinary enum constructors such as `DefaultUniIntegerHead` and
+`DefaultUniListHead`. Built-in type applications use `TyApp`: `[Integer]` is represented by
+`TyApp ann (mkTyBuiltin @_ @[] ann) (mkTyBuiltin @_ @Integer ann)`. `KnownTypeHead` associates
+Haskell heads with their enum constructors; `KnownTypeAst` constructs complete type syntax.
+`mkTyBuiltinOf` reifies a constant tag using its `KnownTypeAst` instance.
+
+The normalizer needs no special handling of built-in tags. The parser expands applied built-in
+types into `TyApp` nodes, and typed Flat serializes heads and applications directly.
+Constant and UPLC encodings are unchanged.
+
 ### Runtime denotations
 
 Runtime denotations are the only part of `BuiltinMeaning` that we use for builtin evaluation (tests aside).
