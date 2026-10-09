@@ -726,7 +726,7 @@ caseCon s ρ (list ty) (x ∷ xs) (t ∷ []) = pushValueFrames s ((ε , V-con ty
 caseCon s ρ (list ty) (x ∷ xs) (t ∷ _ ∷ []) = pushValueFrames s ((ε , V-con ty x) , V-con (list ty) xs) ; ρ ▻ t
 caseCon s ρ (list ty) [] (_ ∷ t ∷ []) = s ; ρ ▻ t
 caseCon s ρ (pair ty₁ ty₂) (x , y) (t ∷ []) = pushValueFrames s ((ε , V-con ty₁ x) , V-con ty₂ y) ; ρ ▻ t
-caseCon s ρ pdata (ConstrDATA (ℤ.pos i) fields) ts = maybe (pushValueFrames s (ε , V-con (list pdata) fields) ; ρ ▻_) ◆ (lookup? i ts)
+caseCon s ρ pdata (ConstrDATA (ℤ.pos i) fields) ts = maybe ((s , -·v (V-con (list pdata) fields)) ; ρ ▻_) ◆ (lookup? i ts)
 caseCon s ρ _ _ _ = ◆
 
 step : State → State
