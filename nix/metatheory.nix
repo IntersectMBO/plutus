@@ -39,7 +39,7 @@ let
   # plutus-metatheory/src/Conformance from the UPLC conformance test cases.
   generate-agda-conformance = pkgs.writeShellScriptBin "generate-agda-conformance" ''
     cd "$(git rev-parse --show-toplevel)"
-    cabal run plutus-conformance:generate-agda-conformance
+    cabal run plutus-conformance:generate-agda-conformance -- "$@"
   '';
 
   # Agda executable wrapper that includes both stdlib and the metatheory package.
