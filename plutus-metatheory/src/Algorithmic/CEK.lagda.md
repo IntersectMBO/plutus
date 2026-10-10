@@ -278,11 +278,9 @@ BUILTIN consByteString (base $ V-con i $ V-con b) with cons i b
 ... | nothing = inj₁ (con-atomic aBytestring)
 BUILTIN sliceByteString (base $ V-con st $ V-con n $ V-con b) = inj₂ (V-con (slice st n b))
 BUILTIN lengthOfByteString (base $ V-con b) = inj₂ (V-con (lengthBS b))
-BUILTIN indexByteString (base $ V-con b $ V-con i) with Data.Integer.ℤ.pos 0 ≤? i
-... | no  _ = inj₁ (con-atomic aInteger)
-... | yes _ with i <? lengthBS b
-... | no _  = inj₁ (con-atomic aInteger)
-... | yes _ = inj₂ (V-con (index b i))
+BUILTIN indexByteString (base $ V-con b $ V-con i) with index b i
+... | nothing = inj₁ (con-atomic aInteger)
+... | just res = inj₂ (V-con res)
 BUILTIN equalsString (base $ V-con s $ V-con s') = inj₂ (V-con (primStringEquality s s'))
 BUILTIN unIData (base $ V-con (iDATA i)) = inj₂ (V-con i)
 BUILTIN unIData (base $ V-con _) = inj₁ (con-atomic aData)

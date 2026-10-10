@@ -9,7 +9,7 @@ module Utils where
 ```
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂;subst)
 open import Function using (const;_∘_)
-open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_;_<_;_<?_)
+open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_;_∸_;_<_;_<?_)
 open import Data.Fin using (Fin;suc;zero;toℕ;fromℕ<)
 open _≤_
 open _≤‴_
@@ -22,13 +22,15 @@ import Data.Bool.ListAction as ListAction
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Nullary using (Dec;yes;no;¬_)
 open import Data.Empty using (⊥;⊥-elim)
-open import Data.Integer using (ℤ; +_)
+open import Data.Integer using (ℤ; +_; -[1+_])
 open import Data.String using (String)
 open import Data.Bool using (Bool; true; false)
 open import Data.Maybe using (Maybe; just; nothing; maybe)
                            renaming (_>>=_ to mbind) public
 open import Data.Unit using (⊤)
 open import Level using (_⊔_)
+
+open import Data.Bool using (_∧_; _∨_; _xor_; not)
 
 {-# FOREIGN GHC import Raw #-}
 
@@ -204,18 +206,333 @@ data RuntimeError : Set where
 
 {-# COMPILE GHC RuntimeError = data RuntimeError (GasError | UserError | RuntimeTypeError) #-}
 
-postulate ByteString : Set
-{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
+data Byte : Set where
+  byte : (b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈ : Bool) → Byte
+
+{-# COMPILE GHC Byte = data Byte (Byte) #-}
+
+ᵇproj₁ : Byte → Bool
+ᵇproj₂ : Byte → Bool
+ᵇproj₃ : Byte → Bool
+ᵇproj₄ : Byte → Bool
+ᵇproj₅ : Byte → Bool
+ᵇproj₆ : Byte → Bool
+ᵇproj₇ : Byte → Bool
+ᵇproj₈ : Byte → Bool
+ᵇproj₁ (byte b₁ _ _ _ _ _ _ _) = b₁
+ᵇproj₂ (byte _ b₂ _ _ _ _ _ _) = b₂
+ᵇproj₃ (byte _ _ b₃ _ _ _ _ _) = b₃
+ᵇproj₄ (byte _ _ _ b₄ _ _ _ _) = b₄
+ᵇproj₅ (byte _ _ _ _ b₅ _ _ _) = b₅
+ᵇproj₆ (byte _ _ _ _ _ b₆ _ _) = b₆
+ᵇproj₇ (byte _ _ _ _ _ _ b₇ _) = b₇
+ᵇproj₈ (byte _ _ _ _ _ _ _ b₈) = b₈
+
+pattern 0B = byte false false false false false false false false
+
+pattern 1B = byte false false false false false false false true
+
+pattern 2B = byte false false false false false false true false
+
+pattern 3B = byte false false false false false false true true
+
+pattern 4B = byte false false false false false true false false
+
+pattern 255B = byte true true true true true true true true
+
+open import Data.Vec.Base using (Vec; _∷_; []) renaming (map to vmap)
+open import Data.Nat.Base using (⌊_/2⌋; parity)
+open import Data.Parity.Base using (Parity; 0ℙ; 1ℙ)
+
+Bits : ℕ → Set
+Bits n = Vec Bool n
+
+byteToBits : Byte → Bits 8
+byteToBits (byte b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈) =
+  b₈ ∷ b₇ ∷ b₆ ∷ b₅ ∷ b₄ ∷ b₃ ∷ b₂ ∷ b₁ ∷ []
+
+bitsToByte : Bits 8 → Byte
+bitsToByte (b₈ ∷ b₇ ∷ b₆ ∷ b₅ ∷ b₄ ∷ b₃ ∷ b₂ ∷ b₁ ∷ []) =
+  byte b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈
+
+-- Using "ripple-carry addition" since implementing via suc/pred is not
+-- structurally recursive and Agda can't prove termination.
+-- The addition is modulo 256.
+addBits : ∀ {n} → Bool → Bits n → Bits n → Bits n
+addBits c [] [] = []
+addBits c (x ∷ xs) (y ∷ ys) =
+  (c xor (x xor y)) ∷ addBits ((x ∧ y) ∨ (c ∧ (x xor y))) xs ys
+
+plusByte : Byte → Byte → Byte
+plusByte x y = bitsToByte (addBits false (byteToBits x) (byteToBits y))
+
+ℕToBits : (n : ℕ) → ℕ → Bits n
+ℕToBits zero    _ = []
+ℕToBits (suc n) k = lsb (parity k) ∷ ℕToBits n ⌊ k /2⌋
+  where
+    lsb : Parity → Bool
+    lsb 0ℙ = false
+    lsb 1ℙ = true
+
+open import Data.Bool using (if_then_else_)
+
+bitsToℕ : ∀ n → Bits n → ℕ
+bitsToℕ zero _ = 0
+bitsToℕ (suc n) (b ∷ xs) =
+  (if b then 1 else 0) + 2 Data.Nat.* bitsToℕ n xs
+
+-- Conversion modulo 256
+ℕToByte : ℕ → Byte
+ℕToByte k = bitsToByte (ℕToBits 8 k)
+
+byteToℕ : Byte → ℕ
+byteToℕ b = bitsToℕ 8 (byteToBits b)
+
+ℤToByte : (z : ℤ) .{{_ : Data.Integer.NonNegative z}} → Byte
+ℤToByte (+ n) = ℕToByte n
+
+byteToℤ : Byte → ℤ
+byteToℤ b = + (byteToℕ b)
+
+
+data ByteString : Set where
+  []  : ByteString
+  _∷_ : Byte → ByteString → ByteString
+
+{-# COMPILE GHC ByteString = data ByteString (BSNil | BSCons) #-}
 
 postulate
   mkByteString : String → ByteString
 
--- Agda implementation should only be used as part of deciding builtin equality.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+eqByte : Byte → Byte → Bool
+eqByte (byte b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈) (byte c₁ c₂ c₃ c₄ c₅ c₆ c₇ c₈) =
+    does (b₁ ≟ c₁)
+  ∧ does (b₂ ≟ c₂)
+  ∧ does (b₃ ≟ c₃)
+  ∧ does (b₄ ≟ c₄)
+  ∧ does (b₅ ≟ c₅)
+  ∧ does (b₆ ≟ c₆)
+  ∧ does (b₇ ≟ c₇)
+  ∧ does (b₈ ≟ c₈)
+  where
+    open import Data.Bool using (_≟_)
+    open import Relation.Nullary.Decidable using (does)
+
 eqByteString : ByteString → ByteString → Bool
-eqByteString _ _ = Bool.true
-{-# COMPILE GHC eqByteString = (==) #-}
+eqByteString [] [] = true
+eqByteString (x ∷ xs) (y ∷ ys) = eqByte x y ∧ eqByteString xs ys
+eqByteString _ _ = false
+
+open import Data.Bool using (if_then_else_)
+open import Function.Base using (case_of_)
+
+take : ℤ → ByteString → ByteString
+take z bs =
+  if z Data.Integer.≤ᵇ Data.Integer.0ℤ
+  then []
+  else
+    case bs of λ {
+        [] → []
+      ; (x ∷ xs) → x ∷ take (z Data.Integer.- Data.Integer.1ℤ) xs
+      }
+
+dropB : ℤ → ByteString → ByteString
+dropB z bs =
+  if z Data.Integer.≤ᵇ Data.Integer.0ℤ
+  then bs
+  else
+    case bs of λ {
+        [] → []
+      ; (_ ∷ xs) → dropB (z Data.Integer.- Data.Integer.1ℤ) xs
+      }
+
+open import Data.Vec.Base using (zipWith) renaming (toList to vecToList)
+
+andByte : Byte → Byte → Byte
+andByte x y = bitsToByte (zipWith _∧_ (byteToBits x) (byteToBits y))
+
+orByte : Byte → Byte → Byte
+orByte x y = bitsToByte (zipWith _∨_ (byteToBits x) (byteToBits y))
+
+xorByte : Byte → Byte → Byte
+xorByte x y = bitsToByte (zipWith _xor_ (byteToBits x) (byteToBits y))
+
+notByte : Byte → Byte
+notByte x = bitsToByte (vmap not (byteToBits x))
+
+popCount : Byte → ℕ
+popCount b = count (byteToBits b)
+  where
+    count : ∀ {n} → Bits n → ℕ
+    count [] = 0
+    count (x ∷ xs) = (if x then 1 else 0) + count xs
+
+-- conversion from an integer, which must lie in [0, 255].
+toByte : ℤ → Maybe Byte
+toByte (+ n)    = if n Data.Nat.≤ᵇ 255 then just (ℕToByte n) else nothing
+toByte -[1+ _ ] = nothing
+
+lengthℕ : ByteString → ℕ
+lengthℕ []       = 0
+lengthℕ (_ ∷ xs) = suc (lengthℕ xs)
+
+replicateBS : ℕ → Byte → ByteString
+replicateBS zero    _ = []
+replicateBS (suc n) b = b ∷ replicateBS n b
+
+_++ᵇ_ : ByteString → ByteString → ByteString
+[]       ++ᵇ ys = ys
+(x ∷ xs) ++ᵇ ys = x ∷ (xs ++ᵇ ys)
+
+reverseBS : ByteString → ByteString
+reverseBS = go []
+  where
+    go : ByteString → ByteString → ByteString
+    go acc []       = acc
+    go acc (x ∷ xs) = go (x ∷ acc) xs
+
+mapBS : (Byte → Byte) → ByteString → ByteString
+mapBS f []       = []
+mapBS f (x ∷ xs) = f x ∷ mapBS f xs
+
+-- Combine two bytestrings byte by byte. If they have different lengths then,
+-- depending on `pad`, either the longer one is truncated on the right or the
+-- shorter one is extended on the right with `padByte`.
+zipWithBS : (Byte → Byte → Byte) → (pad : Bool) → (padByte : Byte)
+          → ByteString → ByteString → ByteString
+zipWithBS f pad padByte []       []       = []
+zipWithBS f pad padByte []       (y ∷ ys) = if pad then f padByte y ∷ zipWithBS f pad padByte [] ys else []
+zipWithBS f pad padByte (x ∷ xs) []       = if pad then f x padByte ∷ zipWithBS f pad padByte xs [] else []
+zipWithBS f pad padByte (x ∷ xs) (y ∷ ys) = f x y ∷ zipWithBS f pad padByte xs ys
+
+-- ### Bitstring representation of bytestrings
+
+-- Bit indexing follows CIP-122: bit 0 is the least significant bit of the
+-- last byte and bit 8n-1 is the most significant bit of the first byte. The
+-- functions below convert between a bytestring and the list of its bits in
+-- index order, i.e. the element at position i of `toBits bs` is bit i of `bs`.
+
+Bits* : Set
+Bits* = L.List Bool
+
+toBits : ByteString → Bits*
+toBits = go L.[]
+  where
+    go : Bits* → ByteString → Bits*
+    go acc []       = acc
+    go acc (x ∷ xs) = go (vecToList (byteToBits x) L.++ acc) xs
+
+-- Inverse of `toBits`. The input is consumed eight bits at a time; a trailing
+-- incomplete byte is dropped.
+fromBits : Bits* → ByteString
+fromBits = go []
+  where
+    go : ByteString → Bits* → ByteString
+    go acc (b₀ L.∷ b₁ L.∷ b₂ L.∷ b₃ L.∷ b₄ L.∷ b₅ L.∷ b₆ L.∷ b₇ L.∷ rest) =
+      go (bitsToByte (b₀ ∷ b₁ ∷ b₂ ∷ b₃ ∷ b₄ ∷ b₅ ∷ b₆ ∷ b₇ ∷ []) ∷ acc) rest
+    go acc _ = acc
+
+lookupBit : Bits* → ℕ → Maybe Bool
+lookupBit L.[]       _       = nothing
+lookupBit (b L.∷ bs) zero    = just b
+lookupBit (b L.∷ bs) (suc i) = lookupBit bs i
+
+setBit : ℕ → Bool → Bits* → Bits*
+setBit _       _ L.[]       = L.[]
+setBit zero    u (b L.∷ bs) = u L.∷ bs
+setBit (suc i) u (b L.∷ bs) = b L.∷ setBit i u bs
+
+-- Index of the first set bit, or -1 if there is none.
+firstSetBit : Bits* → ℤ
+firstSetBit = go 0
+  where
+    go : ℕ → Bits* → ℤ
+    go i L.[]             = -[1+ 0 ]
+    go i (true  L.∷ _)    = + i
+    go i (false L.∷ bs)   = go (suc i) bs
+
+-- Shift the bits k places to the left (k ≥ 0) or right (k < 0), filling the
+-- vacated positions with 0 and keeping the length unchanged.
+shiftBits : ℤ → Bits* → Bits*
+shiftBits k bits =
+  if n Data.Nat.≤ᵇ I.∣ k ∣
+  then L.replicate n false
+  else shifted k
+  where
+    n : ℕ
+    n = L.length bits
+    shifted : ℤ → Bits*
+    shifted (+ k)    = L.replicate k false L.++ L.take (n ∸ k) bits
+    shifted -[1+ k ] = L.drop (suc k) bits L.++ L.replicate (suc k) false
+
+-- Rotate the bits k places to the left (k ≥ 0) or right (k < 0).
+rotateBits : ℤ → Bits* → Bits*
+rotateBits k L.[]             = L.[]
+rotateBits k bits@(_ L.∷ _)   = L.drop (n ∸ r) bits L.++ L.take (n ∸ r) bits
+  where
+    open import Data.Integer.DivMod using (_%ℕ_)
+    n : ℕ
+    n = L.length bits
+    r : ℕ
+    r = k %ℕ n
+
+-- ### Conversion between bytestrings and natural numbers
+
+-- Big-endian interpretation of a bytestring.
+byteStringToℕ : ByteString → ℕ
+byteStringToℕ = go 0
+  where
+    go : ℕ → ByteString → ℕ
+    go acc []       = acc
+    go acc (b ∷ bs) = go (acc Data.Nat.* 256 + byteToℕ b) bs
+
+-- Base-256 digits of a natural number, least significant first. The first
+-- argument bounds the number of digits; `nothing` is returned if it is
+-- exceeded. (The bound makes the recursion structural.)
+digits256 : ℕ → ℕ → Maybe ByteString
+digits256 _          zero    = just []
+digits256 zero       (suc _) = nothing
+digits256 (suc fuel) (suc k) =
+  Data.Maybe.map (ℕToByte (suc k % 256) ∷_) (digits256 fuel (suc k / 256))
+  where open import Data.Nat.Base using (_%_; _/_)
+
+-- Big-endian (if the flag is true) or little-endian encoding of a natural
+-- number as a bytestring of width w (or of minimal width if w = 0), as
+-- specified for the `integerToByteString` builtin. The result is `nothing` if
+-- the number does not fit in w bytes, or if it needs more than 8192 bytes.
+ℕToByteString : Bool → ℕ → ℕ → Maybe ByteString
+ℕToByteString e w zero    = just (replicateBS w 0B)
+ℕToByteString e w (suc n) with digits256 8192 (suc n)
+... | nothing = nothing
+... | just ds =
+  if (w == 0) ∨ (lengthℕ ds Data.Nat.≤ᵇ w)
+  then just (if e then replicateBS (w ∸ lengthℕ ds) 0B ++ᵇ reverseBS ds
+                  else ds ++ᵇ replicateBS (w ∸ lengthℕ ds) 0B)
+  else nothing
+  where open import Agda.Builtin.Nat using (_==_)
+
+{-# FOREIGN GHC import Data.ByteString qualified as Haskell #-}
+
+-- TODO: this is how we'll use it in an FFI module
+-- {-# FOREIGN GHC
+-- 
+-- data Byte = Byte Bool Bool Bool Bool Bool Bool Bool Bool
+-- 
+-- data ByteString = BSNil | BSCons Byte ByteString
+-- 
+-- toHS :: ByteString -> Haskell.ByteString
+-- toHS = undefined
+-- 
+-- fromHS :: Haskell.ByteString -> ByteString
+-- fromHS = undefined
+-- 
+-- actualHash :: Haskell.ByteString -> Haskell.ByteString
+-- actualHash = undefined
+-- 
+-- hash :: ByteString -> ByteString
+-- hash bs = fromHS (actualHash (toHS bs))
+-- 
+-- #-}
 
 ```
 ## Record Types
@@ -326,8 +643,29 @@ data DATA : Set where
   iDATA : I.ℤ → DATA
   bDATA : ByteString → DATA
 
-{-# FOREIGN GHC import PlutusCore.Data as D #-}
-{-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
+{-# COMPILE GHC DATA = data Data (Constr | Map | List | I | B) #-}
+
+{-# FOREIGN GHC import PlutusCore.Data as Haskell #-}
+
+-- TODO: this is how we'll use it in an FFI module
+-- {-# FOREIGN GHC
+-- 
+-- data Data
+--   = Constr Integer
+--   | Map [(Data, Data)]
+--   | List [Data]
+--   | I Integer
+--   | B ByteString
+-- 
+-- dataToHSData :: Data -> Haskell.Data
+-- dataToHSData = undefined
+-- 
+-- dataFromHSData :: Haskell.Data -> Data
+-- dataFromHSData = undefined
+-- 
+-- 
+-- #-}
+
 
 -- Agda implementation should only be used as part of deciding builtin equality.
 -- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
@@ -366,10 +704,7 @@ eqDATA (bDATA x) (ConstrDATA x₁ x₂) = Bool.false
 eqDATA (bDATA x) (MapDATA x₁) = Bool.false
 eqDATA (bDATA x) (ListDATA x₁) = Bool.false
 eqDATA (bDATA x) (iDATA x₁) = Bool.false
--- Warning: eqByteString is always trivially true at the Agda level.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
 eqDATA (bDATA b₁) (bDATA b₂) = eqByteString b₁ b₂
-{-# COMPILE GHC eqDATA = (==) #-}
 
 postulate Bls12-381-G1-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G1 as G1 #-}

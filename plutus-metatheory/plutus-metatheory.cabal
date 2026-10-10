@@ -178,6 +178,7 @@ library
     MAlonzo.Code.Cost.Raw
     MAlonzo.Code.Cost.Size
     MAlonzo.Code.Data.Bool.Base
+    MAlonzo.Code.Data.Bool.ListAction
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
     MAlonzo.Code.Data.Char.Properties
@@ -190,6 +191,7 @@ library
     MAlonzo.Code.Data.Float.Properties
     MAlonzo.Code.Data.Integer
     MAlonzo.Code.Data.Integer.Base
+    MAlonzo.Code.Data.Integer.DivMod
     MAlonzo.Code.Data.Integer.Properties
     MAlonzo.Code.Data.Integer.Show
     MAlonzo.Code.Data.Irrelevant
