@@ -126,7 +126,7 @@ instance PrettyBy (PrettyConfigReadable configName) (Kind a) where
     Type {} -> "*"
 
 instance
-  (PrettyReadableBy configName tyname, PrettyParens (SomeTypeIn uni))
+  (PrettyReadableBy configName tyname, PrettyParens (SomeTypeHead uni))
   => PrettyBy (PrettyConfigReadable configName) (Type tyname uni a)
   where
   prettyBy = inContextM $ \case

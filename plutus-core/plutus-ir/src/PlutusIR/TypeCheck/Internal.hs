@@ -38,6 +38,7 @@ import PlutusCore.Builtin (annotateCaseBuiltin)
 import PlutusCore.Core qualified as PLC
 import PlutusCore.Error as PLC
 import PlutusCore.MkPlc (mkIterTyFun)
+import PlutusCore.Quote (MonadQuote)
 
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
 import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
@@ -144,8 +145,7 @@ inferTypeM
 -- -------------------------
 -- [infer| G !- con c : vTy]
 inferTypeM (Constant _ (Some (ValueOf uni _))) =
-  -- See Note [Normalization of built-in types].
-  normalizeTypeM $ PIR.mkTyBuiltinOf () uni
+  pure $ Normalized $ PIR.mkTyBuiltinOf () uni
 -- [infer| G !- bi : vTy]
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
@@ -456,7 +456,7 @@ Note: Assumes that the input is globally-unique and preserves global-uniqueness
 Note to self: actually passing here recursivity is unnecessary, but we do it for sake of compiler/datatype.hs api -}
 withVarsOfBinding
   :: forall uni fun cfg ann m a
-   . MonadNormalizeType uni m
+   . MonadQuote m
   => Recursivity
   -> Binding TyName Name uni fun ann
   -> TypeCheckT uni fun cfg m a
@@ -485,7 +485,7 @@ withVarsOfBinding r (DatatypeBind _ dt) k = do
       withVar (_varDeclName v) (void <$> normRenamedTy) acc
 
 withVarsOfBindings
-  :: (MonadNormalizeType uni m, Foldable t)
+  :: (MonadQuote m, Foldable t)
   => Recursivity
   -> t (Binding TyName Name uni fun ann)
   -> TypeCheckT uni fun cfg m a
@@ -517,7 +517,7 @@ withTyVarDecls = flip . foldr $ \(TyVarDecl _ n k) -> withTyVar n $ void k
 {-| Substitute `TypeBind`s from the given list of `Binding`s in the given `Type`.
 This is so that @let a = (con integer) in \(x : a) -> x@ typechecks. -}
 substTypeBinds
-  :: MonadNormalizeType uni m
+  :: MonadQuote m
   => NonEmpty (Binding TyName Name uni fun ann)
   -> Normalized (Type TyName uni ())
   -> PirTCEnv uni fun m (Normalized (Type TyName uni ()))

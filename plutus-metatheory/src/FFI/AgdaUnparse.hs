@@ -175,7 +175,7 @@ instance AgdaUnparse BLS12_381.G2.Element where
 instance AgdaUnparse BLS12_381.Pairing.MlResult where
   agdaUnparse = viaShow
 
-instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
+instance AgdaUnparse (UPLC.DefaultUni a) where
   agdaUnparse PLC.DefaultUniInteger = "integer"
   agdaUnparse PLC.DefaultUniByteString = "bytestring"
   agdaUnparse PLC.DefaultUniString = "string"
@@ -192,7 +192,6 @@ instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
   agdaUnparse PLC.DefaultUniBLS12_381_MlResult = "bls12-381-mlresult"
   agdaUnparse (PLC.DefaultUniArray t) =
     parens ("array" <+> agdaUnparse t)
-  agdaUnparse (PLC.DefaultUniApply _ _) = error "Application of an unknown type is not supported."
 
 instance AgdaUnparse (PLC.Some (PLC.ValueOf UPLC.DefaultUni)) where
   agdaUnparse (PLC.Some (PLC.ValueOf univ val)) =

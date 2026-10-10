@@ -71,12 +71,12 @@ Alligning things this way allows us to inline arbitrarily deep recursion for as 
 keep being monomorphic.
 
 For example, the 'MapData' builtin accepts a @[(Data, Data)]@ and with 'geqL' matching on all of
-'DefaultUniProtoList', 'DefaultUniProtoPair' and 'DefaultUniData' gets inlined in the denotation
+'DefaultUniList', 'DefaultUniPair' and 'DefaultUniData' gets inlined in the denotation
 of the builtin. For the 'Constr' builtin that resulted in a 4.3% speedup at the time this comment
 was written. -}
 type GEqL :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
 class GEqL f a where
-  geqL :: f (Esc a) -> f (Esc b) -> EvaluationResult (a :~: b)
+  geqL :: f a -> f b -> EvaluationResult (a :~: b)
 
 {-| In @f = ... f ...@ where @f@ is a class method, how do you know if @f@ is going to be a
 recursive call or a type class method call? If both type check, then you don't really know how
@@ -95,7 +95,7 @@ instance GEqL uni a => GEqL (LoopBreaker uni) a where
 {-| A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 in @uni@\". -}
 type KnownBuiltinTypeIn uni val a =
-  (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEqL uni a, uni `HasTermLevel` a)
+  (HasConstantIn uni val, PrettyParens (Some uni), GEqL uni a, uni `HasTermLevel` a)
 
 {-| A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 in @UniOf term@\". -}
@@ -282,16 +282,16 @@ Lifting is allowed to the following classes of types:
 -}
 
 typeMismatchError
-  :: PrettyParens (SomeTypeIn uni)
-  => uni (Esc a)
-  -> uni (Esc b)
+  :: PrettyParens (Some uni)
+  => uni a
+  -> uni b
   -> UnliftingEvaluationError
 typeMismatchError uniExp uniAct =
   MkUnliftingEvaluationError . StructuralError . fromString $
     concat
       [ "Type mismatch: "
-      , "expected: " ++ displayBy botRenderContext (SomeTypeIn uniExp)
-      , "; actual: " ++ displayBy botRenderContext (SomeTypeIn uniAct)
+      , "expected: " ++ displayBy botRenderContext (Some uniExp)
+      , "; actual: " ++ displayBy botRenderContext (Some uniAct)
       ]
 -- See Note [INLINE and OPAQUE on error-related definitions].
 {-# OPAQUE typeMismatchError #-}
@@ -312,7 +312,7 @@ readKnownConstant :: forall val a. KnownBuiltinType val a => val -> ReadKnownM a
 readKnownConstant val =
   asConstant val >>= oneShot \case
     Some (ValueOf uniAct x) -> do
-      let uniExp = knownUni @_ @(UniOf val) @a
+      let uniExp = knownUni @(UniOf val) @a
       -- 'geq' matches on its first argument first, so we make the type tag that will be known
       -- statically (because this function will be inlined) go first in order for GHC to
       -- optimize some of the matching away.

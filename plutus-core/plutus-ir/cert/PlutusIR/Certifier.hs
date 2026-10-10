@@ -12,7 +12,7 @@ import PlutusCore qualified as P
   ( DefaultFun (..)
   , DefaultUni (..)
   , Some (..)
-  , SomeTypeIn (..)
+  , SomeTypeHead (..)
   , ValueOf (..)
   )
 import PlutusIR qualified as P
@@ -216,8 +216,25 @@ glueDefaultUni u = case u of
   P.DefaultUniBool -> E.DefaultUniBool
   _ -> E.DefaultUniInteger
 
-glueBuiltinType :: P.SomeTypeIn P.DefaultUni -> E.Some0 ()
-glueBuiltinType (P.SomeTypeIn u) = E.Some' (glueDefaultUni u) ()
+glueBuiltinType :: P.SomeTypeHead P.DefaultUni -> E.Some0 ()
+glueBuiltinType headRep =
+  E.Some'
+    ( case headRep of
+        P.DefaultUniIntegerHead -> E.DefaultUniInteger
+        P.DefaultUniByteStringHead -> E.DefaultUniByteString
+        P.DefaultUniStringHead -> E.DefaultUniString
+        P.DefaultUniUnitHead -> E.DefaultUniUnit
+        P.DefaultUniBoolHead -> E.DefaultUniBool
+        P.DefaultUniListHead -> E.DefaultUniInteger
+        P.DefaultUniPairHead -> E.DefaultUniInteger
+        P.DefaultUniDataHead -> E.DefaultUniInteger
+        P.DefaultUniBLS12_381_G1_ElementHead -> E.DefaultUniInteger
+        P.DefaultUniBLS12_381_G2_ElementHead -> E.DefaultUniInteger
+        P.DefaultUniBLS12_381_MlResultHead -> E.DefaultUniInteger
+        P.DefaultUniArrayHead -> E.DefaultUniInteger
+        P.DefaultUniValueHead -> E.DefaultUniInteger
+    )
+    ()
 
 glueType :: Type a -> EType
 glueType (P.TyVar _ tyname) = E.Ty_Var (glueTyName tyname)

@@ -68,27 +68,21 @@ The following tags use type-in-type, and map more directly to the Haskell repres
 of the default universe.
 
 Tags are indexed by the real type they represent.
-The `Esc` datatype is used in the Haskell implementation to "escape" any kind into Type.
-For constants, we only care about kind *, but we need it to match the Haskell implementation.
 ```
-data Esc (a : Set) : Set where
-{-# INJECTIVE Esc #-}
-{-# COMPILE GHC Esc = data Esc () #-}
-
 data Tag : Set → Set where
-  integer              : Tag (Esc ℤ)
-  bytestring           : Tag (Esc ByteString)
-  string               : Tag (Esc String)
-  bool                 : Tag (Esc Bool)
-  unit                 : Tag (Esc ⊤)
-  pdata                : Tag (Esc DATA)
-  value                : Tag (Esc Value)
-  pair                 : ∀{A B} → Tag (Esc A) → Tag (Esc B) → Tag (Esc (A × B))
-  list                 : ∀{A} → Tag (Esc A) → Tag (Esc (List A))
-  array                 : ∀{A} → Tag (Esc A) → Tag (Esc (Array A))
-  bls12-381-g1-element : Tag (Esc Bls12-381-G1-Element)
-  bls12-381-g2-element : Tag (Esc Bls12-381-G2-Element)
-  bls12-381-mlresult   : Tag (Esc Bls12-381-MlResult)
+  integer              : Tag ℤ
+  bytestring           : Tag ByteString
+  string               : Tag String
+  bool                 : Tag Bool
+  unit                 : Tag ⊤
+  pdata                : Tag DATA
+  value                : Tag Value
+  pair                 : ∀{A B} → Tag A → Tag B → Tag (A × B)
+  list                 : ∀{A} → Tag A → Tag (List A)
+  array                 : ∀{A} → Tag A → Tag (Array A)
+  bls12-381-g1-element : Tag Bls12-381-G1-Element
+  bls12-381-g2-element : Tag Bls12-381-G2-Element
+  bls12-381-mlresult   : Tag Bls12-381-MlResult
 
 {-# FOREIGN GHC type Tag = DefaultUni #-}
 {-# FOREIGN GHC pattern TagInt                  = DefaultUniInteger  #-}
@@ -172,13 +166,13 @@ Term constants are pairs of a tag and the corresponding type.
 
 ```
 data TagCon : Set where
-  tagCon : ∀{A} → Tag (Esc A) → A → TagCon
+  tagCon : ∀{A} → Tag A → A → TagCon
 
 {-# FOREIGN GHC type TagCon = Some (ValueOf DefaultUni) #-}
 {-# FOREIGN GHC pattern TagCon t x = Some (ValueOf t x) #-}
 {-# COMPILE GHC TagCon = data TagCon (TagCon) #-}
 
-decTagCon' : ∀{A B} → (t : Tag (Esc A)) → (x : A) → (t' : Tag (Esc B)) → (y : B) → Bool
+decTagCon' : ∀{A B} → (t : Tag A) → (x : A) → (t' : Tag B) → (y : B) → Bool
 decTagCon' integer i integer i'                          = does (i Data.Integer.≟ i')
 decTagCon' bytestring b bytestring b'                    = equals b b'
 decTagCon' string s string s'                            = does (s Data.String.≟ s')
@@ -248,7 +242,7 @@ tag2TyTag (pair t u) = pair (tag2TyTag t) (tag2TyTag u)
 tag2TyTag (list t) = list (tag2TyTag t)
 tag2TyTag (array t) = array (tag2TyTag t)
 
-tagLemma : ∀{A}(t : Tag (Esc A)) →  A ≡ ⟦ tag2TyTag t ⟧tag
+tagLemma : ∀{A}(t : Tag A) →  A ≡ ⟦ tag2TyTag t ⟧tag
 tagLemma integer = refl
 tagLemma bytestring = refl
 tagLemma string = refl
@@ -283,7 +277,7 @@ tagCon2TmCon (tagCon (array x) xs) rewrite tagLemma x = tmCon (array (tag2TyTag 
 ### From Agda-style to Haskell-style
 
 ```
-tyTag2Tag : TyTag → Σ Set (λ A → Tag (Esc A))
+tyTag2Tag : TyTag → Σ Set (λ A → Tag A)
 tyTag2Tag (atomic aInteger) = ℤ ,, integer
 tyTag2Tag (atomic aBytestring) = ByteString ,, bytestring
 tyTag2Tag (atomic aString) = String ,, string

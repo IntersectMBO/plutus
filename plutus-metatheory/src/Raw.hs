@@ -81,29 +81,24 @@ convT (TyFun _ _A _B) = RTyFun (convT _A) (convT _B)
 convT (TyForall _ _ _K _A) = RTyPi (convK _K) (convT _A)
 convT (TyLam _ _ _K _A) = RTyLambda (convK _K) (convT _A)
 convT (TyApp _ _A _B) = RTyApp (convT _A) (convT _B)
-convT (TyBuiltin ann (SomeTypeIn (DefaultUniApply f x))) =
-  RTyApp
-    (convT (TyBuiltin ann (SomeTypeIn f)))
-    (convT (TyBuiltin ann (SomeTypeIn x)))
-convT (TyBuiltin _ someUni) = convTyCon someUni
+convT (TyBuiltin _ headRep) = convTyCon headRep
 convT (TyIFix _ a b) = RTyMu (convT a) (convT b)
 convT (TySOP _ xss) = RTySOP (map (map convT) xss)
 
-convTyCon :: SomeTypeIn DefaultUni -> RType
-convTyCon (SomeTypeIn DefaultUniInteger) = RTyCon (RTyConAtom ATyConInt)
-convTyCon (SomeTypeIn DefaultUniByteString) = RTyCon (RTyConAtom ATyConBS)
-convTyCon (SomeTypeIn DefaultUniString) = RTyCon (RTyConAtom ATyConStr)
-convTyCon (SomeTypeIn DefaultUniBool) = RTyCon (RTyConAtom ATyConBool)
-convTyCon (SomeTypeIn DefaultUniUnit) = RTyCon (RTyConAtom ATyConUnit)
-convTyCon (SomeTypeIn DefaultUniData) = RTyCon (RTyConAtom ATyConData)
-convTyCon (SomeTypeIn DefaultUniValue) = RTyCon (RTyConAtom ATyConValue)
-convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
-convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
-convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult) = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
-convTyCon (SomeTypeIn DefaultUniProtoList) = RTyCon RTyConList
-convTyCon (SomeTypeIn DefaultUniProtoArray) = RTyCon RTyConArray
-convTyCon (SomeTypeIn DefaultUniProtoPair) = RTyCon RTyConPair
-convTyCon (SomeTypeIn (DefaultUniApply _ _)) = error "unsupported builtin type application"
+convTyCon :: SomeTypeHead DefaultUni -> RType
+convTyCon DefaultUniIntegerHead = RTyCon (RTyConAtom ATyConInt)
+convTyCon DefaultUniByteStringHead = RTyCon (RTyConAtom ATyConBS)
+convTyCon DefaultUniStringHead = RTyCon (RTyConAtom ATyConStr)
+convTyCon DefaultUniBoolHead = RTyCon (RTyConAtom ATyConBool)
+convTyCon DefaultUniUnitHead = RTyCon (RTyConAtom ATyConUnit)
+convTyCon DefaultUniDataHead = RTyCon (RTyConAtom ATyConData)
+convTyCon DefaultUniValueHead = RTyCon (RTyConAtom ATyConValue)
+convTyCon DefaultUniBLS12_381_G1_ElementHead = RTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
+convTyCon DefaultUniBLS12_381_G2_ElementHead = RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
+convTyCon DefaultUniBLS12_381_MlResultHead = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
+convTyCon DefaultUniListHead = RTyCon RTyConList
+convTyCon DefaultUniArrayHead = RTyCon RTyConArray
+convTyCon DefaultUniPairHead = RTyCon RTyConPair
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x) = RVar (unIndex (ndbnIndex x))
@@ -144,23 +139,23 @@ unconvT _ (RTyCon c) = TyBuiltin () (unconvTyCon c)
 unconvT i (RTyMu t u) = TyIFix () (unconvT i t) (unconvT i u)
 unconvT i (RTySOP xss) = TySOP () (map (map (unconvT i)) xss)
 
-unconvTyCon :: RTyCon -> SomeTypeIn DefaultUni
-unconvTyCon (RTyConAtom ATyConInt) = SomeTypeIn DefaultUniInteger
-unconvTyCon (RTyConAtom ATyConBS) = SomeTypeIn DefaultUniByteString
-unconvTyCon (RTyConAtom ATyConStr) = SomeTypeIn DefaultUniString
-unconvTyCon (RTyConAtom ATyConBool) = SomeTypeIn DefaultUniBool
-unconvTyCon (RTyConAtom ATyConUnit) = SomeTypeIn DefaultUniUnit
-unconvTyCon (RTyConAtom ATyConData) = SomeTypeIn DefaultUniData
-unconvTyCon (RTyConAtom ATyConValue) = SomeTypeIn DefaultUniValue
+unconvTyCon :: RTyCon -> SomeTypeHead DefaultUni
+unconvTyCon (RTyConAtom ATyConInt) = DefaultUniIntegerHead
+unconvTyCon (RTyConAtom ATyConBS) = DefaultUniByteStringHead
+unconvTyCon (RTyConAtom ATyConStr) = DefaultUniStringHead
+unconvTyCon (RTyConAtom ATyConBool) = DefaultUniBoolHead
+unconvTyCon (RTyConAtom ATyConUnit) = DefaultUniUnitHead
+unconvTyCon (RTyConAtom ATyConData) = DefaultUniDataHead
+unconvTyCon (RTyConAtom ATyConValue) = DefaultUniValueHead
 unconvTyCon (RTyConAtom ATyConBLS12_381_G1_Element) =
-  SomeTypeIn DefaultUniBLS12_381_G1_Element
+  DefaultUniBLS12_381_G1_ElementHead
 unconvTyCon (RTyConAtom ATyConBLS12_381_G2_Element) =
-  SomeTypeIn DefaultUniBLS12_381_G2_Element
+  DefaultUniBLS12_381_G2_ElementHead
 unconvTyCon (RTyConAtom ATyConBLS12_381_MlResult) =
-  SomeTypeIn DefaultUniBLS12_381_MlResult
-unconvTyCon RTyConList = SomeTypeIn DefaultUniProtoList
-unconvTyCon RTyConArray = SomeTypeIn DefaultUniProtoArray
-unconvTyCon RTyConPair = SomeTypeIn DefaultUniProtoPair
+  DefaultUniBLS12_381_MlResultHead
+unconvTyCon RTyConList = DefaultUniListHead
+unconvTyCon RTyConArray = DefaultUniArrayHead
+unconvTyCon RTyConPair = DefaultUniPairHead
 
 tmnames, tynames :: String
 tmnames = ['a' .. 'z']

@@ -17,7 +17,7 @@ import PlutusCore.Pretty.PrettyConst
 
 import Prettyprinter
 import Prettyprinter.Custom
-import Universe (Some (..), SomeTypeIn (SomeTypeIn), ValueOf (..))
+import Universe (Some (..), ValueOf (..))
 
 instance
   (PrettyClassicBy configName name, PrettyUni uni, Pretty fun, Pretty ann)
@@ -83,7 +83,7 @@ instance
         )
     where
       prettyTypeOf :: Some (ValueOf uni) -> Doc dann
-      prettyTypeOf (Some (ValueOf uni _)) = prettyBy juxtRenderContext $ SomeTypeIn uni
+      prettyTypeOf (Some (ValueOf uni _)) = prettyBy juxtRenderContext $ Some uni
 
 instance
   (PrettyClassicBy configName (Term name uni fun ann), Pretty ann)

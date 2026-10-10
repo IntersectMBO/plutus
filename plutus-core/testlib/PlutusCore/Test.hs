@@ -67,7 +67,6 @@ import PlutusCore.Builtin
 import PlutusCore.Check.Scoping
 import PlutusCore.Compiler qualified as TPLC
 import PlutusCore.DeBruijn
-import PlutusCore.Default (noMoreTypeFunctions)
 import PlutusCore.Evaluation.Machine.Ck qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
@@ -149,18 +148,16 @@ that all unserialisable terms are unprintable too. -}
 isSerialisable :: Some (ValueOf TPLC.DefaultUni) -> Bool
 isSerialisable (Some (ValueOf uni0 x0)) = go uni0 x0
   where
-    go :: TPLC.DefaultUni (TPLC.Esc a) -> a -> Bool
+    go :: TPLC.DefaultUni a -> a -> Bool
     go TPLC.DefaultUniInteger _ = True
     go TPLC.DefaultUniByteString _ = True
     go TPLC.DefaultUniString _ = True
     go TPLC.DefaultUniUnit _ = True
     go TPLC.DefaultUniBool _ = True
-    go (TPLC.DefaultUniProtoList `TPLC.DefaultUniApply` uniA) xs = all (go uniA) xs
-    go (TPLC.DefaultUniProtoArray `TPLC.DefaultUniApply` uniA) xs = all (go uniA) xs
-    go (TPLC.DefaultUniProtoPair `TPLC.DefaultUniApply` uniA `TPLC.DefaultUniApply` uniB) (x, y) =
+    go (TPLC.DefaultUniList uniA) xs = all (go uniA) xs
+    go (TPLC.DefaultUniArray uniA) xs = all (go uniA) xs
+    go (TPLC.DefaultUniPair uniA uniB) (x, y) =
       go uniA x && go uniB y
-    go (f `TPLC.DefaultUniApply` _ `TPLC.DefaultUniApply` _ `TPLC.DefaultUniApply` _) _ =
-      noMoreTypeFunctions f
     go TPLC.DefaultUniData _ = True
     go TPLC.DefaultUniValue _ = True
     go TPLC.DefaultUniBLS12_381_G1_Element _ = False
@@ -192,7 +189,6 @@ instance
   , CaseBuiltin uni
   , Hashable fun
   , TPLC.GEq uni
-  , TPLC.Closed uni
   , TPLC.Everywhere uni Eq
   )
   => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun

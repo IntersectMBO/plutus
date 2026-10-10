@@ -77,10 +77,10 @@ d_valueMaxDepth_26 :: MAlonzo.Code.Utils.T_Value_776 -> Integer
 d_valueMaxDepth_26 = size . ValueMaxDepth
 -- Cost.Size.defaultConstantMeasure
 d_defaultConstantMeasure_28 ::
-  MAlonzo.Code.RawU.T_TmCon_204 -> Integer
+  MAlonzo.Code.RawU.T_TmCon_198 -> Integer
 d_defaultConstantMeasure_28 v0
   = case coe v0 of
-      MAlonzo.Code.RawU.C_tmCon_208 v1 v2
+      MAlonzo.Code.RawU.C_tmCon_202 v1 v2
         -> case coe v1 of
              MAlonzo.Code.Builtin.Signature.C_atomic_12 v4
                -> case coe v4 of
@@ -129,7 +129,7 @@ d_defaultValueMeasure_86 v0
          MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
            -> coe
                 d_defaultConstantMeasure_28
-                (coe MAlonzo.Code.RawU.C_tmCon_208 (coe v2) (coe v3))
+                (coe MAlonzo.Code.RawU.C_tmCon_202 (coe v2) (coe v3))
          _ -> coe v1)
 -- Cost.Size.valueMaxDepthMeasure
 d_valueMaxDepthMeasure_92 ::

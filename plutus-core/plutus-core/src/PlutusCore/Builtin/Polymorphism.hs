@@ -247,8 +247,8 @@ type NoStandalonePolymorphicDataErrMsg =
     ':$$: 'Text " variables with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the"
     ':$$: 'Text " type of an argument or the type of the result, respectively"
 
-instance TypeError NoStandalonePolymorphicDataErrMsg => uni `Contains` TyVarRep where
-  knownUni = underTypeError
+instance TypeError NoStandalonePolymorphicDataErrMsg => KnownTypeHead uni TyVarRep where
+  knownTypeHead = underTypeError
 
 type NoConstraintsErrMsg =
   'Text "Built-in functions are not allowed to have constraints"

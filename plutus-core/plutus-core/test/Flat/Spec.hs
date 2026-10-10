@@ -1,8 +1,11 @@
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Flat.Spec (tests) where
 
 import Data.ByteString.Lazy.Char8 qualified as LBS
+import Data.Either (isLeft)
 import Data.Set qualified as Set
 import Data.Word (Word8)
 import PlutusCore
@@ -10,6 +13,7 @@ import PlutusCore
   , Name (..)
   , Normalized (..)
   , TyName (..)
+  , Type (..)
   , Unique (..)
   , Version (..)
   )
@@ -22,13 +26,75 @@ import PlutusCore.DeBruijn
   , TyDeBruijn (..)
   , toFake
   )
-import PlutusCore.Default (DefaultFun (..), DefaultUni (..))
+import PlutusCore.Default
+  ( DefaultFun (..)
+  , DefaultUni (..)
+  )
 import PlutusCore.Flat qualified as Flat
 import PlutusCore.Flat.Bits (asBytes, bits)
+import PlutusCore.Flat.Encoder (encodeListWith)
+import PlutusCore.FlatInstances (safeEncodeBits)
+import PlutusCore.MkPlc (mkTyBuiltin, mkTyBuiltinOf)
 import Test.Tasty
 import Test.Tasty.Golden (goldenVsStringDiff)
 import Test.Tasty.HUnit
-import Universe (SomeTypeIn (..))
+import Universe (Closed (..), Some (..))
+
+-- Raw historical tag lists, including malformed inputs that native tags cannot express.
+newtype LegacyConstantType = LegacyConstantType [Word8]
+
+instance Flat.Flat LegacyConstantType where
+  encode (LegacyConstantType tags) = encodeListWith (safeEncodeBits 4) tags
+  size (LegacyConstantType tags) acc = acc + 5 * length tags + 1
+  decode = fail "LegacyConstantType is only used to produce compatibility fixtures"
+
+test_constantTagCompatibility :: TestTree
+test_constantTagCompatibility =
+  testGroup
+    "constant tag compatibility"
+    [ testGroup
+        "stable encoding"
+        [ testCase label $ do
+            encodeUni tag @?= tags
+            Flat.flat (Some tag) @?= Flat.flat (LegacyConstantType tags)
+            Flat.unflat (Flat.flat $ LegacyConstantType tags) @?= Right (Some tag)
+        | (label, tags, Some tag) <-
+            [ ("list", [7, 5, 0], Some $ DefaultUniList DefaultUniInteger)
+            , ("pair", [7, 7, 6, 0, 4], Some $ DefaultUniPair DefaultUniInteger DefaultUniBool)
+            , ("array", [7, 12, 3], Some $ DefaultUniArray DefaultUniUnit)
+            ,
+              ( "nested"
+              , [7, 5, 7, 7, 6, 0, 7, 12, 4]
+              , Some $ DefaultUniList $ DefaultUniPair DefaultUniInteger $ DefaultUniArray DefaultUniBool
+              )
+            ]
+        ]
+    , testGroup
+        "reject incomplete or invalid tags"
+        [ testCase (show tags) $
+            assertBool "Flat decoder accepted an invalid constant type" $
+              isLeft $
+                Flat.unflat @(Some DefaultUni) $
+                  Flat.flat $
+                    LegacyConstantType tags
+        | tags <-
+            [ []
+            , [5]
+            , [6]
+            , [12]
+            , [7]
+            , [7, 5]
+            , [7, 6, 0]
+            , [7, 7, 6, 0]
+            , [7, 0, 4]
+            , [7, 5, 5]
+            , [0, 4]
+            , [7, 5, 0, 4]
+            , [14]
+            , [15]
+            ]
+        ]
+    ]
 
 flatBytes :: Flat.Flat a => a -> [Word8]
 flatBytes = asBytes . bits
@@ -63,7 +129,7 @@ test_flatStaticEncoding =
           , enc "SubtractInteger" SubtractInteger
           , ""
           , "-- DefaultUni"
-          , enc "SomeTypeIn DefaultUniInteger" (SomeTypeIn DefaultUniInteger)
+          , enc "SomeTypeIn DefaultUniInteger" (Some DefaultUniInteger)
           ]
     )
 
@@ -72,7 +138,27 @@ test_flatRoundtrip :: TestTree
 test_flatRoundtrip =
   testGroup
     "Flat roundtrip"
-    [ testCase "SrcSpan" $
+    [ testGroup
+        "built-in types"
+        [ testCase label $ Flat.unflat (Flat.flat ty) @?= Right ty
+        | (label, ty) <-
+            [ ("integer", mkTyBuiltin @_ @Integer ())
+            , ("list head", mkTyBuiltin @_ @[] ())
+            , ("partially applied pair", TyApp () (mkTyBuiltin @_ @(,) ()) (mkTyBuiltin @_ @Integer ()))
+            ,
+              ( "nested list/pair/array"
+              , mkTyBuiltinOf () $
+                  DefaultUniList $
+                    DefaultUniPair DefaultUniInteger $
+                      DefaultUniArray DefaultUniBool
+              )
+            ]
+              :: [(String, Type TyName DefaultUni ())]
+        ]
+    , testCase "application annotations" $
+        let ty = TyApp (1 :: Int) (mkTyBuiltin @_ @[] 2) (mkTyBuiltin @_ @Integer 3) :: Type TyName DefaultUni Int
+         in Flat.unflat (Flat.flat ty) @?= Right ty
+    , testCase "SrcSpan" $
         let sp = SrcSpan "f" 1 2 3 4
          in Flat.unflat (Flat.flat sp) @?= Right sp
     , testCase "SrcSpans" $
@@ -145,6 +231,7 @@ tests =
   testGroup
     "Flat serialization"
     [ test_flatStaticEncoding
+    , test_constantTagCompatibility
     , test_flatRoundtrip
     , test_flatNewtypeWrappers
     ]

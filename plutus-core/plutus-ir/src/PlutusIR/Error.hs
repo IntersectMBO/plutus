@@ -29,8 +29,14 @@ data TypeErrorExt uni ann
       !ann
       -- the expected constructor's type
       !(PLC.Type PLC.TyName uni ann)
-  deriving stock (Show, Eq, Generic, Functor)
-  deriving anyclass (NFData)
+  deriving stock (Generic, Functor)
+
+deriving stock instance
+  (Show (PLC.SomeTypeHead uni), Show ann) => Show (TypeErrorExt uni ann)
+deriving stock instance
+  (Eq (PLC.SomeTypeHead uni), Eq ann) => Eq (TypeErrorExt uni ann)
+deriving anyclass instance
+  (NFData (PLC.SomeTypeHead uni), NFData ann) => NFData (TypeErrorExt uni ann)
 
 data Error uni fun a
   = -- | A generic compilation error.

@@ -104,10 +104,10 @@ du_eraseVar_40 v0 v1 v2
 -- Declarative.Erasure.eraseTC
 d_eraseTC_48 ::
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
-  AgdaAny -> MAlonzo.Code.RawU.T_TmCon_204
+  AgdaAny -> MAlonzo.Code.RawU.T_TmCon_198
 d_eraseTC_48 v0 v1
   = coe
-      MAlonzo.Code.RawU.C_tmCon_208
+      MAlonzo.Code.RawU.C_tmCon_202
       (coe MAlonzo.Code.Declarative.d_ty2TyTag_74 (coe v0)) (coe v1)
 -- Declarative.Erasure.erase
 d_erase_60 ::

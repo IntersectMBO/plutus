@@ -12,7 +12,6 @@ import PlutusPrelude
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
-import PlutusCore.Default (noMoreTypeFunctions)
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Test (isSerialisable, mapTestLimitAtLeast)
 import PlutusIR
@@ -87,19 +86,17 @@ aroundSeparators = go False False
 isScramblable :: PLC.Some (PLC.ValueOf PLC.DefaultUni) -> Bool
 isScramblable (PLC.Some (PLC.ValueOf uni0 x0)) = go uni0 x0
   where
-    go :: PLC.DefaultUni (PLC.Esc a) -> a -> Bool
+    go :: PLC.DefaultUni a -> a -> Bool
     go PLC.DefaultUniInteger _ = True
     go PLC.DefaultUniByteString _ = True
     -- Keep in sync with 'aroundSeparators'.
     go PLC.DefaultUniString text = T.all (\c -> not (separator c) && c /= '`') text
     go PLC.DefaultUniUnit _ = True
     go PLC.DefaultUniBool _ = True
-    go (PLC.DefaultUniProtoList `PLC.DefaultUniApply` uniA) xs = all (go uniA) xs
-    go (PLC.DefaultUniProtoArray `PLC.DefaultUniApply` uniA) xs = all (go uniA) xs
-    go (PLC.DefaultUniProtoPair `PLC.DefaultUniApply` uniA `PLC.DefaultUniApply` uniB) (x, y) =
+    go (PLC.DefaultUniList uniA) xs = all (go uniA) xs
+    go (PLC.DefaultUniArray uniA) xs = all (go uniA) xs
+    go (PLC.DefaultUniPair uniA uniB) (x, y) =
       go uniA x && go uniB y
-    go (f `PLC.DefaultUniApply` _ `PLC.DefaultUniApply` _ `PLC.DefaultUniApply` _) _ =
-      noMoreTypeFunctions f
     go PLC.DefaultUniData _ = True
     go PLC.DefaultUniValue _ = True
     go PLC.DefaultUniBLS12_381_G1_Element _ = False

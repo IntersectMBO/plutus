@@ -29,7 +29,7 @@ import PlutusCore.Generators.QuickCheck.Utils
 import PlutusCore.Builtin
 import PlutusCore.Core (argsFunKind)
 import PlutusCore.Default
-import PlutusCore.MkPlc (mkConstantOf)
+import PlutusCore.MkPlc (mkConstantOf, mkTyBuiltinOf)
 import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Subst (typeSubstClosedType)
@@ -106,10 +106,8 @@ findInstantiation ctx n target ty = do
     view ctx' flex insts n fvs (TyFun _ a b) | n > 0 = view ctx' flex (InstArg a : insts) (n - 1) fvs b
     view ctx' flex insts _ _ a = (ctx', flex, reverse insts, a)
 
-genConstant :: SomeTypeIn DefaultUni -> GenTm (Term TyName Name DefaultUni DefaultFun ())
-genConstant (SomeTypeIn b) = case toSingKind b of
-  SingType -> mkConstantOf () b <$> bring (Proxy @ArbitraryBuiltin) b (liftGen arbitraryBuiltin)
-  _ -> error "Higher-kinded built-in types cannot be used here"
+genConstant :: Some DefaultUni -> GenTm (Term TyName Name DefaultUni DefaultFun ())
+genConstant (Some b) = mkConstantOf () b <$> bring (Proxy @ArbitraryBuiltin) b (liftGen arbitraryBuiltin)
 
 {-| Try to inhabit a given type in as simple a way as possible,
 prefers to not default to `error` -}
@@ -137,7 +135,7 @@ inhabitType ty0 = local (\e -> e {geTerms = mempty}) $ do
         LamAbs () x a <$> mapExceptT (bindTmName x a) (findTm b)
       TyForall _ x k b -> do
         TyAbs () x k <$> mapExceptT (bindTyName x k) (findTm b)
-      TyBuiltin _ someUni -> lift $ genConstant someUni
+      (constantTypeTag -> Just someUni) -> lift $ genConstant someUni
       -- If we have a type-function application
       (viewApp [] -> (f, _)) ->
         case f of
@@ -306,13 +304,13 @@ genTerm mty = checkInvariants $ do
     genError (Just ty) = return (ty, Error () ty)
 
     canConst Nothing = True
-    canConst (Just TyBuiltin {}) = True
-    canConst (Just _) = False
+    canConst (Just ty) = isJust $ constantTypeTag ty
 
     genConst Nothing = do
-      someUni <- deliver . liftGen . genBuiltinTypeOf $ Type ()
-      (TyBuiltin () someUni,) <$> genConstant someUni
-    genConst (Just ty@(TyBuiltin _ someUni)) = (ty,) <$> genConstant someUni
+      someUni <- liftGen arbitrary
+      case someUni of
+        Some uni -> (mkTyBuiltinOf () uni,) <$> genConstant someUni
+    genConst (Just ty@(constantTypeTag -> Just someUni)) = (ty,) <$> genConstant someUni
     genConst _ = error "genConst: impossible"
 
     genDatLet mty = do

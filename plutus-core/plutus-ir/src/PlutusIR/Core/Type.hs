@@ -52,7 +52,10 @@ import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
 
 data Datatype tyname name uni a
   = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] name [VarDecl tyname name uni a]
-  deriving stock (Functor, Show, Generic)
+  deriving stock (Functor, Generic)
+
+deriving stock instance
+  (Show (SomeTypeHead uni), Show tyname, Show name, Show a) => Show (Datatype tyname name uni a)
 
 varDeclNameString :: VarDecl tyname Name uni a -> String
 varDeclNameString = T.unpack . PLC._nameText . _varDeclName
@@ -232,40 +235,40 @@ applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
 
 instance HasAnn (Term tyname name uni fun) where
   getAnn = \case
-    Let a _ _ _   -> a
-    Var a _       -> a
+    Let a _ _ _ -> a
+    Var a _ -> a
     TyAbs a _ _ _ -> a
     LamAbs a _ _ _ -> a
-    Apply a _ _   -> a
-    Constant a _  -> a
-    Builtin a _   -> a
-    TyInst a _ _  -> a
-    Error a _     -> a
+    Apply a _ _ -> a
+    Constant a _ -> a
+    Builtin a _ -> a
+    TyInst a _ _ -> a
+    Error a _ -> a
     IWrap a _ _ _ -> a
-    Unwrap a _    -> a
+    Unwrap a _ -> a
     Constr a _ _ _ -> a
-    Case a _ _ _  -> a
+    Case a _ _ _ -> a
   modifyAnn f = \case
-    Let a r bs t      -> Let (f a) r bs t
-    Var a x           -> Var (f a) x
-    TyAbs a tn k t    -> TyAbs (f a) tn k t
-    LamAbs a n ty t   -> LamAbs (f a) n ty t
-    Apply a t1 t2     -> Apply (f a) t1 t2
-    Constant a c      -> Constant (f a) c
-    Builtin a b       -> Builtin (f a) b
-    TyInst a t ty     -> TyInst (f a) t ty
-    Error a ty        -> Error (f a) ty
+    Let a r bs t -> Let (f a) r bs t
+    Var a x -> Var (f a) x
+    TyAbs a tn k t -> TyAbs (f a) tn k t
+    LamAbs a n ty t -> LamAbs (f a) n ty t
+    Apply a t1 t2 -> Apply (f a) t1 t2
+    Constant a c -> Constant (f a) c
+    Builtin a b -> Builtin (f a) b
+    TyInst a t ty -> TyInst (f a) t ty
+    Error a ty -> Error (f a) ty
     IWrap a ty1 ty2 t -> IWrap (f a) ty1 ty2 t
-    Unwrap a t        -> Unwrap (f a) t
-    Constr a ty i ts  -> Constr (f a) ty i ts
-    Case a ty t ts    -> Case (f a) ty t ts
+    Unwrap a t -> Unwrap (f a) t
+    Constr a ty i ts -> Constr (f a) ty i ts
+    Case a ty t ts -> Case (f a) ty t ts
 
 instance HasAnn (Binding tyname name uni fun) where
   getAnn = \case
-    TermBind a _ _ _  -> a
-    TypeBind a _ _    -> a
-    DatatypeBind a _  -> a
+    TermBind a _ _ _ -> a
+    TypeBind a _ _ -> a
+    DatatypeBind a _ -> a
   modifyAnn f = \case
-    TermBind a s d t  -> TermBind (f a) s d t
-    TypeBind a d t    -> TypeBind (f a) d t
-    DatatypeBind a d  -> DatatypeBind (f a) d
+    TermBind a s d t -> TermBind (f a) s d t
+    TypeBind a d t -> TypeBind (f a) d t
+    DatatypeBind a d -> DatatypeBind (f a) d
