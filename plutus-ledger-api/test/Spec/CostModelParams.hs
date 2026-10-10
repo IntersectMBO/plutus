@@ -5,7 +5,8 @@
 module Spec.CostModelParams where
 
 import PlutusLedgerApi.Common
-  ( CostModelApplyWarn (CMTooManyParamsWarn, cmActual, cmExpected)
+  ( CostModelApplyError (CMNonPositiveMachineCost)
+  , CostModelApplyWarn (CMTooManyParamsWarn, cmActual, cmExpected)
   , IsParamName (readParamName, showParamName)
   )
 import PlutusLedgerApi.Test.V3.EvaluationContext qualified as V3
@@ -19,6 +20,7 @@ import Control.Monad.Except (runExcept)
 import Control.Monad.Writer.Strict (WriterT (runWriterT))
 import Data.Either (isRight)
 import Data.Foldable (for_)
+import Data.Int (Int64)
 import Data.List.Extra (enumerate)
 import Data.Set (isSubsetOf)
 import Data.Set qualified as Set
@@ -30,10 +32,23 @@ import Test.Tasty.Extras
   , testNestedNamed
   )
 import Test.Tasty.HUnit
-  ( assertBool
+  ( Assertion
+  , assertBool
+  , assertFailure
   , testCase
   , (@=?)
   )
+
+assertNonPositiveMachineCost :: V3.ParamName -> Int64 -> Assertion
+assertNonPositiveMachineCost parameterName value =
+  case runExcept $ runWriterT $ V3.mkEvaluationContext costValues of
+    Left err -> CMNonPositiveMachineCost (showParamName parameterName) value @=? err
+    Right _ -> assertFailure "non-positive CEK machine cost was accepted"
+  where
+    costValues =
+      fmap
+        (\(name, originalValue) -> if name == parameterName then value else originalValue)
+        V3.costModelParamsForTesting
 
 tests :: TestNested
 tests =
@@ -101,6 +116,10 @@ tests =
           $ runWriterT
           $ V4.mkEvaluationContext
           $ costValuesForTesting ++ [1] -- dummy param value appended
+    , embed $ testCase "zero CEK CPU cost is rejected" $
+        assertNonPositiveMachineCost V3.CekVarCost'exBudgetCPU 0
+    , embed $ testCase "negative CEK memory cost is rejected" $
+        assertNonPositiveMachineCost V3.CekStartupCost'exBudgetMemory (-1)
     , embed $ testCase "cost model parameters" do
         -- From PV11, the v1 and v2 parameter names are identical; before PV11
         -- the v1 parameter names were a subset of the v2 ones.
