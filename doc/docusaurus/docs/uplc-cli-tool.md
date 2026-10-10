@@ -34,6 +34,17 @@ nix run github:IntersectMBO/plutus#uplc -- --help
 Replace `plutus` with `plutus/<version>` (e.g. `plutus/1.68.0.0`) to pin a released version.
 The first invocation may take a while, since Nix may need to download or build the toolchain.
 
+**Cabal (from CHaP).**
+Starting with release 1.72.0.0, `plutus-executables` is published to the [Cardano Haskell Packages](https://chap.intersectmbo.org/) repository (CHaP) alongside the Plutus libraries, so with GHC 9.6 and `cabal` installed you can build and install `uplc` (plus `plc`, `pir` and `plutus`) without cloning anything.
+Add the CHaP repository to your `~/.cabal/config` (or `~/.config/cabal/config`) if you don't have it already — the `repository` stanza to paste is given in the [CHaP README](https://github.com/IntersectMBO/cardano-haskell-packages#how-to-use-chap) — then:
+
+```bash
+cabal update
+cabal install plutus-executables
+```
+
+Building from CHaP compiles the Plutus libraries from source, so the first install takes a while, and needs the `libsodium`, `libsecp256k1` and `libblst` C libraries that Plutus Core depends on.
+
 **From source.**
 Clone the [Plutus repository](https://github.com/IntersectMBO/plutus), run `nix develop`, and then run `cabal build uplc`.
 
@@ -254,6 +265,7 @@ uplc optimize --if blueprint --of blueprint -i MyBlueprint.json -o MyBlueprint.o
 ```
 
 This makes `uplc` a drop-in post-build step for any toolchain that emits blueprints.
+If you'd rather do the same from Haskell, the blueprint plumbing `uplc` uses is a public library: depend on `plutus-ledger-api:plutus-execlib` (published to CHaP with every release) and use `readBlueprint` and `writeBlueprint` from `PlutusCore.Executable.Blueprint` together with `optimizeProgramWithTrace` from `UntypedPlutusCore`; `writeBlueprint` recomputes the hash fields for you.
 For example, `aiken build` writes a `plutus.json` blueprint at the root of an Aiken project, which can then be optimized as a whole:
 
 ```bash

@@ -9,13 +9,21 @@ The following packages are versioned and released:
 
 - `plutus-core`, which provides
 * The main library `plutus-core:plutus-core`
-* Three executables, `plutus-core:pir`, `plutus-core:plc`, `plutus-core:uplc`
-- `plutus-ledger-api`
+* The sublibraries `plutus-core:plutus-ir` and `plutus-core:flat`
+- `plutus-ledger-api`, which provides
 * The main library `plutus-ledger-api:plutus-ledger-api`
+* The sublibrary `plutus-ledger-api:plutus-execlib`, shared by the executables below (parsers, blueprint and hex codecs, optimisation reports)
 - `plutus-tx`
 * The main library `plutus-tx:plutus-tx`
 - `plutus-tx-plugin`
 * The main library `plutus-tx-plugin:plutus-tx-plugin`
+- `plutus-metatheory`
+* The main library `plutus-metatheory:plutus-metatheory`, which contains the Agda-derived certifier
+- `plutus-executables`, which provides
+* The executables `uplc`, `plc`, `pir` and `plutus`
+
+All of the above are published to https://chap.intersectmbo.org/[CHaP] by the release process, so users can `cabal install plutus-executables` (with the CHaP repository configured) instead of building from source.
+The `uplc`, `plc`, `pir` and `plutus` executables are additionally attached to each GitHub release as statically-linked x86_64 Linux binaries.
 
 == Version Scheme
 
