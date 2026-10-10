@@ -32,12 +32,13 @@ import GHC.Generics (Generic)
 
 import PlutusTx.Prelude
 
+import PlutusLedgerApi.Common (Version (..))
 import PlutusLedgerApi.V1 (lovelaceValueOf, toPubKeyHash, valueOf)
 import PlutusLedgerApi.V1.Interval (contains)
 import PlutusLedgerApi.V3
   ( CurrencySymbol
   , Datum (Datum, getDatum)
-  , Lovelace
+  , Lovelace (..)
   , OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash)
   , POSIXTime
   , PubKeyHash
@@ -57,7 +58,7 @@ import PlutusTx
   , ToData
   , UnsafeFromData (..)
   , compile
-  , liftCodeDef
+  , liftCode
   , makeIsDataSchemaIndexed
   , makeLift
   , unsafeApplyCode
@@ -132,6 +133,11 @@ data AuctionRedeemer = NewBid Bid | Payout
 
 PlutusTx.makeIsDataSchemaIndexed ''AuctionRedeemer [('NewBid, 0), ('Payout, 1)]
 
+-- | Native integer/boolean helper, also compiled separately by the UAL example.
+{-# INLINEABLE outbids #-}
+outbids :: Integer -> Integer -> Bool
+outbids previous proposed = proposed PlutusTx.> previous
+
 -- BLOCK2
 -- AuctionValidator.hs
 {-# INLINEABLE auctionTypedValidator #-}
@@ -171,7 +177,7 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = List.and c
     -- AuctionValidator.hs
     sufficientBid :: Bid -> Bool
     sufficientBid (Bid _ _ amt) = case highestBid of
-      Just (Bid _ _ amt') -> amt PlutusTx.> amt'
+      Just (Bid _ _ amt') -> outbids (getLovelace amt') (getLovelace amt)
       Nothing -> amt PlutusTx.>= apMinBid params
     -- BLOCK4
     -- AuctionValidator.hs
@@ -284,7 +290,7 @@ auctionUntypedValidator params ctx =
 auctionValidatorScript :: AuctionParams -> CompiledCode (BuiltinData -> BuiltinUnit)
 auctionValidatorScript params =
   $$(PlutusTx.compile [||auctionUntypedValidator||])
-    `PlutusTx.unsafeApplyCode` liftCodeDef params
+    `PlutusTx.unsafeApplyCode` liftCode (Version 1 1 0) params
 
 -- BLOCK9
 -- AuctionValidator.hs

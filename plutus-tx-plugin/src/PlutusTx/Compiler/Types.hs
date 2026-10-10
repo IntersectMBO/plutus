@@ -26,6 +26,7 @@ import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
+import PlutusCore.Version qualified as PLC
 
 import GHC qualified
 import GHC.Core.FamInstEnv qualified as GHC
@@ -50,6 +51,7 @@ data CompileOptions = CompileOptions
   { coProfile :: ProfileOpts
   , coCoverage :: CoverageOpts
   , coDatatypeStyle :: PIR.DatatypeStyle
+  , coPlcTargetVersion :: PLC.Version
   , coRemoveTrace :: Bool
   , coInlineFix :: Bool
   }

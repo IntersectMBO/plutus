@@ -1,0 +1,867 @@
+{
+    "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance-v2.json",
+    "blueprint": {
+        "hash": {
+            "alg": "sha256",
+            "digest": "22bd6d80f1c08c348394654ea13e2b757ecc15c310446bcad32d1146ef6e32e4"
+        },
+        "uri": "plutus.json"
+    },
+    "checkingContexts": {
+        "audit_demo_valid_bid_accepted": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_demo_valid_bid_accepted.json"
+        },
+        "audit_nb_datum_hash_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_nb_datum_hash_rejected.json"
+        },
+        "audit_nb_datum_missing_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_nb_datum_missing_rejected.json"
+        },
+        "audit_nb_datum_wrong_bid_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_nb_datum_wrong_bid_rejected.json"
+        },
+        "audit_nb_other_redeemer_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_nb_other_redeemer_rejected.json"
+        },
+        "audit_nb_wrong_policy_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_nb_wrong_policy_rejected.json"
+        },
+        "audit_nb_wrong_token_name_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_nb_wrong_token_name_rejected.json"
+        },
+        "audit_newBid_accepts_dust_tokens": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_newBid_accepts_dust_tokens.json"
+        },
+        "audit_newBid_accepts_minimal_increment": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_newBid_accepts_minimal_increment.json"
+        },
+        "audit_newBid_ignores_minting": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_newBid_ignores_minting.json"
+        },
+        "audit_newBid_success_positive_bid": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_newBid_success_positive_bid.json"
+        },
+        "audit_newBid_success_requires_before_deadline": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_newBid_success_requires_before_deadline.json"
+        },
+        "audit_newBid_success_requires_bigger_bid": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_newBid_success_requires_bigger_bid.json"
+        },
+        "audit_newBid_success_requires_output_locks_bid": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_newBid_success_requires_output_locks_bid.json"
+        },
+        "audit_newBid_success_requires_single_nft": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_newBid_success_requires_single_nft.json"
+        },
+        "audit_newBid_success_requires_sufficient_bid": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_newBid_success_requires_sufficient_bid.json"
+        },
+        "audit_payout_double_satisfaction": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_payout_double_satisfaction.json"
+        },
+        "audit_payout_staked_outputs_accepted": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_payout_staked_outputs_accepted.json"
+        },
+        "audit_payout_success_pays_seller_highest_bid": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_payout_success_pays_seller_highest_bid.json"
+        },
+        "audit_payout_success_positive_asset": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_payout_success_positive_asset.json"
+        },
+        "audit_payout_success_positive_seller_payment": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_payout_success_positive_seller_payment.json"
+        },
+        "audit_payout_success_requires_after_deadline": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_payout_success_requires_after_deadline.json"
+        },
+        "audit_payout_success_transfers_asset": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_payout_success_transfers_asset.json"
+        },
+        "audit_valid_newBid_succeeds": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_valid_newBid_succeeds.json"
+        },
+        "audit_valid_payout_no_bid_succeeds": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_valid_payout_no_bid_succeeds.json"
+        },
+        "audit_valid_payout_with_bid_succeeds": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-audit_valid_payout_with_bid_succeeds.json"
+        },
+        "existing_bid_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-existing_bid_exact.json"
+        },
+        "first_bid_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-first_bid_exact.json"
+        },
+        "malformed_context": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-malformed_context.json"
+        },
+        "outbids_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "ed9ab4442382c20e0f9aa6ec633cf9a9b1289e80a61a56af58422b72cbb47adc"
+            },
+            "uri": "checking-outbids_exact.json"
+        },
+        "payout_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "5e8488f18c2ea470fd00a3b0033eb9a14e31f9b64af87ccabc4dc098db8b1486"
+            },
+            "uri": "checking-payout_exact.json"
+        }
+    },
+    "definitions": {
+        "BuiltinData": {}
+    },
+    "formalFragments": [
+        {
+            "id": "Example.Ual.Auction.FormalSpec",
+            "language": "ual",
+            "source": "def typedAuction (validator : Data → State) (ctx : CardanoLedgerApi.V3.Contexts.ScriptContext) :=\n    validator (CardanoLedgerApi.IsData.Class.IsData.toData ctx)\n\n  def bidScenario (validator : Data → State) (old proposed locked refund tokens hi : Integer) :=\n    typedAuction validator (CardanoLedgerApi.Examples.Auction.newBidContext old proposed locked refund tokens hi)\n\n  def payoutScenario (validator : Data → State) (bid paid tokens lo : Integer) :=\n    typedAuction validator (CardanoLedgerApi.Examples.Auction.payoutContext bid paid tokens lo)\n\ndef auditBid (validator : Data → State) (old proposed locked refund tokens hi : Integer) : Prop :=\n    isSuccessful (bidScenario validator old proposed locked refund tokens hi)\n  def auditPayout (validator : Data → State) (bid paid tokens lo : Integer) : Prop :=\n    isSuccessful (payoutScenario validator bid paid tokens lo)\n  def auditAttack (validator : Data → State) (old proposed locked refund tokens hi junk minted : Integer) : Prop :=\n    isSuccessful (typedAuction validator (CardanoLedgerApi.Examples.Auction.newBidAttackContext old proposed locked refund tokens hi junk minted))\n  def auditDouble (validator : Data → State) (bid paid tokens lo : Integer) : Prop :=\n    isSuccessful (typedAuction validator (CardanoLedgerApi.Examples.Auction.payoutDoubleSatContext bid paid tokens lo))\n  def auditAccepts (validator : Data → State) (ctx : CardanoLedgerApi.V3.Contexts.ScriptContext) : Prop :=\n    isSuccessful (typedAuction validator ctx)"
+        }
+    ],
+    "functions": {
+        "outbids": {
+            "arguments": [
+                {
+                    "dataType": "#integer"
+                },
+                {
+                    "dataType": "#integer"
+                }
+            ],
+            "compiledCode": "4a01010022337100040021",
+            "hash": {
+                "alg": "sha256",
+                "digest": "264d481d68647619542971000e727b145b21600e612476ea09841dce094752a8"
+            },
+            "plutusVersion": "v3",
+            "result": {
+                "dataType": "#boolean"
+            },
+            "serialization": "cbor-flat"
+        }
+    },
+    "languages": {
+        "ual": {
+            "name": "Universal Annotation Language",
+            "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage",
+            "version": "0.6-draft"
+        }
+    },
+    "preamble": {
+        "authors": [
+            "Plutus contributors"
+        ],
+        "created": "2026-10-06",
+        "title": "Auction with detached specification",
+        "version": "1.0.0"
+    },
+    "properties": [
+        {
+            "checkingContext": "outbids_exact",
+            "id": "outbids_exact",
+            "scope": {
+                "functions": [
+                    "outbids"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (old proposed : Integer), outbids_returns old proposed (decide (old < proposed))",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "The separately compiled helper returns the native comparison result."
+            }
+        },
+        {
+            "checkingContext": "first_bid_exact",
+            "id": "first_bid_exact",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (proposed locked tokens hi : Integer),\n      isSuccessful (bidScenario auction 0 proposed locked 0 tokens hi) ↔\n        100 ≤ proposed ∧ hi ≤ 1725227091000 ∧ locked = proposed ∧ tokens = 1",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "For the upstream no-previous-bid scenario, the minimum, deadline, locked Ada and NFT quantity characterize success."
+            }
+        },
+        {
+            "checkingContext": "existing_bid_exact",
+            "id": "existing_bid_exact",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (old proposed locked refund tokens hi : Integer), 0 < old →\n      (isSuccessful (bidScenario auction old proposed locked refund tokens hi) ↔\n        old < proposed ∧ hi ≤ 1725227091000 ∧ locked = proposed ∧ refund = old ∧ tokens = 1)",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "For a positive previous bid, success requires a strictly larger bid, exact refund, correct continuing value and the deadline."
+            }
+        },
+        {
+            "checkingContext": "payout_exact",
+            "id": "payout_exact",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bid paid tokens lo : Integer),\n      isSuccessful (payoutScenario auction bid paid tokens lo) ↔\n        1725227091000 ≤ lo ∧ tokens = 1 ∧ (0 < bid → paid = bid)",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "For the upstream payout scenario, the deadline, NFT and seller payment characterize success."
+            }
+        },
+        {
+            "checkingContext": "malformed_context",
+            "id": "malformed_context",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (n : Integer), isUnsuccessful (auction (Data.I n))",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "An integer is not a V3 ScriptContext and is rejected."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_requires_sufficient_bid",
+            "id": "audit_newBid_success_requires_sufficient_bid",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (newBidAmt outAda outTok hi : Integer),\n    auditBid auction 0 newBidAmt outAda 0 outTok hi\n    → CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_requires_sufficient_bid. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_requires_bigger_bid",
+            "id": "audit_newBid_success_requires_bigger_bid",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → oldBidAmt < newBidAmt",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_requires_bigger_bid. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_requires_before_deadline",
+            "id": "audit_newBid_success_requires_before_deadline",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_requires_before_deadline. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_requires_output_locks_bid",
+            "id": "audit_newBid_success_requires_output_locks_bid",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → outAda = newBidAmt",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_requires_output_locks_bid. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_requires_single_nft",
+            "id": "audit_newBid_success_requires_single_nft",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → outTok = 1",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_requires_single_nft. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_valid_newBid_succeeds",
+            "id": "audit_valid_newBid_succeeds",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: valid_newBid_succeeds. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_accepts_minimal_increment",
+            "id": "audit_newBid_accepts_minimal_increment",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt outAda refundAda outTok hi : Integer),\n    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ oldBidAmt + 1 →\n    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime          →\n    outAda = oldBidAmt + 1     →\n    refundAda = oldBidAmt      →\n    outTok = 1\n    → auditBid auction oldBidAmt (oldBidAmt + 1) outAda refundAda outTok hi",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_accepts_minimal_increment. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_success_requires_after_deadline",
+            "id": "audit_payout_success_requires_after_deadline",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo\n    → CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_success_requires_after_deadline. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_success_pays_seller_highest_bid",
+            "id": "audit_payout_success_pays_seller_highest_bid",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo →\n    0 < bidAmt\n    → sellerAda = bidAmt",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_success_pays_seller_highest_bid. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_success_transfers_asset",
+            "id": "audit_payout_success_transfers_asset",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo\n    → assetTok = 1",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_success_transfers_asset. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_valid_payout_with_bid_succeeds",
+            "id": "audit_valid_payout_with_bid_succeeds",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    0 < bidAmt         →\n    CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo  →\n    sellerAda = bidAmt →\n    assetTok = 1\n    → auditPayout auction bidAmt sellerAda assetTok lo",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: valid_payout_with_bid_succeeds. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_valid_payout_no_bid_succeeds",
+            "id": "audit_valid_payout_no_bid_succeeds",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (sellerAda assetTok lo : Integer),\n    CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo →\n    assetTok = 1\n    → auditPayout auction 0 sellerAda assetTok lo",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: valid_payout_no_bid_succeeds. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_accepts_dust_tokens",
+            "id": "audit_newBid_accepts_dust_tokens",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi junkTok : Integer),\n    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditAttack auction oldBidAmt newBidAmt outAda refundAda outTok hi junkTok 0",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_accepts_dust_tokens. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_ignores_minting",
+            "id": "audit_newBid_ignores_minting",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi mintTok : Integer),\n    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditAttack auction oldBidAmt newBidAmt outAda refundAda outTok hi 0 mintTok",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_ignores_minting. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_double_satisfaction",
+            "id": "audit_payout_double_satisfaction",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    0 < bidAmt         →\n    CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo  →\n    sellerAda = bidAmt →\n    assetTok = 1\n    → auditDouble auction bidAmt sellerAda assetTok lo",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_double_satisfaction. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_positive_bid",
+            "id": "audit_newBid_success_positive_bid",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → 0 < newBidAmt",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_positive_bid. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_success_positive_asset",
+            "id": "audit_payout_success_positive_asset",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo\n    → 0 < assetTok",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_success_positive_asset. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_success_positive_seller_payment",
+            "id": "audit_payout_success_positive_seller_payment",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo →\n    0 < bidAmt\n    → 0 < sellerAda",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_success_positive_seller_payment. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_demo_valid_bid_accepted",
+            "id": "audit_demo_valid_bid_accepted",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "auditAccepts auction CardanoLedgerApi.Examples.Auction.demoValidCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: demo_valid_bid_accepted. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_wrong_token_name_rejected",
+            "id": "audit_nb_wrong_token_name_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoWrongTnCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_wrong_token_name_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_wrong_policy_rejected",
+            "id": "audit_nb_wrong_policy_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoWrongPolicyCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_wrong_policy_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_datum_hash_rejected",
+            "id": "audit_nb_datum_hash_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoDatumHashCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_datum_hash_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_datum_missing_rejected",
+            "id": "audit_nb_datum_missing_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoNoDatumCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_datum_missing_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_datum_wrong_bid_rejected",
+            "id": "audit_nb_datum_wrong_bid_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoWrongDatumCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_datum_wrong_bid_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_other_redeemer_rejected",
+            "id": "audit_nb_other_redeemer_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoOtherRedeemerCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_other_redeemer_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_staked_outputs_accepted",
+            "id": "audit_payout_staked_outputs_accepted",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "auditAccepts auction CardanoLedgerApi.Examples.Auction.demoPayoutStakedCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_staked_outputs_accepted. Checked against this freshly compiled program."
+            }
+        }
+    ]
+}

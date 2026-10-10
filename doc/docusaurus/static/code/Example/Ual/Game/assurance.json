@@ -1,0 +1,120 @@
+{
+    "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance-v2.json",
+    "blueprint": {
+        "hash": {
+            "alg": "sha256",
+            "digest": "a1a93509cb10e922c20242c39f7a8c01c164208fbfd96e7a0aff53308104644f"
+        },
+        "uri": "plutus.json"
+    },
+    "checkingContexts": {
+        "correct_guess": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "ac4647bfa626f975ea69ba035422946055549d0290e2e39b6e813e1e66e8b83c"
+            },
+            "uri": "checking-correct_guess.json"
+        },
+        "malformed_datum": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "ac4647bfa626f975ea69ba035422946055549d0290e2e39b6e813e1e66e8b83c"
+            },
+            "uri": "checking-malformed_datum.json"
+        },
+        "wrong_guess": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "ac4647bfa626f975ea69ba035422946055549d0290e2e39b6e813e1e66e8b83c"
+            },
+            "uri": "checking-wrong_guess.json"
+        }
+    },
+    "definitions": {
+        "BuiltinData": {}
+    },
+    "formalFragments": [
+        {
+            "id": "Main",
+            "language": "ual",
+            "source": "def hashMatches (actual guess : ByteString) : Prop :=\n  actual = PlutusCore.Crypto.Hash.sha2_256 guess"
+        }
+    ],
+    "functions": {},
+    "languages": {
+        "ual": {
+            "name": "Universal Annotation Language",
+            "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage",
+            "version": "0.6-draft"
+        }
+    },
+    "preamble": {
+        "authors": [
+            "Plutus contributors"
+        ],
+        "created": "2026-09-29",
+        "description": "Generated claims about the compiled guessing-game rule.",
+        "license": "Apache-2.0",
+        "title": "Guessing game assurance",
+        "version": "1.0.0"
+    },
+    "properties": [
+        {
+            "checkingContext": "correct_guess",
+            "id": "correct_guess",
+            "scope": {
+                "validators": [
+                    "gameValidator"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (actual guess : ByteString) (ctx : Data), hashMatches actual guess →\n      isSuccessful (gameValidator (Data.B actual) (Data.B guess) ctx)",
+                    "uses": [
+                        "Main"
+                    ]
+                },
+                "text": "A guess whose hash matches the datum terminates successfully for every context."
+            }
+        },
+        {
+            "checkingContext": "wrong_guess",
+            "id": "wrong_guess",
+            "scope": {
+                "validators": [
+                    "gameValidator"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (actual guess : ByteString) (ctx : Data), ¬ hashMatches actual guess →\n      isUnsuccessful (gameValidator (Data.B actual) (Data.B guess) ctx)",
+                    "uses": [
+                        "Main"
+                    ]
+                },
+                "text": "A guess whose hash differs from the datum fails script evaluation for every context."
+            }
+        },
+        {
+            "checkingContext": "malformed_datum",
+            "id": "malformed_datum",
+            "scope": {
+                "validators": [
+                    "gameValidator"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (r ctx : Data), isUnsuccessful (gameValidator (Data.I 0) r ctx)",
+                    "uses": [
+                        "Main"
+                    ]
+                },
+                "text": "An integer datum fails to decode as the stored hash, for every redeemer and context."
+            }
+        }
+    ]
+}

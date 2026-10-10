@@ -7,6 +7,7 @@ module Main (main) where
 
 import Array.Spec (arrayTests)
 import Blueprint.Definition.Spec qualified
+import Blueprint.FieldNames.Spec qualified
 import Blueprint.Spec qualified
 import Bool.Spec (boolTests)
 import Builtins.Spec (builtinsTests)
@@ -34,6 +35,7 @@ import Show.Spec qualified
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit (Assertion, testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Ual.Spec qualified
 import Prelude hiding (Enum (..), Rational, negate, recip)
 
 main :: IO ()
@@ -58,6 +60,8 @@ tests =
     , Show.Spec.propertyTests
     , Show.Spec.goldenTests
     , Blueprint.Definition.Spec.tests
+    , Blueprint.FieldNames.Spec.tests
+    , Ual.Spec.tests
     , Blueprint.Spec.tests
     ]
 
