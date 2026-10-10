@@ -4,7 +4,7 @@
 -- | Golden tests pinning the user-visible text of `PlutusTx.Options.ParseError`s.
 module Options.Spec where
 
-import PlutusTx.Options (parsePluginOptions, posPlcTargetVersion)
+import PlutusTx.Options (parsePluginOptions, posDumpTimings, posPlcTargetVersion)
 
 import Control.Lens (view)
 import Data.Either.Validation (Validation (..))
@@ -25,7 +25,17 @@ tests =
     , testParseErrorGolden "plcParserOptionMalformed" ["target-version=notaversion"]
     , testParseErrorGolden "readOptionMalformed" ["context-level=abc"]
     , testParseErrorGolden "fromReadOptionMalformed" ["verbosity=abc"]
+    , testTimingOption "timings disabled by default" [] False
+    , testTimingOption "enable timing output" ["dump-timings"] True
+    , testTimingOption "disable timing output explicitly" ["dump-timings", "no-dump-timings"] False
     ]
+
+testTimingOption :: String -> [String] -> Bool -> TestNested
+testTimingOption name options expected = embed $
+  testCase name $
+    case parsePluginOptions options of
+      Success parsed -> view posDumpTimings parsed @?= expected
+      Failure errors -> error (show errors)
 
 testParseErrorGolden :: String -> [String] -> TestNested
 testParseErrorGolden name opts =

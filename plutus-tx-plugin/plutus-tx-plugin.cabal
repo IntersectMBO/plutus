@@ -75,6 +75,8 @@ library
     PlutusTx.PIRTypes
     PlutusTx.PLCTypes
     PlutusTx.Plugin.Boilerplate
+    PlutusTx.Plugin.Timing
+    PlutusTx.Plugin.Timing.Force
     PlutusTx.Plugin.Unsupported
 
   build-depends:
@@ -83,6 +85,7 @@ library
     , base16-bytestring
     , bytestring
     , containers
+    , deepseq
     , directory
     , either
     , extra
@@ -236,6 +239,20 @@ test-suite plutus-tx-plugin-tests
     -g -fno-strictness -fno-unbox-strict-fields
     -fno-unbox-small-strict-fields -fno-full-laziness
 
+test-suite timing-tests
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  hs-source-dirs:  test-timing src
+  main-is:        Spec.hs
+  other-modules:  PlutusTx.Plugin.Timing
+
+  build-depends:
+    , base                   >=4.9 && <5
+    , deepseq
+    , tasty
+    , tasty-hunit
+    , temporary
+
 test-suite frontend-plugin-tests
   import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
@@ -246,6 +263,10 @@ test-suite frontend-plugin-tests
     Inlineable.Spec
     NoStrict.Spec
     Strict.Spec
+    Timing.Disabled
+    Timing.Enabled
+    Timing.Spec
+    Timing.Terms
 
   build-depends:
     , base                             >=4.9   && <5
@@ -254,6 +275,7 @@ test-suite frontend-plugin-tests
     , plutus-tx-plugin                 ^>=1.71
     , plutus-tx:plutus-tx-testlib
     , tasty
+    , tasty-hunit
 
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
 
