@@ -25,6 +25,7 @@ import PlutusTx.Code (getPlc)
 import PlutusTx.TH (compile)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, assertEqual, assertFailure, testCase)
+import UntypedPlutusCore (termMapNames, unNameDeBruijn)
 import UntypedPlutusCore.Core.Type (progTerm)
 import UntypedPlutusCore.Evaluation.Machine.Cek
   ( cekResultToEither
@@ -201,7 +202,7 @@ dummyScriptContext =
 
 assertResult :: NTerm DefaultUni DefaultFun () -> CompiledCode a -> Assertion
 assertResult expectedResult code = do
-  let plc = getPlc code ^. progTerm
+  let plc = termMapNames unNameDeBruijn $ getPlc code ^. progTerm
       tidy = cekResultToEither . _cekReportResult
   case tidy $ runCekDeBruijn defaultCekParametersForTesting counting noEmitter plc of
     Left ex ->
