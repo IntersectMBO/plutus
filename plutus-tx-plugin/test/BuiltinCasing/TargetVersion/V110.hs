@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-conservative-optimisation #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-preserve-logging #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:remove-trace #-}

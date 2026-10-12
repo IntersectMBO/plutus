@@ -51,9 +51,9 @@ assertDecodes
 assertDecodes version name decoder input expected = testCase name $ do
   UPLC._progVer (getPlcNoAnn decoder) @?= version
   let applied = decoder `unsafeApplyCode` liftCode version (dataToBuiltinData input)
-      -- The default test evaluator allows Data casing; 1.1.0 does not.
+      -- The default test evaluator allows Data casing; only 1.2.0 and later do.
       params =
-        if version == plcVersion110
+        if version < plcVersion120
           then
             defaultCekParametersForTesting
               { machineCaserBuiltin = CaserBuiltin caseBuiltinNoData
