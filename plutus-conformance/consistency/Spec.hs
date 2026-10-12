@@ -32,12 +32,14 @@ import Witherable (Witherable (wither))
 skippedConsistencyTests :: [FilePath]
 skippedConsistencyTests =
   dirsWithNoFlatFiles -- We always want to skip these.
-    ++ [ -- We skip this test for the time being.  It involves a program with a free
+    ++ [ -- We skip these tests for the time being.  It involves programs with a free
          -- variable, and this will not be detected by the parser but will be
          -- detected by the flat decoder.  It's OK in the main conformance tests
          -- because free variables are detected by deBruijnTerm, which we call
          -- before executing the textual test cases.
-         "test-cases/uplc/evaluation/term/var"
+         "test-cases/uplc/evaluation/term/free-vars/constr-free-var"
+       , "test-cases/uplc/evaluation/term/free-vars/unused-free-var"
+       , "test-cases/uplc/evaluation/term/free-vars/var"
        ]
 
 {-| Check that a `.flat` file decodes to the same AST as the textual UPLC

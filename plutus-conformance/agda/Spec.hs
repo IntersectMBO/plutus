@@ -201,11 +201,7 @@ failingBudgetTests =
 {-| A list of evaluation tests which are currently expected to fail.  Once a fix
 for a test is pushed, the test will succeed and should be removed from the list. -}
 failingEvaluationTests :: [FilePath]
-failingEvaluationTests =
-  -- The Agda caser does not support casing on Data yet.
-  [ "test-cases/uplc/evaluation/term/constant-case/data/data-01"
-  , "test-cases/uplc/evaluation/term/constant-case/data/data-02"
-  ]
+failingEvaluationTests = []
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
 main :: IO ()

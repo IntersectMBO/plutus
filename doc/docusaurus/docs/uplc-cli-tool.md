@@ -9,17 +9,23 @@ It is useful for developers who build, test, or ship Plutus scripts, whatever la
 
 ## Installation
 
-**Prebuilt binary (Linux x86_64).**
-Every [Plutus release](https://github.com/IntersectMBO/plutus/releases) ships a statically-linked `uplc` binary for x86_64 Linux, which runs on any distribution without further dependencies:
+**Prebuilt binary (Linux and macOS).**
+Every [Plutus release](https://github.com/IntersectMBO/plutus/releases) ships prebuilt `uplc` executables that run without Nix or any other dependencies installed: `uplc-x86_64-linux-ghc96` for Linux x86_64 (statically linked, runs on any distribution) and `uplc-aarch64-darwin-ghc96` for macOS on Apple Silicon.
 
 ```bash
+# Linux x86_64
 curl -L -o uplc https://github.com/IntersectMBO/plutus/releases/latest/download/uplc-x86_64-linux-ghc96
+# macOS (Apple Silicon)
+curl -L -o uplc https://github.com/IntersectMBO/plutus/releases/latest/download/uplc-aarch64-darwin-ghc96
 chmod +x uplc
 ./uplc --help
 ```
 
+The same assets exist for `plc`, `pir` and `plutus`.
+Replace `latest` with `download/<version>` (e.g. `download/1.70.0.0`) to fetch a specific release.
+
 **Nix (Linux and macOS).**
-With [Nix](https://nixos.org/download/) installed, you can run `uplc` straight from the repository — this also works on platforms without a prebuilt binary, such as Apple Silicon Macs:
+With [Nix](https://nixos.org/download/) installed, you can run `uplc` straight from the repository, including on platforms or releases without a prebuilt binary:
 
 ```bash
 nix run github:IntersectMBO/plutus#uplc -- --help

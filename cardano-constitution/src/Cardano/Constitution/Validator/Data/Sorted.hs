@@ -21,7 +21,7 @@ import Cardano.Constitution.Validator.Data.Common as Common
 import PlutusCore.Version (plcVersion110)
 import PlutusTx as Tx
 import PlutusTx.Builtins as B
-import PlutusTx.List as List
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Prelude as Tx
 
 -- | Expects a constitution-configuration, statically *OR* at runtime via Tx.liftCode
@@ -36,23 +36,29 @@ runRules
   -> ChangedParams
   -- ^ the params (came sorted by the ledger)
   -> Bool
-runRules
-  ((expectedPid, paramValue) : cfgRest)
-  cparams@((B.unsafeDataAsI -> actualPid, actualValueData) : cparamsRest) =
-    case actualPid `compare` expectedPid of
-      EQ ->
-        Common.validateParamValue paramValue actualValueData
-          -- drop both heads, and continue checking the next changed param
-          && runRules cfgRest cparamsRest
-      GT ->
-        -- skip configHead pointing to a parameter not being proposed
-        runRules cfgRest cparams
-      LT ->
-        -- actualPid not found in json config, the constitution fails
-        False
--- if no cparams left: success
--- if cparams left: it means we reached the end of config without validating all cparams
-runRules _ cparams = List.null cparams
+runRules cfg cparams =
+  BI.caseList'
+    -- if no cparams left: success
+    True
+    ( \cparamsHd cparamsRest ->
+        case cfg of
+          (expectedPid, paramValue) : cfgRest ->
+            BI.casePair cparamsHd $ \actualPidData actualValueData ->
+              case B.unsafeDataAsI actualPidData `compare` expectedPid of
+                EQ ->
+                  Common.validateParamValue paramValue actualValueData
+                    -- drop both heads, and continue checking the next changed param
+                    && runRules cfgRest cparamsRest
+                GT ->
+                  -- skip configHead pointing to a parameter not being proposed
+                  runRules cfgRest cparams
+                LT ->
+                  -- actualPid not found in json config, the constitution fails
+                  False
+          -- if cparams left: it means we reached the end of config without validating all cparams
+          [] -> False
+    )
+    cparams
 
 -- | Statically configure the validator with the `defaultConstitutionConfig`.
 defaultConstitutionValidator :: ConstitutionValidator

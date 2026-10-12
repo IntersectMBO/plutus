@@ -485,7 +485,7 @@ d_mkCInteger_362 ::
   Integer ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
-    MAlonzo.Code.Builtin.CInteger.T_CInteger_60
+    MAlonzo.Code.Builtin.CInteger.T_CInteger_66
 d_mkCInteger_362 v0
   = let v1
           = MAlonzo.Code.Data.Integer.Properties.d__'8804''63'__2880
@@ -496,7 +496,7 @@ d_mkCInteger_362 v0
     coe
       (let v2
              = MAlonzo.Code.Data.Integer.Properties.d__'8804''63'__2880
-                 (coe v0) (coe MAlonzo.Code.Builtin.CInteger.d_maxBound_58) in
+                 (coe v0) (coe MAlonzo.Code.Builtin.CInteger.d_maxBound_64) in
        coe
          (case coe v1 of
             MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v3 v4
@@ -520,7 +520,7 @@ d_mkCInteger_362 v0
                                                     -> coe
                                                          MAlonzo.Code.Utils.C_inj'8322'_14
                                                          (coe
-                                                            MAlonzo.Code.Builtin.CInteger.C_cInt_64
+                                                            MAlonzo.Code.Builtin.CInteger.C_cInt_70
                                                             (coe v0) (coe v6) (coe v9))
                                                   _ -> coe v5
                                            _ -> coe v5
@@ -569,7 +569,7 @@ du_BUILTIN_384 v0 v1
                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                             (coe
                                                                C_V'45'con_86
-                                                               (MAlonzo.Code.Builtin.CInteger.d_add_66
+                                                               (MAlonzo.Code.Builtin.CInteger.d_add_72
                                                                   (coe v26) (coe v27)))))))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -600,7 +600,7 @@ du_BUILTIN_384 v0 v1
                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                             (coe
                                                                C_V'45'con_86
-                                                               (MAlonzo.Code.Builtin.CInteger.d_subtract_72
+                                                               (MAlonzo.Code.Builtin.CInteger.d_subtract_78
                                                                   (coe v26) (coe v27)))))))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -631,7 +631,7 @@ du_BUILTIN_384 v0 v1
                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                             (coe
                                                                C_V'45'con_86
-                                                               (MAlonzo.Code.Builtin.CInteger.d_multiply_78
+                                                               (MAlonzo.Code.Builtin.CInteger.d_multiply_84
                                                                   (coe v26) (coe v27)))))))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -666,7 +666,7 @@ du_BUILTIN_384 v0 v1
                                                                   MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                   (coe
                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
-                                                               (MAlonzo.Code.Builtin.CInteger.d_div_102
+                                                               (MAlonzo.Code.Builtin.CInteger.d_div_108
                                                                   (coe v26) (coe v27)))
                                                             (coe
                                                                (\ v28 ->
@@ -706,7 +706,7 @@ du_BUILTIN_384 v0 v1
                                                                   MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                   (coe
                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
-                                                               (MAlonzo.Code.Builtin.CInteger.d_quot_84
+                                                               (MAlonzo.Code.Builtin.CInteger.d_quot_90
                                                                   (coe v26) (coe v27)))
                                                             (coe
                                                                (\ v28 ->
@@ -746,7 +746,7 @@ du_BUILTIN_384 v0 v1
                                                                   MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                   (coe
                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
-                                                               (MAlonzo.Code.Builtin.CInteger.d_rem_90
+                                                               (MAlonzo.Code.Builtin.CInteger.d_rem_96
                                                                   (coe v26) (coe v27)))
                                                             (coe
                                                                (\ v28 ->
@@ -786,7 +786,7 @@ du_BUILTIN_384 v0 v1
                                                                   MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                   (coe
                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
-                                                               (MAlonzo.Code.Builtin.CInteger.d_mod_108
+                                                               (MAlonzo.Code.Builtin.CInteger.d_mod_114
                                                                   (coe v26) (coe v27)))
                                                             (coe
                                                                (\ v28 ->
@@ -852,7 +852,7 @@ du_BUILTIN_384 v0 v1
                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                             (coe
                                                                C_V'45'con_86
-                                                               (MAlonzo.Code.Builtin.CInteger.d_lessThan_114
+                                                               (MAlonzo.Code.Builtin.CInteger.d_lessThan_120
                                                                   (coe v26) (coe v27)))))))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -883,7 +883,7 @@ du_BUILTIN_384 v0 v1
                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                             (coe
                                                                C_V'45'con_86
-                                                               (MAlonzo.Code.Builtin.CInteger.d_lessThanEquals_120
+                                                               (MAlonzo.Code.Builtin.CInteger.d_lessThanEquals_126
                                                                   (coe v26) (coe v27)))))))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
