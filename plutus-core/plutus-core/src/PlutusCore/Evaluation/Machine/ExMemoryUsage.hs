@@ -121,36 +121,40 @@ singletonRose cost = CostRose cost []
 {-# INLINE singletonRose #-}
 
 -- See Note [Global local functions].
--- This is one way to define the worker. There are many more, see
--- https://github.com/IntersectMBO/plutus/pull/5239#discussion_r1151197471
--- We chose this one, because it's the simplest (no CPS shenanigans) among the safest (retrieving
--- the next element takes O(1) time in the worst case).
---
--- The algorithm is a variation of the defunctionalization technique (see this post in particular:
--- https://www.joachim-breitner.de/blog/778-Don%e2%80%99t_think,_just_defunctionalize), except we
--- don't want a tail-recursive loop and instead emit costs lazily to the outside (as it's the whole
--- point of the lazy costing approach)
+-- Traverse the final subtree, emitting 'CostLast' when there are no more costs.
+-- Save pending siblings as lazy stream suffixes instead of appending their forests.
 flattenCostRoseGo :: CostRose -> [CostRose] -> CostStream
-flattenCostRoseGo (CostRose cost1 forest1) forest2 =
-  case forest1 of
-    -- The current subtree doesn't have its own subtrees.
-    [] -> case forest2 of
-      -- No more elements in the entire tree, emit the last cost.
-      [] -> CostLast cost1
-      -- There's at least one unhandled subtree encountered earlier, emit the current cost
-      -- and collapse the unhandled subtree.
-      rose2' : forest2' -> CostCons cost1 $ flattenCostRoseGo rose2' forest2'
-    -- The current subtree has at least one its own subtree.
-    rose1' : forest1' ->
-      -- Emit the current cost and handle the list of subtrees of the current subtree.
-      CostCons cost1 $ case forest1' of
-        -- Same as the case below, except this one avoids creating a chain of
-        -- @[] ++ ([] ++ ([] ++ <...>))@, which would make retrieving the next element an
-        -- O(depth_of_the_tree) operation in the worst case.
-        [] -> flattenCostRoseGo rose1' forest2
-        -- Add the remaining subtrees of the current subtree (@forest1'@) to the stack of
-        -- all other subtrees (@forest2@) and handle the new current subtree (@rose1'@).
-        _ -> flattenCostRoseGo rose1' $ forest1' ++ forest2
+flattenCostRoseGo (CostRose cost children) siblings =
+  case children of
+    rose : forest ->
+      CostCons cost $ case siblings of
+        [] -> flattenCostRoseGo rose forest
+        next : remaining ->
+          flattenCostRoseOnto rose forest $
+            flattenCostRoseGo next remaining
+    [] ->
+      case siblings of
+        [] -> CostLast cost
+        rose : forest ->
+          CostCons cost $ flattenCostRoseGo rose forest
+
+-- See Note [Global local functions].
+-- Traverse a subtree with more costs after it. Every step emits 'CostCons', keeping
+-- the suffix lazy and avoiding a chain of empty continuations when a subtree ends.
+flattenCostRoseOnto :: CostRose -> [CostRose] -> CostStream -> CostStream
+flattenCostRoseOnto (CostRose cost children) siblings suffix =
+  case children of
+    rose : forest ->
+      CostCons cost $ case siblings of
+        [] -> flattenCostRoseOnto rose forest suffix
+        next : remaining ->
+          flattenCostRoseOnto rose forest $
+            flattenCostRoseOnto next remaining suffix
+    [] ->
+      case siblings of
+        [] -> CostCons cost suffix
+        rose : forest ->
+          CostCons cost $ flattenCostRoseOnto rose forest suffix
 
 {-| Collapse a 'CostRose' to a lazy linear stream of costs. Retrieving the next element takes O(1)
 time in the worst case regardless of the recursion pattern of the given 'CostRose'. -}
