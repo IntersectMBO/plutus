@@ -143,6 +143,10 @@ test-suite plutus-tx-plugin-tests
     Budget.WithGHCOptimisations
     Budget.WithoutGHCOptimisations
     BuiltinCasing.Spec
+    BuiltinCasing.TargetVersion.Lib
+    BuiltinCasing.TargetVersion.Spec
+    BuiltinCasing.TargetVersion.V110
+    BuiltinCasing.TargetVersion.V120
     BuiltinCasing.WithGHCOptimisations
     BuiltinList.Budget.Spec
     BuiltinList.NoCasing.Spec
