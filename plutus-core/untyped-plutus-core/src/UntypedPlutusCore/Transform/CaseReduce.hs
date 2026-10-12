@@ -9,7 +9,7 @@ module UntypedPlutusCore.Transform.CaseReduce
 
 import Control.Lens (transformOf)
 import Data.Bifunctor (second)
-import Data.Vector qualified as V
+import Data.Primitive.Array (Array (..), indexArray, sizeofArray)
 import PlutusCore.Builtin (CaseBuiltin (..))
 import PlutusCore.MkPlc
 import UntypedPlutusCore.Core
@@ -34,8 +34,8 @@ processTerm = \case
   -- structural error into an operational one, which would be unfortunate, so instead we decided
   -- not to fully optimize such scripts, since they aren't valid anyway.
   Case ann (Constr _ i args) cs
-    | Just c <- (V.!?) cs (fromIntegral i) ->
-        mkIterApp c ((ann,) <$> args)
-  Case ann (Constant _ con) cs
+    | i < fromIntegral (sizeofArray cs) ->
+        mkIterApp (indexArray cs $ fromIntegral i) ((ann,) <$> args)
+  Case ann (Constant _ con) (Array cs)
     | Right t <- headSpineToTerm ann (second (Constant ann) (caseBuiltin con cs)) -> t
   t -> t

@@ -44,8 +44,8 @@ import Control.Monad.Extra (ifM, when, (&&^), (||^))
 import Control.Monad.Reader (ReaderT (runReaderT))
 import Control.Monad.State (StateT, gets, modify', runStateT)
 import Data.Bifunctor (first)
+import Data.Foldable (toList)
 import Data.Maybe (fromMaybe)
-import Data.Vector qualified as V
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (Inline (AlwaysInline, SafeToInline), InlineHints (..))
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
@@ -769,7 +769,7 @@ mkHints = go
           Builtin {} -> CertifierHints.InlBuiltin
           Error {} -> CertifierHints.InlError
           Constr _ _ args -> CertifierHints.InlConstr (go <$> args)
-          Case _ scrut alts -> CertifierHints.InlCase (go scrut) (go <$> V.toList alts)
+          Case _ scrut alts -> CertifierHints.InlCase (go scrut) (go <$> toList alts)
 
 -- | Does any node of the term carry a decoration?
 hasDecorations :: Term name uni fun (Ann a) -> Bool

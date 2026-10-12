@@ -1,6 +1,6 @@
 module PlutusCore.Compiler.Erase (eraseTerm, eraseProgram) where
 
-import Data.Vector (fromList)
+import GHC.IsList (fromList)
 import PlutusCore.Core
 import PlutusCore.Name.Unique
 import UntypedPlutusCore.Core qualified as UPLC
