@@ -75,6 +75,7 @@ import PlutusCore.Data (Data)
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.StdLib.Data.Function qualified
 import PlutusCore.Subst qualified as PLC
+import PlutusCore.Version qualified as PLC
 
 import Control.Applicative
 import Control.Exception (displayException)
@@ -1027,9 +1028,11 @@ compileExpr mloc e = do
 
     compileDataCase resultTy scrutinee branches =
       case coDatatypeStyle opts of
-        PIR.SumsOfProducts ->
-          pure $ PIR.kase annAlwaysInline resultTy scrutinee branches
-        PIR.ScottEncoding -> do
+        PIR.SumsOfProducts
+          -- Data casing requires 1.2.0, whereas sums of products are available in 1.1.0.
+          | coPlcTargetVersion opts >= PLC.plcVersion120 ->
+              pure $ PIR.kase annAlwaysInline resultTy scrutinee branches
+        _ -> do
           pairName <- safeFreshName "dataConstr"
           let integerTy = PLC.mkTyBuiltin @_ @Integer annMayInline
               dataTy = PLC.mkTyBuiltin @_ @Data annMayInline
