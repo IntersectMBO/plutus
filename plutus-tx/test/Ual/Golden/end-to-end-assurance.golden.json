@@ -1,0 +1,55 @@
+{
+  "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance.json",
+  "preamble": {
+    "title": "Ticket contract — UAL assurance",
+    "description": "Generated from UAL annotations.",
+    "version": "1.0.0",
+    "authors": [
+      "Example Author <a@example.com>"
+    ],
+    "created": "2026-08-24",
+    "license": "CC-BY-4.0"
+  },
+  "blueprint": {
+    "uri": "plutus.json",
+    "hash": {
+      "alg": "sha256",
+      "digest": "0f"
+    }
+  },
+  "languages": {
+    "ual": {
+      "name": "Universal Annotation Language",
+      "description": "Property specification language used by Blaster.",
+      "version": "0.5",
+      "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage"
+    }
+  },
+  "formalFragments": [
+    {
+      "id": "Ual.Fixture",
+      "language": "ual",
+      "source": "def ticketOk (t : Integer) : Prop := t > 0"
+    }
+  ],
+  "properties": [
+    {
+      "id": "ticket_ok",
+      "scope": {
+        "validators": [
+          "ticketSpend"
+        ]
+      },
+      "statement": {
+        "text": "A ticket with a positive value is accepted.",
+        "formal": {
+          "language": "ual",
+          "uses": [
+            "Ual.Fixture"
+          ],
+          "source": "∀ (t : Integer) (xs : List Integer), ticketOk t → isSuccessful (ticketSpend t xs)"
+        }
+      }
+    }
+  ]
+}

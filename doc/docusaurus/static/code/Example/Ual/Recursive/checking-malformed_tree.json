@@ -1,0 +1,73 @@
+{
+    "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/checking-context.json",
+    "environment": {
+        "hash": {
+            "alg": "sha256",
+            "digest": "0550166e1e5c0f765e5d2f877cd71ddab22ff1e9f9efd7228a0d3891c01fba7e"
+        },
+        "uri": "environment.json"
+    },
+    "execution": {
+        "acceptance": "evaluation",
+        "budget": {
+            "kind": "cek-steps",
+            "steps": 3000
+        },
+        "semanticsVariant": "E"
+    },
+    "profile": "https://cips.cardano.org/cips/cipXXXX/profiles/uplc-step-check/v1",
+    "targets": [
+        {
+            "function": "mirrorData",
+            "functionHash": {
+                "alg": "sha256",
+                "digest": "984d7b5789786764a6ebb1ef1403fff1ebe768fdb37541d55082c4ea08ca6d07"
+            },
+            "functionInterface": {
+                "arguments": [
+                    {
+                        "$ref": "#/definitions/Tree"
+                    }
+                ],
+                "definitions": {
+                    "BuiltinData": {},
+                    "Integer": {
+                        "dataType": "integer"
+                    },
+                    "Tree": {
+                        "oneOf": [
+                            {
+                                "dataType": "constructor",
+                                "fields": [
+                                    {
+                                        "$ref": "#/definitions/Integer"
+                                    }
+                                ],
+                                "index": 0,
+                                "title": "Leaf"
+                            },
+                            {
+                                "dataType": "constructor",
+                                "fields": [
+                                    {
+                                        "$ref": "#/definitions/Tree"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/Tree"
+                                    }
+                                ],
+                                "index": 1,
+                                "title": "Branch"
+                            }
+                        ]
+                    }
+                },
+                "plutusVersion": "v3",
+                "result": {
+                    "$ref": "#/definitions/Tree"
+                },
+                "serialization": "cbor-flat"
+            }
+        }
+    ]
+}

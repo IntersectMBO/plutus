@@ -1,0 +1,88 @@
+{
+    "$id": "recursive-data-spec",
+    "$schema": "https://cips.cardano.org/cips/cip57/extensions/compiled-interface/v1/schema.json",
+    "$vocabulary": {
+        "https://cips.cardano.org/cips/cip57": true,
+        "https://cips.cardano.org/cips/cip57/extensions/compiled-interface/v1/vocabulary": true,
+        "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+        "https://json-schema.org/draft/2020-12/vocab/core": true,
+        "https://json-schema.org/draft/2020-12/vocab/validation": true
+    },
+    "definitions": {
+        "BuiltinData": {},
+        "Integer": {
+            "dataType": "integer"
+        },
+        "Tree": {
+            "oneOf": [
+                {
+                    "dataType": "constructor",
+                    "fields": [
+                        {
+                            "$ref": "#/definitions/Integer"
+                        }
+                    ],
+                    "index": 0,
+                    "title": "Leaf"
+                },
+                {
+                    "dataType": "constructor",
+                    "fields": [
+                        {
+                            "$ref": "#/definitions/Tree"
+                        },
+                        {
+                            "$ref": "#/definitions/Tree"
+                        }
+                    ],
+                    "index": 1,
+                    "title": "Branch"
+                }
+            ]
+        }
+    },
+    "preamble": {
+        "plutusVersion": "v3",
+        "title": "Recursive tree",
+        "version": "1.0.0"
+    },
+    "validators": [
+        {
+            "compiledCode": "58720101009800aab9daab9eaba1ab9c48888c8c88a4cdc3a401c60066008005326330054901035054350049a930c8c0040048a4006446466e00c00400cc004008c010012400232300100122323930070019400cdd69803000a5200322328009800801cc004c024008600c00c18030009baa0011",
+            "hash": "905f96dd96c9d0dbfeaf9fb34c3da057008ae67fc150204d5f1f38e9",
+            "id": "treeValidator",
+            "interface": {
+                "callingConvention": "ledger-v3",
+                "invocations": [
+                    {
+                        "arguments": [
+                            {
+                                "role": "parameter",
+                                "source": "/parameters/0"
+                            },
+                            {
+                                "role": "context"
+                            }
+                        ],
+                        "purpose": "spend"
+                    }
+                ]
+            },
+            "parameters": [
+                {
+                    "purpose": "spend",
+                    "schema": {
+                        "$ref": "#/definitions/Tree"
+                    }
+                }
+            ],
+            "redeemer": {
+                "purpose": "spend",
+                "schema": {
+                    "$ref": "#/definitions/BuiltinData"
+                }
+            },
+            "title": "Tree validator"
+        }
+    ]
+}

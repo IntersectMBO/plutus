@@ -1,0 +1,48 @@
+{
+    "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/checking-context.json",
+    "environment": {
+        "hash": {
+            "alg": "sha256",
+            "digest": "0550166e1e5c0f765e5d2f877cd71ddab22ff1e9f9efd7228a0d3891c01fba7e"
+        },
+        "uri": "environment.json"
+    },
+    "execution": {
+        "acceptance": "evaluation",
+        "budget": {
+            "kind": "cek-steps",
+            "steps": 100
+        },
+        "semanticsVariant": "D"
+    },
+    "profile": "https://cips.cardano.org/cips/cipXXXX/profiles/uplc-step-check/v1",
+    "targets": [
+        {
+            "parameters": {
+                "appliedScript": {
+                    "hash": {
+                        "alg": "sha256",
+                        "digest": "fdc550558770a4fdcb8f0d9587e5fb6ff5b51d24936f49304cac83f7bd178f80"
+                    },
+                    "uri": "applied-native_applied_seven-nativeParameter.cbor"
+                },
+                "appliedScriptHash": "e8acf01447cbffc92d9bf82c6d2cba4e2ab5f4d5d466eab1b206ed99",
+                "mode": "applied",
+                "values": [
+                    {
+                        "parameter": "/parameters/0",
+                        "term": {
+                            "hash": {
+                                "alg": "sha256",
+                                "digest": "7589b1ca7f7951aab56e3a6169e46126c170c858adb7c8ce651a7168d4e2ac39"
+                            },
+                            "uri": "applied-native_applied_seven-nativeParameter-0.flat"
+                        }
+                    }
+                ]
+            },
+            "purpose": "mint",
+            "validator": "nativeParameter"
+        }
+    ]
+}

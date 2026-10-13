@@ -1,0 +1,192 @@
+{
+    "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance-v2.json",
+    "blueprint": {
+        "hash": {
+            "alg": "sha256",
+            "digest": "b063a640281037effd0e13008d67895a22f8543944bac96956b8672bfd4deeeb"
+        },
+        "uri": "plutus.json"
+    },
+    "checkingContexts": {
+        "leaf_seven": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "448d5fd80ee6a14e19799bc988d11747805e23251338c9df01c19408614ca45b"
+            },
+            "uri": "checking-leaf_seven.json"
+        },
+        "malformed_tree": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "f6fa078afed38f739986c0e52ccf75a89402cc60007bb201c0995189a97014f5"
+            },
+            "uri": "checking-malformed_tree.json"
+        },
+        "nested_mirror": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "f6fa078afed38f739986c0e52ccf75a89402cc60007bb201c0995189a97014f5"
+            },
+            "uri": "checking-nested_mirror.json"
+        },
+        "nested_sum": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "448d5fd80ee6a14e19799bc988d11747805e23251338c9df01c19408614ca45b"
+            },
+            "uri": "checking-nested_sum.json"
+        }
+    },
+    "definitions": {
+        "BuiltinData": {},
+        "Integer": {
+            "dataType": "integer"
+        },
+        "Tree": {
+            "oneOf": [
+                {
+                    "dataType": "constructor",
+                    "fields": [
+                        {
+                            "$ref": "#/definitions/Integer"
+                        }
+                    ],
+                    "index": 0,
+                    "title": "Leaf"
+                },
+                {
+                    "dataType": "constructor",
+                    "fields": [
+                        {
+                            "$ref": "#/definitions/Tree"
+                        },
+                        {
+                            "$ref": "#/definitions/Tree"
+                        }
+                    ],
+                    "index": 1,
+                    "title": "Branch"
+                }
+            ]
+        }
+    },
+    "formalFragments": [
+        {
+            "id": "Example.Ual.Recursive.FormalSpec",
+            "language": "ual",
+            "source": "def leaf (n : Integer) : Data := Data.Constr 0 [Data.I n]\n  def branch (l r : Data) : Data := Data.Constr 1 [l, r]"
+        }
+    ],
+    "functions": {
+        "mirrorData": {
+            "arguments": [
+                {
+                    "$ref": "#/definitions/Tree"
+                }
+            ],
+            "compiledCode": "58910101009800aab9daba0aab9eaba148888c8c8c88c010c008c00c004c8c0040048a40064465001300100298008018c01001250030010c8c00400488c8e4c0200065003375a600c00294800c88ca00260020073001300900218030030600c0026ea8004c8c0040048a40064466e952002323300830010033300830010024bd70180200248cdd2a40006600c6ea00052f5c01",
+            "hash": {
+                "alg": "sha256",
+                "digest": "984d7b5789786764a6ebb1ef1403fff1ebe768fdb37541d55082c4ea08ca6d07"
+            },
+            "plutusVersion": "v3",
+            "result": {
+                "$ref": "#/definitions/Tree"
+            },
+            "serialization": "cbor-flat"
+        }
+    },
+    "languages": {
+        "ual": {
+            "name": "Universal Annotation Language",
+            "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage",
+            "version": "0.6-draft"
+        }
+    },
+    "preamble": {
+        "authors": [
+            "Plutus contributors"
+        ],
+        "created": "2026-10-06",
+        "title": "Recursive Data with detached specification",
+        "version": "1.0.0"
+    },
+    "properties": [
+        {
+            "checkingContext": "leaf_seven",
+            "id": "leaf_seven",
+            "scope": {
+                "validators": [
+                    "treeValidator"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (n : Integer) (ctx : Data), isSuccessful (treeValidator (leaf n) ctx) ↔ n = 7",
+                    "uses": [
+                        "Example.Ual.Recursive.FormalSpec"
+                    ]
+                },
+                "text": "A leaf parameter is accepted exactly when it contains seven."
+            }
+        },
+        {
+            "checkingContext": "nested_sum",
+            "id": "nested_sum",
+            "scope": {
+                "validators": [
+                    "treeValidator"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (a b c : Integer) (ctx : Data),\n      isSuccessful (treeValidator (branch (leaf a) (branch (leaf b) (leaf c))) ctx) ↔ a + (b + c) = 7",
+                    "uses": [
+                        "Example.Ual.Recursive.FormalSpec"
+                    ]
+                },
+                "text": "The recursive parameter is decoded and all three leaves contribute."
+            }
+        },
+        {
+            "checkingContext": "nested_mirror",
+            "id": "nested_mirror",
+            "scope": {
+                "functions": [
+                    "mirrorData"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (a b c : Integer),\n      mirrorData_returns (branch (leaf a) (branch (leaf b) (leaf c))) (branch (branch (leaf c) (leaf b)) (leaf a))",
+                    "uses": [
+                        "Example.Ual.Recursive.FormalSpec"
+                    ]
+                },
+                "text": "The compiled helper reverses the recursive branches and returns Data."
+            }
+        },
+        {
+            "checkingContext": "malformed_tree",
+            "id": "malformed_tree",
+            "scope": {
+                "functions": [
+                    "mirrorData"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (n : Integer), isUnsuccessful (mirrorData (Data.I n))",
+                    "uses": [
+                        "Example.Ual.Recursive.FormalSpec"
+                    ]
+                },
+                "text": "A bare integer is rejected, despite crossing the boundary as raw Data."
+            }
+        }
+    ]
+}

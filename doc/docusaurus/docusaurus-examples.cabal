@@ -58,6 +58,32 @@ executable example-cip57
     , plutus-tx          ^>=1.71
     , plutus-tx-plugin   ^>=1.71
 
+executable example-ual-blueprint
+  import:           lang, ghc-version-support, os-support
+  main-is:          Example/Ual/Blueprint/Main.hs
+  hs-source-dirs:   static/code
+  default-language: Haskell2010
+  build-depends:
+    , base               ^>=4.18
+    , bytestring
+    , containers
+    , plutus-ledger-api  ^>=1.71
+    , plutus-tx          ^>=1.71
+    , plutus-tx-plugin   ^>=1.71
+
+executable example-ual-game
+  import:           lang, ghc-version-support, os-support
+  main-is:          Example/Ual/Game/Main.hs
+  hs-source-dirs:   static/code
+  default-language: Haskell2010
+  build-depends:
+    , base               ^>=4.18
+    , bytestring
+    , containers
+    , plutus-ledger-api  ^>=1.71
+    , plutus-tx          ^>=1.71
+    , plutus-tx-plugin   ^>=1.71
+
 executable example-evaluation
   import:           lang, ghc-version-support, os-support
   main-is:          Example/Evaluation/Main.hs
@@ -109,6 +135,54 @@ executable quickstart
     , base               >=4.9   && <5
     , base16-bytestring
     , bytestring
+    , plutus-ledger-api  ^>=1.71
+    , plutus-tx          ^>=1.71
+    , plutus-tx-plugin   ^>=1.71
+
+executable example-ual-parameters
+  import:           lang, ghc-version-support, os-support
+  main-is:          Example/Ual/Parameters/Main.hs
+  hs-source-dirs:   static/code
+  default-language: Haskell2010
+  build-depends:
+    , base               ^>=4.18
+    , bytestring
+    , containers
+    , plutus-ledger-api  ^>=1.71
+    , plutus-tx          ^>=1.71
+    , plutus-tx-plugin   ^>=1.71
+
+executable example-ual-auction
+  import:           lang, ghc-version-support, os-support
+  main-is:          Example/Ual/Auction/Main.hs
+  hs-source-dirs:   static/code
+  other-modules:
+    AuctionValidator
+    Example.Ual.Auction.FormalSpec
+    Example.Ual.Auction.OnChain
+
+  default-language: Haskell2010
+  build-depends:
+    , base               ^>=4.18
+    , bytestring
+    , containers
+    , plutus-ledger-api  ^>=1.71
+    , plutus-tx          ^>=1.71
+    , plutus-tx-plugin   ^>=1.71
+
+executable example-ual-recursive
+  import:           lang, ghc-version-support, os-support
+  main-is:          Example/Ual/Recursive/Main.hs
+  hs-source-dirs:   static/code
+  other-modules:
+    Example.Ual.Recursive.FormalSpec
+    Example.Ual.Recursive.OnChain
+
+  default-language: Haskell2010
+  build-depends:
+    , base               ^>=4.18
+    , bytestring
+    , containers
     , plutus-ledger-api  ^>=1.71
     , plutus-tx          ^>=1.71
     , plutus-tx-plugin   ^>=1.71
