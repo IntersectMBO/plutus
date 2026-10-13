@@ -50,8 +50,9 @@ The Cardano ledger uses Plutus Core as the programming language for
 \emph{scripts}.  The ledger in fact supports multiple different interpretations
 for scripts, and so each script is tagged with a \emph{ledger language} that
 tells the ledger how to interpret it.  Since the ledger must always be able to
-evaluate old scripts and get the same answer, the ledger language must pin down
-everything about how the script is evaluated, including:
+evaluate old scripts and get the same answer, the ledger language, in
+combination with the protocol version and the Plutus Core language version, must
+pin down everything about how the script is evaluated, including:
 
 \begin{enumerate}
   \item How to interpret the script itself (e.g. as a Plutus Core program, what
