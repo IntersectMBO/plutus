@@ -40,10 +40,11 @@ import qualified MAlonzo.Code.Utils.Decidable
 
 import PlutusCore
 import Raw
+import FFI.ByteString (pattern AgdaTagBS)
+import FFI.ByteString (pattern AgdaTagCon)
 import FFI.Untyped
 type Tag = DefaultUni
 pattern TagInt                  = DefaultUniInteger
-pattern TagBS                   = DefaultUniByteString
 pattern TagStr                  = DefaultUniString
 pattern TagBool                 = DefaultUniBool
 pattern TagUnit                 = DefaultUniUnit
@@ -56,7 +57,6 @@ pattern TagBLS12_381_G1_Element = DefaultUniBLS12_381_G1_Element
 pattern TagBLS12_381_G2_Element = DefaultUniBLS12_381_G2_Element
 pattern TagBLS12_381_MlResult   = DefaultUniBLS12_381_MlResult
 type TagCon = Some (ValueOf DefaultUni)
-pattern TagCon t x = Some (ValueOf t x)
 -- RawU._.SigTy
 d_SigTy_4 a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 = ()
 -- RawU._.convSigTy
@@ -146,7 +146,7 @@ cover_Esc_24 x = case x of
 d_Tag_28 a0 = ()
 type T_Tag_28 = Tag
 pattern C_integer_30 = TagInt
-pattern C_bytestring_32 = TagBS
+pattern C_bytestring_32 = AgdaTagBS
 pattern C_string_34 = TagStr
 pattern C_bool_36 = TagBool
 pattern C_unit_38 = TagUnit
@@ -162,7 +162,7 @@ check_integer_30 :: T_Tag_28 (T_Esc_24 Integer)
 check_integer_30 = TagInt
 check_bytestring_32 ::
   T_Tag_28 (T_Esc_24 MAlonzo.Code.Utils.T_ByteString_596)
-check_bytestring_32 = TagBS
+check_bytestring_32 = AgdaTagBS
 check_string_34 ::
   T_Tag_28 (T_Esc_24 MAlonzo.Code.Agda.Builtin.String.T_String_6)
 check_string_34 = TagStr
@@ -172,45 +172,45 @@ check_unit_38 ::
   T_Tag_28 (T_Esc_24 MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6)
 check_unit_38 = TagUnit
 check_pdata_40 ::
-  T_Tag_28 (T_Esc_24 MAlonzo.Code.Utils.T_DATA_1182)
+  T_Tag_28 (T_Esc_24 MAlonzo.Code.Utils.T_DATA_1220)
 check_pdata_40 = TagData
 check_value_42 ::
-  T_Tag_28 (T_Esc_24 MAlonzo.Code.Utils.T_Value_1340)
+  T_Tag_28 (T_Esc_24 MAlonzo.Code.Utils.T_Value_1378)
 check_value_42 = TagValue
 check_pair_48 ::
   forall xA.
     forall xB.
       T_Tag_28 (T_Esc_24 xA) ->
       T_Tag_28 (T_Esc_24 xB) ->
-      T_Tag_28 (T_Esc_24 (MAlonzo.Code.Utils.T__'215'__1000 xA xB))
+      T_Tag_28 (T_Esc_24 (MAlonzo.Code.Utils.T__'215'__1038 xA xB))
 check_pair_48 = TagPair
 check_list_52 ::
   forall xA.
     T_Tag_28 (T_Esc_24 xA) ->
-    T_Tag_28 (T_Esc_24 (MAlonzo.Code.Utils.T_List_1018 xA))
+    T_Tag_28 (T_Esc_24 (MAlonzo.Code.Utils.T_List_1056 xA))
 check_list_52 = TagList
 check_array_56 ::
   forall xA.
     T_Tag_28 (T_Esc_24 xA) ->
-    T_Tag_28 (T_Esc_24 (MAlonzo.Code.Utils.T_Array_1166 xA))
+    T_Tag_28 (T_Esc_24 (MAlonzo.Code.Utils.T_Array_1204 xA))
 check_array_56 = TagArray
 check_bls12'45'381'45'g1'45'element_58 ::
   T_Tag_28
-    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_1328)
+    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_1366)
 check_bls12'45'381'45'g1'45'element_58 = TagBLS12_381_G1_Element
 check_bls12'45'381'45'g2'45'element_60 ::
   T_Tag_28
-    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_1332)
+    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_1370)
 check_bls12'45'381'45'g2'45'element_60 = TagBLS12_381_G2_Element
 check_bls12'45'381'45'mlresult_62 ::
   T_Tag_28
-    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_1336)
+    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_1374)
 check_bls12'45'381'45'mlresult_62 = TagBLS12_381_MlResult
 cover_Tag_28 :: Tag a1 -> ()
 cover_Tag_28 x
   = case x of
       TagInt -> ()
-      TagBS -> ()
+      AgdaTagBS -> ()
       TagStr -> ()
       TagBool -> ()
       TagUnit -> ()
@@ -330,14 +330,14 @@ d_decTyTag_70 v0 v1
 -- RawU.TagCon
 d_TagCon_108 = ()
 type T_TagCon_108 = TagCon
-pattern C_tagCon_112 a0 a1 = TagCon a0 a1
+pattern C_tagCon_112 a0 a1 = AgdaTagCon a0 a1
 check_tagCon_112 ::
   forall xA. T_Tag_28 (T_Esc_24 xA) -> xA -> T_TagCon_108
-check_tagCon_112 = TagCon
+check_tagCon_112 = AgdaTagCon
 cover_TagCon_108 :: TagCon -> ()
 cover_TagCon_108 x
   = case x of
-      TagCon _ _ -> ()
+      AgdaTagCon _ _ -> ()
 -- RawU.decTagCon'
 d_decTagCon''_126 ::
   () ->
@@ -391,15 +391,15 @@ du_decTagCon''_126 v0 v1 v2 v3
          C_pdata_40
            -> case coe v2 of
                 C_pdata_40
-                  -> coe MAlonzo.Code.Utils.d_eqDATA_1194 (coe v1) (coe v3)
+                  -> coe MAlonzo.Code.Utils.d_eqDATA_1232 (coe v1) (coe v3)
                 _ -> coe v4
          C_pair_48 v7 v8
            -> case coe v1 of
-                MAlonzo.Code.Utils.C__'44'__1014 v9 v10
+                MAlonzo.Code.Utils.C__'44'__1052 v9 v10
                   -> case coe v2 of
                        C_pair_48 v13 v14
                          -> case coe v3 of
-                              MAlonzo.Code.Utils.C__'44'__1014 v15 v16
+                              MAlonzo.Code.Utils.C__'44'__1052 v15 v16
                                 -> coe
                                      MAlonzo.Code.Data.Bool.Base.d__'8743'__24
                                      (coe du_decTagCon''_126 (coe v7) (coe v9) (coe v13) (coe v15))
@@ -409,19 +409,19 @@ du_decTagCon''_126 v0 v1 v2 v3
                 _ -> MAlonzo.RTE.mazUnreachableError
          C_list_52 v6
            -> case coe v1 of
-                MAlonzo.Code.Utils.C_'91''93'_1022
+                MAlonzo.Code.Utils.C_'91''93'_1060
                   -> case coe v2 of
                        C_list_52 v8
                          -> case coe v3 of
-                              MAlonzo.Code.Utils.C_'91''93'_1022
+                              MAlonzo.Code.Utils.C_'91''93'_1060
                                 -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
                               _ -> coe v4
                        _ -> coe v4
-                MAlonzo.Code.Utils.C__'8759'__1024 v7 v8
+                MAlonzo.Code.Utils.C__'8759'__1062 v7 v8
                   -> case coe v2 of
                        C_list_52 v10
                          -> case coe v3 of
-                              MAlonzo.Code.Utils.C__'8759'__1024 v11 v12
+                              MAlonzo.Code.Utils.C__'8759'__1062 v11 v12
                                 -> coe
                                      MAlonzo.Code.Data.Bool.Base.d__'8743'__24
                                      (coe du_decTagCon''_126 (coe v6) (coe v7) (coe v10) (coe v11))
@@ -483,11 +483,11 @@ check_UForce_226 :: T_Untyped_210 -> T_Untyped_210
 check_UForce_226 = UForce
 check_UConstr_228 ::
   Integer ->
-  MAlonzo.Code.Utils.T_List_1018 T_Untyped_210 -> T_Untyped_210
+  MAlonzo.Code.Utils.T_List_1056 T_Untyped_210 -> T_Untyped_210
 check_UConstr_228 = UConstr
 check_UCase_230 ::
   T_Untyped_210 ->
-  MAlonzo.Code.Utils.T_List_1018 T_Untyped_210 -> T_Untyped_210
+  MAlonzo.Code.Utils.T_List_1056 T_Untyped_210 -> T_Untyped_210
 check_UCase_230 = UCase
 cover_Untyped_210 :: UTerm -> ()
 cover_Untyped_210 x

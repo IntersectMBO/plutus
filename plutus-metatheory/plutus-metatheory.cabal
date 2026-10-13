@@ -106,6 +106,7 @@ library
     Certifier
     Data.List.NonEmptySep
     FFI.AgdaUnparse
+    FFI.ByteString
     FFI.CostInfo
     FFI.OptimizerTrace
     FFI.Opts

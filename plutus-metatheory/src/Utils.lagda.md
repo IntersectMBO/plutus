@@ -209,6 +209,11 @@ data RuntimeError : Set where
 data Byte : Set where
   byte : (b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈ : Bool) → Byte
 
+-- At runtime `Byte` and `ByteString` are the Haskell mirror types in
+-- `FFI.ByteString`, so the compiled bytestring builtins run the Agda
+-- implementations below. Haskell bytestrings are only used at the boundaries
+-- (postulated builtins, `DATA`, constants); see `FFI.ByteString`.
+{-# FOREIGN GHC import FFI.ByteString #-}
 {-# COMPILE GHC Byte = data Byte (Byte) #-}
 
 ᵇproj₁ : Byte → Bool
@@ -540,28 +545,6 @@ digits256 (suc fuel) (suc k) =
   else nothing
   where open import Agda.Builtin.Nat using (_==_)
 
-{-# FOREIGN GHC import Data.ByteString qualified as Haskell #-}
-
--- TODO: this is how we'll use it in an FFI module
--- {-# FOREIGN GHC
--- 
--- data Byte = Byte Bool Bool Bool Bool Bool Bool Bool Bool
--- 
--- data ByteString = BSNil | BSCons Byte ByteString
--- 
--- toHS :: ByteString -> Haskell.ByteString
--- toHS = undefined
--- 
--- fromHS :: Haskell.ByteString -> ByteString
--- fromHS = undefined
--- 
--- actualHash :: Haskell.ByteString -> Haskell.ByteString
--- actualHash = undefined
--- 
--- hash :: ByteString -> ByteString
--- hash bs = fromHS (actualHash (toHS bs))
--- 
--- #-}
 
 ```
 ## Record Types
@@ -672,28 +655,10 @@ data DATA : Set where
   iDATA : I.ℤ → DATA
   bDATA : ByteString → DATA
 
-{-# COMPILE GHC DATA = data Data (Constr | Map | List | I | B) #-}
+{-# COMPILE GHC DATA = data Data (Constr | Map | List | I | BData) #-}
 
 {-# FOREIGN GHC import PlutusCore.Data as Haskell #-}
 
--- TODO: this is how we'll use it in an FFI module
--- {-# FOREIGN GHC
--- 
--- data Data
---   = Constr Integer
---   | Map [(Data, Data)]
---   | List [Data]
---   | I Integer
---   | B ByteString
--- 
--- dataToHSData :: Data -> Haskell.Data
--- dataToHSData = undefined
--- 
--- dataFromHSData :: Haskell.Data -> Data
--- dataFromHSData = undefined
--- 
--- 
--- #-}
 
 
 -- Agda implementation should only be used as part of deciding builtin equality.

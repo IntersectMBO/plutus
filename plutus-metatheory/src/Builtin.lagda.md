@@ -570,6 +570,7 @@ postulate
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
 {-# FOREIGN GHC import Control.Composition ((.*)) #-}
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
+{-# FOREIGN GHC import FFI.ByteString (toHS, fromHS) #-}
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.Hash as Hash #-}
 {-# FOREIGN GHC import Data.Text.Encoding #-}
@@ -603,9 +604,9 @@ concat : ByteString → ByteString → ByteString
 concat [] ys = ys
 concat (x ∷ xs) ys = x ∷ concat xs ys
 
-{-# COMPILE GHC SHA2-256 = Hash.sha2_256 #-}
-{-# COMPILE GHC SHA3-256 = Hash.sha3_256 #-}
-{-# COMPILE GHC BLAKE2B-256 = Hash.blake2b_256 #-}
+{-# COMPILE GHC SHA2-256 = fromHS . Hash.sha2_256 . toHS #-}
+{-# COMPILE GHC SHA3-256 = fromHS . Hash.sha3_256 . toHS #-}
+{-# COMPILE GHC BLAKE2B-256 = fromHS . Hash.blake2b_256 . toHS #-}
 
 equals : ByteString → ByteString → Bool
 equals = U.eqByteString
@@ -664,21 +665,21 @@ index bs ix = Data.Maybe.map U.byteToℤ (go 0ℤ bs)
 {-# FOREIGN GHC builtinResultToMaybe :: BuiltinResult a -> Maybe a #-}
 {-# FOREIGN GHC builtinResultToMaybe = reoption #-}
 
-{-# COMPILE GHC verifyEd25519Sig = \k m s -> builtinResultToMaybe $ verifyEd25519Signature k m s #-}
-{-# COMPILE GHC verifyEcdsaSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifyEcdsaSecp256k1Signature k m s #-}
-{-# COMPILE GHC verifySchnorrSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifySchnorrSecp256k1Signature k m s #-}
+{-# COMPILE GHC verifyEd25519Sig = \k m s -> builtinResultToMaybe $ verifyEd25519Signature (toHS k) (toHS m) (toHS s) #-}
+{-# COMPILE GHC verifyEcdsaSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifyEcdsaSecp256k1Signature (toHS k) (toHS m) (toHS s) #-}
+{-# COMPILE GHC verifySchnorrSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifySchnorrSecp256k1Signature (toHS k) (toHS m) (toHS s) #-}
 
-{-# COMPILE GHC ENCODEUTF8 = encodeUtf8 #-}
-{-# COMPILE GHC DECODEUTF8 = eitherToMaybe . decodeUtf8' #-}
+{-# COMPILE GHC ENCODEUTF8 = fromHS . encodeUtf8 #-}
+{-# COMPILE GHC DECODEUTF8 = eitherToMaybe . decodeUtf8' . toHS #-}
 
 {-# FOREIGN GHC import Codec.Serialise (serialise) #-}
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
-{-# COMPILE GHC serialiseDATA = BSL.toStrict . serialise #-}
+{-# COMPILE GHC serialiseDATA = fromHS . BSL.toStrict . serialise #-}
 
 {-# FOREIGN GHC import PlutusCore.Value as Value #-}
 
-{-# COMPILE GHC insertCOIN = \ccy tok x v -> builtinResultToMaybe $ Value.insertCoin ccy tok x v #-}
-{-# COMPILE GHC lookupCOIN = Value.lookupCoin #-}
+{-# COMPILE GHC insertCOIN = \ccy tok x v -> builtinResultToMaybe $ Value.insertCoin (toHS ccy) (toHS tok) x v #-}
+{-# COMPILE GHC lookupCOIN = \ccy tok v -> Value.lookupCoin (toHS ccy) (toHS tok) v #-}
 {-# COMPILE GHC unionVALUE = \v1 v2 -> builtinResultToMaybe $ Value.unionValue v1 v2 #-}
 {-# COMPILE GHC valueCONTAINS = \v1 v2 -> builtinResultToMaybe $ Value.valueContains v1 v2 #-}
 {-# COMPILE GHC scaleVALUE = \n v -> builtinResultToMaybe $ Value.scaleValue n v #-}
@@ -690,24 +691,24 @@ index bs ix = Data.Maybe.map U.byteToℤ (go 0ℤ bs)
 {-# COMPILE GHC BLS12-381-G1-neg = G1.neg #-}
 {-# COMPILE GHC BLS12-381-G1-scalarMul = G1.scalarMul #-}
 {-# COMPILE GHC BLS12-381-G1-equal = (==) #-}
-{-# COMPILE GHC BLS12-381-G1-hashToGroup = eitherToMaybe .* G1.hashToGroup #-}
-{-# COMPILE GHC BLS12-381-G1-compress = G1.compress #-}
-{-# COMPILE GHC BLS12-381-G1-uncompress = eitherToMaybe . G1.uncompress #-}
+{-# COMPILE GHC BLS12-381-G1-hashToGroup = \m d -> eitherToMaybe $ G1.hashToGroup (toHS m) (toHS d) #-}
+{-# COMPILE GHC BLS12-381-G1-compress = fromHS . G1.compress #-}
+{-# COMPILE GHC BLS12-381-G1-uncompress = eitherToMaybe . G1.uncompress . toHS #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G2 qualified as G2 #-}
 {-# COMPILE GHC BLS12-381-G2-add = G2.add #-}
 {-# COMPILE GHC BLS12-381-G2-neg = G2.neg #-}
 {-# COMPILE GHC BLS12-381-G2-scalarMul = G2.scalarMul #-}
 {-# COMPILE GHC BLS12-381-G2-equal = (==) #-}
-{-# COMPILE GHC BLS12-381-G2-hashToGroup = eitherToMaybe .* G2.hashToGroup #-}
-{-# COMPILE GHC BLS12-381-G2-compress = G2.compress #-}
-{-# COMPILE GHC BLS12-381-G2-uncompress = eitherToMaybe . G2.uncompress #-}
+{-# COMPILE GHC BLS12-381-G2-hashToGroup = \m d -> eitherToMaybe $ G2.hashToGroup (toHS m) (toHS d) #-}
+{-# COMPILE GHC BLS12-381-G2-compress = fromHS . G2.compress #-}
+{-# COMPILE GHC BLS12-381-G2-uncompress = eitherToMaybe . G2.uncompress . toHS #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing #-}
 {-# COMPILE GHC BLS12-381-millerLoop = Pairing.millerLoop #-}
 {-# COMPILE GHC BLS12-381-mulMlResult = Pairing.mulMlResult #-}
 {-# COMPILE GHC BLS12-381-finalVerify = Pairing.finalVerify #-}
 
-{-# COMPILE GHC KECCAK-256 = Hash.keccak_256 #-}
-{-# COMPILE GHC BLAKE2B-224 = Hash.blake2b_224 #-}
+{-# COMPILE GHC KECCAK-256 = fromHS . Hash.keccak_256 . toHS #-}
+{-# COMPILE GHC BLAKE2B-224 = fromHS . Hash.blake2b_224 . toHS #-}
 
 -- Bitwise operations and integer conversions (CIP-121, CIP-122, CIP-123).
 
@@ -789,7 +790,7 @@ countSetBITS (b ∷ bs) = (+ U.popCount b) + countSetBITS bs
 findFirstSetBIT : ByteString → Int
 findFirstSetBIT bs = U.firstSetBit (U.toBits bs)
 
-{-# COMPILE GHC RIPEMD-160 = Hash.ripemd_160 #-}
+{-# COMPILE GHC RIPEMD-160 = fromHS . Hash.ripemd_160 . toHS #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.ExpMod qualified as ExpMod #-}
 -- here we explicitly do a Natural-check on m; the builtin machinery in plutus does such a check usually implicitly
 -- but we cannot use the builtin machinery here.

@@ -54,9 +54,10 @@ postulate valueMaxDepth : Utils.Value → CostingNat
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExMemoryUsage #-}
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.CostStream #-}
 {-# FOREIGN GHC import Data.SatInt #-}
+{-# FOREIGN GHC import FFI.ByteString (toHS) #-}
 {-# FOREIGN GHC size = fromSatInt . sumCostStream . flattenCostRose . memoryUsage #-}
 {-# COMPILE GHC integerSize = size  #-}
-{-# COMPILE GHC byteStringSize = size  #-}
+{-# COMPILE GHC byteStringSize = size . toHS #-}
 {-# COMPILE GHC g1ElementSize = size #-}
 {-# COMPILE GHC g2ElementSize = size #-}
 {-# COMPILE GHC mlResultElementSize = size #-}
