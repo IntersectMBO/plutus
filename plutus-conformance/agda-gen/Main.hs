@@ -45,7 +45,6 @@ import PlutusConformance.Common
   , getInputProg
   , shownEvaluationFailure
   )
-import PlutusCore.Data (Data (..))
 import PlutusCore.Default
   ( DefaultFun (..)
   , DefaultUni (..)
@@ -125,28 +124,28 @@ builtinSupported = \case
   MkNilData -> True
   MkNilPairData -> True
   DropList -> True
-  -- Postulated: bytestring and bitwise.
-  AppendByteString -> False
-  ConsByteString -> False
-  SliceByteString -> False
-  LengthOfByteString -> False
-  IndexByteString -> False
-  EqualsByteString -> False
-  LessThanByteString -> False
-  LessThanEqualsByteString -> False
-  IntegerToByteString -> False
-  ByteStringToInteger -> False
-  AndByteString -> False
-  OrByteString -> False
-  XorByteString -> False
-  ComplementByteString -> False
-  ReadBit -> False
-  WriteBits -> False
-  ReplicateByte -> False
-  ShiftByteString -> False
-  RotateByteString -> False
-  CountSetBits -> False
-  FindFirstSetBit -> False
+  -- Defined in Agda: bytestring and bitwise.
+  AppendByteString -> True
+  ConsByteString -> True
+  SliceByteString -> True
+  LengthOfByteString -> True
+  IndexByteString -> True
+  EqualsByteString -> True
+  LessThanByteString -> True
+  LessThanEqualsByteString -> True
+  IntegerToByteString -> True
+  ByteStringToInteger -> True
+  AndByteString -> True
+  OrByteString -> True
+  XorByteString -> True
+  ComplementByteString -> True
+  ReadBit -> True
+  WriteBits -> True
+  ReplicateByte -> True
+  ShiftByteString -> True
+  RotateByteString -> True
+  CountSetBits -> True
+  FindFirstSetBit -> True
   -- Postulated: hashes and signatures.
   Sha2_256 -> False
   Sha3_256 -> False
@@ -223,24 +222,16 @@ constantProblems (Some (ValueOf uni0 x0)) = go uni0 x0
     go DefaultUniBool _ = []
     go DefaultUniUnit _ = []
     go DefaultUniString _ = []
-    go DefaultUniData d = [Postulated "bytestring inside a `data` constant" | dataHasBytes d]
+    go DefaultUniData _ = []
     go (DefaultUniList t) xs = concatMap (go t) xs
     go (DefaultUniPair a b) (x, y) = go a x ++ go b y
     go (DefaultUniArray t) xs = Postulated "array constant" : concatMap (go t) (toList xs)
-    go DefaultUniByteString _ = [Postulated "bytestring constant"]
+    go DefaultUniByteString _ = []
     go DefaultUniValue _ = [Postulated "value constant"]
     go DefaultUniBLS12_381_G1_Element _ = [Unprintable "bls12_381_G1_element constant"]
     go DefaultUniBLS12_381_G2_Element _ = [Unprintable "bls12_381_G2_element constant"]
     go DefaultUniBLS12_381_MlResult _ = [Unprintable "bls12_381_mlresult constant"]
     go (DefaultUniApply _ _) _ = [Unprintable "constant of an unknown type"]
-
-    dataHasBytes :: Data -> Bool
-    dataHasBytes = \case
-      Constr _ ds -> any dataHasBytes ds
-      Map kvs -> any (\(k, v) -> dataHasBytes k || dataHasBytes v) kvs
-      List ds -> any dataHasBytes ds
-      I _ -> False
-      B _ -> True
 
 -- * Term traversal
 

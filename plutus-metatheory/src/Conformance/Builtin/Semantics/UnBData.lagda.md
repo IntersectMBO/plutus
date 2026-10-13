@@ -23,14 +23,13 @@ open import Conformance.Eval
 ```
 -- builtin/semantics/unBData/unBData-01
 test-unBData-01 : Untyped
-test-unBData-01 = (UApp (UBuiltin unBData) (UCon (tagCon pdata (bDATA (mkByteString "\175\NUL")))))
+test-unBData-01 = (UApp (UBuiltin unBData) (UCon (tagCon pdata (bDATA (mkByteString "af00")))))
 
 expected-unBData-01 : Result
-expected-unBData-01 = success (UCon (tagCon bytestring (mkByteString "\175\NUL")))
+expected-unBData-01 = success (UCon (tagCon bytestring (mkByteString "af00")))
 
--- Pending: bytestring inside a `data` constant; bytestring constant.
-pending-unBData-01 : Set
-pending-unBData-01 = Pending (evalRaw test-unBData-01 ≡ expected-unBData-01)
+_ : evalRaw test-unBData-01 ≡ expected-unBData-01
+_ = refl
 ```
 
 ## unBData-fail

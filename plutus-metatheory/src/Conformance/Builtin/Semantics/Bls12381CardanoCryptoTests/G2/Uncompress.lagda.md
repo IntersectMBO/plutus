@@ -24,12 +24,12 @@ open import Conformance.Eval
 -- builtin/semantics/bls12_381-cardano-crypto-tests/G2/uncompress/off-curve
 -- This contains a value which is not the x-coordinate of a point on the E2 curve.
 test-off-curve : Untyped
-test-off-curve = (UApp (UBuiltin bls12-381-G2-uncompress) (UCon (tagCon bytestring (mkByteString "\135\134\CAN9\230\STX\252]\250\r\vr#-\216\GS+\SOKf\n~\186\&5=\162~f\206\175-lw4\146RG(\CANf\161-gu*\RS\218\173\SOH\234Y\228\232n.\133\168\SUBW<\214\143m\251ReX\216\SUB\143H\143&\US5]\218\194?l\175\a\210\DEL\218q\216\243\150\141L\238\218\137\160\157"))))
+test-off-curve = (UApp (UBuiltin bls12-381-G2-uncompress) (UCon (tagCon bytestring (mkByteString "87861839e602fc5dfa0d0b72232dd81d2b0e4b660a7eba353da27e66ceaf2d6c7734925247281866a12d67752a1edaad01ea59e4e86e2e85a81a573cd68f6dfb526558d81a8f488f261f355ddac23f6caf07d27fda71d8f3968d4ceeda89a09d"))))
 
 expected-off-curve : Result
 expected-off-curve = failure
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G2-uncompress`.
+-- Pending: postulated builtin `bls12-381-G2-uncompress`.
 pending-off-curve : Set
 pending-off-curve = Pending (evalRaw test-off-curve ≡ expected-off-curve)
 ```
@@ -41,12 +41,12 @@ pending-off-curve = Pending (evalRaw test-off-curve ≡ expected-off-curve)
 -- This contains a value which is the x-coordinate of a point which lies on the
 -- E2 curve but not the G2 subgroup.
 test-out-of-group : Untyped
-test-out-of-group = (UApp (UBuiltin bls12-381-G2-uncompress) (UCon (tagCon bytestring (mkByteString "\139\216\&6\153\246\aA$H\210\STX\217H\187\DC1\ESC\173\212V\214\128\134\255\154Y\ACK\234;,\218A\DC1\211c\131\145\247\167\177S\238\167z\180r\NAK\214\254\DC3\179P\245\159\136Ln1\172\br9\217\DC4[\129d$\203\162\200\188\183\179\237~\EMc\128\137\217\RS\\\145\&6\210\174\252\141\161e(KB\"\154p"))))
+test-out-of-group = (UApp (UBuiltin bls12-381-G2-uncompress) (UCon (tagCon bytestring (mkByteString "8bd83699f607412448d202d948bb111badd456d68086ff9a5906ea3b2cda4111d3638391f7a7b153eea77ab47215d6fe13b350f59f884c6e31ac087239d9145b816424cba2c8bcb7b3ed7e19638089d91e5c9136d2aefc8da165284b42229a70"))))
 
 expected-out-of-group : Result
 expected-out-of-group = failure
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G2-uncompress`.
+-- Pending: postulated builtin `bls12-381-G2-uncompress`.
 pending-out-of-group : Set
 pending-out-of-group = Pending (evalRaw test-out-of-group ≡ expected-out-of-group)
 ```

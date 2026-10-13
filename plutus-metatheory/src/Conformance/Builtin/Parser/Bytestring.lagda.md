@@ -23,14 +23,13 @@ open import Conformance.Eval
 ```
 -- builtin/parser/bytestring/bytestring-01
 test-bytestring-01 : Untyped
-test-bytestring-01 = (UCon (tagCon bytestring (mkByteString "\NUL\255")))
+test-bytestring-01 = (UCon (tagCon bytestring (mkByteString "00ff")))
 
 expected-bytestring-01 : Result
-expected-bytestring-01 = success (UCon (tagCon bytestring (mkByteString "\NUL\255")))
+expected-bytestring-01 = success (UCon (tagCon bytestring (mkByteString "00ff")))
 
--- Pending: bytestring constant.
-pending-bytestring-01 : Set
-pending-bytestring-01 = Pending (evalRaw test-bytestring-01 ≡ expected-bytestring-01)
+_ : evalRaw test-bytestring-01 ≡ expected-bytestring-01
+_ = refl
 ```
 
 ## bytestring-02
@@ -38,14 +37,13 @@ pending-bytestring-01 = Pending (evalRaw test-bytestring-01 ≡ expected-bytestr
 ```
 -- builtin/parser/bytestring/bytestring-02
 test-bytestring-02 : Untyped
-test-bytestring-02 = (UCon (tagCon bytestring (mkByteString "TheCakeIsALie")))
+test-bytestring-02 = (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965")))
 
 expected-bytestring-02 : Result
-expected-bytestring-02 = success (UCon (tagCon bytestring (mkByteString "TheCakeIsALie")))
+expected-bytestring-02 = success (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965")))
 
--- Pending: bytestring constant.
-pending-bytestring-02 : Set
-pending-bytestring-02 = Pending (evalRaw test-bytestring-02 ≡ expected-bytestring-02)
+_ : evalRaw test-bytestring-02 ≡ expected-bytestring-02
+_ = refl
 ```
 
 ## bytestring-03
@@ -58,9 +56,8 @@ test-bytestring-03 = (UCon (tagCon bytestring (mkByteString "")))
 expected-bytestring-03 : Result
 expected-bytestring-03 = success (UCon (tagCon bytestring (mkByteString "")))
 
--- Pending: bytestring constant.
-pending-bytestring-03 : Set
-pending-bytestring-03 = Pending (evalRaw test-bytestring-03 ≡ expected-bytestring-03)
+_ : evalRaw test-bytestring-03 ≡ expected-bytestring-03
+_ = refl
 ```
 
 ## bytestring-04

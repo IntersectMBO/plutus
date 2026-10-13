@@ -24,14 +24,13 @@ open import Conformance.Eval
 -- builtin/semantics/byteStringToInteger/big-endian/all-zeros
 -- A bytestring consisting entirely of zeros decodes to 0.
 test-all-zeros : Untyped
-test-all-zeros = (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL"))))
+test-all-zeros = (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "00000000000000000000000000"))))
 
 expected-all-zeros : Result
 expected-all-zeros = success (UCon (tagCon integer (ℤ.pos 0)))
 
--- Pending: bytestring constant; postulated builtin `byteStringToInteger`.
-pending-all-zeros : Set
-pending-all-zeros = Pending (evalRaw test-all-zeros ≡ expected-all-zeros)
+_ : evalRaw test-all-zeros ≡ expected-all-zeros
+_ = refl
 ```
 
 ## correct-output
@@ -40,14 +39,13 @@ pending-all-zeros = Pending (evalRaw test-all-zeros ≡ expected-all-zeros)
 -- builtin/semantics/byteStringToInteger/big-endian/correct-output
 -- Check that a particular bytestring decodes to the expected integer.
 test-correct-output : Untyped
-test-correct-output = (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "\DC24V\171\205\239"))))
+test-correct-output = (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "123456abcdef"))))
 
 expected-correct-output : Result
 expected-correct-output = success (UCon (tagCon integer (ℤ.pos 20016001699311)))
 
--- Pending: bytestring constant; postulated builtin `byteStringToInteger`.
-pending-correct-output : Set
-pending-correct-output = Pending (evalRaw test-correct-output ≡ expected-correct-output)
+_ : evalRaw test-correct-output ≡ expected-correct-output
+_ = refl
 ```
 
 ## empty
@@ -61,9 +59,8 @@ test-empty = (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true)
 expected-empty : Result
 expected-empty = success (UCon (tagCon integer (ℤ.pos 0)))
 
--- Pending: bytestring constant; postulated builtin `byteStringToInteger`.
-pending-empty : Set
-pending-empty = Pending (evalRaw test-empty ≡ expected-empty)
+_ : evalRaw test-empty ≡ expected-empty
+_ = refl
 ```
 
 ## leading-zeros
@@ -72,12 +69,11 @@ pending-empty = Pending (evalRaw test-empty ≡ expected-empty)
 -- builtin/semantics/byteStringToInteger/big-endian/leading-zeros
 -- Check that leading zeros don't affect the result of a big-endian decoding.
 test-leading-zeros : Untyped
-test-leading-zeros = (UApp (UApp (UBuiltin equalsInteger) (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "\DC24V\171\205\239"))))) (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\DC24V\171\205\239")))))
+test-leading-zeros = (UApp (UApp (UBuiltin equalsInteger) (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "123456abcdef"))))) (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "0000000000000000123456abcdef")))))
 
 expected-leading-zeros : Result
 expected-leading-zeros = success (UCon (tagCon bool true))
 
--- Pending: bytestring constant; postulated builtin `byteStringToInteger`.
-pending-leading-zeros : Set
-pending-leading-zeros = Pending (evalRaw test-leading-zeros ≡ expected-leading-zeros)
+_ : evalRaw test-leading-zeros ≡ expected-leading-zeros
+_ = refl
 ```

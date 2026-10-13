@@ -25,12 +25,12 @@ open import Conformance.Eval
 -- Test vector (0-bit input) for Ripemd_160.
 -- Output obtained using the online tool https://emn178.github.io/online-tools/ripemd_160.html
 test-ripemd-160-empty : Untyped
-test-ripemd-160-empty = (UApp (UApp (UBuiltin equalsByteString) (UApp (UBuiltin ripemd-160) (UCon (tagCon bytestring (mkByteString ""))))) (UCon (tagCon bytestring (mkByteString "\156\DC1\133\165\197\233\252Ta(\b\151~\232\245H\178%\141\&1"))))
+test-ripemd-160-empty = (UApp (UApp (UBuiltin equalsByteString) (UApp (UBuiltin ripemd-160) (UCon (tagCon bytestring (mkByteString ""))))) (UCon (tagCon bytestring (mkByteString "9c1185a5c5e9fc54612808977ee8f548b2258d31"))))
 
 expected-ripemd-160-empty : Result
 expected-ripemd-160-empty = success (UCon (tagCon bool true))
 
--- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `ripemd-160`.
+-- Pending: postulated builtin `ripemd-160`.
 pending-ripemd-160-empty : Set
 pending-ripemd-160-empty = Pending (evalRaw test-ripemd-160-empty ≡ expected-ripemd-160-empty)
 ```
@@ -42,12 +42,12 @@ pending-ripemd-160-empty = Pending (evalRaw test-ripemd-160-empty ≡ expected-r
 -- Test vector (0-bit input) for Ripemd_160.
 -- Output obtained using the online tool https://emn178.github.io/online-tools/ripemd_160.html
 test-ripemd-160-length-200 : Untyped
-test-ripemd-160-length-200 = (UApp (UApp (UBuiltin equalsByteString) (UApp (UBuiltin ripemd-160) (UCon (tagCon bytestring (mkByteString ".~\168M\164\188M|\251F>?,\134G\ENQz\255\243\251\236\236\161\210\NUL"))))) (UCon (tagCon bytestring (mkByteString "\241\137!\DC1Sp\176I\233\157\253\212\159\201+7\GS\215\199\233"))))
+test-ripemd-160-length-200 = (UApp (UApp (UBuiltin equalsByteString) (UApp (UBuiltin ripemd-160) (UCon (tagCon bytestring (mkByteString "2e7ea84da4bc4d7cfb463e3f2c8647057afff3fbececa1d200"))))) (UCon (tagCon bytestring (mkByteString "f18921115370b049e99dfdd49fc92b371dd7c7e9"))))
 
 expected-ripemd-160-length-200 : Result
 expected-ripemd-160-length-200 = success (UCon (tagCon bool true))
 
--- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `ripemd-160`.
+-- Pending: postulated builtin `ripemd-160`.
 pending-ripemd-160-length-200 : Set
 pending-ripemd-160-length-200 = Pending (evalRaw test-ripemd-160-length-200 ≡ expected-ripemd-160-length-200)
 ```

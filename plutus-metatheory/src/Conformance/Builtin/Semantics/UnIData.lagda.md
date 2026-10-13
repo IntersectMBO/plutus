@@ -37,12 +37,11 @@ _ = refl
 ```
 -- builtin/semantics/unIData/unIData-fail
 test-unIData-fail : Untyped
-test-unIData-fail = (UApp (UBuiltin unIData) (UCon (tagCon pdata (bDATA (mkByteString "\175\NUL")))))
+test-unIData-fail = (UApp (UBuiltin unIData) (UCon (tagCon pdata (bDATA (mkByteString "af00")))))
 
 expected-unIData-fail : Result
 expected-unIData-fail = failure
 
--- Pending: bytestring inside a `data` constant.
-pending-unIData-fail : Set
-pending-unIData-fail = Pending (evalRaw test-unIData-fail ≡ expected-unIData-fail)
+_ : evalRaw test-unIData-fail ≡ expected-unIData-fail
+_ = refl
 ```

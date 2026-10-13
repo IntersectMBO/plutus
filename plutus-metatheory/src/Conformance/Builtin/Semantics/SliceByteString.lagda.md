@@ -23,14 +23,13 @@ open import Conformance.Eval
 ```
 -- builtin/semantics/sliceByteString/sliceByteString-01
 test-sliceByteString-01 : Untyped
-test-sliceByteString-01 = (UApp (UApp (UApp (UBuiltin sliceByteString) (UCon (tagCon integer (ℤ.pos 3)))) (UCon (tagCon integer (ℤ.pos 5)))) (UCon (tagCon bytestring (mkByteString "TheCakeIsALie"))))
+test-sliceByteString-01 = (UApp (UApp (UApp (UBuiltin sliceByteString) (UCon (tagCon integer (ℤ.pos 3)))) (UCon (tagCon integer (ℤ.pos 5)))) (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965"))))
 
 expected-sliceByteString-01 : Result
-expected-sliceByteString-01 = success (UCon (tagCon bytestring (mkByteString "CakeI")))
+expected-sliceByteString-01 = success (UCon (tagCon bytestring (mkByteString "43616b6549")))
 
--- Pending: bytestring constant; postulated builtin `sliceByteString`.
-pending-sliceByteString-01 : Set
-pending-sliceByteString-01 = Pending (evalRaw test-sliceByteString-01 ≡ expected-sliceByteString-01)
+_ : evalRaw test-sliceByteString-01 ≡ expected-sliceByteString-01
+_ = refl
 ```
 
 ## sliceByteString-02
@@ -38,14 +37,13 @@ pending-sliceByteString-01 = Pending (evalRaw test-sliceByteString-01 ≡ expect
 ```
 -- builtin/semantics/sliceByteString/sliceByteString-02
 test-sliceByteString-02 : Untyped
-test-sliceByteString-02 = (UApp (UApp (UApp (UBuiltin sliceByteString) (UCon (tagCon integer (ℤ.negsuc 2)))) (UCon (tagCon integer (ℤ.pos 5)))) (UCon (tagCon bytestring (mkByteString "TheCakeIsALie"))))
+test-sliceByteString-02 = (UApp (UApp (UApp (UBuiltin sliceByteString) (UCon (tagCon integer (ℤ.negsuc 2)))) (UCon (tagCon integer (ℤ.pos 5)))) (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965"))))
 
 expected-sliceByteString-02 : Result
-expected-sliceByteString-02 = success (UCon (tagCon bytestring (mkByteString "TheCa")))
+expected-sliceByteString-02 = success (UCon (tagCon bytestring (mkByteString "5468654361")))
 
--- Pending: bytestring constant; postulated builtin `sliceByteString`.
-pending-sliceByteString-02 : Set
-pending-sliceByteString-02 = Pending (evalRaw test-sliceByteString-02 ≡ expected-sliceByteString-02)
+_ : evalRaw test-sliceByteString-02 ≡ expected-sliceByteString-02
+_ = refl
 ```
 
 ## sliceByteString-03
@@ -53,14 +51,13 @@ pending-sliceByteString-02 = Pending (evalRaw test-sliceByteString-02 ≡ expect
 ```
 -- builtin/semantics/sliceByteString/sliceByteString-03
 test-sliceByteString-03 : Untyped
-test-sliceByteString-03 = (UApp (UApp (UApp (UBuiltin sliceByteString) (UCon (tagCon integer (ℤ.negsuc 2)))) (UCon (tagCon integer (ℤ.pos 1234)))) (UCon (tagCon bytestring (mkByteString "TheCakeIsALie"))))
+test-sliceByteString-03 = (UApp (UApp (UApp (UBuiltin sliceByteString) (UCon (tagCon integer (ℤ.negsuc 2)))) (UCon (tagCon integer (ℤ.pos 1234)))) (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965"))))
 
 expected-sliceByteString-03 : Result
-expected-sliceByteString-03 = success (UCon (tagCon bytestring (mkByteString "TheCakeIsALie")))
+expected-sliceByteString-03 = success (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965")))
 
--- Pending: bytestring constant; postulated builtin `sliceByteString`.
-pending-sliceByteString-03 : Set
-pending-sliceByteString-03 = Pending (evalRaw test-sliceByteString-03 ≡ expected-sliceByteString-03)
+_ : evalRaw test-sliceByteString-03 ≡ expected-sliceByteString-03
+_ = refl
 ```
 
 ## sliceByteString-04
@@ -68,14 +65,13 @@ pending-sliceByteString-03 = Pending (evalRaw test-sliceByteString-03 ≡ expect
 ```
 -- builtin/semantics/sliceByteString/sliceByteString-04
 test-sliceByteString-04 : Untyped
-test-sliceByteString-04 = (UApp (UApp (UApp (UBuiltin sliceByteString) (UCon (tagCon integer (ℤ.pos 5)))) (UCon (tagCon integer (ℤ.pos 3)))) (UCon (tagCon bytestring (mkByteString "TheCakeIsALie"))))
+test-sliceByteString-04 = (UApp (UApp (UApp (UBuiltin sliceByteString) (UCon (tagCon integer (ℤ.pos 5)))) (UCon (tagCon integer (ℤ.pos 3)))) (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965"))))
 
 expected-sliceByteString-04 : Result
-expected-sliceByteString-04 = success (UCon (tagCon bytestring (mkByteString "keI")))
+expected-sliceByteString-04 = success (UCon (tagCon bytestring (mkByteString "6b6549")))
 
--- Pending: bytestring constant; postulated builtin `sliceByteString`.
-pending-sliceByteString-04 : Set
-pending-sliceByteString-04 = Pending (evalRaw test-sliceByteString-04 ≡ expected-sliceByteString-04)
+_ : evalRaw test-sliceByteString-04 ≡ expected-sliceByteString-04
+_ = refl
 ```
 
 ## sliceByteString-05
@@ -83,12 +79,11 @@ pending-sliceByteString-04 = Pending (evalRaw test-sliceByteString-04 ≡ expect
 ```
 -- builtin/semantics/sliceByteString/sliceByteString-05
 test-sliceByteString-05 : Untyped
-test-sliceByteString-05 = (UApp (UApp (UApp (UBuiltin sliceByteString) (UCon (tagCon integer (ℤ.pos 123456789123456789)))) (UCon (tagCon integer (ℤ.pos 123456789123456789)))) (UCon (tagCon bytestring (mkByteString "TheCakeIsALie"))))
+test-sliceByteString-05 = (UApp (UApp (UApp (UBuiltin sliceByteString) (UCon (tagCon integer (ℤ.pos 123456789123456789)))) (UCon (tagCon integer (ℤ.pos 123456789123456789)))) (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965"))))
 
 expected-sliceByteString-05 : Result
 expected-sliceByteString-05 = success (UCon (tagCon bytestring (mkByteString "")))
 
--- Pending: bytestring constant; postulated builtin `sliceByteString`.
-pending-sliceByteString-05 : Set
-pending-sliceByteString-05 = Pending (evalRaw test-sliceByteString-05 ≡ expected-sliceByteString-05)
+_ : evalRaw test-sliceByteString-05 ≡ expected-sliceByteString-05
+_ = refl
 ```

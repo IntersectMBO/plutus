@@ -610,19 +610,14 @@ concat (x ∷ xs) ys = x ∷ concat xs ys
 equals : ByteString → ByteString → Bool
 equals = U.eqByteString
 
--- TODO: this is definitely not more readable than the PDF spec :(
+-- Lexicographic order on bytestrings, comparing bytes as unsigned numbers.
 B<= : ByteString → ByteString → Bool
 B<= [] _ = true
-B<= _ [] = false
-B<= bs₁@(b₁ ∷ tail₁) bs₂@(b₂ ∷ tail₂) with
-    ((+ 1) ≤ᵇ lengthBS bs₁) ∧ ((+ 1) ≤ᵇ lengthBS bs₂)
-  ∧ (does (U.ᵇproj₁ b₁ Data.Bool.≤? U.ᵇproj₁ b₂))
-... | true = true
-... | false with 
-    ((+ 1) ≤ᵇ lengthBS bs₁) ∧ ((+ 1) ≤ᵇ lengthBS bs₂)
-  ∧ (does (U.ᵇproj₁ b₁ Data.Bool.≟ U.ᵇproj₁ b₂))
-... | true = B<= tail₁ tail₂
-... | false = false
+B<= (_ ∷ _) [] = false
+B<= (b₁ ∷ tail₁) (b₂ ∷ tail₂) =
+  if U.byteToℕ b₁ Data.Nat.<ᵇ U.byteToℕ b₂ then true
+  else if U.byteToℕ b₁ Data.Nat.≡ᵇ U.byteToℕ b₂ then B<= tail₁ tail₂
+  else false
 
 B< : ByteString → ByteString → Bool
 B< bs₁ bs₂ = B<= bs₁ bs₂ ∧ Data.Bool.not (equals bs₁ bs₂)
@@ -793,123 +788,6 @@ countSetBITS (b ∷ bs) = (+ U.popCount b) + countSetBITS bs
 
 findFirstSetBIT : ByteString → Int
 findFirstSetBIT bs = U.firstSetBit (U.toBits bs)
-```
-A few examples, taken from the conformance tests.
-
-```
-private module BitwiseExamples where
-  open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-  open import Data.Nat using (ℕ)
-
-  bs : List ℕ → ByteString
-  bs []       = []
-  bs (n ∷ ns) = U.ℕToByte n ∷ bs ns
-
-  _ : andBYTESTRING false (bs (0x4f ∷ 0x00 ∷ [])) (bs (0xf4 ∷ [])) ≡ bs (0x44 ∷ [])
-  _ = refl
-  _ : andBYTESTRING true (bs (0x4f ∷ 0x00 ∷ [])) (bs (0xf4 ∷ [])) ≡ bs (0x44 ∷ 0x00 ∷ [])
-  _ = refl
-  _ : orBYTESTRING true (bs (0x4f ∷ 0x00 ∷ [])) (bs (0xf4 ∷ [])) ≡ bs (0xff ∷ 0x00 ∷ [])
-  _ = refl
-  _ : xorBYTESTRING false (bs (0x4f ∷ 0x00 ∷ [])) (bs (0xf4 ∷ [])) ≡ bs (0xbb ∷ [])
-  _ = refl
-  _ : xorBYTESTRING true [] (bs (0xff ∷ [])) ≡ bs (0xff ∷ [])
-  _ = refl
-  _ : complementBYTESTRING (bs (0xb0 ∷ 0x0b ∷ [])) ≡ bs (0x4f ∷ 0xf4 ∷ [])
-  _ = refl
-
-  _ : shiftBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (+ 5) ≡ just (bs (0x7f ∷ 0x80 ∷ []))
-  _ = refl
-  _ : shiftBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (- (+ 5)) ≡ just (bs (0x07 ∷ 0x5f ∷ []))
-  _ = refl
-  _ : shiftBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (+ 16) ≡ just (bs (0x00 ∷ 0x00 ∷ []))
-  _ = refl
-  _ : shiftBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (+ 9223372036854775808) ≡ nothing
-  _ = refl
-  _ : rotateBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (+ 5) ≡ just (bs (0x7f ∷ 0x9d ∷ []))
-  _ = refl
-  _ : rotateBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (- (+ 5)) ≡ just (bs (0xe7 ∷ 0x5f ∷ []))
-  _ = refl
-  _ : rotateBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (+ 21) ≡ just (bs (0x7f ∷ 0x9d ∷ []))
-  _ = refl
-  _ : rotateBYTESTRING (bs (0xeb ∷ 0xfc ∷ [])) (- (+ 21)) ≡ just (bs (0xe7 ∷ 0x5f ∷ []))
-  _ = refl
-  _ : rotateBYTESTRING [] (- (+ 1)) ≡ just []
-  _ = refl
-
-  _ : readBIT (bs (0xf4 ∷ [])) (+ 0) ≡ just false
-  _ = refl
-  _ : readBIT (bs (0xf4 ∷ [])) (+ 2) ≡ just true
-  _ = refl
-  _ : readBIT (bs (0xf4 ∷ [])) (+ 8) ≡ nothing
-  _ = refl
-  _ : readBIT (bs (0xf4 ∷ 0xff ∷ [])) (+ 10) ≡ just true
-  _ = refl
-  _ : readBIT (bs (0xff ∷ [])) (- (+ 1)) ≡ nothing
-  _ = refl
-  _ : readBIT [] (+ 0) ≡ nothing
-  _ = refl
-
-  _ : writeBITS (bs (0xff ∷ [])) (+ 0 ∷ []) false ≡ just (bs (0xfe ∷ []))
-  _ = refl
-  _ : writeBITS (bs (0x00 ∷ [])) (+ 7 ∷ []) true ≡ just (bs (0x80 ∷ []))
-  _ = refl
-  _ : writeBITS (bs (0xf4 ∷ 0xff ∷ [])) (+ 10 ∷ + 1 ∷ []) false ≡ just (bs (0xf0 ∷ 0xfd ∷ []))
-  _ = refl
-  _ : writeBITS (bs (0xff ∷ [])) (+ 1 ∷ + 8 ∷ []) false ≡ nothing
-  _ = refl
-  _ : writeBITS [] [] true ≡ just []
-  _ = refl
-  _ : writeBITS [] (- (+ 1) ∷ []) true ≡ nothing
-  _ = refl
-
-  _ : replicateBYTE (+ 4) (+ 255) ≡ just (bs (0xff ∷ 0xff ∷ 0xff ∷ 0xff ∷ []))
-  _ = refl
-  _ : replicateBYTE (+ 0) (+ 255) ≡ just []
-  _ = refl
-  _ : replicateBYTE (+ 1) (+ 256) ≡ nothing
-  _ = refl
-  _ : replicateBYTE (- (+ 1)) (+ 0) ≡ nothing
-  _ = refl
-  _ : replicateBYTE (+ 8193) (+ 141) ≡ nothing
-  _ = refl
-
-  _ : countSetBITS (bs (0x01 ∷ 0x00 ∷ [])) ≡ + 1
-  _ = refl
-  _ : countSetBITS [] ≡ + 0
-  _ = refl
-  _ : findFirstSetBIT (bs (0xff ∷ 0xf2 ∷ [])) ≡ + 1
-  _ = refl
-  _ : findFirstSetBIT (bs (0x00 ∷ 0x00 ∷ [])) ≡ - (+ 1)
-  _ = refl
-  _ : findFirstSetBIT [] ≡ - (+ 1)
-  _ = refl
-
-  _ : BStoI true (bs (0x12 ∷ 0x34 ∷ [])) ≡ + 0x1234
-  _ = refl
-  _ : BStoI false (bs (0x12 ∷ 0x34 ∷ [])) ≡ + 0x3412
-  _ = refl
-  _ : BStoI true [] ≡ + 0
-  _ = refl
-  _ : ItoBS true (+ 5) (+ 0x123456) ≡ just (bs (0x00 ∷ 0x00 ∷ 0x12 ∷ 0x34 ∷ 0x56 ∷ []))
-  _ = refl
-  _ : ItoBS false (+ 5) (+ 0x123456) ≡ just (bs (0x56 ∷ 0x34 ∷ 0x12 ∷ 0x00 ∷ 0x00 ∷ []))
-  _ = refl
-  _ : ItoBS true (+ 0) (+ 0x123456) ≡ just (bs (0x12 ∷ 0x34 ∷ 0x56 ∷ []))
-  _ = refl
-  _ : ItoBS true (+ 2) (+ 0x123456) ≡ nothing
-  _ = refl
-  _ : ItoBS true (+ 0) (+ 0) ≡ just []
-  _ = refl
-  _ : ItoBS false (+ 3) (+ 0) ≡ just (bs (0x00 ∷ 0x00 ∷ 0x00 ∷ []))
-  _ = refl
-  _ : ItoBS true (+ 20) (- (+ 5)) ≡ nothing
-  _ = refl
-  _ : ItoBS true (+ 8193) (+ 0) ≡ nothing
-  _ = refl
-```
-
-```
 
 {-# COMPILE GHC RIPEMD-160 = Hash.ripemd_160 #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.ExpMod qualified as ExpMod #-}

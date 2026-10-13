@@ -23,14 +23,13 @@ open import Conformance.Eval
 ```
 -- builtin/semantics/lessThanEqualsByteString/lessThanEqualsByteString-00
 test-lessThanEqualsByteString-00 : Untyped
-test-lessThanEqualsByteString-00 = (UApp (UApp (UBuiltin lessThanEqualsByteString) (UCon (tagCon bytestring (mkByteString "\NUL\255")))) (UCon (tagCon bytestring (mkByteString "\NUL"))))
+test-lessThanEqualsByteString-00 = (UApp (UApp (UBuiltin lessThanEqualsByteString) (UCon (tagCon bytestring (mkByteString "00ff")))) (UCon (tagCon bytestring (mkByteString "00"))))
 
 expected-lessThanEqualsByteString-00 : Result
 expected-lessThanEqualsByteString-00 = success (UCon (tagCon bool false))
 
--- Pending: bytestring constant; postulated builtin `lessThanEqualsByteString`.
-pending-lessThanEqualsByteString-00 : Set
-pending-lessThanEqualsByteString-00 = Pending (evalRaw test-lessThanEqualsByteString-00 ≡ expected-lessThanEqualsByteString-00)
+_ : evalRaw test-lessThanEqualsByteString-00 ≡ expected-lessThanEqualsByteString-00
+_ = refl
 ```
 
 ## lessThanEqualsByteString-01
@@ -38,14 +37,13 @@ pending-lessThanEqualsByteString-00 = Pending (evalRaw test-lessThanEqualsByteSt
 ```
 -- builtin/semantics/lessThanEqualsByteString/lessThanEqualsByteString-01
 test-lessThanEqualsByteString-01 : Untyped
-test-lessThanEqualsByteString-01 = (UApp (UApp (UBuiltin lessThanEqualsByteString) (UCon (tagCon bytestring (mkByteString "TheCakeIsALid")))) (UCon (tagCon bytestring (mkByteString "TheCakeIsALie"))))
+test-lessThanEqualsByteString-01 = (UApp (UApp (UBuiltin lessThanEqualsByteString) (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6964")))) (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965"))))
 
 expected-lessThanEqualsByteString-01 : Result
 expected-lessThanEqualsByteString-01 = success (UCon (tagCon bool true))
 
--- Pending: bytestring constant; postulated builtin `lessThanEqualsByteString`.
-pending-lessThanEqualsByteString-01 : Set
-pending-lessThanEqualsByteString-01 = Pending (evalRaw test-lessThanEqualsByteString-01 ≡ expected-lessThanEqualsByteString-01)
+_ : evalRaw test-lessThanEqualsByteString-01 ≡ expected-lessThanEqualsByteString-01
+_ = refl
 ```
 
 ## lessThanEqualsByteString-02
@@ -53,14 +51,13 @@ pending-lessThanEqualsByteString-01 = Pending (evalRaw test-lessThanEqualsByteSt
 ```
 -- builtin/semantics/lessThanEqualsByteString/lessThanEqualsByteString-02
 test-lessThanEqualsByteString-02 : Untyped
-test-lessThanEqualsByteString-02 = (UApp (UApp (UBuiltin lessThanEqualsByteString) (UCon (tagCon bytestring (mkByteString "TheCakeIsALif")))) (UCon (tagCon bytestring (mkByteString "TheCakeIsALie"))))
+test-lessThanEqualsByteString-02 = (UApp (UApp (UBuiltin lessThanEqualsByteString) (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6966")))) (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965"))))
 
 expected-lessThanEqualsByteString-02 : Result
 expected-lessThanEqualsByteString-02 = success (UCon (tagCon bool false))
 
--- Pending: bytestring constant; postulated builtin `lessThanEqualsByteString`.
-pending-lessThanEqualsByteString-02 : Set
-pending-lessThanEqualsByteString-02 = Pending (evalRaw test-lessThanEqualsByteString-02 ≡ expected-lessThanEqualsByteString-02)
+_ : evalRaw test-lessThanEqualsByteString-02 ≡ expected-lessThanEqualsByteString-02
+_ = refl
 ```
 
 ## lessThanEqualsByteString-03
@@ -68,12 +65,11 @@ pending-lessThanEqualsByteString-02 = Pending (evalRaw test-lessThanEqualsByteSt
 ```
 -- builtin/semantics/lessThanEqualsByteString/lessThanEqualsByteString-03
 test-lessThanEqualsByteString-03 : Untyped
-test-lessThanEqualsByteString-03 = (UApp (UApp (UBuiltin lessThanEqualsByteString) (UCon (tagCon bytestring (mkByteString "TheCakeIsALie")))) (UCon (tagCon bytestring (mkByteString "TheCakeIsALie"))))
+test-lessThanEqualsByteString-03 = (UApp (UApp (UBuiltin lessThanEqualsByteString) (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965")))) (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965"))))
 
 expected-lessThanEqualsByteString-03 : Result
 expected-lessThanEqualsByteString-03 = success (UCon (tagCon bool true))
 
--- Pending: bytestring constant; postulated builtin `lessThanEqualsByteString`.
-pending-lessThanEqualsByteString-03 : Set
-pending-lessThanEqualsByteString-03 = Pending (evalRaw test-lessThanEqualsByteString-03 ≡ expected-lessThanEqualsByteString-03)
+_ : evalRaw test-lessThanEqualsByteString-03 ≡ expected-lessThanEqualsByteString-03
+_ = refl
 ```

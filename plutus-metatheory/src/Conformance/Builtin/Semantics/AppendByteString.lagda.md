@@ -23,14 +23,13 @@ open import Conformance.Eval
 ```
 -- builtin/semantics/appendByteString/appendByteString-01
 test-appendByteString-01 : Untyped
-test-appendByteString-01 = (UApp (UApp (UBuiltin appendByteString) (UCon (tagCon bytestring (mkByteString "\NUL\170\187\204")))) (UCon (tagCon bytestring (mkByteString "\255\NUL3"))))
+test-appendByteString-01 = (UApp (UApp (UBuiltin appendByteString) (UCon (tagCon bytestring (mkByteString "00aabbcc")))) (UCon (tagCon bytestring (mkByteString "ff0033"))))
 
 expected-appendByteString-01 : Result
-expected-appendByteString-01 = success (UCon (tagCon bytestring (mkByteString "\NUL\170\187\204\255\NUL3")))
+expected-appendByteString-01 = success (UCon (tagCon bytestring (mkByteString "00aabbccff0033")))
 
--- Pending: bytestring constant; postulated builtin `appendByteString`.
-pending-appendByteString-01 : Set
-pending-appendByteString-01 = Pending (evalRaw test-appendByteString-01 ≡ expected-appendByteString-01)
+_ : evalRaw test-appendByteString-01 ≡ expected-appendByteString-01
+_ = refl
 ```
 
 ## appendByteString-02
@@ -38,14 +37,13 @@ pending-appendByteString-01 = Pending (evalRaw test-appendByteString-01 ≡ expe
 ```
 -- builtin/semantics/appendByteString/appendByteString-02
 test-appendByteString-02 : Untyped
-test-appendByteString-02 = (UApp (UApp (UBuiltin appendByteString) (UCon (tagCon bytestring (mkByteString "\NUL\170\187\204")))) (UCon (tagCon bytestring (mkByteString ""))))
+test-appendByteString-02 = (UApp (UApp (UBuiltin appendByteString) (UCon (tagCon bytestring (mkByteString "00aabbcc")))) (UCon (tagCon bytestring (mkByteString ""))))
 
 expected-appendByteString-02 : Result
-expected-appendByteString-02 = success (UCon (tagCon bytestring (mkByteString "\NUL\170\187\204")))
+expected-appendByteString-02 = success (UCon (tagCon bytestring (mkByteString "00aabbcc")))
 
--- Pending: bytestring constant; postulated builtin `appendByteString`.
-pending-appendByteString-02 : Set
-pending-appendByteString-02 = Pending (evalRaw test-appendByteString-02 ≡ expected-appendByteString-02)
+_ : evalRaw test-appendByteString-02 ≡ expected-appendByteString-02
+_ = refl
 ```
 
 ## appendByteString-03
@@ -53,12 +51,11 @@ pending-appendByteString-02 = Pending (evalRaw test-appendByteString-02 ≡ expe
 ```
 -- builtin/semantics/appendByteString/appendByteString-03
 test-appendByteString-03 : Untyped
-test-appendByteString-03 = (UApp (UApp (UBuiltin appendByteString) (UCon (tagCon bytestring (mkByteString "")))) (UCon (tagCon bytestring (mkByteString "\255\NUL3"))))
+test-appendByteString-03 = (UApp (UApp (UBuiltin appendByteString) (UCon (tagCon bytestring (mkByteString "")))) (UCon (tagCon bytestring (mkByteString "ff0033"))))
 
 expected-appendByteString-03 : Result
-expected-appendByteString-03 = success (UCon (tagCon bytestring (mkByteString "\255\NUL3")))
+expected-appendByteString-03 = success (UCon (tagCon bytestring (mkByteString "ff0033")))
 
--- Pending: bytestring constant; postulated builtin `appendByteString`.
-pending-appendByteString-03 : Set
-pending-appendByteString-03 = Pending (evalRaw test-appendByteString-03 ≡ expected-appendByteString-03)
+_ : evalRaw test-appendByteString-03 ≡ expected-appendByteString-03
+_ = refl
 ```

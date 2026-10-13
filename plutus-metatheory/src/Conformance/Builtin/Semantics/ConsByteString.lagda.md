@@ -29,9 +29,8 @@ test-consByteString-01 = (UApp (UApp (UBuiltin consByteString) (UCon (tagCon int
 expected-consByteString-01 : Result
 expected-consByteString-01 = failure
 
--- Pending: bytestring constant; postulated builtin `consByteString`.
-pending-consByteString-01 : Set
-pending-consByteString-01 = Pending (evalRaw test-consByteString-01 ≡ expected-consByteString-01)
+_ : evalRaw test-consByteString-01 ≡ expected-consByteString-01
+_ = refl
 ```
 
 ## consByteString-02
@@ -39,14 +38,13 @@ pending-consByteString-01 = Pending (evalRaw test-consByteString-01 ≡ expected
 ```
 -- builtin/semantics/consByteString/consByteString-02
 test-consByteString-02 : Untyped
-test-consByteString-02 = (UApp (UApp (UBuiltin consByteString) (UCon (tagCon integer (ℤ.negsuc 87)))) (UCon (tagCon bytestring (mkByteString "heCakeIsALie"))))
+test-consByteString-02 = (UApp (UApp (UBuiltin consByteString) (UCon (tagCon integer (ℤ.negsuc 87)))) (UCon (tagCon bytestring (mkByteString "686543616b654973414c6965"))))
 
 expected-consByteString-02 : Result
 expected-consByteString-02 = failure
 
--- Pending: bytestring constant; postulated builtin `consByteString`.
-pending-consByteString-02 : Set
-pending-consByteString-02 = Pending (evalRaw test-consByteString-02 ≡ expected-consByteString-02)
+_ : evalRaw test-consByteString-02 ≡ expected-consByteString-02
+_ = refl
 ```
 
 ## consByteString-03
@@ -54,12 +52,11 @@ pending-consByteString-02 = Pending (evalRaw test-consByteString-02 ≡ expected
 ```
 -- builtin/semantics/consByteString/consByteString-03
 test-consByteString-03 : Untyped
-test-consByteString-03 = (UApp (UApp (UBuiltin consByteString) (UCon (tagCon integer (ℤ.pos 84)))) (UCon (tagCon bytestring (mkByteString "heCakeIsALie"))))
+test-consByteString-03 = (UApp (UApp (UBuiltin consByteString) (UCon (tagCon integer (ℤ.pos 84)))) (UCon (tagCon bytestring (mkByteString "686543616b654973414c6965"))))
 
 expected-consByteString-03 : Result
-expected-consByteString-03 = success (UCon (tagCon bytestring (mkByteString "TheCakeIsALie")))
+expected-consByteString-03 = success (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965")))
 
--- Pending: bytestring constant; postulated builtin `consByteString`.
-pending-consByteString-03 : Set
-pending-consByteString-03 = Pending (evalRaw test-consByteString-03 ≡ expected-consByteString-03)
+_ : evalRaw test-consByteString-03 ≡ expected-consByteString-03
+_ = refl
 ```

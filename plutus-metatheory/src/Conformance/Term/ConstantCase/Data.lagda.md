@@ -39,14 +39,13 @@ _ = refl
 -- term/constant-case/data/data-02
 -- select the second Data.Constr branch and pass its fields to the handler
 test-data-02 : Untyped
-test-data-02 = (UCase (UCon (tagCon pdata (ConstrDATA (ℤ.pos 1) ((iDATA (ℤ.pos 42)) ∷ (bDATA (mkByteString "\171\205")) ∷ (ListDATA ((iDATA (ℤ.pos 7)) ∷ [])) ∷ [])))) ((ULambda (UCon (tagCon integer (ℤ.pos 0)))) ∷ (ULambda (UVar 0)) ∷ []))
+test-data-02 = (UCase (UCon (tagCon pdata (ConstrDATA (ℤ.pos 1) ((iDATA (ℤ.pos 42)) ∷ (bDATA (mkByteString "abcd")) ∷ (ListDATA ((iDATA (ℤ.pos 7)) ∷ [])) ∷ [])))) ((ULambda (UCon (tagCon integer (ℤ.pos 0)))) ∷ (ULambda (UVar 0)) ∷ []))
 
 expected-data-02 : Result
-expected-data-02 = success (UCon (tagCon (list pdata) ((iDATA (ℤ.pos 42)) ∷ (bDATA (mkByteString "\171\205")) ∷ (ListDATA ((iDATA (ℤ.pos 7)) ∷ [])) ∷ [])))
+expected-data-02 = success (UCon (tagCon (list pdata) ((iDATA (ℤ.pos 42)) ∷ (bDATA (mkByteString "abcd")) ∷ (ListDATA ((iDATA (ℤ.pos 7)) ∷ [])) ∷ [])))
 
--- Pending: bytestring inside a `data` constant.
-pending-data-02 : Set
-pending-data-02 = Pending (evalRaw test-data-02 ≡ expected-data-02)
+_ : evalRaw test-data-02 ≡ expected-data-02
+_ = refl
 ```
 
 ## data-03

@@ -301,8 +301,37 @@ data ByteString : Set where
 
 {-# COMPILE GHC ByteString = data ByteString (BSNil | BSCons) #-}
 
-postulate
-  mkByteString : String → ByteString
+-- Bytestring literals, written in hexadecimal as in the textual syntax of
+-- UPLC (two digits per byte, most significant first, either case). This is
+-- what `FFI.AgdaUnparse` emits for bytestring constants, and it reduces at
+-- type-checking time. `fromHex` fails on malformed input (a non-hex
+-- character or an odd number of digits), and `mkByteString` then gives the
+-- empty bytestring.
+fromHex : String → Maybe ByteString
+fromHex s = go (Data.String.toList s)
+  where
+    open import Data.Char using (Char) renaming (toℕ to charToℕ)
+    open import Data.Nat using (_≤ᵇ_; _*_)
+    import Data.List as List
+
+    hexDigit : Char → Maybe ℕ
+    hexDigit c with charToℕ c
+    ... | n = if (48 ≤ᵇ n) ∧ (n ≤ᵇ 57)  then just (n ∸ 48)
+         else if (65 ≤ᵇ n) ∧ (n ≤ᵇ 70)  then just (n ∸ 55)
+         else if (97 ≤ᵇ n) ∧ (n ≤ᵇ 102) then just (n ∸ 87)
+         else nothing
+
+    go : List.List Char → Maybe ByteString
+    go List.[] = just []
+    go (hi List.∷ lo List.∷ cs) =
+      mbind (hexDigit hi) λ h →
+      mbind (hexDigit lo) λ l →
+      mbind (go cs) λ bs →
+      just (ℕToByte (16 * h + l) ∷ bs)
+    go (_ List.∷ List.[]) = nothing
+
+mkByteString : String → ByteString
+mkByteString s = maybe (λ bs → bs) [] (fromHex s)
 
 eqByte : Byte → Byte → Bool
 eqByte (byte b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈) (byte c₁ c₂ c₃ c₄ c₅ c₆ c₇ c₈) =

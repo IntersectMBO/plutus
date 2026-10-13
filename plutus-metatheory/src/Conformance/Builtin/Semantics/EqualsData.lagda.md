@@ -65,12 +65,11 @@ _ = refl
 ```
 -- builtin/semantics/equalsData/equalsData-04
 test-equalsData-04 : Untyped
-test-equalsData-04 = (UApp (UApp (UBuiltin equalsData) (UCon (tagCon pdata (ConstrDATA (ℤ.pos 17) ((iDATA (ℤ.pos 0)) ∷ []))))) (UCon (tagCon pdata (ConstrDATA (ℤ.pos 17) ((bDATA (mkByteString "\NUL")) ∷ [])))))
+test-equalsData-04 = (UApp (UApp (UBuiltin equalsData) (UCon (tagCon pdata (ConstrDATA (ℤ.pos 17) ((iDATA (ℤ.pos 0)) ∷ []))))) (UCon (tagCon pdata (ConstrDATA (ℤ.pos 17) ((bDATA (mkByteString "00")) ∷ [])))))
 
 expected-equalsData-04 : Result
 expected-equalsData-04 = success (UCon (tagCon bool false))
 
--- Pending: bytestring inside a `data` constant.
-pending-equalsData-04 : Set
-pending-equalsData-04 = Pending (evalRaw test-equalsData-04 ≡ expected-equalsData-04)
+_ : evalRaw test-equalsData-04 ≡ expected-equalsData-04
+_ = refl
 ```

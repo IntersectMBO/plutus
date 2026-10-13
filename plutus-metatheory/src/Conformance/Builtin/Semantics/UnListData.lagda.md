@@ -37,12 +37,11 @@ _ = refl
 ```
 -- builtin/semantics/unListData/unListData-fail
 test-unListData-fail : Untyped
-test-unListData-fail = (UApp (UBuiltin unListData) (UCon (tagCon pdata (bDATA (mkByteString "\175\NUL")))))
+test-unListData-fail = (UApp (UBuiltin unListData) (UCon (tagCon pdata (bDATA (mkByteString "af00")))))
 
 expected-unListData-fail : Result
 expected-unListData-fail = failure
 
--- Pending: bytestring inside a `data` constant.
-pending-unListData-fail : Set
-pending-unListData-fail = Pending (evalRaw test-unListData-fail ≡ expected-unListData-fail)
+_ : evalRaw test-unListData-fail ≡ expected-unListData-fail
+_ = refl
 ```

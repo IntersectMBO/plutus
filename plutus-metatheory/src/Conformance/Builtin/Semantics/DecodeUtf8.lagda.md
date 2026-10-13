@@ -24,12 +24,12 @@ open import Conformance.Eval
 -- builtin/semantics/decodeUtf8/decodeUtf8-invalid
 -- invalid utf8
 test-decodeUtf8-invalid : Untyped
-test-decodeUtf8-invalid = (UApp (UBuiltin decodeUtf8) (UCon (tagCon bytestring (mkByteString "\163"))))
+test-decodeUtf8-invalid = (UApp (UBuiltin decodeUtf8) (UCon (tagCon bytestring (mkByteString "a3"))))
 
 expected-decodeUtf8-invalid : Result
 expected-decodeUtf8-invalid = failure
 
--- Pending: bytestring constant; postulated builtin `decodeUtf8`.
+-- Pending: postulated builtin `decodeUtf8`.
 pending-decodeUtf8-invalid : Set
 pending-decodeUtf8-invalid = Pending (evalRaw test-decodeUtf8-invalid ≡ expected-decodeUtf8-invalid)
 ```
@@ -39,12 +39,12 @@ pending-decodeUtf8-invalid = Pending (evalRaw test-decodeUtf8-invalid ≡ expect
 ```
 -- builtin/semantics/decodeUtf8/decodeUtf8-ok
 test-decodeUtf8-ok : Untyped
-test-decodeUtf8-ok = (UApp (UBuiltin decodeUtf8) (UCon (tagCon bytestring (mkByteString "Ola"))))
+test-decodeUtf8-ok = (UApp (UBuiltin decodeUtf8) (UCon (tagCon bytestring (mkByteString "4f6c61"))))
 
 expected-decodeUtf8-ok : Result
 expected-decodeUtf8-ok = success (UCon (tagCon string "Ola"))
 
--- Pending: bytestring constant; postulated builtin `decodeUtf8`.
+-- Pending: postulated builtin `decodeUtf8`.
 pending-decodeUtf8-ok : Set
 pending-decodeUtf8-ok = Pending (evalRaw test-decodeUtf8-ok ≡ expected-decodeUtf8-ok)
 ```

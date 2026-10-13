@@ -23,14 +23,13 @@ open import Conformance.Eval
 ```
 -- builtin/parser/data/dataByteString
 test-dataByteString : Untyped
-test-dataByteString = (UCon (tagCon pdata (bDATA (mkByteString "\SOH#Eg\137\171\205\239"))))
+test-dataByteString = (UCon (tagCon pdata (bDATA (mkByteString "0123456789abcdef"))))
 
 expected-dataByteString : Result
-expected-dataByteString = success (UCon (tagCon pdata (bDATA (mkByteString "\SOH#Eg\137\171\205\239"))))
+expected-dataByteString = success (UCon (tagCon pdata (bDATA (mkByteString "0123456789abcdef"))))
 
--- Pending: bytestring inside a `data` constant.
-pending-dataByteString : Set
-pending-dataByteString = Pending (evalRaw test-dataByteString ≡ expected-dataByteString)
+_ : evalRaw test-dataByteString ≡ expected-dataByteString
+_ = refl
 ```
 
 ## dataConstr
@@ -66,14 +65,13 @@ _ = refl
 ```
 -- builtin/parser/data/dataList
 test-dataList : Untyped
-test-dataList = (UCon (tagCon pdata (ListDATA ((ConstrDATA (ℤ.pos 1) ([])) ∷ (iDATA (ℤ.pos 1234)) ∷ (bDATA (mkByteString "\171\205\239")) ∷ []))))
+test-dataList = (UCon (tagCon pdata (ListDATA ((ConstrDATA (ℤ.pos 1) ([])) ∷ (iDATA (ℤ.pos 1234)) ∷ (bDATA (mkByteString "abcdef")) ∷ []))))
 
 expected-dataList : Result
-expected-dataList = success (UCon (tagCon pdata (ListDATA ((ConstrDATA (ℤ.pos 1) ([])) ∷ (iDATA (ℤ.pos 1234)) ∷ (bDATA (mkByteString "\171\205\239")) ∷ []))))
+expected-dataList = success (UCon (tagCon pdata (ListDATA ((ConstrDATA (ℤ.pos 1) ([])) ∷ (iDATA (ℤ.pos 1234)) ∷ (bDATA (mkByteString "abcdef")) ∷ []))))
 
--- Pending: bytestring inside a `data` constant.
-pending-dataList : Set
-pending-dataList = Pending (evalRaw test-dataList ≡ expected-dataList)
+_ : evalRaw test-dataList ≡ expected-dataList
+_ = refl
 ```
 
 ## dataMap
@@ -81,14 +79,13 @@ pending-dataList = Pending (evalRaw test-dataList ≡ expected-dataList)
 ```
 -- builtin/parser/data/dataMap
 test-dataMap : Untyped
-test-dataMap = (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\SOH#")) , (iDATA (ℤ.pos 12345))) ∷ ((iDATA (ℤ.pos 789453)) , (bDATA (mkByteString "Eg\137"))) ∷ ((ListDATA ((iDATA (ℤ.negsuc 12364689485)) ∷ [])) , (ConstrDATA (ℤ.pos 7) ([]))) ∷ []))))
+test-dataMap = (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "0123")) , (iDATA (ℤ.pos 12345))) ∷ ((iDATA (ℤ.pos 789453)) , (bDATA (mkByteString "456789"))) ∷ ((ListDATA ((iDATA (ℤ.negsuc 12364689485)) ∷ [])) , (ConstrDATA (ℤ.pos 7) ([]))) ∷ []))))
 
 expected-dataMap : Result
-expected-dataMap = success (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\SOH#")) , (iDATA (ℤ.pos 12345))) ∷ ((iDATA (ℤ.pos 789453)) , (bDATA (mkByteString "Eg\137"))) ∷ ((ListDATA ((iDATA (ℤ.negsuc 12364689485)) ∷ [])) , (ConstrDATA (ℤ.pos 7) ([]))) ∷ []))))
+expected-dataMap = success (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "0123")) , (iDATA (ℤ.pos 12345))) ∷ ((iDATA (ℤ.pos 789453)) , (bDATA (mkByteString "456789"))) ∷ ((ListDATA ((iDATA (ℤ.negsuc 12364689485)) ∷ [])) , (ConstrDATA (ℤ.pos 7) ([]))) ∷ []))))
 
--- Pending: bytestring inside a `data` constant.
-pending-dataMap : Set
-pending-dataMap = Pending (evalRaw test-dataMap ≡ expected-dataMap)
+_ : evalRaw test-dataMap ≡ expected-dataMap
+_ = refl
 ```
 
 ## dataMisByteString

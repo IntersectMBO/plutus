@@ -24,12 +24,12 @@ open import Conformance.Eval
 -- builtin/semantics/bls12_381_G1_uncompress/bad-zero-01
 -- This has the infinity bit set but not the compression bit, and so is invalid.
 test-bad-zero-01 : Untyped
-test-bad-zero-01 = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "@\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL"))))
+test-bad-zero-01 = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"))))
 
 expected-bad-zero-01 : Result
 expected-bad-zero-01 = failure
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-uncompress`.
 pending-bad-zero-01 : Set
 pending-bad-zero-01 = Pending (evalRaw test-bad-zero-01 ≡ expected-bad-zero-01)
 ```
@@ -40,12 +40,12 @@ pending-bad-zero-01 = Pending (evalRaw test-bad-zero-01 ≡ expected-bad-zero-01
 -- builtin/semantics/bls12_381_G1_uncompress/bad-zero-02
 -- This is the zero point of G1, but with the sign bit set.  It should fail to uncompress.
 test-bad-zero-02 : Untyped
-test-bad-zero-02 = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "\224\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL"))))
+test-bad-zero-02 = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "e00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"))))
 
 expected-bad-zero-02 : Result
 expected-bad-zero-02 = failure
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-uncompress`.
 pending-bad-zero-02 : Set
 pending-bad-zero-02 = Pending (evalRaw test-bad-zero-02 ≡ expected-bad-zero-02)
 ```
@@ -57,12 +57,12 @@ pending-bad-zero-02 = Pending (evalRaw test-bad-zero-02 ≡ expected-bad-zero-02
 -- This is the zero point of G1, but with a random bit set in the body.  It
 -- should fail to uncompress.
 test-bad-zero-03 : Untyped
-test-bad-zero-03 = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "\192\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\DLE\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL"))))
+test-bad-zero-03 = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "c00000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000"))))
 
 expected-bad-zero-03 : Result
 expected-bad-zero-03 = failure
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-uncompress`.
 pending-bad-zero-03 : Set
 pending-bad-zero-03 = Pending (evalRaw test-bad-zero-03 ≡ expected-bad-zero-03)
 ```
@@ -73,12 +73,12 @@ pending-bad-zero-03 = Pending (evalRaw test-bad-zero-03 ≡ expected-bad-zero-03
 -- builtin/semantics/bls12_381_G1_uncompress/off-curve
 -- This contains a value which is not the x-coordinate of a point on the E1 curve.
 test-off-curve : Untyped
-test-off-curve = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "\160\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\ETX"))))
+test-off-curve = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003"))))
 
 expected-off-curve : Result
 expected-off-curve = failure
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-uncompress`.
 pending-off-curve : Set
 pending-off-curve = Pending (evalRaw test-off-curve ≡ expected-off-curve)
 ```
@@ -90,12 +90,12 @@ pending-off-curve = Pending (evalRaw test-off-curve ≡ expected-off-curve)
 -- This value was obtained by hashing 0x0102030405 to G1 but has had the
 -- compression bit cleared, so uncompression should fail.
 test-on-curve-bit1-clear : Untyped
-test-on-curve-bit1-clear = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "!\233\160\198\137\133\ENQ\155\210Z^\240[5\FS\162/}|\EM\227y(X:\225*\USI9D\SI\247T\207\216[#\223JT\246lp\137\219m\235"))))
+test-on-curve-bit1-clear = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "21e9a0c68985059bd25a5ef05b351ca22f7d7c19e37928583ae12a1f4939440ff754cfd85b23df4a54f66c7089db6deb"))))
 
 expected-on-curve-bit1-clear : Result
 expected-on-curve-bit1-clear = failure
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-uncompress`.
 pending-on-curve-bit1-clear : Set
 pending-on-curve-bit1-clear = Pending (evalRaw test-on-curve-bit1-clear ≡ expected-on-curve-bit1-clear)
 ```
@@ -108,12 +108,12 @@ pending-on-curve-bit1-clear = Pending (evalRaw test-on-curve-bit1-clear ≡ expe
 -- but has been cleared: this negates the point, so uncompression should still
 -- succeed.
 test-on-curve-bit3-clear : Untyped
-test-on-curve-bit3-clear = (UApp (UBuiltin bls12-381-G1-compress) (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "\129\233\160\198\137\133\ENQ\155\210Z^\240[5\FS\162/}|\EM\227y(X:\225*\USI9D\SI\247T\207\216[#\223JT\246lp\137\219m\235")))))
+test-on-curve-bit3-clear = (UApp (UBuiltin bls12-381-G1-compress) (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "81e9a0c68985059bd25a5ef05b351ca22f7d7c19e37928583ae12a1f4939440ff754cfd85b23df4a54f66c7089db6deb")))))
 
 expected-on-curve-bit3-clear : Result
-expected-on-curve-bit3-clear = success (UCon (tagCon bytestring (mkByteString "\129\233\160\198\137\133\ENQ\155\210Z^\240[5\FS\162/}|\EM\227y(X:\225*\USI9D\SI\247T\207\216[#\223JT\246lp\137\219m\235")))
+expected-on-curve-bit3-clear = success (UCon (tagCon bytestring (mkByteString "81e9a0c68985059bd25a5ef05b351ca22f7d7c19e37928583ae12a1f4939440ff754cfd85b23df4a54f66c7089db6deb")))
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-compress`; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-compress`; postulated builtin `bls12-381-G1-uncompress`.
 pending-on-curve-bit3-clear : Set
 pending-on-curve-bit3-clear = Pending (evalRaw test-on-curve-bit3-clear ≡ expected-on-curve-bit3-clear)
 ```
@@ -125,12 +125,12 @@ pending-on-curve-bit3-clear = Pending (evalRaw test-on-curve-bit3-clear ≡ expe
 -- This value was obtained by hashing 0x0102030405 to G1.  No changes have been
 -- made, so uncompression should succeed.
 test-on-curve-bit3-set : Untyped
-test-on-curve-bit3-set = (UApp (UBuiltin bls12-381-G1-compress) (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "\161\233\160\198\137\133\ENQ\155\210Z^\240[5\FS\162/}|\EM\227y(X:\225*\USI9D\SI\247T\207\216[#\223JT\246lp\137\219m\235")))))
+test-on-curve-bit3-set = (UApp (UBuiltin bls12-381-G1-compress) (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "a1e9a0c68985059bd25a5ef05b351ca22f7d7c19e37928583ae12a1f4939440ff754cfd85b23df4a54f66c7089db6deb")))))
 
 expected-on-curve-bit3-set : Result
-expected-on-curve-bit3-set = success (UCon (tagCon bytestring (mkByteString "\161\233\160\198\137\133\ENQ\155\210Z^\240[5\FS\162/}|\EM\227y(X:\225*\USI9D\SI\247T\207\216[#\223JT\246lp\137\219m\235")))
+expected-on-curve-bit3-set = success (UCon (tagCon bytestring (mkByteString "a1e9a0c68985059bd25a5ef05b351ca22f7d7c19e37928583ae12a1f4939440ff754cfd85b23df4a54f66c7089db6deb")))
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-compress`; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-compress`; postulated builtin `bls12-381-G1-uncompress`.
 pending-on-curve-bit3-set : Set
 pending-on-curve-bit3-set = Pending (evalRaw test-on-curve-bit3-set ≡ expected-on-curve-bit3-set)
 ```
@@ -144,12 +144,12 @@ pending-on-curve-bit3-set = Pending (evalRaw test-on-curve-bit3-set ≡ expected
 -- function in the blst library can handle both serialised and compressed
 -- points, but we should fail on the former.
 test-on-curve-serialised-not-compressed : Untyped
-test-on-curve-serialised-not-compressed = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "\SOH\233\160\198\137\133\ENQ\155\210Z^\240[5\FS\162/}|\EM\227y(X:\225*\USI9D\SI\247T\207\216[#\223JT\246lp\137\219m\235\DC2\174\132p\216\129\235b\141\252\244\187\b?\184\166\150\141\144z\f&_m\ACK\224K\ENQ\161\148\CAN\211\149\211\224\193\NAKC\SI\136\231\NAKh\"\144N\245\191"))))
+test-on-curve-serialised-not-compressed = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "01e9a0c68985059bd25a5ef05b351ca22f7d7c19e37928583ae12a1f4939440ff754cfd85b23df4a54f66c7089db6deb12ae8470d881eb628dfcf4bb083fb8a6968d907a0c265f6d06e04b05a19418d395d3e0c115430f88e7156822904ef5bf"))))
 
 expected-on-curve-serialised-not-compressed : Result
 expected-on-curve-serialised-not-compressed = failure
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-uncompress`.
 pending-on-curve-serialised-not-compressed : Set
 pending-on-curve-serialised-not-compressed = Pending (evalRaw test-on-curve-serialised-not-compressed ≡ expected-on-curve-serialised-not-compressed)
 ```
@@ -161,12 +161,12 @@ pending-on-curve-serialised-not-compressed = Pending (evalRaw test-on-curve-seri
 -- This contains a value which is the x-coordinate of a point which lies on the
 -- E1 curve but not the G1 subgroup.
 test-out-of-group : Untyped
-test-out-of-group = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "\160\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\ENQ"))))
+test-out-of-group = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005"))))
 
 expected-out-of-group : Result
 expected-out-of-group = failure
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-uncompress`.
 pending-out-of-group : Set
 pending-out-of-group = Pending (evalRaw test-out-of-group ≡ expected-out-of-group)
 ```
@@ -178,12 +178,12 @@ pending-out-of-group = Pending (evalRaw test-out-of-group ≡ expected-out-of-gr
 -- The bytestring is the compressed version of the G1 zero point, but extended
 -- to 49 bytes.
 test-too-long : Untyped
-test-too-long = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "\192\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL"))))
+test-too-long = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"))))
 
 expected-too-long : Result
 expected-too-long = failure
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-uncompress`.
 pending-too-long : Set
 pending-too-long = Pending (evalRaw test-too-long ≡ expected-too-long)
 ```
@@ -194,12 +194,12 @@ pending-too-long = Pending (evalRaw test-too-long ≡ expected-too-long)
 -- builtin/semantics/bls12_381_G1_uncompress/too-short
 -- The bytestring is the compressed version of the G1 zero point, but truncated to 47 bytes.
 test-too-short : Untyped
-test-too-short = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "\192\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL"))))
+test-too-short = (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"))))
 
 expected-too-short : Result
 expected-too-short = failure
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-uncompress`.
 pending-too-short : Set
 pending-too-short = Pending (evalRaw test-too-short ≡ expected-too-short)
 ```
@@ -210,12 +210,12 @@ pending-too-short = Pending (evalRaw test-too-short ≡ expected-too-short)
 -- builtin/semantics/bls12_381_G1_uncompress/zero
 -- The zero element of G1 uncompresses correctly.
 test-zero : Untyped
-test-zero = (UApp (UBuiltin bls12-381-G1-compress) (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "\192\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))))
+test-zero = (UApp (UBuiltin bls12-381-G1-compress) (UApp (UBuiltin bls12-381-G1-uncompress) (UCon (tagCon bytestring (mkByteString "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")))))
 
 expected-zero : Result
-expected-zero = success (UCon (tagCon bytestring (mkByteString "\192\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))
+expected-zero = success (UCon (tagCon bytestring (mkByteString "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")))
 
--- Pending: bytestring constant; postulated builtin `bls12-381-G1-compress`; postulated builtin `bls12-381-G1-uncompress`.
+-- Pending: postulated builtin `bls12-381-G1-compress`; postulated builtin `bls12-381-G1-uncompress`.
 pending-zero : Set
 pending-zero = Pending (evalRaw test-zero ≡ expected-zero)
 ```

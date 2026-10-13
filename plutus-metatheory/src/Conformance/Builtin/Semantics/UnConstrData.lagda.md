@@ -23,14 +23,13 @@ open import Conformance.Eval
 ```
 -- builtin/semantics/unConstrData/unConstrData-01
 test-unConstrData-01 : Untyped
-test-unConstrData-01 = (UApp (UBuiltin unConstrData) (UCon (tagCon pdata (ConstrDATA (ℤ.pos 1278) ((bDATA (mkByteString "\255\&1")) ∷ (iDATA (ℤ.negsuc 7971)) ∷ (ListDATA ((ListDATA ([])) ∷ [])) ∷ [])))))
+test-unConstrData-01 = (UApp (UBuiltin unConstrData) (UCon (tagCon pdata (ConstrDATA (ℤ.pos 1278) ((bDATA (mkByteString "ff31")) ∷ (iDATA (ℤ.negsuc 7971)) ∷ (ListDATA ((ListDATA ([])) ∷ [])) ∷ [])))))
 
 expected-unConstrData-01 : Result
-expected-unConstrData-01 = success (UCon (tagCon (pair integer (list pdata)) ((ℤ.pos 1278) , ((bDATA (mkByteString "\255\&1")) ∷ (iDATA (ℤ.negsuc 7971)) ∷ (ListDATA ((ListDATA ([])) ∷ [])) ∷ []))))
+expected-unConstrData-01 = success (UCon (tagCon (pair integer (list pdata)) ((ℤ.pos 1278) , ((bDATA (mkByteString "ff31")) ∷ (iDATA (ℤ.negsuc 7971)) ∷ (ListDATA ((ListDATA ([])) ∷ [])) ∷ []))))
 
--- Pending: bytestring inside a `data` constant.
-pending-unConstrData-01 : Set
-pending-unConstrData-01 = Pending (evalRaw test-unConstrData-01 ≡ expected-unConstrData-01)
+_ : evalRaw test-unConstrData-01 ≡ expected-unConstrData-01
+_ = refl
 ```
 
 ## unConstrData-fail
@@ -38,12 +37,11 @@ pending-unConstrData-01 = Pending (evalRaw test-unConstrData-01 ≡ expected-unC
 ```
 -- builtin/semantics/unConstrData/unConstrData-fail
 test-unConstrData-fail : Untyped
-test-unConstrData-fail = (UApp (UBuiltin unConstrData) (UCon (tagCon pdata (bDATA (mkByteString "\175\NUL")))))
+test-unConstrData-fail = (UApp (UBuiltin unConstrData) (UCon (tagCon pdata (bDATA (mkByteString "af00")))))
 
 expected-unConstrData-fail : Result
 expected-unConstrData-fail = failure
 
--- Pending: bytestring inside a `data` constant.
-pending-unConstrData-fail : Set
-pending-unConstrData-fail = Pending (evalRaw test-unConstrData-fail ≡ expected-unConstrData-fail)
+_ : evalRaw test-unConstrData-fail ≡ expected-unConstrData-fail
+_ = refl
 ```
