@@ -21,7 +21,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-orphans -fspec-constr-count=5 #-}
 
 -- | The CEK machine.
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
@@ -137,6 +137,8 @@ The computing and returning steps inline before GHC turns the recursive helpers 
 points. Only 'computeCekRec' and 'returnCekRec' have NOINLINE barriers. GHC chooses whether to
 inline force and application or specialize them as join points. The builtin step stays at their
 call sites, avoiding term thunks for successful saturated builtins.
+Five constructor specializations per function retain the combined lambda/constant and
+builtin/constant application workers alongside the individual specializations.
 For the recursive helpers themselves:
 
 1. GHC is _usually_ smart enough to perform the worker/wrapper transformation and inline the wrapper
