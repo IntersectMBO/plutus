@@ -77,15 +77,15 @@ d_B'60''61'_22 v0 v1
                     MAlonzo.Code.Data.Bool.Base.du_if_then_else__44
                     (coe
                        ltInt
-                       (coe MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℕ_198 (coe v2))
-                       (coe MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℕ_198 (coe v4)))
+                       (coe MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℕ_194 (coe v2))
+                       (coe MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℕ_194 (coe v4)))
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
                     (coe
                        MAlonzo.Code.Data.Bool.Base.du_if_then_else__44
                        (coe
                           eqInt
-                          (coe MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℕ_198 (coe v2))
-                          (coe MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℕ_198 (coe v4)))
+                          (coe MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℕ_194 (coe v2))
+                          (coe MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℕ_194 (coe v4)))
                        (coe d_B'60''61'_22 (coe v3) (coe v5))
                        (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8))
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -123,7 +123,7 @@ d_cons_38 v0 v1
                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
                              (coe
                                 MAlonzo.Code.Builtin.ByteString.Base.C__'8759'__10
-                                (coe MAlonzo.Code.Builtin.ByteString.Byte.du_ℤToByte_206 (coe v0))
+                                (coe MAlonzo.Code.Builtin.ByteString.Byte.du_ℤToByte_202 (coe v0))
                                 (coe v1)))
                           (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))
                 else coe
@@ -140,31 +140,13 @@ d_slice_64 v0 v1 v2
       MAlonzo.Code.Builtin.ByteString.Base.d_take_66 (coe v1)
       (coe
          MAlonzo.Code.Builtin.ByteString.Base.d_dropB_78 (coe v0) (coe v2))
--- Builtin.ByteString.Denotation.index
-d_index_72 ::
-  MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6 ->
-  Integer -> Maybe Integer
-d_index_72 v0 v1
-  = coe
-      MAlonzo.Code.Data.Maybe.Base.du_map_64
-      MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℤ_210
-      (coe
-         du_go_82 (coe v1) (coe MAlonzo.Code.Data.Integer.Base.d_0ℤ_12)
-         (coe v0))
--- Builtin.ByteString.Denotation._.go
-d_go_82 ::
-  MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6 ->
+-- Builtin.ByteString.Denotation.indexFrom
+d_indexFrom_72 ::
   Integer ->
   Integer ->
   MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6 ->
   Maybe MAlonzo.Code.Builtin.ByteString.Byte.T_Byte_6
-d_go_82 ~v0 v1 v2 v3 = du_go_82 v1 v2 v3
-du_go_82 ::
-  Integer ->
-  Integer ->
-  MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6 ->
-  Maybe MAlonzo.Code.Builtin.ByteString.Byte.T_Byte_6
-du_go_82 v0 v1 v2
+d_indexFrom_72 v0 v1 v2
   = case coe v2 of
       MAlonzo.Code.Builtin.ByteString.Base.C_'91''93'_8
         -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
@@ -178,12 +160,22 @@ du_go_82 v0 v1 v2
                    (coe v0)))
              (coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe v3))
              (coe
-                du_go_82 (coe v0)
+                d_indexFrom_72 (coe v0)
                 (coe
                    MAlonzo.Code.Data.Integer.Base.d__'43'__284 (coe v1)
                    (coe MAlonzo.Code.Data.Integer.Base.d_1ℤ_16))
                 (coe v4))
       _ -> MAlonzo.RTE.mazUnreachableError
+-- Builtin.ByteString.Denotation.index
+d_index_84 ::
+  MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6 ->
+  Integer -> Maybe Integer
+d_index_84 v0 v1
+  = coe
+      MAlonzo.Code.Data.Maybe.Base.du_map_64
+      MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℤ_206
+      (d_indexFrom_72
+         (coe v1) (coe MAlonzo.Code.Data.Integer.Base.d_0ℤ_12) (coe v0))
 -- Builtin.ByteString.Denotation.bitLength
 d_bitLength_90 ::
   MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6 -> Integer
@@ -222,10 +214,10 @@ d_BStoI_104 ::
 d_BStoI_104 v0 v1
   = if coe v0
       then coe
-             MAlonzo.Code.Builtin.ByteString.Base.d_byteStringToℕ_302 v1
+             MAlonzo.Code.Builtin.ByteString.Base.d_byteStringToℕ_296 v1
       else coe
-             MAlonzo.Code.Builtin.ByteString.Base.d_byteStringToℕ_302
-             (coe MAlonzo.Code.Builtin.ByteString.Base.d_reverseBS_104 v1)
+             MAlonzo.Code.Builtin.ByteString.Base.d_byteStringToℕ_296
+             (coe MAlonzo.Code.Builtin.ByteString.Base.d_reverseBS_114 v1)
 -- Builtin.ByteString.Denotation.ItoBS
 d_ItoBS_110 ::
   Bool ->
@@ -249,7 +241,7 @@ d_ItoBS_110 v0 v1 v2
                MAlonzo.Code.Data.Integer.Base.d__'8804''7495'__110
                (coe MAlonzo.Code.Data.Integer.Base.d_0ℤ_12) (coe v2))))
       (coe
-         MAlonzo.Code.Builtin.ByteString.Base.d_ℕToByteString_330 (coe v0)
+         MAlonzo.Code.Builtin.ByteString.Base.d_ℕToByteString_310 (coe v0)
          (coe MAlonzo.Code.Data.Integer.Base.d_'8739'_'8739'_18 (coe v1))
          (coe MAlonzo.Code.Data.Integer.Base.d_'8739'_'8739'_18 (coe v2)))
       (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
@@ -261,8 +253,8 @@ d_andBYTESTRING_118 ::
   MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6
 d_andBYTESTRING_118 v0
   = coe
-      MAlonzo.Code.Builtin.ByteString.Base.d_zipWithBS_134
-      (coe MAlonzo.Code.Builtin.ByteString.Byte.d_andByte_218) (coe v0)
+      MAlonzo.Code.Builtin.ByteString.Base.d_zipWithBS_130
+      (coe MAlonzo.Code.Builtin.ByteString.Byte.d_andByte_270) (coe v0)
       (coe
          MAlonzo.Code.Builtin.ByteString.Byte.C_byte_24
          (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
@@ -281,8 +273,8 @@ d_orBYTESTRING_122 ::
   MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6
 d_orBYTESTRING_122 v0
   = coe
-      MAlonzo.Code.Builtin.ByteString.Base.d_zipWithBS_134
-      (coe MAlonzo.Code.Builtin.ByteString.Byte.d_orByte_224) (coe v0)
+      MAlonzo.Code.Builtin.ByteString.Base.d_zipWithBS_130
+      (coe MAlonzo.Code.Builtin.ByteString.Byte.d_orByte_272) (coe v0)
       (coe
          MAlonzo.Code.Builtin.ByteString.Byte.C_byte_24
          (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
@@ -301,8 +293,8 @@ d_xorBYTESTRING_126 ::
   MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6
 d_xorBYTESTRING_126 v0
   = coe
-      MAlonzo.Code.Builtin.ByteString.Base.d_zipWithBS_134
-      (coe MAlonzo.Code.Builtin.ByteString.Byte.d_xorByte_230) (coe v0)
+      MAlonzo.Code.Builtin.ByteString.Base.d_zipWithBS_130
+      (coe MAlonzo.Code.Builtin.ByteString.Byte.d_xorByte_274) (coe v0)
       (coe
          MAlonzo.Code.Builtin.ByteString.Byte.C_byte_24
          (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
@@ -319,8 +311,8 @@ d_complementBYTESTRING_130 ::
   MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6
 d_complementBYTESTRING_130
   = coe
-      MAlonzo.Code.Builtin.ByteString.Base.d_mapBS_120
-      (coe MAlonzo.Code.Builtin.ByteString.Byte.d_notByte_236)
+      MAlonzo.Code.Builtin.ByteString.Base.d_mapBS_116
+      (coe MAlonzo.Code.Builtin.ByteString.Byte.d_notByte_276)
 -- Builtin.ByteString.Denotation.readBIT
 d_readBIT_132 ::
   MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6 ->
@@ -330,8 +322,8 @@ d_readBIT_132 v0 v1
       MAlonzo.Code.Data.Bool.Base.du_if_then_else__44
       (coe d_validBitIndex_94 (coe d_bitLength_90 (coe v0)) (coe v1))
       (coe
-         MAlonzo.Code.Builtin.ByteString.Base.d_lookupBit_224
-         (coe MAlonzo.Code.Builtin.ByteString.Base.d_toBits_178 v0)
+         MAlonzo.Code.Builtin.ByteString.Base.d_lookupBit_212
+         (coe MAlonzo.Code.Builtin.ByteString.Base.d_toBits_184 v0)
          (coe MAlonzo.Code.Data.Integer.Base.d_'8739'_'8739'_18 (coe v1)))
       (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
 -- Builtin.ByteString.Denotation.writeBITS
@@ -348,15 +340,15 @@ d_writeBITS_138 v0 v1 v2
       (coe
          MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
          (coe
-            MAlonzo.Code.Builtin.ByteString.Base.d_fromBits_194
+            MAlonzo.Code.Builtin.ByteString.Base.d_fromBits_210
             (coe
                MAlonzo.Code.Data.List.Base.du_foldr_216
                (coe
                   (\ v3 ->
-                     MAlonzo.Code.Builtin.ByteString.Base.d_setBit_236
+                     MAlonzo.Code.Builtin.ByteString.Base.d_setBit_224
                        (coe MAlonzo.Code.Data.Integer.Base.d_'8739'_'8739'_18 (coe v3))
                        (coe v2)))
-               (coe MAlonzo.Code.Builtin.ByteString.Base.d_toBits_178 v0)
+               (coe MAlonzo.Code.Builtin.ByteString.Base.d_toBits_184 v0)
                (coe v1))))
       (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
 -- Builtin.ByteString.Denotation.replicateBYTE
@@ -366,7 +358,7 @@ d_replicateBYTE_148 ::
   Maybe MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6
 d_replicateBYTE_148 v0 v1
   = let v2
-          = MAlonzo.Code.Builtin.ByteString.Byte.d_toByte_214 (coe v1) in
+          = MAlonzo.Code.Builtin.ByteString.Byte.d_toByte_210 (coe v1) in
     coe
       (case coe v2 of
          MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v3
@@ -401,10 +393,10 @@ d_shiftBYTESTRING_168 v0 v1
       (coe
          MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
          (coe
-            MAlonzo.Code.Builtin.ByteString.Base.d_fromBits_194
-            (MAlonzo.Code.Builtin.ByteString.Base.d_shiftBits_268
+            MAlonzo.Code.Builtin.ByteString.Base.d_fromBits_210
+            (MAlonzo.Code.Builtin.ByteString.Base.d_shiftBits_252
                (coe v1)
-               (coe MAlonzo.Code.Builtin.ByteString.Base.d_toBits_178 v0))))
+               (coe MAlonzo.Code.Builtin.ByteString.Base.d_toBits_184 v0))))
       (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
 -- Builtin.ByteString.Denotation.rotateBYTESTRING
 d_rotateBYTESTRING_174 ::
@@ -418,10 +410,10 @@ d_rotateBYTESTRING_174 v0 v1
       (coe
          MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
          (coe
-            MAlonzo.Code.Builtin.ByteString.Base.d_fromBits_194
-            (MAlonzo.Code.Builtin.ByteString.Base.d_rotateBits_286
+            MAlonzo.Code.Builtin.ByteString.Base.d_fromBits_210
+            (MAlonzo.Code.Builtin.ByteString.Base.d_rotateBits_270
                (coe v1)
-               (coe MAlonzo.Code.Builtin.ByteString.Base.d_toBits_178 v0))))
+               (coe MAlonzo.Code.Builtin.ByteString.Base.d_toBits_184 v0))))
       (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
 -- Builtin.ByteString.Denotation.countSetBITS
 d_countSetBITS_180 ::
@@ -433,7 +425,7 @@ d_countSetBITS_180 v0
       MAlonzo.Code.Builtin.ByteString.Base.C__'8759'__10 v1 v2
         -> coe
              MAlonzo.Code.Data.Integer.Base.d__'43'__284
-             (coe MAlonzo.Code.Builtin.ByteString.Byte.d_popCount_240 (coe v1))
+             (coe MAlonzo.Code.Builtin.ByteString.Byte.d_popCount_286 (coe v1))
              (coe d_countSetBITS_180 (coe v2))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.ByteString.Denotation.findFirstSetBIT
@@ -441,5 +433,5 @@ d_findFirstSetBIT_186 ::
   MAlonzo.Code.Builtin.ByteString.Base.T_ByteString_6 -> Integer
 d_findFirstSetBIT_186 v0
   = coe
-      MAlonzo.Code.Builtin.ByteString.Base.d_firstSetBit_252
-      (coe MAlonzo.Code.Builtin.ByteString.Base.d_toBits_178 v0)
+      MAlonzo.Code.Builtin.ByteString.Base.d_firstSetBit_250
+      (coe MAlonzo.Code.Builtin.ByteString.Base.d_toBits_184 v0)

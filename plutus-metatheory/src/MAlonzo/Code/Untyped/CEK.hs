@@ -1247,7 +1247,7 @@ d_BUILTIN_294 v0
                                                                                                                             (coe
                                                                                                                                MAlonzo.Code.Builtin.ByteString.Base.C__'8759'__10
                                                                                                                                (coe
-                                                                                                                                  MAlonzo.Code.Builtin.ByteString.Byte.du_ℤToByte_206
+                                                                                                                                  MAlonzo.Code.Builtin.ByteString.Byte.du_ℤToByte_202
                                                                                                                                   (coe
                                                                                                                                      v21))
                                                                                                                                (coe
@@ -1487,7 +1487,7 @@ d_BUILTIN_294 v0
                                                                                  -> case coe v27 of
                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8
                                                                                         -> let v28
-                                                                                                 = MAlonzo.Code.Builtin.ByteString.Denotation.d_index_72
+                                                                                                 = MAlonzo.Code.Builtin.ByteString.Denotation.d_index_84
                                                                                                      (coe
                                                                                                         v21)
                                                                                                      (coe

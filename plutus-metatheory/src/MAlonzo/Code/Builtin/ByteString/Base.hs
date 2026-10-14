@@ -161,7 +161,7 @@ du_go_42 v0
                                             (coe
                                                C__'8759'__10
                                                (coe
-                                                  MAlonzo.Code.Builtin.ByteString.Byte.d_ℕToByte_194
+                                                  MAlonzo.Code.Builtin.ByteString.Byte.d_ℕToByte_190
                                                   (coe
                                                      addInt
                                                      (coe mulInt (coe (16 :: Integer)) (coe v5))
@@ -263,38 +263,40 @@ d__'43''43''7495'__94 v0 v1
              C__'8759'__10 (coe v2)
              (coe d__'43''43''7495'__94 (coe v3) (coe v1))
       _ -> MAlonzo.RTE.mazUnreachableError
--- Builtin.ByteString.Base.reverseBS
-d_reverseBS_104 :: T_ByteString_6 -> T_ByteString_6
-d_reverseBS_104 = coe d_go_110 (coe C_'91''93'_8)
--- Builtin.ByteString.Base._.go
-d_go_110 :: T_ByteString_6 -> T_ByteString_6 -> T_ByteString_6
-d_go_110 v0 v1
+-- Builtin.ByteString.Base.reverseAcc
+d_reverseAcc_104 ::
+  T_ByteString_6 -> T_ByteString_6 -> T_ByteString_6
+d_reverseAcc_104 v0 v1
   = case coe v1 of
       C_'91''93'_8 -> coe v0
       C__'8759'__10 v2 v3
-        -> coe d_go_110 (coe C__'8759'__10 (coe v2) (coe v0)) (coe v3)
+        -> coe
+             d_reverseAcc_104 (coe C__'8759'__10 (coe v2) (coe v0)) (coe v3)
       _ -> MAlonzo.RTE.mazUnreachableError
+-- Builtin.ByteString.Base.reverseBS
+d_reverseBS_114 :: T_ByteString_6 -> T_ByteString_6
+d_reverseBS_114 = coe d_reverseAcc_104 (coe C_'91''93'_8)
 -- Builtin.ByteString.Base.mapBS
-d_mapBS_120 ::
+d_mapBS_116 ::
   (MAlonzo.Code.Builtin.ByteString.Byte.T_Byte_6 ->
    MAlonzo.Code.Builtin.ByteString.Byte.T_Byte_6) ->
   T_ByteString_6 -> T_ByteString_6
-d_mapBS_120 v0 v1
+d_mapBS_116 v0 v1
   = case coe v1 of
       C_'91''93'_8 -> coe v1
       C__'8759'__10 v2 v3
         -> coe
-             C__'8759'__10 (coe v0 v2) (coe d_mapBS_120 (coe v0) (coe v3))
+             C__'8759'__10 (coe v0 v2) (coe d_mapBS_116 (coe v0) (coe v3))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.ByteString.Base.zipWithBS
-d_zipWithBS_134 ::
+d_zipWithBS_130 ::
   (MAlonzo.Code.Builtin.ByteString.Byte.T_Byte_6 ->
    MAlonzo.Code.Builtin.ByteString.Byte.T_Byte_6 ->
    MAlonzo.Code.Builtin.ByteString.Byte.T_Byte_6) ->
   Bool ->
   MAlonzo.Code.Builtin.ByteString.Byte.T_Byte_6 ->
   T_ByteString_6 -> T_ByteString_6 -> T_ByteString_6
-d_zipWithBS_134 v0 v1 v2 v3 v4
+d_zipWithBS_130 v0 v1 v2 v3 v4
   = case coe v3 of
       C_'91''93'_8
         -> case coe v4 of
@@ -304,7 +306,7 @@ d_zipWithBS_134 v0 v1 v2 v3 v4
                     MAlonzo.Code.Data.Bool.Base.du_if_then_else__44 (coe v1)
                     (coe
                        C__'8759'__10 (coe v0 v2 v5)
-                       (coe d_zipWithBS_134 (coe v0) (coe v1) (coe v2) (coe v3) (coe v6)))
+                       (coe d_zipWithBS_130 (coe v0) (coe v1) (coe v2) (coe v3) (coe v6)))
                     (coe v3)
              _ -> MAlonzo.RTE.mazUnreachableError
       C__'8759'__10 v5 v6
@@ -314,29 +316,25 @@ d_zipWithBS_134 v0 v1 v2 v3 v4
                     MAlonzo.Code.Data.Bool.Base.du_if_then_else__44 (coe v1)
                     (coe
                        C__'8759'__10 (coe v0 v5 v2)
-                       (coe d_zipWithBS_134 (coe v0) (coe v1) (coe v2) (coe v6) (coe v4)))
+                       (coe d_zipWithBS_130 (coe v0) (coe v1) (coe v2) (coe v6) (coe v4)))
                     (coe v4)
              C__'8759'__10 v7 v8
                -> coe
                     C__'8759'__10 (coe v0 v5 v7)
-                    (coe d_zipWithBS_134 (coe v0) (coe v1) (coe v2) (coe v6) (coe v8))
+                    (coe d_zipWithBS_130 (coe v0) (coe v1) (coe v2) (coe v6) (coe v8))
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.ByteString.Base.Bits*
-d_Bits'42'_176 :: ()
-d_Bits'42'_176 = erased
--- Builtin.ByteString.Base.toBits
-d_toBits_178 :: T_ByteString_6 -> [Bool]
-d_toBits_178
-  = coe d_go_184 (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)
--- Builtin.ByteString.Base._.go
-d_go_184 :: [Bool] -> T_ByteString_6 -> [Bool]
-d_go_184 v0 v1
+d_Bits'42'_172 :: ()
+d_Bits'42'_172 = erased
+-- Builtin.ByteString.Base.toBitsAcc
+d_toBitsAcc_174 :: [Bool] -> T_ByteString_6 -> [Bool]
+d_toBitsAcc_174 v0 v1
   = case coe v1 of
       C_'91''93'_8 -> coe v0
       C__'8759'__10 v2 v3
         -> coe
-             d_go_184
+             d_toBitsAcc_174
              (coe
                 MAlonzo.Code.Data.List.Base.du__'43''43'__32
                 (coe
@@ -346,12 +344,14 @@ d_go_184 v0 v1
                 (coe v0))
              (coe v3)
       _ -> MAlonzo.RTE.mazUnreachableError
--- Builtin.ByteString.Base.fromBits
-d_fromBits_194 :: [Bool] -> T_ByteString_6
-d_fromBits_194 = coe d_go_200 (coe C_'91''93'_8)
--- Builtin.ByteString.Base._.go
-d_go_200 :: T_ByteString_6 -> [Bool] -> T_ByteString_6
-d_go_200 v0 v1
+-- Builtin.ByteString.Base.toBits
+d_toBits_184 :: T_ByteString_6 -> [Bool]
+d_toBits_184
+  = coe
+      d_toBitsAcc_174 (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)
+-- Builtin.ByteString.Base.fromBitsAcc
+d_fromBitsAcc_186 :: T_ByteString_6 -> [Bool] -> T_ByteString_6
+d_fromBitsAcc_186 v0 v1
   = case coe v1 of
       (:) v2 v3
         -> case coe v3 of
@@ -369,7 +369,7 @@ d_go_200 v0 v1
                                                   -> case coe v15 of
                                                        (:) v16 v17
                                                          -> coe
-                                                              d_go_200
+                                                              d_fromBitsAcc_186
                                                               (coe
                                                                  C__'8759'__10
                                                                  (coe
@@ -410,20 +410,23 @@ d_go_200 v0 v1
                     _ -> coe v0
              _ -> coe v0
       _ -> coe v0
+-- Builtin.ByteString.Base.fromBits
+d_fromBits_210 :: [Bool] -> T_ByteString_6
+d_fromBits_210 = coe d_fromBitsAcc_186 (coe C_'91''93'_8)
 -- Builtin.ByteString.Base.lookupBit
-d_lookupBit_224 :: [Bool] -> Integer -> Maybe Bool
-d_lookupBit_224 v0 v1
+d_lookupBit_212 :: [Bool] -> Integer -> Maybe Bool
+d_lookupBit_212 v0 v1
   = case coe v0 of
       [] -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
       (:) v2 v3
         -> case coe v1 of
              0 -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe v2)
              _ -> let v4 = subInt (coe v1) (coe (1 :: Integer)) in
-                  coe (coe d_lookupBit_224 (coe v3) (coe v4))
+                  coe (coe d_lookupBit_212 (coe v3) (coe v4))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.ByteString.Base.setBit
-d_setBit_236 :: Integer -> Bool -> [Bool] -> [Bool]
-d_setBit_236 v0 v1 v2
+d_setBit_224 :: Integer -> Bool -> [Bool] -> [Bool]
+d_setBit_224 v0 v1 v2
   = case coe v2 of
       [] -> coe v2
       (:) v3 v4
@@ -434,46 +437,47 @@ d_setBit_236 v0 v1 v2
                   coe
                     (coe
                        MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe v3)
-                       (coe d_setBit_236 (coe v5) (coe v1) (coe v4)))
+                       (coe d_setBit_224 (coe v5) (coe v1) (coe v4)))
       _ -> MAlonzo.RTE.mazUnreachableError
--- Builtin.ByteString.Base.firstSetBit
-d_firstSetBit_252 :: [Bool] -> Integer
-d_firstSetBit_252 = coe d_go_258 (coe (0 :: Integer))
--- Builtin.ByteString.Base._.go
-d_go_258 :: Integer -> [Bool] -> Integer
-d_go_258 v0 v1
+-- Builtin.ByteString.Base.firstSetBitFrom
+d_firstSetBitFrom_240 :: Integer -> [Bool] -> Integer
+d_firstSetBitFrom_240 v0 v1
   = case coe v1 of
       [] -> coe (-1 :: Integer)
       (:) v2 v3
         -> if coe v2
              then coe v0
              else coe
-                    d_go_258 (coe addInt (coe (1 :: Integer)) (coe v0)) (coe v3)
+                    d_firstSetBitFrom_240 (coe addInt (coe (1 :: Integer)) (coe v0))
+                    (coe v3)
       _ -> MAlonzo.RTE.mazUnreachableError
+-- Builtin.ByteString.Base.firstSetBit
+d_firstSetBit_250 :: [Bool] -> Integer
+d_firstSetBit_250 = coe d_firstSetBitFrom_240 (coe (0 :: Integer))
 -- Builtin.ByteString.Base.shiftBits
-d_shiftBits_268 :: Integer -> [Bool] -> [Bool]
-d_shiftBits_268 v0 v1
+d_shiftBits_252 :: Integer -> [Bool] -> [Bool]
+d_shiftBits_252 v0 v1
   = coe
       MAlonzo.Code.Data.Bool.Base.du_if_then_else__44
       (coe
          MAlonzo.Code.Data.Nat.Base.d__'8804''7495'__14
-         (coe du_n_278 (coe v1))
+         (coe du_n_262 (coe v1))
          (coe MAlonzo.Code.Data.Integer.Base.d_'8739'_'8739'_18 (coe v0)))
       (coe
          MAlonzo.Code.Data.List.Base.du_replicate_278
-         (coe du_n_278 (coe v1))
+         (coe du_n_262 (coe v1))
          (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8))
-      (coe du_shifted_280 (coe v1) (coe v0))
+      (coe du_shifted_264 (coe v1) (coe v0))
 -- Builtin.ByteString.Base._.n
-d_n_278 :: Integer -> [Bool] -> Integer
-d_n_278 ~v0 v1 = du_n_278 v1
-du_n_278 :: [Bool] -> Integer
-du_n_278 v0 = coe MAlonzo.Code.Data.List.Base.du_length_268 v0
+d_n_262 :: Integer -> [Bool] -> Integer
+d_n_262 ~v0 v1 = du_n_262 v1
+du_n_262 :: [Bool] -> Integer
+du_n_262 v0 = coe MAlonzo.Code.Data.List.Base.du_length_268 v0
 -- Builtin.ByteString.Base._.shifted
-d_shifted_280 :: Integer -> [Bool] -> Integer -> [Bool]
-d_shifted_280 ~v0 v1 v2 = du_shifted_280 v1 v2
-du_shifted_280 :: [Bool] -> Integer -> [Bool]
-du_shifted_280 v0 v1
+d_shifted_264 :: Integer -> [Bool] -> Integer -> [Bool]
+d_shifted_264 ~v0 v1 v2 = du_shifted_264 v1 v2
+du_shifted_264 :: [Bool] -> Integer -> [Bool]
+du_shifted_264 v0 v1
   = case coe v1 of
       _ | coe geqInt (coe v1) (coe (0 :: Integer)) ->
           coe
@@ -484,7 +488,7 @@ du_shifted_280 v0 v1
             (coe
                MAlonzo.Code.Data.List.Base.du_take_530
                (coe
-                  MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22 (coe du_n_278 (coe v0))
+                  MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22 (coe du_n_262 (coe v0))
                   v1)
                (coe v0))
       _ -> coe
@@ -497,8 +501,8 @@ du_shifted_280 v0 v1
                 (coe subInt (coe (0 :: Integer)) (coe v1))
                 (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8))
 -- Builtin.ByteString.Base.rotateBits
-d_rotateBits_286 :: Integer -> [Bool] -> [Bool]
-d_rotateBits_286 v0 v1
+d_rotateBits_270 :: Integer -> [Bool] -> [Bool]
+d_rotateBits_270 v0 v1
   = case coe v1 of
       [] -> coe v1
       (:) v2 v3
@@ -508,52 +512,53 @@ d_rotateBits_286 v0 v1
                 MAlonzo.Code.Data.List.Base.du_drop_542
                 (coe
                    MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22
-                   (coe du_n_298 (coe v2) (coe v3))
-                   (d_r_300 (coe v0) (coe v2) (coe v3)))
+                   (coe du_n_282 (coe v2) (coe v3))
+                   (d_r_284 (coe v0) (coe v2) (coe v3)))
                 (coe v1))
              (coe
                 MAlonzo.Code.Data.List.Base.du_take_530
                 (coe
                    MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22
-                   (coe du_n_298 (coe v2) (coe v3))
-                   (d_r_300 (coe v0) (coe v2) (coe v3)))
+                   (coe du_n_282 (coe v2) (coe v3))
+                   (d_r_284 (coe v0) (coe v2) (coe v3)))
                 (coe v1))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.ByteString.Base._.n
-d_n_298 :: Integer -> Bool -> [Bool] -> Integer
-d_n_298 ~v0 v1 v2 = du_n_298 v1 v2
-du_n_298 :: Bool -> [Bool] -> Integer
-du_n_298 v0 v1
+d_n_282 :: Integer -> Bool -> [Bool] -> Integer
+d_n_282 ~v0 v1 v2 = du_n_282 v1 v2
+du_n_282 :: Bool -> [Bool] -> Integer
+du_n_282 v0 v1
   = coe
       MAlonzo.Code.Data.List.Base.du_length_268
       (coe
          MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe v0) (coe v1))
 -- Builtin.ByteString.Base._.r
-d_r_300 :: Integer -> Bool -> [Bool] -> Integer
-d_r_300 v0 v1 v2
+d_r_284 :: Integer -> Bool -> [Bool] -> Integer
+d_r_284 v0 v1 v2
   = coe
       MAlonzo.Code.Data.Integer.Base.du__'37'ℕ__414 (coe v0)
-      (coe du_n_298 (coe v1) (coe v2))
--- Builtin.ByteString.Base.byteStringToℕ
-d_byteStringToℕ_302 :: T_ByteString_6 -> Integer
-d_byteStringToℕ_302 = coe d_go_308 (coe (0 :: Integer))
--- Builtin.ByteString.Base._.go
-d_go_308 :: Integer -> T_ByteString_6 -> Integer
-d_go_308 v0 v1
+      (coe du_n_282 (coe v1) (coe v2))
+-- Builtin.ByteString.Base.byteStringToℕAcc
+d_byteStringToℕAcc_286 :: Integer -> T_ByteString_6 -> Integer
+d_byteStringToℕAcc_286 v0 v1
   = case coe v1 of
       C_'91''93'_8 -> coe v0
       C__'8759'__10 v2 v3
         -> coe
-             d_go_308
+             d_byteStringToℕAcc_286
              (coe
                 addInt
-                (coe MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℕ_198 (coe v2))
+                (coe MAlonzo.Code.Builtin.ByteString.Byte.d_byteToℕ_194 (coe v2))
                 (coe mulInt (coe v0) (coe (256 :: Integer))))
              (coe v3)
       _ -> MAlonzo.RTE.mazUnreachableError
+-- Builtin.ByteString.Base.byteStringToℕ
+d_byteStringToℕ_296 :: T_ByteString_6 -> Integer
+d_byteStringToℕ_296
+  = coe d_byteStringToℕAcc_286 (coe (0 :: Integer))
 -- Builtin.ByteString.Base.digits256
-d_digits256_318 :: Integer -> Integer -> Maybe T_ByteString_6
-d_digits256_318 v0 v1
+d_digits256_298 :: Integer -> Integer -> Maybe T_ByteString_6
+d_digits256_298 v0 v1
   = case coe v1 of
       0 -> coe
              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_'91''93'_8)
@@ -566,19 +571,19 @@ d_digits256_318 v0 v1
                        (coe
                           C__'8759'__10
                           (coe
-                             MAlonzo.Code.Builtin.ByteString.Byte.d_ℕToByte_194
+                             MAlonzo.Code.Builtin.ByteString.Byte.d_ℕToByte_190
                              (coe
                                 MAlonzo.Code.Data.Nat.Base.du__'37'__330 (coe v1)
                                 (coe (256 :: Integer)))))
-                       (d_digits256_318
+                       (d_digits256_298
                           (coe v2)
                           (coe
                              MAlonzo.Code.Data.Nat.Base.du__'47'__318 (coe v1)
                              (coe (256 :: Integer)))))
 -- Builtin.ByteString.Base.ℕToByteString
-d_ℕToByteString_330 ::
+d_ℕToByteString_310 ::
   Bool -> Integer -> Integer -> Maybe T_ByteString_6
-d_ℕToByteString_330 v0 v1 v2
+d_ℕToByteString_310 v0 v1 v2
   = case coe v2 of
       0 -> coe
              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
@@ -606,14 +611,14 @@ d_ℕToByteString_330 v0 v1 v2
                                 (coe
                                    C__'8759'__10
                                    (coe
-                                      MAlonzo.Code.Builtin.ByteString.Byte.d_ℕToByte_194
+                                      MAlonzo.Code.Builtin.ByteString.Byte.d_ℕToByte_190
                                       (coe
                                          MAlonzo.Code.Data.Nat.Base.du__'37'__330 (coe v2)
                                          (coe (256 :: Integer))))
                                    (coe v4))))
                         (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
                         (coe
-                           d_digits256_318 (coe (8191 :: Integer))
+                           d_digits256_298 (coe (8191 :: Integer))
                            (coe
                               MAlonzo.Code.Agda.Builtin.Nat.d_div'45'helper_60 (0 :: Integer)
                               (255 :: Integer) v3 (254 :: Integer))) in
@@ -649,7 +654,7 @@ d_ℕToByteString_330 v0 v1 v2
                                          (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                                          (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                                          (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)))
-                                   (coe d_reverseBS_104 v5))
+                                   (coe d_reverseBS_114 v5))
                                 (coe
                                    d__'43''43''7495'__94 (coe v5)
                                    (coe

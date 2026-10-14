@@ -116,6 +116,13 @@ import Builtin.ByteString.Base
 import Builtin.ByteString.Denotation
 ```
 
+The laws of the bitwise and conversion builtins (CIP-121, CIP-122 and
+CIP-123) are proved in the bytestring properties modules.
+
+```
+import Builtin.ByteString.Properties
+```
+
 The types of the built-in operations are defined by a signature.
 These types are abstract, and they can be made concrete to obtain the different
 notions of type used in the formalisation.

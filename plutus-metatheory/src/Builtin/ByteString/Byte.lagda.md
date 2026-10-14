@@ -19,7 +19,7 @@ open import Data.Nat.Base using (⌊_/2⌋; parity)
 open import Data.Parity.Base using (Parity; 0ℙ; 1ℙ)
 open import Data.Integer using (ℤ; +_; -[1+_]; NonNegative)
 open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Vec.Base using (Vec; _∷_; []; zipWith) renaming (map to vmap)
+open import Data.Vec.Base using (Vec; _∷_; [])
 open import Relation.Nullary.Decidable using (does)
 ```
 
@@ -109,13 +109,13 @@ addBits c (x ∷ xs) (y ∷ ys) =
 plusByte : Byte → Byte → Byte
 plusByte x y = bitsToByte (addBits false (byteToBits x) (byteToBits y))
 
+parityBit : Parity → Bool
+parityBit 0ℙ = false
+parityBit 1ℙ = true
+
 ℕToBits : (n : ℕ) → ℕ → Bits n
 ℕToBits zero    _ = []
-ℕToBits (suc n) k = lsb (parity k) ∷ ℕToBits n ⌊ k /2⌋
-  where
-    lsb : Parity → Bool
-    lsb 0ℙ = false
-    lsb 1ℙ = true
+ℕToBits (suc n) k = parityBit (parity k) ∷ ℕToBits n ⌊ k /2⌋
 
 bitsToℕ : ∀ n → Bits n → ℕ
 bitsToℕ zero _ = 0
@@ -147,23 +147,34 @@ toByte -[1+ _ ] = nothing
 
 ## Bitwise operations
 
+The logical operations act on each bit independently, so they are all
+instances of lifting a boolean function bitwise.
+
 ```
+mapByte : (Bool → Bool) → Byte → Byte
+mapByte f (byte b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈) =
+  byte (f b₁) (f b₂) (f b₃) (f b₄) (f b₅) (f b₆) (f b₇) (f b₈)
+
+zipByte : (Bool → Bool → Bool) → Byte → Byte → Byte
+zipByte f (byte b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈) (byte c₁ c₂ c₃ c₄ c₅ c₆ c₇ c₈) =
+  byte (f b₁ c₁) (f b₂ c₂) (f b₃ c₃) (f b₄ c₄) (f b₅ c₅) (f b₆ c₆) (f b₇ c₇) (f b₈ c₈)
+
 andByte : Byte → Byte → Byte
-andByte x y = bitsToByte (zipWith _∧_ (byteToBits x) (byteToBits y))
+andByte = zipByte _∧_
 
 orByte : Byte → Byte → Byte
-orByte x y = bitsToByte (zipWith _∨_ (byteToBits x) (byteToBits y))
+orByte = zipByte _∨_
 
 xorByte : Byte → Byte → Byte
-xorByte x y = bitsToByte (zipWith _xor_ (byteToBits x) (byteToBits y))
+xorByte = zipByte _xor_
 
 notByte : Byte → Byte
-notByte x = bitsToByte (vmap not (byteToBits x))
+notByte = mapByte not
+
+countBits : ∀ {n} → Bits n → ℕ
+countBits [] = 0
+countBits (x ∷ xs) = (if x then 1 else 0) + countBits xs
 
 popCount : Byte → ℕ
-popCount b = count (byteToBits b)
-  where
-    count : ∀ {n} → Bits n → ℕ
-    count [] = 0
-    count (x ∷ xs) = (if x then 1 else 0) + count xs
+popCount b = countBits (byteToBits b)
 ```

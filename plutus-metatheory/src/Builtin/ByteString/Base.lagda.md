@@ -114,12 +114,12 @@ _++ᵇ_ : ByteString → ByteString → ByteString
 []       ++ᵇ ys = ys
 (x ∷ xs) ++ᵇ ys = x ∷ (xs ++ᵇ ys)
 
+reverseAcc : ByteString → ByteString → ByteString
+reverseAcc acc []       = acc
+reverseAcc acc (x ∷ xs) = reverseAcc (x ∷ acc) xs
+
 reverseBS : ByteString → ByteString
-reverseBS = go []
-  where
-    go : ByteString → ByteString → ByteString
-    go acc []       = acc
-    go acc (x ∷ xs) = go (x ∷ acc) xs
+reverseBS = reverseAcc []
 
 mapBS : (Byte → Byte) → ByteString → ByteString
 mapBS f []       = []
@@ -147,22 +147,22 @@ i.e. the element at position i of `toBits bs` is bit i of `bs`.
 Bits* : Set
 Bits* = L.List Bool
 
+toBitsAcc : Bits* → ByteString → Bits*
+toBitsAcc acc []       = acc
+toBitsAcc acc (x ∷ xs) = toBitsAcc (vecToList (byteToBits x) L.++ acc) xs
+
 toBits : ByteString → Bits*
-toBits = go L.[]
-  where
-    go : Bits* → ByteString → Bits*
-    go acc []       = acc
-    go acc (x ∷ xs) = go (vecToList (byteToBits x) L.++ acc) xs
+toBits = toBitsAcc L.[]
 
 -- Inverse of `toBits`. The input is consumed eight bits at a time; a trailing
 -- incomplete byte is dropped.
+fromBitsAcc : ByteString → Bits* → ByteString
+fromBitsAcc acc (b₀ L.∷ b₁ L.∷ b₂ L.∷ b₃ L.∷ b₄ L.∷ b₅ L.∷ b₆ L.∷ b₇ L.∷ rest) =
+  fromBitsAcc (bitsToByte (b₀ ∷ b₁ ∷ b₂ ∷ b₃ ∷ b₄ ∷ b₅ ∷ b₆ ∷ b₇ ∷ []) ∷ acc) rest
+fromBitsAcc acc _ = acc
+
 fromBits : Bits* → ByteString
-fromBits = go []
-  where
-    go : ByteString → Bits* → ByteString
-    go acc (b₀ L.∷ b₁ L.∷ b₂ L.∷ b₃ L.∷ b₄ L.∷ b₅ L.∷ b₆ L.∷ b₇ L.∷ rest) =
-      go (bitsToByte (b₀ ∷ b₁ ∷ b₂ ∷ b₃ ∷ b₄ ∷ b₅ ∷ b₆ ∷ b₇ ∷ []) ∷ acc) rest
-    go acc _ = acc
+fromBits = fromBitsAcc []
 
 lookupBit : Bits* → ℕ → Maybe Bool
 lookupBit L.[]       _       = nothing
@@ -174,14 +174,16 @@ setBit _       _ L.[]       = L.[]
 setBit zero    u (b L.∷ bs) = u L.∷ bs
 setBit (suc i) u (b L.∷ bs) = b L.∷ setBit i u bs
 
+-- Index of the first set bit, counting from the given offset, or -1 if there
+-- is none.
+firstSetBitFrom : ℕ → Bits* → ℤ
+firstSetBitFrom i L.[]           = -[1+ 0 ]
+firstSetBitFrom i (true  L.∷ _)  = + i
+firstSetBitFrom i (false L.∷ bs) = firstSetBitFrom (suc i) bs
+
 -- Index of the first set bit, or -1 if there is none.
 firstSetBit : Bits* → ℤ
-firstSetBit = go 0
-  where
-    go : ℕ → Bits* → ℤ
-    go i L.[]             = -[1+ 0 ]
-    go i (true  L.∷ _)    = + i
-    go i (false L.∷ bs)   = go (suc i) bs
+firstSetBit = firstSetBitFrom 0
 
 -- Shift the bits k places to the left (k ≥ 0) or right (k < 0), filling the
 -- vacated positions with 0 and keeping the length unchanged.
@@ -213,12 +215,12 @@ rotateBits k bits@(_ L.∷ _)   = L.drop (n ∸ r) bits L.++ L.take (n ∸ r) bi
 
 ```
 -- Big-endian interpretation of a bytestring.
+byteStringToℕAcc : ℕ → ByteString → ℕ
+byteStringToℕAcc acc []       = acc
+byteStringToℕAcc acc (b ∷ bs) = byteStringToℕAcc (acc * 256 + byteToℕ b) bs
+
 byteStringToℕ : ByteString → ℕ
-byteStringToℕ = go 0
-  where
-    go : ℕ → ByteString → ℕ
-    go acc []       = acc
-    go acc (b ∷ bs) = go (acc * 256 + byteToℕ b) bs
+byteStringToℕ = byteStringToℕAcc 0
 
 -- Base-256 digits of a natural number, least significant first. The first
 -- argument bounds the number of digits; `nothing` is returned if it is

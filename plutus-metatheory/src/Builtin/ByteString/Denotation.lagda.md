@@ -66,15 +66,16 @@ cons i xs with (+ 0) ≤? i
 slice : ℤ → ℤ → ByteString → ByteString
 slice s k bs = take k (dropB s bs)
 
+-- Look up the byte at index ix, where the first byte has index n.
+indexFrom : ℤ → ℤ → ByteString → Maybe Byte
+indexFrom ix _ [] = nothing
+indexFrom ix n (x ∷ xs) =
+  if does (n ≟ ix)
+  then just x
+  else indexFrom ix (n + 1ℤ) xs
+
 index : ByteString → ℤ → Maybe ℤ
-index bs ix = map byteToℤ (go 0ℤ bs)
-  where
-    go : ℤ → ByteString → Maybe Byte
-    go _ [] = nothing
-    go n (x ∷ xs) =
-      if does (n ≟ ix)
-      then just x
-      else go (n + 1ℤ) xs
+index bs ix = map byteToℤ (indexFrom ix 0ℤ bs)
 ```
 
 ## Bitwise operations and integer conversions (CIP-121, CIP-122, CIP-123)
