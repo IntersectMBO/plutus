@@ -54,7 +54,24 @@ validateParamValue = \case
   ParamList paramValues -> validateParamValues paramValues . BI.unsafeDataAsList
   -- accept the actual proposed value without examining it
   ParamAny -> const True
+  -- See Note [Optional parameter values]
+  ParamMaybe paramValue -> validateMaybeParamValue paramValue . BI.unsafeDataAsConstr
   where
+    validateMaybeParamValue
+      :: ParamValue -> BI.BuiltinPair Integer (BI.BuiltinList BuiltinData) -> Bool
+    validateMaybeParamValue paramValue constr =
+      BI.caseInteger
+        (BI.fst constr)
+        [ \constrArgs ->
+            -- `Just v`: validate v
+            validateParamValue paramValue (BI.head constrArgs)
+              && B.fromOpaque (BI.null (BI.tail constrArgs))
+        , \constrArgs ->
+            -- `Nothing`: unsets the parameter
+            B.fromOpaque (BI.null constrArgs)
+        ]
+        (BI.snd constr)
+
     validateParamValues :: [ParamValue] -> BI.BuiltinList BuiltinData -> Bool
     validateParamValues = \case
       (paramValueHd : paramValueTl) -> \actualValueData ->

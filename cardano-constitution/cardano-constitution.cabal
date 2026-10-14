@@ -111,6 +111,7 @@ test-suite cardano-constitution-test
     Cardano.Constitution.Validator.Data.TestsCommon
     Cardano.Constitution.Validator.Data.UnitTests
     Cardano.Constitution.Validator.GoldenTests
+    Cardano.Constitution.Validator.OptionalParamTests
     Cardano.Constitution.Validator.PropTests
     Cardano.Constitution.Validator.TestsCommon
     Cardano.Constitution.Validator.UnitTests

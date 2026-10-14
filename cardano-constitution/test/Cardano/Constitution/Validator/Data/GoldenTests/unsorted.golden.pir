@@ -173,6 +173,7 @@ program
       ParamInteger :
         (\v -> List (Tuple2 PredKey (List v))) integer -> ParamValue
       ParamList : List ParamValue -> ParamValue
+      ParamMaybe : ParamValue -> ParamValue
       ParamRational :
         (\v -> List (Tuple2 PredKey (List v))) Rational -> ParamValue
   in
@@ -224,6 +225,29 @@ program
                    (unIData eta))
             (\(paramValues : List ParamValue) ->
                /\dead -> validateParamValues paramValues (unListData eta))
+            (\(paramValue : ParamValue) ->
+               /\dead ->
+                 let
+                   !constr : pair integer (list data) = unConstrData eta
+                 in
+                 case
+                   (list data -> bool)
+                   (case integer constr [(\(l : integer) (r : list data) -> l)])
+                   [ (\(constrArgs : list data) ->
+                        case
+                          (all dead. bool)
+                          (validateParamValue
+                             paramValue
+                             (headList {data} constrArgs))
+                          [ (/\dead -> False)
+                          , (/\dead ->
+                               nullList {data} (tailList {data} constrArgs)) ]
+                          {all dead. dead})
+                   , (\(constrArgs : list data) -> nullList {data} constrArgs) ]
+                   (case
+                      (list data)
+                      constr
+                      [(\(l : integer) (r : list data) -> r)]))
             (\(preds : (\v -> List (Tuple2 PredKey (List v))) Rational) ->
                /\dead ->
                  validatePreds
@@ -5346,15 +5370,10 @@ program
                           (all dead. data)
                           (equalsInteger
                              5
-                             ((let
-                                  b = list data
-                                in
-                                \(x : pair integer b) ->
-                                  case
-                                    integer
-                                    x
-                                    [(\(l : integer) (r : b) -> l)])
-                                tup))
+                             (case
+                                integer
+                                tup
+                                [(\(l : integer) (r : list data) -> l)]))
                           [ (/\dead -> error {data})
                           , (/\dead ->
                                case

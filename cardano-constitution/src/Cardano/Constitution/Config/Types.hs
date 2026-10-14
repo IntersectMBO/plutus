@@ -68,7 +68,17 @@ data ParamValue
   | ParamRational (Predicates Tx.Rational)
   | ParamList [ParamValue]
   | ParamAny
+  | ParamMaybe ParamValue
   deriving stock (Haskell.Eq, Haskell.Show, TH.Lift)
+
+{- Note [Optional parameter values]
+
+For an optional value,
+- `Constr 1 []` unsets it (`Nothing` is encoded as `Constr 1 []`)
+- `Constr 0 [v]` : sets it (`Just v` is encoded as `Constr 1 [v])
+
+This is different from a parameter absent from a proposal, which means it is unchanged.
+-}
 
 type Param = (ParamKey, ParamValue)
 
