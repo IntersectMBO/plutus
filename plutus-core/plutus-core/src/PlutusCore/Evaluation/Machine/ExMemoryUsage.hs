@@ -1,6 +1,8 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -39,6 +41,8 @@ import Data.Text.Internal qualified as TI
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import Data.Word
+import GHC.Exts (Int64#)
+import GHC.Int (Int64 (I64#))
 import GHC.Natural
 import GHC.Num.Integer (integerLog2)
 import Universe
@@ -121,46 +125,30 @@ singletonRose cost = CostRose cost []
 {-# INLINE singletonRose #-}
 
 -- See Note [Global local functions].
--- Traverse the final subtree, emitting 'CostLast' when there are no more costs.
--- Save pending siblings as lazy stream suffixes instead of appending their forests.
-flattenCostRoseGo :: CostRose -> [CostRose] -> CostStream
-flattenCostRoseGo (CostRose cost children) siblings =
-  case children of
-    rose : forest ->
-      CostCons cost $ case siblings of
-        [] -> flattenCostRoseGo rose forest
-        next : remaining ->
-          flattenCostRoseOnto rose forest $
-            flattenCostRoseGo next remaining
-    [] ->
-      case siblings of
-        [] -> CostLast cost
-        rose : forest ->
-          CostCons cost $ flattenCostRoseGo rose forest
-
--- See Note [Global local functions].
--- Traverse a subtree with more costs after it. Every step emits 'CostCons', keeping
--- the suffix lazy and avoiding a chain of empty continuations when a subtree ends.
-flattenCostRoseOnto :: CostRose -> [CostRose] -> CostStream -> CostStream
-flattenCostRoseOnto (CostRose cost children) siblings suffix =
-  case children of
-    rose : forest ->
-      CostCons cost $ case siblings of
-        [] -> flattenCostRoseOnto rose forest suffix
-        next : remaining ->
-          flattenCostRoseOnto rose forest $
-            flattenCostRoseOnto next remaining suffix
-    [] ->
-      case siblings of
-        [] -> CostCons cost suffix
-        rose : forest ->
-          CostCons cost $ flattenCostRoseOnto rose forest suffix
+-- Each step emits the pending cost before inspecting the next rose. Saved continuations
+-- emit a cost immediately, so finishing a subtree never traverses exhausted continuations.
+flattenCostRoseGo :: Int64# -> CostRose -> [CostRose] -> (Int64# -> CostStream) -> CostStream
+flattenCostRoseGo i0 rose1 forest2 k =
+  CostCons (unsafeToSatInt $ I64# i0) $
+    let !(CostRose cost1 forest1) = rose1
+        !(I64# i1) = unSatInt cost1
+     in case forest1 of
+          [] -> case forest2 of
+            [] -> k i1
+            rose2' : forest2' -> flattenCostRoseGo i1 rose2' forest2' k
+          rose1' : forest1' -> case forest2 of
+            [] -> flattenCostRoseGo i1 rose1' forest1' k
+            rose2' : forest2' ->
+              flattenCostRoseGo i1 rose1' forest1' $ \i2 ->
+                flattenCostRoseGo i2 rose2' forest2' k
 
 {-| Collapse a 'CostRose' to a lazy linear stream of costs. Retrieving the next element takes O(1)
 time in the worst case regardless of the recursion pattern of the given 'CostRose'. -}
 flattenCostRose :: CostRose -> CostStream
 flattenCostRose (CostRose cost []) = CostLast cost
-flattenCostRose (CostRose cost (rose : forest)) = CostCons cost $ flattenCostRoseGo rose forest
+flattenCostRose (CostRose cost (rose : forest)) =
+  case unSatInt cost of
+    I64# i -> flattenCostRoseGo i rose forest $ \iz -> CostLast $ unsafeToSatInt $ I64# iz
 {-# INLINE flattenCostRose #-}
 
 class ExMemoryUsage a where
