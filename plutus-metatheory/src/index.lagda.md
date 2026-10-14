@@ -107,6 +107,15 @@ import Builtin.Integer.Base
 import Builtin.Integer.Properties
 ```
 
+Bytestrings and bytes are formalised as inductive types, and the bytestring
+builtins (except hashes, encoding and serialisation) are defined in Agda.
+
+```
+import Builtin.ByteString.Byte
+import Builtin.ByteString.Base
+import Builtin.ByteString.Denotation
+```
+
 The types of the built-in operations are defined by a signature.
 These types are abstract, and they can be made concrete to obtain the different
 notions of type used in the formalisation.

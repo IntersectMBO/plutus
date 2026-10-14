@@ -165,6 +165,9 @@ library
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Algorithmic.Signature
     MAlonzo.Code.Builtin
+    MAlonzo.Code.Builtin.ByteString.Base
+    MAlonzo.Code.Builtin.ByteString.Byte
+    MAlonzo.Code.Builtin.ByteString.Denotation
     MAlonzo.Code.Builtin.CInteger
     MAlonzo.Code.Builtin.Constant.AtomicType
     MAlonzo.Code.Builtin.Constant.Type

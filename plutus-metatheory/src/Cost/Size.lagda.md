@@ -21,7 +21,8 @@ open import Agda.Builtin.Int using (pos)
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 
-open import Utils using (_,_;_∷_;[];DATA;List;ByteString)
+open import Utils using (_,_;_∷_;[];DATA;List)
+open import Builtin.ByteString.Base using (ByteString)
 open import Builtin.Signature using (_⊢♯)
 open _⊢♯
 open import Builtin.Constant.AtomicType using (AtomicTyCon)

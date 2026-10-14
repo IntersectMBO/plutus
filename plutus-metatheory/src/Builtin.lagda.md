@@ -34,7 +34,9 @@ open import Relation.Binary using (DecidableEquality)
 open import Data.Bool using (Bool; _∧_; if_then_else_)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
-open import Utils using (ByteString;Maybe;DATA;Value;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯;Byte)
+open import Utils using (Maybe;DATA;Value;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
+open import Builtin.ByteString.Base using (ByteString)
+open import Builtin.ByteString.Denotation public
 import Utils as U
 open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;Args)
                  using (integer;string;bytestring;unit;bool;pdata;value;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
@@ -579,15 +581,6 @@ postulate
 {-# FOREIGN GHC import Data.Word (Word8) #-}
 {-# FOREIGN GHC import Data.Bits (toIntegralSized) #-}
 
-open ByteString
-open Byte
-open import Data.Integer.Base 
-open import Relation.Nullary.Decidable using (does)
-
-lengthBS : ByteString → Int
-lengthBS [] = + 0
-lengthBS (_ ∷ xs) = (+ 1) + lengthBS xs
-
 
 -- no binding needed for addition
 -- no binding needed for subtract
@@ -600,57 +593,9 @@ lengthBS (_ ∷ xs) = (+ 1) + lengthBS xs
 -- no binding needed for lessthaneq
 -- no binding needed for equals
 
-concat : ByteString → ByteString → ByteString
-concat [] ys = ys
-concat (x ∷ xs) ys = x ∷ concat xs ys
-
 {-# COMPILE GHC SHA2-256 = fromHS . Hash.sha2_256 . toHS #-}
 {-# COMPILE GHC SHA3-256 = fromHS . Hash.sha3_256 . toHS #-}
 {-# COMPILE GHC BLAKE2B-256 = fromHS . Hash.blake2b_256 . toHS #-}
-
-equals : ByteString → ByteString → Bool
-equals = U.eqByteString
-
--- Lexicographic order on bytestrings, comparing bytes as unsigned numbers.
-B<= : ByteString → ByteString → Bool
-B<= [] _ = true
-B<= (_ ∷ _) [] = false
-B<= (b₁ ∷ tail₁) (b₂ ∷ tail₂) =
-  if U.byteToℕ b₁ Data.Nat.<ᵇ U.byteToℕ b₂ then true
-  else if U.byteToℕ b₁ Data.Nat.≡ᵇ U.byteToℕ b₂ then B<= tail₁ tail₂
-  else false
-
-B< : ByteString → ByteString → Bool
-B< bs₁ bs₂ = B<= bs₁ bs₂ ∧ Data.Bool.not (equals bs₁ bs₂)
-
--- V1 of consByteString
--- {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
--- The argument must be a valid byte value, i.e. in [0, 255]; otherwise the
--- builtin fails.
-
-open import Data.Integer using (_≤?_)
-open import Relation.Nullary.Decidable using (yes; no)
-
-cons : Int → ByteString → Maybe ByteString
-cons i xs with (+ 0) ≤? i
-... | yes p = 
-        if i ≤ᵇ (+ 255) then just (U.ℤToByte i ∷ xs) else nothing
-    where
-      instance _ = nonNegative p
-... | no _ = nothing
-
-slice : Int → Int → ByteString → ByteString
-slice s k bs = U.take k (U.dropB s bs)
-
-index : ByteString → Int → Maybe Int
-index bs ix = Data.Maybe.map U.byteToℤ (go 0ℤ bs)
-  where
-    go : Int → ByteString → Maybe Byte
-    go _ [] = nothing
-    go n (x ∷ xs) =
-      if does (n Data.Integer.≟ ix)
-      then just x
-      else go (n + 1ℤ) xs
 
 {-# FOREIGN GHC import PlutusCore.Crypto.Ed25519 #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.Secp256k1 #-}
@@ -709,86 +654,6 @@ index bs ix = Data.Maybe.map U.byteToℤ (go 0ℤ bs)
 
 {-# COMPILE GHC KECCAK-256 = fromHS . Hash.keccak_256 . toHS #-}
 {-# COMPILE GHC BLAKE2B-224 = fromHS . Hash.blake2b_224 . toHS #-}
-
--- Bitwise operations and integer conversions (CIP-121, CIP-122, CIP-123).
-
-open import Data.Integer using (_<?_)
-open import Data.List using (foldr)
-open import Data.Bool.ListAction using (all)
-
--- The number of bits in a bytestring.
-bitLength : ByteString → Int
-bitLength bs = lengthBS bs * (+ 8)
-
--- Is i a valid bit index for a bytestring with n bits?
-validBitIndex : Int → Int → Bool
-validBitIndex n i = (0ℤ ≤ᵇ i) ∧ does (i <? n)
-
--- The production implementation takes the shift/rotation amount as a 64-bit
--- Haskell `Int`, so amounts outside its range fail; we reproduce that here.
-fitsInt : Int → Bool
-fitsInt i = (-[1+ 9223372036854775807 ] ≤ᵇ i) ∧ (i ≤ᵇ + 9223372036854775807)
-
-BStoI : Bool → ByteString → Int
-BStoI true  bs = + U.byteStringToℕ bs
-BStoI false bs = + U.byteStringToℕ (U.reverseBS bs)
-
-ItoBS : Bool → Int → Int → Maybe ByteString
-ItoBS e w n =
-  if (0ℤ ≤ᵇ w) ∧ (w ≤ᵇ + 8192) ∧ (0ℤ ≤ᵇ n)
-  then U.ℕToByteString e ∣ w ∣ ∣ n ∣
-  else nothing
-
-andBYTESTRING : Bool → ByteString → ByteString → ByteString
-andBYTESTRING pad = U.zipWithBS U.andByte pad U.255B
-
-orBYTESTRING : Bool → ByteString → ByteString → ByteString
-orBYTESTRING pad = U.zipWithBS U.orByte pad U.0B
-
-xorBYTESTRING : Bool → ByteString → ByteString → ByteString
-xorBYTESTRING pad = U.zipWithBS U.xorByte pad U.0B
-
-complementBYTESTRING : ByteString → ByteString
-complementBYTESTRING = U.mapBS U.notByte
-
-readBIT : ByteString → Int → Maybe Bool
-readBIT bs i =
-  if validBitIndex (bitLength bs) i
-  then U.lookupBit (U.toBits bs) ∣ i ∣
-  else nothing
-
-writeBITS : ByteString → List Int → Bool → Maybe ByteString
-writeBITS bs ixs u =
-  if all (validBitIndex (bitLength bs)) ixs
-  then just (U.fromBits (foldr (λ i → U.setBit ∣ i ∣ u) (U.toBits bs) ixs))
-  else nothing
-
-replicateBYTE : Int → Int → Maybe ByteString
-replicateBYTE l w with U.toByte w
-... | nothing = nothing
-... | just b  =
-  if (0ℤ ≤ᵇ l) ∧ (l ≤ᵇ + 8192)
-  then just (U.replicateBS ∣ l ∣ b)
-  else nothing
-
-shiftBYTESTRING : ByteString → Int → Maybe ByteString
-shiftBYTESTRING bs k =
-  if fitsInt k
-  then just (U.fromBits (U.shiftBits k (U.toBits bs)))
-  else nothing
-
-rotateBYTESTRING : ByteString → Int → Maybe ByteString
-rotateBYTESTRING bs k =
-  if fitsInt k
-  then just (U.fromBits (U.rotateBits k (U.toBits bs)))
-  else nothing
-
-countSetBITS : ByteString → Int
-countSetBITS []       = 0ℤ
-countSetBITS (b ∷ bs) = (+ U.popCount b) + countSetBITS bs
-
-findFirstSetBIT : ByteString → Int
-findFirstSetBIT bs = U.firstSetBit (U.toBits bs)
 
 {-# COMPILE GHC RIPEMD-160 = fromHS . Hash.ripemd_160 . toHS #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.ExpMod qualified as ExpMod #-}

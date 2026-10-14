@@ -27,7 +27,8 @@ open import Data.Integer public using (ℤ)
 open import Relation.Binary.PropositionalEquality public using (_≡_; refl)
 
 open import Utils public
-  using (List; _×_; _,_; DATA; mkByteString; mkArray; valueFromList)
+  using (List; _×_; _,_; DATA; mkArray; valueFromList)
+open import Builtin.ByteString.Base public using (mkByteString)
 open Utils.List public
 open Utils.DATA public
 

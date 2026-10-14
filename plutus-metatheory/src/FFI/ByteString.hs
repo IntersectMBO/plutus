@@ -3,11 +3,12 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
 
-{-| The runtime representation of the Agda bytestrings defined in @Utils@, and
+{-| The runtime representation of the Agda bytes and bytestrings defined in
+@Builtin.ByteString.Byte@ and @Builtin.ByteString.Base@, and
 conversions to and from Haskell bytestrings.
 
 The bytestring builtins are implemented in Agda, and the compiled code runs
-those implementations on this representation (a list of bytes, each a list of
+those implementations on this representation (a list of bytes, each eight
 bits). Haskell bytestrings are only used at the boundaries: by the builtins
 that are still postulated (hashes, signatures, encoding, serialisation, BLS,
 Value), by costing, inside 'Data', and in the constants of the terms that are
