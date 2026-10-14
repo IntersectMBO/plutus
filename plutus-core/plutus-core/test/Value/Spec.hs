@@ -360,13 +360,13 @@ prop_oppositeScaleIsInverse :: Integer -> Value -> Property
 prop_oppositeScaleIsInverse c v =
   let
     scaledValue = do
-      vInv <- V.scaleValue (negate c) v
+      vInv <- V.scaleValue (-c) v
       v' <- V.scaleValue c v
       V.unionValue v' vInv
    in
     property $ case scaledValue of
       BuiltinSuccess r -> r == V.empty
-      _ -> scaleIncorrectlyBound c v
+      _ -> scaleIncorrectlyBound c v || scaleIncorrectlyBound (-c) v
 
 prop_dataRoundtrip :: Value -> Property
 prop_dataRoundtrip v =
