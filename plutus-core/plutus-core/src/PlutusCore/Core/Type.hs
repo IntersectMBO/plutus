@@ -209,6 +209,7 @@ data TyVarDecl tyname ann = TyVarDecl
   , _tyVarDeclKind :: Kind ann
   }
   deriving stock (Functor, Show, Generic)
+  deriving anyclass (NFData)
 
 makeLenses ''TyVarDecl
 
@@ -219,6 +220,7 @@ data VarDecl tyname name uni ann = VarDecl
   , _varDeclType :: Type tyname uni ann
   }
   deriving stock (Functor, Show, Generic)
+  deriving anyclass (NFData)
 
 makeLenses ''VarDecl
 

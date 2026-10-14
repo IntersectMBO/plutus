@@ -51,6 +51,7 @@ data PluginOptions = PluginOptions
   , _posDumpPlc :: Bool
   , _posDumpUPlc :: Bool
   , _posDumpTimings :: Bool
+  , _posForceTimings :: Bool
   , _posOptimize :: Bool
   , _posPedantic :: Bool
   , _posVerbosity :: Verbosity
@@ -225,8 +226,11 @@ pluginOptions =
           desc = "Dump Untyped Plutus Core"
        in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
     , let k = "dump-timings"
-          desc = "Report source-plugin and compiler-stage wall/CPU timings to stderr, forcing stage results."
+          desc = "Print the wall-clock and CPU time of each compilation stage to stderr."
        in (k, PluginOption typeRep (setTrue k) posDumpTimings desc [])
+    , let k = "force-timings"
+          desc = "Force each stage's result before stopping its timer. Requires dump-timings."
+       in (k, PluginOption typeRep (setTrue k) posForceTimings desc [])
     , let k = "inline-unconditional-growth"
           desc =
             "Sets the inlining threshold for unconditional inlining. `n` allows unconditional "
@@ -422,6 +426,7 @@ defaultPluginOptions =
     , _posDumpPlc = False
     , _posDumpUPlc = False
     , _posDumpTimings = False
+    , _posForceTimings = True
     , _posOptimize = True
     , _posPedantic = False
     , _posVerbosity = Quiet

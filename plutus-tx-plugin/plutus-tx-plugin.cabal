@@ -267,6 +267,7 @@ test-suite frontend-plugin-tests
     Timing.Enabled
     Timing.Spec
     Timing.Terms
+    Timing.Unforced
 
   build-depends:
     , base                             >=4.9   && <5

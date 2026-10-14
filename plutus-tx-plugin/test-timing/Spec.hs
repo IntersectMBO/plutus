@@ -1,3 +1,4 @@
+-- | Tests for 'timeStage': forcing, output, and exceptions.
 module Main (main) where
 
 import PlutusTx.Plugin.Timing (timeStage)
@@ -13,6 +14,7 @@ import Test.Tasty.HUnit (Assertion, assertBool, assertFailure, testCase, (@?=))
 import Test.Tasty.Runners (NumThreads (..))
 import Text.Read (readMaybe)
 
+-- | Run serially because stderr redirection is process-wide.
 main :: IO ()
 main =
   defaultMain $
@@ -22,18 +24,18 @@ main =
         [ testCase "disabled timing does not force the result or emit output" $ do
             (result, output) <-
               captureStderr $
-                timeStage False "test" "disabled" rnf (pure (error "deferred" :: Int))
+                timeStage False True "test" "disabled" rnf (pure (error "deferred" :: Int))
             output @?= ""
             assertThrows (evaluate result)
         , testCase "disabled timing does not evaluate the forcing function" $ do
             (result, output) <-
               captureStderr $
-                timeStage False "test" "disabled" (error "unused forcing function") (pure (42 :: Int))
+                timeStage False True "test" "disabled" (error "unused forcing function") (pure (42 :: Int))
             result @?= 42
             output @?= ""
         , testCase "enabled timing preserves the result and runs the action once" $ do
             counter <- newIORef (0 :: Int)
-            (result, output) <- captureStderr $ timeStage True "test" "successful" rnf $ do
+            (result, output) <- captureStderr $ timeStage True True "test" "successful" rnf $ do
               modifyIORef' counter (+ 1)
               pure [1 :: Int, 2]
             result @?= [1, 2]
@@ -51,16 +53,38 @@ main =
             (_, output) <-
               captureStderr $
                 assertThrows $
-                  timeStage True "test" "failed" rnf (pure [1 :: Int, error "lazy tail"])
+                  timeStage True True "test" "failed" rnf (pure [1 :: Int, error "lazy tail"])
             output @?= ""
         , testCase "action failures are propagated without a success record" $ do
             (_, output) <-
               captureStderr $
                 assertThrows $
-                  timeStage True "test" "failed" rnf (evaluate (error "failed action" :: Int))
+                  timeStage True True "test" "failed" rnf (evaluate (error "failed action" :: Int))
+            output @?= ""
+        , testCase "non-forcing timing preserves a lazy result and emits one record" $ do
+            counter <- newIORef (0 :: Int)
+            (result, output) <- captureStderr $ timeStage True False "test" "lazy" rnf $ do
+              modifyIORef' counter (+ 1)
+              pure (error "deferred" :: Int)
+            readIORef counter >>= (@?= 1)
+            length (lines output) @?= 1
+            take 3 (words output) @?= ["PLINTH_TIMING", "test", "lazy"]
+            assertThrows (evaluate result)
+        , testCase "non-forcing timing does not evaluate the forcing function" $ do
+            (result, output) <-
+              captureStderr $
+                timeStage True False "test" "lazy" (error "unused forcing function") (pure (42 :: Int))
+            result @?= 42
+            length (lines output) @?= 1
+        , testCase "non-forcing timing propagates action failures without a record" $ do
+            (_, output) <-
+              captureStderr $
+                assertThrows $
+                  timeStage True False "test" "failed" rnf (evaluate (error "failed action" :: Int))
             output @?= ""
         ]
 
+-- | Assert that the action throws something.
 assertThrows :: IO result -> Assertion
 assertThrows action = do
   outcome <- try (action >> pure ()) :: IO (Either SomeException ())
@@ -68,6 +92,7 @@ assertThrows action = do
     Left _ -> pure ()
     Right () -> assertFailure "Expected an exception"
 
+-- | Capture stderr during the action, restoring it even if the action throws.
 captureStderr :: IO result -> IO (result, String)
 captureStderr action = withSystemTempFile "plinth-timings" $ \_ captured ->
   bracket (hDuplicate stderr) hClose $ \original -> do

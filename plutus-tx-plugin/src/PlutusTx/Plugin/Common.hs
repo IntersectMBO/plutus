@@ -365,6 +365,7 @@ mkPluginPass :: TH.Name -> PluginOptions -> GHC.CoreToDo
 mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts ->
   timeStage
     (opts ^. posDumpTimings)
+    (opts ^. posForceTimings)
     (GHC.moduleNameString (GHC.moduleName (GHC.mg_module guts)))
     "core.total"
     (GHC.seqBinds . GHC.mg_binds)
@@ -675,6 +676,7 @@ compileMarkedExpr _locStr codeTy origE = do
   origE' <-
     timeStage
       (opts ^. posDumpTimings)
+      (opts ^. posForceTimings)
       timingScope
       "core.occurrence-analysis"
       GHC.seqExpr
@@ -688,6 +690,7 @@ compileMarkedExpr _locStr codeTy origE = do
   (bsPir, bsPlc, covIdxFlat) <-
     timeStage
       (opts ^. posDumpTimings)
+      (opts ^. posForceTimings)
       timingScope
       "core.serialize-and-embed"
       (\(pir, plc, coverageIndex) -> GHC.seqExpr pir `seq` GHC.seqExpr plc `seq` GHC.seqExpr coverageIndex)
@@ -868,6 +871,7 @@ runCompiler packageName moduleName timingScope opts expr = do
   -- GHC.Core -> Pir translation.
   pirP <- timeStage
     (opts ^. posDumpTimings)
+    (opts ^. posForceTimings)
     timingScope
     "core.expr-to-pir"
     (forcePirProgram forceProvenance)
@@ -881,6 +885,7 @@ runCompiler packageName moduleName timingScope opts expr = do
   spirP <-
     timeStage
       (opts ^. posDumpTimings)
+      (opts ^. posForceTimings)
       timingScope
       "core.pir-optimization"
       (forcePirProgram forceProvenance)
@@ -894,6 +899,7 @@ runCompiler packageName moduleName timingScope opts expr = do
   plcP <-
     timeStage
       (opts ^. posDumpTimings)
+      (opts ^. posForceTimings)
       timingScope
       "core.pir-to-tplc"
       (forcePlcProgram forceProvenance)
@@ -907,6 +913,7 @@ runCompiler packageName moduleName timingScope opts expr = do
   when (opts ^. posDoTypecheck) . void
     $ timeStage
       (opts ^. posDumpTimings)
+      (opts ^. posForceTimings)
       timingScope
       "core.tplc-typecheck"
       rnf
@@ -919,6 +926,7 @@ runCompiler packageName moduleName timingScope opts expr = do
       then do
         erased <- timeStage
           True
+          (opts ^. posForceTimings)
           timingScope
           "core.tplc-erasure"
           (forceUplcProgram forceProvenance)
@@ -928,12 +936,14 @@ runCompiler packageName moduleName timingScope opts expr = do
         renamed <-
           timeStage
             True
+            (opts ^. posForceTimings)
             timingScope
             "core.uplc-renaming"
             (forceUplcProgram forceProvenance)
             (PLC.rename erased)
         timeStage
           True
+          (opts ^. posForceTimings)
           timingScope
           "core.uplc-optimization"
           (forceUplcProgram forceProvenance . fst)
@@ -945,13 +955,19 @@ runCompiler packageName moduleName timingScope opts expr = do
   case opts ^. posCertify of
     Nothing -> pure ()
     Just certifyPath ->
-      timeStage (opts ^. posDumpTimings) timingScope "core.certification" (const ()) $
-        liftIO $
-          generateCertificate packageName moduleName opts simplTrace certifyPath
+      timeStage
+        (opts ^. posDumpTimings)
+        (opts ^. posForceTimings)
+        timingScope
+        "core.certification"
+        (const ())
+        $ liftIO
+        $ generateCertificate packageName moduleName opts simplTrace certifyPath
 
   dbP <-
     timeStage
       (opts ^. posDumpTimings)
+      (opts ^. posForceTimings)
       timingScope
       "core.debruijn"
       (forceUplcProgram forceProvenance)
@@ -967,6 +983,7 @@ runCompiler packageName moduleName timingScope opts expr = do
   -- TODO: keep it and do something useful with it
   timeStage
     (opts ^. posDumpTimings)
+    (opts ^. posForceTimings)
     timingScope
     "core.finalize-annotations"
     (\(pir, uplc) -> forcePirProgram rnf pir `seq` forceUplcProgram rnf uplc)

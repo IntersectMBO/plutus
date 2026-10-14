@@ -27,6 +27,7 @@ plugin =
           Failure errs -> throwIO errs
         timeStage
           (opts ^. posDumpTimings)
+          (opts ^. posForceTimings)
           "<driver>"
           "source.driver"
           ( \result ->
@@ -40,12 +41,13 @@ plugin =
           Success o -> pure o
           Failure errs -> liftIO $ throwIO errs
         let enabled = opts ^. posDumpTimings
+            forceResults = opts ^. posForceTimings
             scope = GHC.moduleNameString (GHC.moduleName (GHC.tcg_mod env))
-            measure stage = timeStage enabled scope stage forceSourceBinds
+            measure stage = timeStage enabled forceResults scope stage forceSourceBinds
             maybeInjectAnchors =
               if opts ^. posPreserveSourceLocations then injectAnchors else pure
-        if enabled then liftIO $ evaluate (forceSourceBinds env) else pure ()
-        timeStage enabled scope "source.total" (const ()) $ do
+        timeStage enabled forceResults scope "source.total" (const ()) $ do
+          if enabled && forceResults then liftIO $ evaluate (forceSourceBinds env) else pure ()
           anchored <- measure "source.anchors" (maybeInjectAnchors env)
           supported <- measure "source.unsupported-markers" (injectUnsupportedMarkers anchored)
           measure "source.inlineable-pragmas" (addInlineables supported)

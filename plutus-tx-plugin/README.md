@@ -16,27 +16,25 @@ if !(impl(ghcjs) || os(ghcjs))
 
 ## Compilation timings
 
-Use `-fplugin-opt Plinth.Plugin:dump-timings` to report source-plugin and
-Core-to-UPLC compilation timings. The option is disabled by default;
-`no-dump-timings` explicitly disables it.
+`-fplugin-opt Plinth.Plugin:dump-timings` prints the wall-clock and CPU time of
+each compilation stage to stderr. It is off by default.
 
-Each successfully completed stage writes one tab-separated record to stderr:
+Each stage that completes writes one tab-separated line:
 
 ```text
 PLINTH_TIMING<TAB>scope<TAB>stage<TAB>wall_nanoseconds<TAB>cpu_picoseconds
 ```
 
-Wall time uses a monotonic clock. CPU time is process CPU time. The scope is
-the module name, with the marked variable name appended for expression stages
-when available. Anonymous expressions use `module:expression`, which may repeat.
-The driver hook uses `<driver>` because it runs before module information is
-available. Failed stages do not emit a success record; always check the compiler
-exit status before interpreting the output.
+Wall time comes from a monotonic clock; CPU time is process CPU time. `scope` is
+the module name. Per-expression stages append `:name` of the marked variable, or
+`:expression` when the marked expression is not a variable, so scopes can repeat.
+The driver hook runs before any module is known and uses `<driver>`. A stage that
+throws prints nothing, so check the compiler's exit status before using the output.
 
 | Stage | Work measured |
 |---|---|
 | `source.driver` | Driver hook updating GHC flags and extensions |
-| `source.total` | Typecheck-result hook, enclosing the three source transformations below |
+| `source.total` | Typecheck-result hook: the three stages below, plus the input traversal when forcing is on |
 | `source.anchors` | Source-location anchor insertion, when enabled |
 | `source.unsupported-markers` | Insertion of markers for unsupported constructs |
 | `source.inlineable-pragmas` | Adding missing INLINEABLE pragmas |
@@ -54,20 +52,30 @@ exit status before interpreting the output.
 | `core.serialize-and-embed` | Serialization and construction of GHC byte-string literals |
 | `core.certification` | Certificate generation, when enabled |
 
-Enabled timers force intermediate AST results before stopping, so lazy work is
-attributed to the stage producing the AST rather than a later consumer. This
-adds traversal cost and can change evaluation order, allocation and garbage
-collection. Disabled timers do not force results or read clocks.
+### Forcing
 
-Source timers traverse expressions and binding inline pragmas rather than
-deep-evaluating GHC's cyclic environment. The initial input traversal is outside
-`source.total`. When source-location preservation is disabled, `source.anchors`
-records an identity action plus traversal overhead. These source hooks do not
-measure GHC's own parsing, renaming or typechecking.
+By default each stage fully evaluates its result before its timer stops, so lazy
+work is charged to the stage that produced it rather than to the first stage that
+consumes it. These extra traversals take time and can change allocation and GC
+behaviour. Add `-fplugin-opt Plinth.Plugin:no-force-timings` to skip them: totals
+then carry less overhead, but a stage's time may include work deferred from an
+earlier stage, and work deferred past the end of a hook is missing from that
+hook's total. `force-timings` restores the default; neither option does anything
+without `dump-timings`.
 
-Each record excludes its own stderr write; enclosing totals include child
-records' logging overhead. Do not add child stages to enclosing totals.
-Source totals exclude initial option parsing and plugin loading. `core.total`
-excludes the preparatory GHC simplifier installed before the plugin pass and
-subsequent GHC code generation. These are instrumented timings, not exact
-zero-overhead measurements of uninstrumented compilation.
+Source stages force only the typechecked bindings (`tcg_binds`) and each binder's
+inline pragma, not the rest of GHC's `TcGblEnv`. With forcing on, `source.total`
+also includes one traversal of the input before the first transformation. Unless
+`preserve-source-locations` is on, `source.anchors` inserts nothing and measures
+only the traversal of its unchanged result, or nothing when forcing is off.
+
+### What the numbers include
+
+- A line's own stderr write is outside its stage, but totals include the writes
+  of their child stages. Totals already contain their children; do not add them up.
+- Not measured: GHC's parsing, renaming, typechecking and code generation, plugin
+  loading and option parsing, and the GHC simplifier run that the plugin installs
+  before its own pass.
+- Without `dump-timings` the plugin reads no clocks and forces nothing. With it,
+  the timings describe the instrumented compiler; for end-to-end compile time,
+  time the whole GHC process.
