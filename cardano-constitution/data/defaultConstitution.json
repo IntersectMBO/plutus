@@ -739,14 +739,121 @@
     "predicates": [
       {
         "maxValue": { "numerator": 1000, "denominator": 1 },
-        "$comment": "minFeeRefScriptCoinsPerByte must not exceed 1,000 (0.001 ada)"
+        "$comment": "MFRS-01: must not exceed 1,000 (0.001 ada)"
       },
       {
         "minValue": { "numerator": 0, "denominator": 1 },
-        "$comment": "minFeeRefScriptCoinsPerByte must not be negative"
+        "$comment": "MFRS-02: must not be negative"
+      },
+      {
+        "notEqual": { "numerator": 0, "denominator": 1 },
+        "$comment": "MFRS-05: must not be zero"
       }
     ],
-    "$comment": "minFeeRefScriptCoinsPerByte"
+    "$comment": "minFeeRefScriptCostPerByte"
+  },
+
+  "34": {
+    "type": "uint.size4",
+    "predicates": [
+      {
+        "minValue": 409600,
+        "$comment": "MRSB-04 (and implies MRSB-05): not lower than 409,600, the maximum of maxRefScriptSizePerTx"
+      },
+      {
+        "maxValue": 2097152,
+        "$comment": "MRSB-03: not more than 2,097,152 (2 MiB, twice the Conway value)"
+      },
+      {
+        "notEqual": 0,
+        "$comment": "MRSB-02: must not be zero"
+      }
+    ],
+    "$comment": "maxRefScriptSizePerBlock"
+  },
+
+  "35": {
+    "type": "uint.size4",
+    "predicates": [
+      {
+        "minValue": 204800,
+        "$comment": "MRST-04: not lower than 204,800 (the Conway value; supports MRST-08, no decrease)"
+      },
+      {
+        "maxValue": 409600,
+        "$comment": "MRST-03: not more than 409,600 (twice the Conway value)"
+      },
+      {
+        "notEqual": 0,
+        "$comment": "MRST-02: must not be zero"
+      }
+    ],
+    "$comment": "maxRefScriptSizePerTx"
+  },
+
+  "36": {
+    "type": "uint.size4",
+    "predicates": [
+      {
+        "minValue": 12800,
+        "$comment": "RSCS-04: not lower than 12,800 (half the Conway value)"
+      },
+      {
+        "maxValue": 102400,
+        "$comment": "RSCS-03 (and implies RSCS-05): not more than 102,400, below the minimum of maxRefScriptSizePerTx"
+      },
+      {
+        "notEqual": 0,
+        "$comment": "RSCS-01: must not be zero"
+      }
+    ],
+    "$comment": "refScriptCostStride"
+  },
+
+  "37": {
+    "type": "nonnegative_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 1, "denominator": 1 },
+        "$comment": "RSCM-02: not lower than 1.0 (1.0 allowed: flat curve)"
+      },
+      {
+        "maxValue": { "numerator": 2, "denominator": 1 },
+        "$comment": "RSCM-03: not more than 2 (Conway value 1.2; TSC notes suggest about 2)"
+      }
+    ],
+    "$comment": "refScriptCostMultiplier"
+  },
+
+  "38": {
+    "type": "nonnegative_interval",
+    "optional": true,
+    "predicates": [
+      {
+        "minValue": { "numerator": 1, "denominator": 1 },
+        "$comment": "MPL-01: when set, not lower than 1"
+      },
+      {
+        "maxValue": { "numerator": 10000, "denominator": 1 },
+        "$comment": "MPL-02: when set, not more than 10,000"
+      }
+    ],
+    "$comment": "maxPledgeLeverage (null accepted: MPL-03)"
+  },
+
+  "39": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 0, "denominator": 1 },
+        "$comment": "MPM-01: must not be negative"
+      },
+      {
+        "maxValue": { "numerator": 1, "denominator": 10 },
+        "$comment": "MPM-02: not more than 0.1 (10%) -- CANDIDATE, needs a Parameters Committee value"
+      }
+    ],
+    "$comment": "minPoolMargin"
   },
 
   "4": {
@@ -762,6 +869,156 @@
       }
     ],
     "$comment": "maxBlockHeaderSize"
+  },
+
+  "40": {
+    "type": "uint.size4",
+    "predicates": [
+      {
+        "minValue": 1000,
+        "$comment": "LAPL-01: not lower than 1,000 ms (CIP-0164 value; safety-critical, 0 is not allowed)"
+      },
+      {
+        "maxValue": 5000,
+        "$comment": "LAPL-02: not more than 5,000 ms (Praos delta)"
+      }
+    ],
+    "$comment": "leiosAnnouncementPeriodLength (ms)"
+  },
+
+  "41": {
+    "type": "uint.size4",
+    "predicates": [
+      {
+        "minValue": 2000,
+        "$comment": "LVPL-01: not lower than 2,000 ms (half the CIP-0164 value)"
+      },
+      {
+        "maxValue": 20000,
+        "$comment": "LVPL-02: not more than 20,000 ms (expected interval between blocks)"
+      }
+    ],
+    "$comment": "leiosVotePeriodLength (ms)"
+  },
+
+  "42": {
+    "type": "uint.size4",
+    "predicates": [
+      {
+        "minValue": 4000,
+        "$comment": "LDPL-01: not lower than 4,000 ms (CIP-0164 minimum at its example values; safety-critical)"
+      },
+      {
+        "maxValue": 14000,
+        "$comment": "LDPL-02: not more than 14,000 ms (twice the CIP-0164 value)"
+      }
+    ],
+    "$comment": "leiosDiffusionPeriodLength (ms)"
+  },
+
+  "43": {
+    "type": "uint.size2",
+    "predicates": [
+      {
+        "minValue": 300,
+        "$comment": "LCS-03 (and implies LCS-02): not lower than 300 seats (about P75 of stake at epoch 649, the floor for tau = 0.75)"
+      }
+    ],
+    "$comment": "leiosCommitteeSize (no upper bound, by design)"
+  },
+
+  "44": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 1, "denominator": 2 },
+        "$comment": "LQST-01: greater than 0.5 (with notEqual 1/2)"
+      },
+      {
+        "notEqual": { "numerator": 1, "denominator": 2 },
+        "$comment": "LQST-01: greater than 0.5"
+      },
+      {
+        "maxValue": { "numerator": 1, "denominator": 1 },
+        "$comment": "LQST-02: lower than 1.0 (with notEqual 1)"
+      },
+      {
+        "notEqual": { "numerator": 1, "denominator": 1 },
+        "$comment": "LQST-02: lower than 1.0"
+      }
+    ],
+    "$comment": "leiosQuorumStakeThreshold"
+  },
+
+  "45": {
+    "type": "uint.size4",
+    "predicates": [
+      {
+        "minValue": 0,
+        "$comment": "maxEndorserBlockReferencesSize must not be negative"
+      },
+      {
+        "maxValue": 1000000,
+        "$comment": "MEBRS-03: not more than 1,000,000 bytes"
+      }
+    ],
+    "$comment": "maxEndorserBlockReferencesSize"
+  },
+
+  "46": {
+    "type": "uint.size4",
+    "predicates": [
+      {
+        "maxValue": 12000000,
+        "$comment": "MEBTS-03: not more than 12,000,000 bytes. No script floor: 0 must stay possible (MEBTS-02 is (x))"
+      }
+    ],
+    "$comment": "maxEndorserBlockTxsSize (0 = Linear Leios kill switch)"
+  },
+
+  "47[0]": {
+    "type": "uint",
+    "predicates": [
+      {
+        "minValue": 120000000,
+        "$comment": "MEBEU-M-02 (and implies MEBEU-M-04, MEBEU-M-08's floor): not lower than 120,000,000, the MBEU-M-01 cap on the per-block limit"
+      },
+      {
+        "maxValue": 7000000000,
+        "$comment": "MEBEU-M-03: not more than 7,000,000,000 (CIP-0164 value)"
+      }
+    ],
+    "$comment": "maxEndorserBlockExecutionUnits[memory]"
+  },
+
+  "47[1]": {
+    "type": "uint",
+    "predicates": [
+      {
+        "minValue": 40000000000,
+        "$comment": "MEBEU-S-02 (and implies MEBEU-S-04): not lower than 40,000,000,000, the MBEU-S-01 cap on the per-block limit"
+      },
+      {
+        "maxValue": 2000000000000,
+        "$comment": "MEBEU-S-03: not more than 2,000,000,000,000 (CIP-0164 value)"
+      }
+    ],
+    "$comment": "maxEndorserBlockExecutionUnits[steps]"
+  },
+
+  "48": {
+    "type": "uint.size4",
+    "predicates": [
+      {
+        "minValue": 409600,
+        "$comment": "MRSEB-04 (and implies MRSEB-02, MRSEB-05): not lower than 409,600, the maximum of maxRefScriptSizePerTx"
+      },
+      {
+        "maxValue": 12000000,
+        "$comment": "MRSEB-03: not more than 12,000,000 bytes (CIP-0164 value)"
+      }
+    ],
+    "$comment": "maxRefScriptSizePerEndorserBlock"
   },
 
   "5": {
@@ -806,8 +1063,8 @@
     "type": "epoch_interval",
     "predicates": [
       {
-        "minValue": 0,
-        "$comment": "poolRetireMaxEpoch must not be negative"
+        "minValue": 1,
+        "$comment": "PRME-02a: poolRetireMaxEpoch must not be lower than 1"
       }
     ],
     "$comment": "poolRetireMaxEpoch"
