@@ -979,16 +979,17 @@ program
                                                 (\constr ->
                                                    case
                                                      (case constr [(\l r -> l)])
-                                                     [ (\constrArgs ->
+                                                     [ (\xs ->
                                                           case
-                                                            (validateParamValue
-                                                               paramValue
-                                                               (forced
-                                                                  constrArgs))
-                                                            [ False
-                                                            , (forced
-                                                                 (forced
-                                                                    constrArgs)) ])
+                                                            xs
+                                                            [ (\x xs ->
+                                                                 case
+                                                                   (validateParamValue
+                                                                      paramValue
+                                                                      x)
+                                                                   [ False
+                                                                   , (forced
+                                                                        xs) ]) ])
                                                      , (\constrArgs ->
                                                           forced constrArgs) ]
                                                      (case

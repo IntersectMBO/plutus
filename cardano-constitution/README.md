@@ -76,7 +76,7 @@ maxValue configValue proposedValue = configValue Tx.>= proposedValue
 notEqual configValue proposedValue = configValue Tx./= proposedValue
 ```
 
-A parameter whose value is optional on the ledger side (a `Maybe`-like value, which a proposal may also set) is expressed in the `Config` by wrapping its rules with `ParamMaybe`.
+A parameter whose value is optional (a `Maybe`-like value, which a proposal may also set) is expressed in the `Config` by wrapping its rules with `ParamMaybe`.
 In JSON, it is expressed `"optional": true`.
 The predicates of such a parameter only apply when the proposal sets the value.
 A proposal that unsets the value is always accepted.
@@ -112,8 +112,7 @@ ChangedSingleValueData =
    -- as a many-value data (sub-parameter) of two integer single-value data.
    | Constr 0 [ChangedSingleValueData] -- set an optional value
    | Constr 1 []                       -- unset an optional value
-   -- ^ only for parameters whose value is optional on the ledger side (a `StrictMaybe`);
-   -- this is the encoding of PlutusTx's `Maybe` (and of the ledger's `StrictMaybe`).
+   -- this is the encoding of Plinth's `Maybe`.
 ```
 
 , where Map,I,List,Constr are the constructors of `PlutusCore.Data`

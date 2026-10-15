@@ -62,10 +62,12 @@ validateParamValue = \case
     validateMaybeParamValue paramValue constr =
       BI.caseInteger
         (BI.fst constr)
-        [ \constrArgs ->
-            -- `Just v`: validate v
-            validateParamValue paramValue (BI.head constrArgs)
-              && B.fromOpaque (BI.null (BI.tail constrArgs))
+        [ -- `Just v`: validate v
+          BI.unsafeCaseList
+            ( \x xs ->
+                validateParamValue paramValue x
+                  && B.fromOpaque (BI.null xs)
+            )
         , \constrArgs ->
             -- `Nothing`: unsets the parameter
             B.fromOpaque (BI.null constrArgs)

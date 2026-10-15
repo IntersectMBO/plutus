@@ -233,16 +233,17 @@ program
                  case
                    (list data -> bool)
                    (case integer constr [(\(l : integer) (r : list data) -> l)])
-                   [ (\(constrArgs : list data) ->
+                   [ (\(xs : list data) ->
                         case
-                          (all dead. bool)
-                          (validateParamValue
-                             paramValue
-                             (headList {data} constrArgs))
-                          [ (/\dead -> False)
-                          , (/\dead ->
-                               nullList {data} (tailList {data} constrArgs)) ]
-                          {all dead. dead})
+                          bool
+                          xs
+                          [ (\(x : data) (xs : list data) ->
+                               case
+                                 (all dead. bool)
+                                 (validateParamValue paramValue x)
+                                 [ (/\dead -> False)
+                                 , (/\dead -> nullList {data} xs) ]
+                                 {all dead. dead}) ])
                    , (\(constrArgs : list data) -> nullList {data} constrArgs) ]
                    (case
                       (list data)

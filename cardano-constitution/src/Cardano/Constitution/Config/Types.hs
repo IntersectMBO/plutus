@@ -75,7 +75,7 @@ data ParamValue
 
 For an optional value,
 - `Constr 1 []` unsets it (`Nothing` is encoded as `Constr 1 []`)
-- `Constr 0 [v]` : sets it (`Just v` is encoded as `Constr 1 [v])
+- `Constr 0 [v]` : sets it (`Just v` is encoded as `Constr 0 [v])
 
 This is different from a parameter absent from a proposal, which means it is unchanged.
 -}
