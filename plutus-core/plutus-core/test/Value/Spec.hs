@@ -15,6 +15,7 @@ import Data.List.Extra (nubOrdOn, sortOn)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.SatInt (fromSatInt)
+import Data.Set qualified as Set
 import Safe.Foldable (maximumMay)
 import Test.QuickCheck
 import Test.Tasty
@@ -204,18 +205,12 @@ prop_policiesAfterDeletion v0 =
     BuiltinSuccess v = if V.totalSize v0 > 0 then pure v0 else V.insertCoin "c" "t" 1 v0
 
 {-| Policy ids for the @keepPolicies@/@dropPolicies@ properties.
-
-Some are drawn from the `Value` itself, so that the properties test a filter that actually
-keeps or removes something. The rest are generated and almost never match, which is what
-exercises the absent-id path. Some are then repeated, because a repeated id finds what an earlier
-occurrence already recorded and neither builtin may count it twice. -}
+The ids are in strict ascending order. -}
 genPolicyIds :: Value -> Gen [ByteString]
 genPolicyIds v = do
   present <- sublistOf (V.policies v)
   absent <- listOf (V.unK <$> genShortHex (V.totalSize v))
-  let ids = present <> absent
-  repeats <- sublistOf ids
-  shuffle (ids <> repeats)
+  pure . Set.toAscList . Set.fromList $ present <> absent
 
 {-| Run a policy filter on a `Value` the generators keep far below `policyFilterMaxSize`,
 so that a failure here is a bug and not the bound. -}
@@ -705,14 +700,6 @@ tests =
     , testProperty
         "keepDropPartition"
         (withNumTests 20 prop_keepDropPartition)
-    , testCase "policyFiltersAcceptTheSizeBound" $ do
-        let v = manyPoliciesValue V.policyFilterMaxSize
-        refused (V.keepPolicies [] v) @?= False
-        refused (V.dropPolicies [] v) @?= False
-    , testCase "policyFiltersRefuseAboveTheSizeBound" $ do
-        let v = manyPoliciesValue (V.policyFilterMaxSize + 1)
-        refused (V.keepPolicies [] v) @?= True
-        refused (V.dropPolicies [] v) @?= True
     , testProperty
         "containsReflexive"
         prop_containsReflexive

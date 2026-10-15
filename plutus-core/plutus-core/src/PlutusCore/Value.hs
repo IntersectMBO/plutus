@@ -54,6 +54,7 @@ import Control.Monad.Extra
   , whenJust
   , (>=>)
   )
+import Control.Monad.Trans.State.Strict (State, runState, state)
 import Data.Bifunctor
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
@@ -62,11 +63,10 @@ import Data.Foldable (find)
 import Data.Hashable (Hashable (..))
 import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap
-import Data.List qualified as List
 import Data.Map.Merge.Strict qualified as M
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Set qualified as Set
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
 import GHC.Stack
@@ -474,52 +474,81 @@ policyFilterOverflow name =
   fail $ name <> ": maximum number of policies (" <> show policyFilterMaxSize <> ") exceeded"
 {-# INLINE policyFilterOverflow #-}
 
+enforceAscendingKeys :: String -> [ByteString] -> BuiltinResult [K]
+enforceAscendingKeys name xs = do
+  ks <- traverse toK xs
+  unless (and (zipWith (<) ks (drop 1 ks))) $
+    fail (name <> ": policy ids not strictly ascending")
+  pure ks
+  where
+    toK b = maybe (fail $ name <> ": invalid policy id: " <> show (B.unpack b)) pure (k b)
+{-# INLINEABLE enforceAscendingKeys #-}
+
 {-| The `Value` restricted to the given currency symbols, in \(O(p \log m)\) for a list of
 \(p\) ids and an outer map of size \(m\).  Ids the `Value` does not have, including any
-longer than `maxKeyLen`, are ignored.  Fails if the `Value` holds more than
-`policyFilterMaxSize` policies. -}
+longer than `maxKeyLen`, are ignored. Fails if the list is not in strict ascending order. -}
 keepPolicies :: [ByteString] -> Value -> BuiltinResult Value
 keepPolicies ps (Value outer _ _ _ negs)
   | Map.size outer > policyFilterMaxSize = policyFilterOverflow "keepPolicies"
-  | otherwise =
-      let outer' = List.foldl' keep Map.empty (mapMaybe k ps)
-          keep acc currency = case Map.lookup currency outer of
-            Nothing -> acc
-            Just inner -> Map.insert currency inner acc
-          negs' = Map.intersection negs outer'
+  | otherwise = do
+      ks <- enforceAscendingKeys "keepPolicies" ps
+      let wanted = Set.fromDistinctAscList ks
+          outer' = Map.restrictKeys outer wanted
+          negs' = Map.restrictKeys negs wanted
           !neg = Map.foldl' (+) 0 negs'
           Sizes sizes total = sizeCaches outer'
-       in pure $ Value outer' sizes total neg negs'
+      pure $ Value outer' sizes total neg negs'
 {-# INLINEABLE keepPolicies #-}
+
+data Dropped
+  = Dropped
+      !(IntMap Int)
+      -- ^ Size buckets (i.e., Map from size to the number of inner maps that have that size)
+      {-# UNPACK #-} !Int
+      -- ^ Total size
+      {-# UNPACK #-} !Int
+      -- ^ Number of negative amounts removed so far
 
 {-| The `Value` with the given currency symbols removed, in \(O(p \log m)\) for a list of
 \(p\) ids and an outer map of size \(m\).  Ids the `Value` does not have, including any
-longer than `maxKeyLen`, are ignored.  Fails if the `Value` holds more than
-`policyFilterMaxSize` policies. -}
+longer than `maxKeyLen`, are ignored. Fails if the list is not in strict ascending order. -}
 dropPolicies :: [ByteString] -> Value -> BuiltinResult Value
-dropPolicies ps v@(Value outer _ _ _ _)
-  | Map.size outer > policyFilterMaxSize = policyFilterOverflow "dropPolicies"
-  | otherwise = pure $ List.foldl' dropPolicy v (mapMaybe k ps)
+dropPolicies ps (Value outer sizes total neg negs) = do
+  ks <- enforceAscendingKeys "dropPolicies" ps
+  let unwanted :: Map K ()
+      unwanted = Map.fromDistinctAscList [(c, ()) | c <- ks]
+
+      dropPolicy :: K -> Map K Quantity -> () -> State Dropped (Maybe (Map K Quantity))
+      dropPolicy policy inner _ = state $ \(Dropped ss t n) ->
+        let innerSize = Map.size inner
+            !dropped =
+              Dropped
+                (updateSizes innerSize 0 ss)
+                (t - innerSize)
+                (n + Map.findWithDefault 0 policy negs)
+         in (Nothing, dropped)
+
+      (outer', Dropped sizes' total' droppedNeg) =
+        runState
+          ( M.mergeA
+              M.preserveMissing -- policies not in the list stay, whole subtrees at a time
+              M.dropMissing -- policies not found the Value are ignored
+              (M.zipWithMaybeAMatched dropPolicy)
+              outer
+              unwanted
+          )
+          (Dropped sizes total 0)
+
+      negs' =
+        M.merge
+          M.preserveMissing
+          M.dropMissing
+          (M.zipWithMaybeMatched $ \_ _ _ -> Nothing)
+          negs
+          unwanted
+
+  pure $ Value outer' sizes' total' (neg - droppedNeg) negs'
 {-# INLINEABLE dropPolicies #-}
-
-{-| Remove one currency and subtract its contribution from the cached fields.
-
-A currency the `Value` does not have is a no-op. That is also why a repeated id in
-`dropPolicies` does no harm: the first occurrence removes it, and later ones find nothing. -}
-dropPolicy :: Value -> K -> Value
-dropPolicy v@(Value outer sizes total neg negs) currency =
-  case Map.updateLookupWithKey (\_ _ -> Nothing) currency outer of
-    (Nothing, _) -> v
-    (Just inner, outer') ->
-      let innerSize = Map.size inner
-          (mInnerNeg, negs') = Map.updateLookupWithKey (\_ _ -> Nothing) currency negs
-       in Value
-            outer'
-            (updateSizes innerSize 0 sizes)
-            (total - innerSize)
-            (neg - fromMaybe 0 mInnerNeg)
-            negs'
-{-# INLINE dropPolicy #-}
 
 {-| \(O(n_{2}\log \max(m_{1}, k_{1}))\), where \(n_{2}\) is the total size of the second
 `Value`, \(m_{1}\) is the size of the outer map in the first `Value` and \(k_{1}\) is
