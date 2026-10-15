@@ -282,7 +282,7 @@ testPermittedBuiltins =
                 , mkTest changPV builtins1
                 , mkTest plominPV builtins1
                 , mkTest vanRossemPV (allBuiltins \\ builtins7)
-                , mkTest dijkstraPV (allBuiltins \\ builtins7)
+                , mkTest dijkstraPV allBuiltins
                 ]
         , let mkTest = testBuiltins PlutusV2 V2.deserialiseScript
            in testGroup
@@ -296,7 +296,7 @@ testPermittedBuiltins =
                 , mkTest changPV $ builtins1 ++ builtins2 ++ builtins3
                 , mkTest plominPV $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4b
                 , mkTest vanRossemPV (allBuiltins \\ builtins7)
-                , mkTest dijkstraPV (allBuiltins \\ builtins7)
+                , mkTest dijkstraPV allBuiltins
                 ]
         , let mkTest = testBuiltins PlutusV3 V3.deserialiseScript
            in testGroup
@@ -310,7 +310,7 @@ testPermittedBuiltins =
                 , mkTest changPV $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b
                 , mkTest plominPV $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b ++ builtins5
                 , mkTest vanRossemPV (allBuiltins \\ builtins7)
-                , mkTest dijkstraPV (allBuiltins \\ builtins7)
+                , mkTest dijkstraPV allBuiltins
                 ]
         , let mkTest = testBuiltins PlutusV4 V4.deserialiseScript
            in testGroup
@@ -324,7 +324,7 @@ testPermittedBuiltins =
                 , mkTest changPV []
                 , mkTest plominPV []
                 , mkTest vanRossemPV []
-                , mkTest dijkstraPV (allBuiltins \\ builtins7)
+                , mkTest dijkstraPV allBuiltins
                 ]
         ]
 
