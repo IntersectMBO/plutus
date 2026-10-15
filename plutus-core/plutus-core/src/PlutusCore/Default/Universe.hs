@@ -482,11 +482,13 @@ instance
 
 -- These constants share the wrappers independently of full laziness. NOINLINE prevents
 -- inlining from recreating the wrappers at each lifting site.
-falseConstant, trueConstant :: Some (ValueOf DefaultUni)
-falseConstant = Some $ ValueOf DefaultUniBool False
-{-# NOINLINE falseConstant #-}
-trueConstant = Some $ ValueOf DefaultUniBool True
-{-# NOINLINE trueConstant #-}
+falseSomeValue :: Some (ValueOf DefaultUni)
+falseSomeValue = Some $ ValueOf DefaultUniBool False
+{-# NOINLINE falseSomeValue #-}
+
+trueSomeValue :: Some (ValueOf DefaultUni)
+trueSomeValue = Some $ ValueOf DefaultUniBool True
+{-# NOINLINE trueSomeValue #-}
 
 instance
   KnownBuiltinTypeIn DefaultUni term Integer
@@ -504,8 +506,8 @@ instance
   KnownBuiltinTypeIn DefaultUni term Bool
   => MakeKnownIn DefaultUni term Bool
   where
-  makeKnown False = pure $ fromConstant falseConstant
-  makeKnown True = pure $ fromConstant trueConstant
+  makeKnown False = pure $ fromConstant falseSomeValue
+  makeKnown True = pure $ fromConstant trueSomeValue
   {-# INLINE makeKnown #-}
 instance
   KnownBuiltinTypeIn DefaultUni term Data
