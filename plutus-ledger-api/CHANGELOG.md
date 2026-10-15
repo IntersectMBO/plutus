@@ -1,4 +1,20 @@
 
+<a id='changelog-1.72.0.0'></a>
+# 1.72.0.0 — 2026-10-15
+
+## Removed
+
+- `MaxBounds` and `maxBoundsByPV` from `PlutusLedgerApi.Common.Versions`,
+  replaced by the constants `maxHeaderSize` and `maxConstrFields`.
+
+## Changed
+
+- The limits on constant type header size (32) and `constr` field count (1024)
+  enforced when deserialising scripts now apply at every protocol version, rather
+  than only from protocol version 11. It has been verified that no script ever
+  submitted on-chain exceeds these limits, so this does not change the behaviour
+  of any existing script.
+
 <a id='changelog-1.71.0.0'></a>
 # 1.71.0.0 — 2026-09-29
 
