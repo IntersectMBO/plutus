@@ -480,15 +480,13 @@ instance
   KnownBuiltinTypeIn DefaultUni term Value
   => ReadKnownIn DefaultUni term Value
 
--- These constants share the wrappers independently of full laziness. NOINLINE prevents
--- inlining from recreating the wrappers at each lifting site.
+-- Sharing the complete Some values also lets GHC share the surrounding value and result
+-- constructors after specialization of makeKnown.
 falseSomeValue :: Some (ValueOf DefaultUni)
 falseSomeValue = Some $ ValueOf DefaultUniBool False
-{-# NOINLINE falseSomeValue #-}
 
 trueSomeValue :: Some (ValueOf DefaultUni)
 trueSomeValue = Some $ ValueOf DefaultUniBool True
-{-# NOINLINE trueSomeValue #-}
 
 instance
   KnownBuiltinTypeIn DefaultUni term Integer
