@@ -5,6 +5,7 @@ module Plinth.Plugin (plugin, plinthc) where
 import PlutusTx.Options
 import PlutusTx.Plugin.Boilerplate
 import PlutusTx.Plugin.Common
+import PlutusTx.Plugin.Deriving qualified as Deriving
 import PlutusTx.Plugin.Unsupported
 import PlutusTx.Plugin.Utils
 
@@ -18,6 +19,8 @@ plugin :: GHC.Plugin
 plugin =
   GHC.defaultPlugin
     { GHC.driverPlugin = addFlagsAndExts
+    , -- Expand @deriving … via Plinth@ clauses at parse time.
+      GHC.parsedResultAction = Deriving.parsedResultAction
     , GHC.typeCheckResultAction = \cliOpts _modSummary env -> do
         opts <- case parsePluginOptions (removeBoilerplateOpts cliOpts) of
           Success o -> pure o
