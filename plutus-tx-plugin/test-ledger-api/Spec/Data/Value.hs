@@ -482,12 +482,14 @@ runPolicyFilterCode code ps value =
 
 {-| Policy ids to filter by: a sublist of the given policies plus ids certainly absent
 from them (one ordinary, one longer than the 32-byte key limit), so that the absent-id
-path is exercised on the compiled/CEK route as well. -}
+path is exercised on the compiled/CEK route as well. The builtins require the ids within the
+key limit to be strictly ascending; the over-long one is ignored wherever it is. -}
 genPolicyFilterIds :: [BS.ByteString] -> Gen [BS.ByteString]
-genPolicyFilterIds allPolicies = (<> absent) Haskell.<$> sublistOf allPolicies
+genPolicyFilterIds allPolicies =
+  (\picked -> Haskell.sort (picked <> absent) <> [BS.replicate 33 0x78])
+    Haskell.<$> sublistOf allPolicies
   where
-    absent =
-      Haskell.filter (Haskell.not . (`Haskell.elem` allPolicies)) ["#absent", BS.replicate 33 0x78]
+    absent = Haskell.filter (Haskell.not . (`Haskell.elem` allPolicies)) ["#absent"]
 
 test_keepPoliciesUplc :: TestTree
 test_keepPoliciesUplc =

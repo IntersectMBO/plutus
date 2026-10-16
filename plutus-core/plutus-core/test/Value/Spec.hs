@@ -15,6 +15,7 @@ import Data.List.Extra (nubOrdOn, sortOn)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.SatInt (fromSatInt)
+import Data.Set qualified as Set
 import Safe.Foldable (maximumMay)
 import Test.QuickCheck
 import Test.Tasty
@@ -203,19 +204,45 @@ prop_policiesAfterDeletion v0 =
   where
     BuiltinSuccess v = if V.totalSize v0 > 0 then pure v0 else V.insertCoin "c" "t" 1 v0
 
-{-| Policy ids for the @keepPolicies@/@dropPolicies@ properties.
+{-| Policy ids for the @keepPolicies@/@dropPolicies@ properties: strictly ascending, as both
+builtins require, with ids longer than `V.maxKeyLen` spliced in anywhere, since those are
+dropped before the order is checked.
 
 Some are drawn from the `Value` itself, so that the properties test a filter that actually
 keeps or removes something. The rest are generated and almost never match, which is what
-exercises the absent-id path. Some are then repeated, because a repeated id finds what an earlier
-occurrence already recorded and neither builtin may count it twice. -}
+exercises the absent-id path. -}
 genPolicyIds :: Value -> Gen [ByteString]
 genPolicyIds v = do
   present <- sublistOf (V.policies v)
   absent <- listOf (V.unK <$> genShortHex (V.totalSize v))
-  let ids = present <> absent
-  repeats <- sublistOf ids
-  shuffle (ids <> repeats)
+  overlong <- listOf (B.replicate (V.maxKeyLen + 1) <$> arbitrary)
+  F.foldlM spliceIn (Set.toAscList (Set.fromList (present <> absent))) overlong
+  where
+    spliceIn ids x = do
+      i <- choose (0, length ids)
+      pure (take i ids <> (x : drop i ids))
+
+{-| Both filters refuse a repeated id and a pair of ids out of order, whatever the `Value`.
+Over-long ids stay where `genPolicyIds` put them, so the order is broken among the rest. -}
+prop_policyFiltersRequireStrictOrder :: Value -> Property
+prop_policyFiltersRequireStrictOrder v =
+  forAll (genPolicyIds v) $ \ps ->
+    case break valid ps of
+      (before, x : rest) ->
+        let
+          -- the first valid id repeated, and swapped with the next valid one if any
+          repeated = before <> (x : x : rest)
+          swapped = case break valid rest of
+            (between, y : rest') -> [before <> (y : between) <> (x : rest')]
+            _ -> []
+         in
+          conjoin
+            [ property (refused (V.keepPolicies bad v) && refused (V.dropPolicies bad v))
+            | bad <- repeated : swapped
+            ]
+      _ -> property True
+  where
+    valid = (<= V.maxKeyLen) . B.length
 
 {-| Run a policy filter on a `Value` the generators keep far below `policyFilterMaxSize`,
 so that a failure here is a bug and not the bound. -}
@@ -705,6 +732,9 @@ tests =
     , testProperty
         "keepDropPartition"
         (withNumTests 20 prop_keepDropPartition)
+    , testProperty
+        "policyFiltersRequireStrictOrder"
+        (withNumTests 20 prop_policyFiltersRequireStrictOrder)
     , testCase "policyFiltersAcceptTheSizeBound" $ do
         let v = manyPoliciesValue V.policyFilterMaxSize
         refused (V.keepPolicies [] v) @?= False
