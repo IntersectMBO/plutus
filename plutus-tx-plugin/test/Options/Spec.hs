@@ -4,7 +4,7 @@
 -- | Golden tests pinning the user-visible text of `PlutusTx.Options.ParseError`s.
 module Options.Spec where
 
-import PlutusTx.Options (parsePluginOptions, posDumpTimings, posForceTimings, posPlcTargetVersion)
+import PlutusTx.Options (parsePluginOptions, posForceTimings, posPlcTargetVersion)
 
 import Control.Lens (view)
 import Data.Either.Validation (Validation (..))
@@ -25,22 +25,10 @@ tests =
     , testParseErrorGolden "plcParserOptionMalformed" ["target-version=notaversion"]
     , testParseErrorGolden "readOptionMalformed" ["context-level=abc"]
     , testParseErrorGolden "fromReadOptionMalformed" ["verbosity=abc"]
-    , testTimingOption "timings disabled by default" [] False
-    , testTimingOption "enable timing output" ["dump-timings"] True
-    , testTimingOption "disable timing output explicitly" ["dump-timings", "no-dump-timings"] False
-    , testForcingOption "forcing enabled by default" [] True
-    , testForcingOption "disable timing forcing" ["dump-timings", "no-force-timings"] False
-    , testForcingOption "enable timing forcing explicitly" ["no-force-timings", "force-timings"] True
-    , testTimingOption "forcing alone does not enable timing output" ["force-timings"] False
+    , testForcingOption "forcing disabled by default" [] False
+    , testForcingOption "enable timing forcing" ["force-timings"] True
+    , testForcingOption "disable timing forcing explicitly" ["force-timings", "no-force-timings"] False
     ]
-
--- | Check the parsed value of @dump-timings@.
-testTimingOption :: String -> [String] -> Bool -> TestNested
-testTimingOption name options expected = embed $
-  testCase name $
-    case parsePluginOptions options of
-      Success parsed -> view posDumpTimings parsed @?= expected
-      Failure errors -> error (show errors)
 
 -- | Check the parsed value of @force-timings@.
 testForcingOption :: String -> [String] -> Bool -> TestNested

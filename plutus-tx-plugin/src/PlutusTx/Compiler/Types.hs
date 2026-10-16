@@ -68,6 +68,10 @@ data CompileContext uni fun = CompileContext
   , ccDebugTraceOn :: Bool
   , ccRewriteRules :: PIR.RewriteRules uni fun
   , ccSafeToInline :: Bool
+  , ccLogger :: GHC.Logger
+  -- ^ Logger used to report compilation-stage timings.
+  , ccTimingScope :: String
+  -- ^ Module and expression name used to label compilation-stage timings.
   }
 
 data CompileState = CompileState

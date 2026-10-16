@@ -76,7 +76,6 @@ library
     PlutusTx.PLCTypes
     PlutusTx.Plugin.Boilerplate
     PlutusTx.Plugin.Timing
-    PlutusTx.Plugin.Timing.Force
     PlutusTx.Plugin.Unsupported
 
   build-depends:
@@ -249,9 +248,9 @@ test-suite timing-tests
   build-depends:
     , base                   >=4.9 && <5
     , deepseq
+    , ghc
     , tasty
     , tasty-hunit
-    , temporary
 
 test-suite frontend-plugin-tests
   import:         lang, ghc-version-support, os-support

@@ -33,10 +33,9 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`defer-errors`|Bool|False|If a compilation error happens and this option is turned on, the compilation error is suppressed and the original Haskell expression is replaced with a runtime-error expression.|
 |`dump-compilation-trace`|Bool|False|Dump compilation trace for debugging|
 |`dump-pir`|Bool|False|Dump Plutus IR|
-|`dump-timings`|Bool|False|Print the wall-clock and CPU time of each compilation stage to stderr.|
 |`dump-tplc`|Bool|False|Dump Typed Plutus Core|
 |`dump-uplc`|Bool|False|Dump Untyped Plutus Core|
-|`force-timings`|Bool|True|Force each stage's result before stopping its timer. Requires dump-timings.|
+|`force-timings`|Bool|False|Fully evaluate each stage's result before its -ddump-timings timer stops.|
 |`hoist-polymorphic-builtins`|Bool|True|Run the hoist-polymorphic-builtins pass, reducing the number of forces.|
 |`inline-callsite-growth`|Int|5|Sets the inlining threshold for callsite inlining. 0 disables inlining a binding at a callsite if it increases the AST size; `n` allows inlining if the AST size grows by no more than `n`. Keep in mind that doing so does not mean the final program will be bigger, since inlining can often unlock further optimizations.|
 |`inline-constants`|Bool|True|Always inline constants. Inlining constants always reduces script costs slightly, but may increase script sizes if a large constant is used more than once. Implied by `no-conservative-optimisation`.|

@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-dump-timings #-}
 
 -- | 'Timing.Terms' compiled with timing off.
 module Timing.Disabled (increment, choose) where

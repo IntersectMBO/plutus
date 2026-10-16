@@ -48,7 +48,6 @@ import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
 import PlutusTx.Plugin.Boilerplate (removeBoilerplateOpts)
 import PlutusTx.Plugin.Timing
-import PlutusTx.Plugin.Timing.Force
 import PlutusTx.Plugin.Utils qualified
 import PlutusTx.Trace
 import UntypedPlutusCore qualified as UPLC
@@ -75,6 +74,7 @@ import GHC.Tc.Utils.Env qualified as GHC
 import GHC.Tc.Utils.Monad qualified as GHC
 import GHC.Types.TyThing qualified as GHC
 import GHC.Unit.Finder qualified as GHC
+import GHC.Utils.Logger qualified as GHC
 
 import Control.DeepSeq (rnf)
 import Control.Exception (SomeException, throwIO, try)
@@ -362,37 +362,30 @@ because the user may have imported "plc" qualified or aliased it, which will fai
 looks at the module's top-level bindings for markers and compiles their right-hand-side core
 expressions. -}
 mkPluginPass :: TH.Name -> PluginOptions -> GHC.CoreToDo
-mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts ->
-  timeStage
-    (opts ^. posDumpTimings)
-    (opts ^. posForceTimings)
-    (GHC.moduleNameString (GHC.moduleName (GHC.mg_module guts)))
-    "core.total"
-    (GHC.seqBinds . GHC.mg_binds)
-    $ do
-      -- Family env code borrowed from SimplCore
-      p_fam_env <- GHC.getPackageFamInstEnv
-      -- See Note [Marker resolution]
-      maybeMarkerName <- GHC.thNameToGhcName markerTHName
-      maybeanchorGhcName <- GHC.thNameToGhcName 'PlutusTx.Plugin.Utils.anchor
-      case (maybeMarkerName, maybeanchorGhcName) of
-        -- See Note [Marker resolution]
-        (Just markerName, Just anchorGhcName) -> do
-          hscEnv <- GHC.getHscEnv
-          let thisModule = GHC.mg_module guts
-              pctx =
-                PluginCtx
-                  { pcOpts = opts
-                  , pcFamEnvs = (p_fam_env, GHC.mg_fam_inst_env guts)
-                  , pcMarkerName = markerName
-                  , pcAnchorName = anchorGhcName
-                  , pcModuleName = GHC.moduleName thisModule
-                  , pcModuleModBreaks = GHC.mg_modBreaks guts
-                  , pcPackageName = getPackageName hscEnv thisModule
-                  }
-          -- start looking for marker calls from the top-level binds
-          GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
-        _ -> pure guts
+mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> do
+  -- Family env code borrowed from SimplCore
+  p_fam_env <- GHC.getPackageFamInstEnv
+  -- See Note [Marker resolution]
+  maybeMarkerName <- GHC.thNameToGhcName markerTHName
+  maybeanchorGhcName <- GHC.thNameToGhcName 'PlutusTx.Plugin.Utils.anchor
+  case (maybeMarkerName, maybeanchorGhcName) of
+    -- See Note [Marker resolution]
+    (Just markerName, Just anchorGhcName) -> do
+      hscEnv <- GHC.getHscEnv
+      let thisModule = GHC.mg_module guts
+          pctx =
+            PluginCtx
+              { pcOpts = opts
+              , pcFamEnvs = (p_fam_env, GHC.mg_fam_inst_env guts)
+              , pcMarkerName = markerName
+              , pcAnchorName = anchorGhcName
+              , pcModuleName = GHC.moduleName thisModule
+              , pcModuleModBreaks = GHC.mg_modBreaks guts
+              , pcPackageName = getPackageName hscEnv thisModule
+              }
+      -- start looking for marker calls from the top-level binds
+      GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
+    _ -> pure guts
 
 {-| The monad where the plugin runs in for each module.
 It is a core->core compiler monad, called PluginM, augmented with pure errors. -}
@@ -606,6 +599,7 @@ compileMarkedExpr _locStr codeTy origE = do
   opts <- asks pcOpts
   moduleName <- asks pcModuleName
   packageName <- asks pcPackageName
+  logger <- lift . lift $ GHC.getLogger
   let moduleNameStr =
         GHC.showSDocForUser flags GHC.emptyUnitState GHC.alwaysQualify (GHC.ppr moduleName)
   -- We need to do this out here, since it has to run in CoreM
@@ -666,6 +660,8 @@ compileMarkedExpr _locStr codeTy origE = do
           , ccDebugTraceOn = _posDumpCompilationTrace opts
           , ccRewriteRules = makeRewriteRules opts
           , ccSafeToInline = False
+          , ccLogger = logger
+          , ccTimingScope = timingScope
           }
       st = CompileState 0 mempty
       timingScope =
@@ -675,7 +671,7 @@ compileMarkedExpr _locStr codeTy origE = do
   -- See Note [Occurrence analysis]
   origE' <-
     timeStage
-      (opts ^. posDumpTimings)
+      logger
       (opts ^. posForceTimings)
       timingScope
       "core.occurrence-analysis"
@@ -684,12 +680,12 @@ compileMarkedExpr _locStr codeTy origE = do
 
   ((pirP, uplcP), covIdx) <-
     runWriterT . runQuoteT . flip runReaderT ctx . flip evalStateT st $
-      runCompiler packageName moduleNameStr timingScope opts origE'
+      runCompiler packageName moduleNameStr opts origE'
 
   -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
   (bsPir, bsPlc, covIdxFlat) <-
     timeStage
-      (opts ^. posDumpTimings)
+      logger
       (opts ^. posForceTimings)
       timingScope
       "core.serialize-and-embed"
@@ -725,11 +721,12 @@ runCompiler
      )
   => String
   -> String
-  -> String
   -> PluginOptions
   -> GHC.CoreExpr
   -> m (PIRProgram uni fun, UPLCProgram uni fun)
-runCompiler packageName moduleName timingScope opts expr = do
+runCompiler packageName moduleName opts expr = do
+  logger <- asks ccLogger
+  timingScope <- asks ccTimingScope
   GHC.DynFlags {GHC.extensions = extensions} <- asks ccFlags
   let
     enabledExtensions =
@@ -870,11 +867,11 @@ runCompiler packageName moduleName timingScope opts expr = do
 
   -- GHC.Core -> Pir translation.
   pirP <- timeStage
-    (opts ^. posDumpTimings)
+    logger
     (opts ^. posForceTimings)
     timingScope
     "core.expr-to-pir"
-    (forcePirProgram forceProvenance)
+    rnf
     $ do
       pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
       pure (PIR.Program noProvenance plcVersion pirT)
@@ -884,11 +881,11 @@ runCompiler packageName moduleName timingScope opts expr = do
   -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
   spirP <-
     timeStage
-      (opts ^. posDumpTimings)
+      logger
       (opts ^. posForceTimings)
       timingScope
       "core.pir-optimization"
-      (forcePirProgram forceProvenance)
+      rnf
       $ flip runReaderT pirCtx
       $ modifyError (NoContext . PIRError)
       $ PIR.compileToReadable pirP
@@ -898,11 +895,11 @@ runCompiler packageName moduleName timingScope opts expr = do
   -- (Simplified) Pir -> Plc translation.
   plcP <-
     timeStage
-      (opts ^. posDumpTimings)
+      logger
       (opts ^. posForceTimings)
       timingScope
       "core.pir-to-tplc"
-      (forcePlcProgram forceProvenance)
+      rnf
       $ flip runReaderT pirCtx
       $ modifyError (NoContext . PIRError)
       $ PIR.compileReadableToPlc spirP
@@ -912,7 +909,7 @@ runCompiler packageName moduleName timingScope opts expr = do
   -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
   when (opts ^. posDoTypecheck) . void
     $ timeStage
-      (opts ^. posDumpTimings)
+      logger
       (opts ^. posForceTimings)
       timingScope
       "core.tplc-typecheck"
@@ -922,31 +919,31 @@ runCompiler packageName moduleName timingScope opts expr = do
     $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
   (uplcP, simplTrace) <-
-    if opts ^. posDumpTimings
+    if timingsEnabled logger
       then do
         erased <- timeStage
-          True
+          logger
           (opts ^. posForceTimings)
           timingScope
           "core.tplc-erasure"
-          (forceUplcProgram forceProvenance)
+          rnf
           $ pure
           $ case plcP of
             PLC.Program annotation version term -> UPLC.Program annotation version (PLC.eraseTerm term)
         renamed <-
           timeStage
-            True
+            logger
             (opts ^. posForceTimings)
             timingScope
             "core.uplc-renaming"
-            (forceUplcProgram forceProvenance)
+            rnf
             (PLC.rename erased)
         timeStage
-          True
+          logger
           (opts ^. posForceTimings)
           timingScope
           "core.uplc-optimization"
-          (forceUplcProgram forceProvenance . fst)
+          (rnf . fst)
           $ UPLC.optimizeProgramWithTrace
             (plcOpts ^. PLC.coOptimizeOpts)
             (plcOpts ^. PLC.coBuiltinSemanticsVariant)
@@ -956,7 +953,7 @@ runCompiler packageName moduleName timingScope opts expr = do
     Nothing -> pure ()
     Just certifyPath ->
       timeStage
-        (opts ^. posDumpTimings)
+        logger
         (opts ^. posForceTimings)
         timingScope
         "core.certification"
@@ -966,11 +963,11 @@ runCompiler packageName moduleName timingScope opts expr = do
 
   dbP <-
     timeStage
-      (opts ^. posDumpTimings)
+      logger
       (opts ^. posForceTimings)
       timingScope
       "core.debruijn"
-      (forceUplcProgram forceProvenance)
+      rnf
       $ liftExcept
       $ modifyError PLC.FreeVariableErrorE
       $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
@@ -982,11 +979,11 @@ runCompiler packageName moduleName timingScope opts expr = do
   -- Discard the Provenance information at this point, just keep the SrcSpans
   -- TODO: keep it and do something useful with it
   timeStage
-    (opts ^. posDumpTimings)
+    logger
     (opts ^. posForceTimings)
     timingScope
     "core.finalize-annotations"
-    (\(pir, uplc) -> forcePirProgram rnf pir `seq` forceUplcProgram rnf uplc)
+    rnf
     $ pure (fmap getSrcSpans spirP, fmap getSrcSpans dbP)
   where
     -- ugly trick to take out the concrete plc.error and in case of error, map it / rethrow it

@@ -1,6 +1,5 @@
+{-# OPTIONS_GHC -ddump-timings #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:dump-timings #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-force-timings #-}
 
 -- | 'Timing.Terms' compiled with timing on and forcing off.
 module Timing.Unforced (increment, choose) where

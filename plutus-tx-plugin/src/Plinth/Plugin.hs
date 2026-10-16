@@ -6,17 +6,17 @@ import PlutusTx.Options
 import PlutusTx.Plugin.Boilerplate
 import PlutusTx.Plugin.Common
 import PlutusTx.Plugin.Timing
-import PlutusTx.Plugin.Timing.Force
 import PlutusTx.Plugin.Unsupported
 import PlutusTx.Plugin.Utils
 
-import Control.Exception (evaluate, throwIO)
+import Control.Exception (throwIO)
 import Control.Lens ((^.))
 import Control.Monad.IO.Class (liftIO)
 import Data.Either.Validation
 import GHC.LanguageExtensions qualified as GHC
 import GHC.Plugins qualified as GHC
 import GHC.Tc.Types qualified as GHC
+import GHC.Utils.Logger qualified as GHC
 
 plugin :: GHC.Plugin
 plugin =
@@ -26,7 +26,7 @@ plugin =
           Success parsed -> pure parsed
           Failure errs -> throwIO errs
         timeStage
-          (opts ^. posDumpTimings)
+          (GHC.hsc_logger environment)
           (opts ^. posForceTimings)
           "<driver>"
           "source.driver"
@@ -40,14 +40,13 @@ plugin =
         opts <- case parsePluginOptions (removeBoilerplateOpts cliOpts) of
           Success o -> pure o
           Failure errs -> liftIO $ throwIO errs
-        let enabled = opts ^. posDumpTimings
-            forceResults = opts ^. posForceTimings
+        logger <- GHC.getLogger
+        let forceResults = opts ^. posForceTimings
             scope = GHC.moduleNameString (GHC.moduleName (GHC.tcg_mod env))
-            measure stage = timeStage enabled forceResults scope stage forceSourceBinds
+            measure stage = timeStage logger forceResults scope stage (const ())
             maybeInjectAnchors =
               if opts ^. posPreserveSourceLocations then injectAnchors else pure
-        timeStage enabled forceResults scope "source.total" (const ()) $ do
-          if enabled && forceResults then liftIO $ evaluate (forceSourceBinds env) else pure ()
+        measure "source.total" $ do
           anchored <- measure "source.anchors" (maybeInjectAnchors env)
           supported <- measure "source.unsupported-markers" (injectUnsupportedMarkers anchored)
           measure "source.inlineable-pragmas" (addInlineables supported)
