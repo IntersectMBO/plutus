@@ -173,8 +173,8 @@ driverThread
   -> IO ()
 driverThread driverMailbox brickMailbox prog mbudget = do
   let term = prog ^. UPLC.progTerm
-  ndterm <- case runExcept @FreeVariableError $ deBruijnTerm term of
-    Right t -> pure t
+  dbterm <- case runExcept @FreeVariableError $ deBruijnTerm term of
+    Right t -> pure $ UPLC.termMapNames UPLC.unNameDeBruijn t
     Left _ -> fail $ "deBruijnTerm failed: " <> PLC.displayPlc (void term)
   -- if user provided `--budget` the mode is restricting; otherwise just counting
   -- See Note [Budgeting implementation for the debugger]
@@ -189,7 +189,7 @@ driverThread driverMailbox brickMailbox prog mbudget = do
       exBudgetMode
       brickEmitter
       nilSlippage
-  D.iterM (handle cekTransWithBudgetRead) $ D.runDriverT ndterm
+  D.iterM (handle cekTransWithBudgetRead) $ D.runDriverT dbterm
   where
     -- this gets rid of the CountingSt/RestrictingSt newtype wrappers
     -- See Note [Budgeting implementation for the debugger]

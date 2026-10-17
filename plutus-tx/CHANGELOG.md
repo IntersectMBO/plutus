@@ -4,6 +4,8 @@
 
 ## Changed
 
+- `PlutusTx.Eval.EvalResult` now contains `DeBruijn` terms and error causes.
+
 - `keepPolicies` and `dropPolicies` fail on a `Value` with more than 8191 policies, matching the builtins.
 
 - Improved efficiency and consistency of the `union` and `unionWith` operations of

@@ -166,9 +166,8 @@ Finally, it's important to put bang patterns on any 'Int' arguments to ensure th
 this can make a surprisingly large difference.
 -}
 
-{-| The 'Term's that CEK can execute must have DeBruijn binders
-'Name' is not necessary but we leave it here for simplicity and debuggability. -}
-type NTerm uni fun = Term NamedDeBruijn uni fun
+-- | The terms that CEK can execute use nameless de Bruijn indices.
+type NTerm uni fun = Term DeBruijn uni fun
 
 -- | The result of evaluating a term with the CEK machine.
 data CekResult name uni fun
@@ -290,7 +289,7 @@ data CekValue uni fun ann
   = -- This bang gave us a 1-2% speed-up at the time of writing.
     VCon !(Some (ValueOf uni))
   | VDelay !(NTerm uni fun ann) !(CekValEnv uni fun ann)
-  | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
+  | VLamAbs !(NTerm uni fun ann) !(CekValEnv uni fun ann)
   | {-| A partial builtin application, accumulating arguments for eventual full application.
     We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
     values always store their corresponding 'Term's fully discharged, see the comments at
@@ -561,7 +560,7 @@ throwErrorDischarged err = throwErrorWithCause err . dischargeResultToTerm . dis
 
 instance
   ThrowableBuiltins uni fun
-  => MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s)
+  => MonadError (CekEvaluationException DeBruijn uni fun) (CekM uni fun s)
   where
   -- See Note [Throwing exceptions in ST].
   throwError = CekM . throwM
@@ -570,7 +569,7 @@ instance
   catchError
     :: forall a
      . CekM uni fun s a
-    -> (CekEvaluationException NamedDeBruijn uni fun -> CekM uni fun s a)
+    -> (CekEvaluationException DeBruijn uni fun -> CekM uni fun s a)
     -> CekM uni fun s a
   a `catchError` h =
     -- Here in addition to catching 'CekEvaluationException' we also catch common GHC exceptions
@@ -662,9 +661,9 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
     goValue = \case
       VCon val -> Constant () val
       VDelay body env -> Delay () $ goValEnv env 0 body
-      VLamAbs (NamedDeBruijn n _ix) body env ->
+      VLamAbs body env ->
         -- The index on the binder is meaningless, we put @0@ by convention, see 'Binder'.
-        LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env 1 body
+        LamAbs () (DeBruijn deBruijnInitIndex) $ goValEnv env 1 body
       -- We only return a discharged builtin application when (a) it's being returned by the
       -- machine, or (b) it's needed for an error message.
       -- @term@ is fully discharged, so we can return it directly without any further discharging.
@@ -681,15 +680,15 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
         go :: Word64 -> NTerm uni fun ann -> NTerm uni fun ()
         go !shift = \case
           LamAbs _ name body -> LamAbs () name $ go (shift + 1) body
-          Var _ named@(NamedDeBruijn _ (coerce -> idx)) ->
+          Var _ name@(DeBruijn (coerce -> idx)) ->
             if shift >= idx
               -- the index n is less-than-or-equal than the number of lambdas we have descended
               -- this means that n points to a bound variable, so we don't discharge it.
-              then Var () named
+              then Var () name
               else
                 maybe
                   -- var is free, leave it alone
-                  (Var () named)
+                  (Var () name)
                   -- var is in the env, discharge its value
                   goValue
                   -- index relative to (as seen from the point of view of) the environment
@@ -779,7 +778,7 @@ runCekM
   -> ExBudgetMode cost uni fun
   -> EmitterMode uni fun
   -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s (DischargeResult uni fun))
-  -> CekReport cost NamedDeBruijn uni fun
+  -> CekReport cost DeBruijn uni fun
 runCekM
   (MachineParameters caser (MachineVariantParameters costs runtime))
   (ExBudgetMode getExBudgetInfo)
@@ -839,9 +838,9 @@ enterComputeCek = computeCek
       stepAndMaybeSpend BConst
       returnCek ctx (VCon val)
     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
-    computeCek !ctx !env (LamAbs _ name body) = do
+    computeCek !ctx !env (LamAbs _ _ body) = do
       stepAndMaybeSpend BLamAbs
-      returnCek ctx (VLamAbs name body env)
+      returnCek ctx (VLamAbs body env)
     -- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)
     computeCek !ctx !env (Delay _ body) = do
       stepAndMaybeSpend BDelay
@@ -988,7 +987,7 @@ enterComputeCek = computeCek
       -> CekValue uni fun ann -- lhs of application
       -> CekValue uni fun ann -- rhs of application
       -> CekM uni fun s (DischargeResult uni fun)
-    applyEvaluate !ctx (VLamAbs _ body env) arg =
+    applyEvaluate !ctx (VLamAbs body env) arg =
       computeCek ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
@@ -1079,8 +1078,8 @@ enterComputeCek = computeCek
     {-# INLINE spendBudget #-}
 
     -- \| Look up a variable name in the environment.
-    lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
-    lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
+    lookupVarName :: DeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+    lookupVarName varName@(DeBruijn varIx) varEnv =
       Env.contIndexOne
         (throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName)
         pure
@@ -1096,7 +1095,7 @@ runCekDeBruijn
   -> ExBudgetMode cost uni fun
   -> EmitterMode uni fun
   -> NTerm uni fun ann
-  -> CekReport cost NamedDeBruijn uni fun
+  -> CekReport cost DeBruijn uni fun
 runCekDeBruijn params mode emitMode term =
   runCekM params mode emitMode $ do
     unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts

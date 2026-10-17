@@ -246,12 +246,13 @@ options =
 
 evaluateWithCek
   :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-  -> UPLC.EvaluationResult (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+  -> UPLC.EvaluationResult (UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ())
 evaluateWithCek =
   UPLC.unsafeSplitStructuralOperational
     . UPLC.cekResultToEither
     . UPLC._cekReportResult
     . UPLC.runCekDeBruijn PLC.defaultCekParametersForTesting UPLC.restrictingEnormous UPLC.noEmitter
+    . UPLC.termMapNames UPLC.unNameDeBruijn
 
 writeFlatNamed :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
 writeFlatNamed prog = BS.putStr . Flat.flat . UPLC.UnrestrictedProgram $ prog
@@ -372,37 +373,43 @@ printSizesAndBudgets = do
 main :: IO ()
 main = do
   execParser
-    (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo))) >>= \case
-    RunPLC pa ->
-      print . prettyPlc . fmap fromNamedDeBruijnUPLC . evaluateWithCek . getTerm $ pa
-    RunHaskell pa ->
-      case pa of
-        Clausify formula -> print $ Clausify.runClausify formula
-        Knights depth boardSize -> print $ Knights.runKnights depth boardSize
-        LastPiece -> print $ LastPiece.runLastPiece
-        Queens boardSize alg -> print $ Queens.runQueens boardSize alg
-        Prime input -> print $ Prime.runFixedPrimalityTest input
-        Primetest n ->
-          if n < 0
-            then Hs.error "Positive number expected"
-            else print $ Prime.runPrimalityTest n
-    DumpPLC pa ->
-      traverse_ putStrLn
-        $ unindent
-        . prettyPlc
-        . UPLC.Program () PLC.latestVersion
-        . fromNamedDeBruijnUPLC
-        . getTerm
-        $ pa
-      where
-        -- These are big programs and with indentation the output is > 90% whitespace
-        unindent d = map (dropWhile isSpace) $ (Hs.lines . Hs.show $ d)
-    DumpFlatNamed pa ->
-      writeFlatNamed . UPLC.Program () PLC.latestVersion . getTerm $ pa
-    DumpFlatDeBruijn pa ->
-      writeFlatDeBruijn . UPLC.Program () PLC.latestVersion . toAnonDeBruijnTerm . getTerm $ pa
-    SizesAndBudgets ->
-      printSizesAndBudgets
+    (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo)))
+    >>= \case
+      RunPLC pa ->
+        print
+          . prettyPlc
+          . fmap (fromNamedDeBruijnUPLC . UPLC.termMapNames UPLC.fakeNameDeBruijn)
+          . evaluateWithCek
+          . getTerm
+          $ pa
+      RunHaskell pa ->
+        case pa of
+          Clausify formula -> print $ Clausify.runClausify formula
+          Knights depth boardSize -> print $ Knights.runKnights depth boardSize
+          LastPiece -> print $ LastPiece.runLastPiece
+          Queens boardSize alg -> print $ Queens.runQueens boardSize alg
+          Prime input -> print $ Prime.runFixedPrimalityTest input
+          Primetest n ->
+            if n < 0
+              then Hs.error "Positive number expected"
+              else print $ Prime.runPrimalityTest n
+      DumpPLC pa ->
+        traverse_ putStrLn
+          $ unindent
+          . prettyPlc
+          . UPLC.Program () PLC.latestVersion
+          . fromNamedDeBruijnUPLC
+          . getTerm
+          $ pa
+        where
+          -- These are big programs and with indentation the output is > 90% whitespace
+          unindent d = map (dropWhile isSpace) $ (Hs.lines . Hs.show $ d)
+      DumpFlatNamed pa ->
+        writeFlatNamed . UPLC.Program () PLC.latestVersion . getTerm $ pa
+      DumpFlatDeBruijn pa ->
+        writeFlatDeBruijn . UPLC.Program () PLC.latestVersion . toAnonDeBruijnTerm . getTerm $ pa
+      SizesAndBudgets ->
+        printSizesAndBudgets
   where
     -- Write the output to stdout and let the user deal with redirecting it.
     getTerm :: ProgAndArgs -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()

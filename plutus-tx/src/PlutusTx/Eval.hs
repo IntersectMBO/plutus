@@ -13,7 +13,7 @@ import Data.Either (isRight)
 import Data.SatInt (unSatInt)
 import Data.Text (Text)
 import Formatting (commas, format)
-import PlutusCore.DeBruijn.Internal (NamedDeBruijn)
+import PlutusCore.DeBruijn.Internal (DeBruijn)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -21,7 +21,7 @@ import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachinePa
 import PlutusCore.Pretty
 import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import Prettyprinter (dot, indent, plural, vsep, (<+>))
-import UntypedPlutusCore (DefaultFun, DefaultUni, Program (..))
+import UntypedPlutusCore (DefaultFun, DefaultUni, Program (..), termMapNames, unNameDeBruijn)
 import UntypedPlutusCore.Evaluation.Machine.Cek
   ( CekEvaluationException
   , CekReport (..)
@@ -35,7 +35,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
 data EvalResult = EvalResult
   { evalResult
       :: Either
-           (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+           (CekEvaluationException DeBruijn DefaultUni DefaultFun)
            (NTerm DefaultUni DefaultFun ())
   , evalResultBudget :: ExBudget
   , evalResultTraces :: [Text]
@@ -106,7 +106,7 @@ evaluateCompiledCode' params code = EvalResult {..}
   where
     Program _ann _version term = getPlcNoAnn code
     CekReport (cekResultToEither -> evalResult) (CountingSt evalResultBudget) evalResultTraces =
-      runCekDeBruijn params counting logEmitter term
+      runCekDeBruijn params counting logEmitter (termMapNames unNameDeBruijn term)
 
 evaluatesToError :: CompiledCode a -> Bool
 evaluatesToError = not . evaluatesWithoutError

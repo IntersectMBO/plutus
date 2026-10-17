@@ -10,6 +10,8 @@
 
 ## Changed
 
+- CEK and SteppableCEK now evaluate `Term DeBruijn` and return nameless results and error causes. `NTerm` uses `DeBruijn`, and `VLamAbs` no longer stores a binder. The `Name`-based wrappers reconstruct fresh variable names in their outputs.
+
 - `Value` now caches the number of negative amounts per currency, not only in total, which makes `keepPolicies` and `dropPolicies` logarithmic in the `Value` rather than linear in its size. The CPU and memory models of `insertCoin`, `unionValue`, `scaleValue` and `unValueData` account for maintaining it.
 - `keepPolicies` and `dropPolicies` fail on a `Value` with more than 8191 policies (`policyFilterMaxSize`).
 
