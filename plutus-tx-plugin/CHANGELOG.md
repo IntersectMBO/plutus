@@ -1,3 +1,15 @@
+
+<a id='changelog-1.72.0.0'></a>
+# 1.72.0.0 — 2026-10-15
+
+## Fixed
+
+- Fix compilation of `caseData` and `caseInteger` when GHC floats branch lists
+  into named bindings, including V4 `ProposalProcedure` and `Committee` decoders.
+
+- Fix sum-type decoding when targeting Plutus Core 1.1.0 by avoiding unsupported
+  `case` expressions on `Data`.
+
 <a id='changelog-1.71.0.0'></a>
 # 1.71.0.0 — 2026-09-29
 
