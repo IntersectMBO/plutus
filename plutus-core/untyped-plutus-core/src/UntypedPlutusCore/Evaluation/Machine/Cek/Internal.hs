@@ -67,6 +67,13 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
   , defaultSlippage
   , NTerm
   , runCekM
+  , freeVars
+  , conv
+  , ClosureAnn (..)
+  , Projection (..)
+  , lam
+  , var
+  , lookupEnv
   )
 where
 
@@ -112,6 +119,12 @@ import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
 import Universe
+
+import Data.List qualified as List
+import Data.Map as Map (Map, insert, lookup, (!))
+import Data.Primitive.PrimArray as Prim
+import Data.Primitive.SmallArray
+import Data.Set as Set (Set, insert, singleton, union)
 
 {- Note [Compilation peculiarities]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -320,6 +333,130 @@ deriving stock instance
   => Show (CekValue uni fun ann)
 
 type CekValEnv uni fun ann = Env.RAList (CekValue uni fun ann)
+
+shift :: Index -> Index
+shift (Index n) = Index (n + 1)
+
+unshift :: Index -> Index
+unshift (Index n) = Index (n - 1)
+
+-- Free variables
+-- TODO, check case Var _ (NamedDeBruijn _ i) where i <= 0
+freeVars :: NTerm uni fun ann -> NTerm uni fun (Set Index)
+freeVars (Var _ x@(NamedDeBruijn _ i)) = Var (singleton i) x
+freeVars (LamAbs _ x t) = LamAbs fvs x t'
+  where
+    t' = freeVars t
+    fvs = foldr unshiftOrDrop mempty (getAnn t')
+
+    unshiftOrDrop :: Index -> Set Index -> Set Index
+    unshiftOrDrop (Index 1) xs = xs
+    unshiftOrDrop n xs = Set.insert (unshift n) xs
+freeVars (Apply _ s t) = Apply (getAnn s' <> getAnn t') s' t'
+  where
+    s' = freeVars s
+    t' = freeVars t
+freeVars (Force _ t) = Force (getAnn t') t'
+  where
+    t' = freeVars t
+freeVars (Delay _ t) = Delay (getAnn t') t'
+  where
+    t' = freeVars t
+freeVars (Constant _ c) = Constant mempty c
+freeVars (Builtin _ b) = Builtin mempty b
+freeVars (Case _ t ts) = Case fvs t' ts'
+  where
+    t' = freeVars t
+    ts' = V.map freeVars ts
+    fvs = V.foldr union (getAnn t') (V.map getAnn ts')
+freeVars (Constr _ i ts) = Constr fvs i ts'
+  where
+    ts' = map freeVars ts
+    fvs = foldr union mempty (map getAnn ts')
+freeVars (Error _) = Error mempty
+
+-- Testing
+lam :: NTerm uni fun () -> NTerm uni fun ()
+lam = LamAbs () (NamedDeBruijn "" 0)
+
+var :: Word64 -> NTerm uni fun ()
+var x = Var () (NamedDeBruijn "" (Index x))
+
+-- Which elements to project out of the CEK environment into the closure's
+-- environment
+newtype Projection = Projection (PrimArray Int)
+
+projectionFromList :: [Int] -> Projection
+projectionFromList = Projection . primArrayFromList
+
+data ClosureAnn
+  = AnnNone
+  | AnnProjection !Projection
+  | AnnIx {-# UNPACK #-} !Int
+
+-- TODO: could all of this be faster when using named Uniques in variables?
+-- Would require no shifting
+-- TODO: should conv's list be a Map Index Int?
+
+mkProjection :: [Index] -> [Index] -> Projection
+mkProjection closure surrounding = projectionFromList $ map varSlot closure
+  where
+    -- Each `Index n` is a free variable of the closure,
+    -- and we return its index in the surrounding layout
+    varSlot :: Index -> Int
+    varSlot db =
+      fromMaybe
+        -- This should be impossible if the term is well-scoped
+        (error $ "conv: variable " <> show db <> "not in layout" <> show surrounding)
+        (List.elemIndex db surrounding)
+
+-- Closure conversion: annotate variables with their index in the environment and lambdas with a
+-- projection to construct closure environments at run-time. `layout` has the shape of the run-time
+-- CEK environment, but with a variable for each slot.
+conv :: [Index] -> NTerm uni fun (Set Index) -> NTerm uni fun ClosureAnn
+conv layout (Var _ x@(NamedDeBruijn _ db)) =
+  case List.elemIndex db layout of
+    Nothing -> error "conv: impossible: variable that is not in layout (free variables)"
+    Just ix -> Var (AnnIx ix) x
+conv layout (LamAbs fvs x t) = LamAbs ann x (conv bodyLayout t)
+  where
+    ann = AnnProjection $ mkProjection closureLayout layout
+    closureLayout = toList fvs
+    bodyLayout = Index 1 : map shift closureLayout
+conv layout (Apply _ s t) = Apply AnnNone (conv layout s) (conv layout t)
+conv layout (Force _ t) = Force AnnNone (conv layout t)
+conv layout (Delay fvs t) = Delay ann (conv bodyLayout t)
+  where
+    ann = AnnProjection $ mkProjection closureLayout layout
+    closureLayout = toList fvs
+    bodyLayout = map shift closureLayout
+conv _ (Constant _ c) = Constant AnnNone c
+conv _ (Builtin _ b) = Builtin AnnNone b
+conv layout (Case _ t ts) = Case AnnNone (conv layout t) (V.map (conv layout) ts)
+conv layout (Constr _ i ts) = Constr AnnNone i (map (conv layout) ts)
+conv _ (Error _) = Error AnnNone
+
+-- Array-based environment
+
+-- | Array containing `CekValue`s
+newtype ValueArray uni fun ann = ValueArray (SmallArray (CekValue uni fun ann))
+
+-- | Environment with optional head
+data Env uni fun ann
+  = Env
+  { arg :: Maybe (CekValue uni fun ann)
+  , values :: ValueArray uni fun ann
+  }
+
+lookupEnv :: Int -> Env uni fun ClosureAnn -> CekValue uni fun ClosureAnn
+lookupEnv 0 (Env m _) =
+  case m of
+    Nothing -> error "lookupEnv: impossible (slot index 0, without value in env)"
+    Just v -> v
+lookupEnv n (Env _ (ValueArray vs)) = indexSmallArray vs (n - 1)
+
+project :: Projection -> Env uni fun ann -> Env uni fun ann
+project _ _ = undefined
 
 {-| The CEK machine is parameterized over a @spendBudget@ function. This makes the budgeting machinery extensible
 and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
@@ -661,15 +798,16 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
     goValue :: CekValue uni fun ann -> NTerm uni fun ()
     goValue = \case
       VCon val -> Constant () val
-      VDelay body env -> Delay () $ goValEnv env 0 body
-      VLamAbs (NamedDeBruijn n _ix) body env ->
-        -- The index on the binder is meaningless, we put @0@ by convention, see 'Binder'.
-        LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env 1 body
-      -- We only return a discharged builtin application when (a) it's being returned by the
-      -- machine, or (b) it's needed for an error message.
-      -- @term@ is fully discharged, so we can return it directly without any further discharging.
-      VBuiltin _ term _ -> term
-      VConstr ind args -> Constr () ind . map goValue $ argStackToList args
+      _ -> error "dischargeCekValue: Not implemented"
+    -- VDelay body env -> Delay () $ goValEnv env 0 body
+    -- VLamAbs (NamedDeBruijn n _ix) body env ->
+    --   -- The index on the binder is meaningless, we put @0@ by convention, see 'Binder'.
+    --   LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env 1 body
+    -- -- We only return a discharged builtin application when (a) it's being returned by the
+    -- -- machine, or (b) it's needed for an error message.
+    -- -- @term@ is fully discharged, so we can return it directly without any further discharging.
+    -- VBuiltin _ term _ -> term
+    -- VConstr ind args -> Constr () ind . map goValue $ argStackToList args
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
     -- Mutually recursive with @goValue@.
