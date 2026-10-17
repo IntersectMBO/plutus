@@ -30,7 +30,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
   , counting
   , logEmitter
   )
-import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, conv, runCekDeBruijn)
 
 data EvalResult = EvalResult
   { evalResult
@@ -106,7 +106,7 @@ evaluateCompiledCode' params code = EvalResult {..}
   where
     Program _ann _version term = getPlcNoAnn code
     CekReport (cekResultToEither -> evalResult) (CountingSt evalResultBudget) evalResultTraces =
-      runCekDeBruijn params counting logEmitter term
+      runCekDeBruijn params counting logEmitter (conv term)
 
 evaluatesToError :: CompiledCode a -> Bool
 evaluatesToError = not . evaluatesWithoutError

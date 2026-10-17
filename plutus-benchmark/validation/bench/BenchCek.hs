@@ -7,6 +7,7 @@ import PlutusBenchmark.Validation.Common (benchTermCek, benchWith, mkEvalCtx, un
 import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantE))
 import PlutusLedgerApi.Common (PlutusLedgerLanguage (PlutusV3))
 import UntypedPlutusCore as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (conv)
 
 {-|
  Benchmarks only for the CEK execution time of the data/*.flat validation scripts
@@ -21,5 +22,5 @@ main = do
   -- sure that the evaluation context matches.
   evalCtx <- evaluate $ mkEvalCtx PlutusV3 DefaultFunSemanticsVariantE
   let mkCekBM file program =
-        benchTermCek evalCtx . toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file program
+        benchTermCek evalCtx . conv . toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file program
   benchWith mkCekBM

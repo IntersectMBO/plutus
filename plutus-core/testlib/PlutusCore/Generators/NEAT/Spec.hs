@@ -37,6 +37,7 @@ import PlutusCore.Pretty
 
 import UntypedPlutusCore qualified as U
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as U
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (conv)
 
 import Control.Monad (unless)
 import Control.Monad.Except (ExceptT, catchError, liftEither, runExceptT, throwError, withExceptT)
@@ -194,7 +195,8 @@ prop_agree_termEval tyG tmG = do
   tmUCek <-
     withExceptT UCekP $
       liftEither $
-        U.evaluateCekNoEmit defaultCekParametersForTesting (eraseTerm tm) `catchError` handleUError
+        U.evaluateCekNoEmit defaultCekParametersForTesting (undefined (eraseTerm tm))
+          `catchError` handleUError
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $
