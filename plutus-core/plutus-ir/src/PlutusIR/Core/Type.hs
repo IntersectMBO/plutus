@@ -53,6 +53,7 @@ import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
 data Datatype tyname name uni a
   = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] name [VarDecl tyname name uni a]
   deriving stock (Functor, Show, Generic)
+  deriving anyclass (NFData)
 
 varDeclNameString :: VarDecl tyname Name uni a -> String
 varDeclNameString = T.unpack . PLC._nameText . _varDeclName
@@ -72,7 +73,7 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
   of the same group (including itself), thus permitting (mutual) recursion. -}
 data Recursivity = NonRec | Rec
   deriving stock (Show, Eq, Generic, Ord)
-  deriving anyclass (Hashable)
+  deriving anyclass (Hashable, NFData)
 
 {-| Recursivity can form a 'Semigroup' / lattice, where 'NonRec' < 'Rec'.
 The lattice is ordered by "power": a non-recursive binding group can be made recursive
@@ -84,6 +85,7 @@ instance Semigroup Recursivity where
 
 data Strictness = NonStrict | Strict
   deriving stock (Show, Eq, Generic)
+  deriving anyclass (NFData)
 
 data Binding tyname name uni fun a
   = TermBind a Strictness (VarDecl tyname name uni a) (Term tyname name uni fun a)
@@ -101,6 +103,10 @@ deriving stock instance
   , Closed uni
   )
   => Show (Binding tyname name uni fun a)
+
+deriving anyclass instance
+  (NFData tyname, NFData name, NFData fun, NFData ann, Everywhere uni NFData, Closed uni)
+  => NFData (Binding tyname name uni fun ann)
 
 -- Terms
 
@@ -159,6 +165,10 @@ deriving stock instance
   )
   => Show (Term tyname name uni fun a)
 
+deriving anyclass instance
+  (NFData tyname, NFData name, NFData fun, NFData ann, Everywhere uni NFData, Closed uni)
+  => NFData (Term tyname name uni fun ann)
+
 -- See Note [ExMemoryUsage instances for non-constants].
 instance ExMemoryUsage (Term tyname name uni fun ann) where
   memoryUsage =
@@ -208,6 +218,10 @@ deriving stock instance
   , Closed uni
   )
   => Show (Program tyname name uni fun ann)
+
+deriving anyclass instance
+  (NFData tyname, NFData name, NFData fun, NFData ann, Everywhere uni NFData, Closed uni)
+  => NFData (Program tyname name uni fun ann)
 
 type instance
   PLC.HasUniques (Term tyname name uni fun ann) =
