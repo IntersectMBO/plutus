@@ -58,6 +58,7 @@ import Data.Aeson
   , fromJSON
   , toJSON
   )
+import Text.Printf (printf)
 
 -- This type corresponds to Cost.Raw.RawCostModel in plutus-metaheory.
 type RawCostModel = (CekMachineCosts, BuiltinCostMap)
@@ -201,7 +202,14 @@ failingBudgetTests =
 {-| A list of evaluation tests which are currently expected to fail.  Once a fix
 for a test is pushed, the test will succeed and should be removed from the list. -}
 failingEvaluationTests :: [FilePath]
-failingEvaluationTests = []
+failingEvaluationTests =
+  -- Agda support is tracked separately in
+  -- https://github.com/IntersectMBO/plutus-private/issues/2262.
+  -- Remove these temporary exclusions once the builtin is implemented.
+  -- failingBudgetTests includes these paths as well.
+  [ printf "test-cases/uplc/evaluation/builtin/semantics/multiIndexArray/multiIndexArray-%02d" n
+  | n <- [1 .. 26 :: Int]
+  ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
 main :: IO ()
