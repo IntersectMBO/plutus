@@ -44,7 +44,7 @@ data Ann = Ann
   , annIsAsDataMatcher :: Bool
   }
   deriving stock (Eq, Ord, Generic, Show)
-  deriving anyclass (Hashable)
+  deriving anyclass (Hashable, NFData)
 
 instance Default Ann where
   def =
@@ -70,7 +70,7 @@ data Inline
     SafeToInline
   | MayInline
   deriving stock (Eq, Ord, Generic, Show)
-  deriving anyclass (Hashable)
+  deriving anyclass (Hashable, NFData)
 
 instance Pretty Ann where
   pretty = viaShow
@@ -103,7 +103,7 @@ data Case
     SafeToDrop
   | NotSafeToDrop
   deriving stock (Eq, Ord, Generic, Show)
-  deriving anyclass (Hashable)
+  deriving anyclass (Hashable, NFData)
 
 -- | Methods used to guide optimization of @case@ expressions.
 class AnnCase a where

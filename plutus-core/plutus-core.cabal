@@ -738,6 +738,7 @@ test-suite plutus-ir-test
     , base                             >=4.9   && <5
     , cardano-base:testlib             >=0.1.5
     , containers
+    , deepseq
     , filepath
     , hashable
     , hedgehog

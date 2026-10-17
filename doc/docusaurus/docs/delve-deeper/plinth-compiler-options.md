@@ -35,6 +35,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`dump-pir`|Bool|False|Dump Plutus IR|
 |`dump-tplc`|Bool|False|Dump Typed Plutus Core|
 |`dump-uplc`|Bool|False|Dump Untyped Plutus Core|
+|`force-timings`|Bool|False|Fully evaluate each stage's result before its -ddump-timings timer stops.|
 |`hoist-polymorphic-builtins`|Bool|True|Run the hoist-polymorphic-builtins pass, reducing the number of forces.|
 |`inline-callsite-growth`|Int|5|Sets the inlining threshold for callsite inlining. 0 disables inlining a binding at a callsite if it increases the AST size; `n` allows inlining if the AST size grows by no more than `n`. Keep in mind that doing so does not mean the final program will be bigger, since inlining can often unlock further optimizations.|
 |`inline-constants`|Bool|True|Always inline constants. Inlining constants always reduces script costs slightly, but may increase script sizes if a large constant is used more than once. Implied by `no-conservative-optimisation`.|
@@ -56,7 +57,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`simplifier-remove-dead-bindings`|Bool|True|Run a simplification pass that removes dead bindings|
 |`simplifier-unwrap-cancel`|Bool|True|Run a simplification pass that cancels unwrap/wrap pairs|
 |`strictify-bindings`|Bool|True|Run a simplification pass that makes bindings stricter|
-|`target-version`|Version|1.1.0|The target Plutus Core language version|
+|`target-version`|Version|1.2.0|The target Plutus Core language version|
 |`typecheck`|Bool|True|Perform type checking during compilation.|
 |`verbosity`|Verbosity|Quiet|Set logging verbosity level (0=Quiet, 1=Verbose, 2=Debug)|
 
