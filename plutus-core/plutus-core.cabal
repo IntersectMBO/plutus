@@ -678,6 +678,7 @@ library plutus-ir
     , plutus-core          ^>=1.71
     , plutus-core:flat
     , prettyprinter        >=1.1.0.1
+    , primitive
     , profunctors
     , semigroupoids
     , semigroups           >=0.19.1

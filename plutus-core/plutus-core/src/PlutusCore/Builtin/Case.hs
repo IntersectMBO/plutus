@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeOperators #-}
@@ -12,7 +13,7 @@ import PlutusCore.Name.Unique (TyName)
 import Control.DeepSeq (NFData (..), rwhnf)
 import Data.Default.Class (Default (..))
 import Data.Text (Text)
-import Data.Vector (Vector)
+import GHC.Exts (Array#)
 import NoThunks.Class
 import Text.PrettyBy (display)
 import Universe
@@ -29,13 +30,13 @@ class AnnotateCaseBuiltin uni where
     -> Either Text [(term, [Type TyName uni ann])]
 
 class CaseBuiltin uni where
-  {-| Given a constant with its type tag and a vector of branches, choose the appropriate branch
+  {-| Given a constant with its type tag and an array of branches, choose the appropriate branch
   or fail if the constant doesn't correspond to any of the branches (or casing on constants of
   this type isn't supported at all). -}
   caseBuiltin
     :: UniOf term ~ uni
     => Some (ValueOf uni)
-    -> Vector term
+    -> Array# term
     -> HeadSpine Text term (Some (ValueOf uni))
 
 -- See Note [DO NOT newtype-wrap functions].
@@ -45,7 +46,10 @@ latter is required for earlier protocol versions when we didn't support casing o
 data CaserBuiltin uni = CaserBuiltin
   { unCaserBuiltin
       :: !( forall term
-             . UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> HeadSpine Text term (Some (ValueOf uni))
+             . UniOf term ~ uni
+            => Some (ValueOf uni)
+            -> Array# term
+            -> HeadSpine Text term (Some (ValueOf uni))
           )
   }
 

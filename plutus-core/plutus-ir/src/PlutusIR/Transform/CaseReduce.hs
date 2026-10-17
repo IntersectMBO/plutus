@@ -13,6 +13,7 @@ import PlutusIR.Core
 import Control.Lens (transformOf, (^?))
 import Data.Bifunctor (second)
 import Data.List.Extras
+import Data.Primitive.Array (Array (..))
 import GHC.IsList (fromList)
 import PlutusCore qualified as PLC
 import PlutusIR.Pass
@@ -42,5 +43,7 @@ processTerm = \case
   -- not to fully optimize such scripts, since they aren't valid anyway.
   Case ann _ (Constr _ _ i args) cs | Just c <- cs ^? wix i -> mkIterApp c ((ann,) <$> args)
   Case ann _ (Constant _ con) cs
-    | Right t <- headSpineToTerm ann (second (Constant ann) (caseBuiltin con (fromList cs))) -> t
+    | Array branches <- fromList cs
+    , Right t <- headSpineToTerm ann (second (Constant ann) (caseBuiltin con branches)) ->
+        t
   t -> t

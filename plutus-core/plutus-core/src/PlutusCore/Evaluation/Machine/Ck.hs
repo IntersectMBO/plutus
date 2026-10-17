@@ -43,9 +43,10 @@ import Data.Bifunctor
 import Data.DList (DList)
 import Data.DList qualified as DList
 import Data.List.Extras (wix)
+import Data.Primitive.Array (Array (..))
 import Data.STRef
 import Data.Text (Text)
-import Data.Vector qualified as Vector
+import GHC.IsList (fromList)
 import Prettyprinter (vcat)
 import Universe
 
@@ -255,11 +256,12 @@ FrameCase cs : stack <| e = case e of
       throwErrorWithCause (StructuralError $ MissingCaseBranchMachineError i) $ ckValueToTerm e
   VCon val -> do
     caser <- asks ckCaserBuiltin
-    case unCaserBuiltin caser val $ Vector.fromList cs of
-      HeadError err ->
-        throwErrorWithCause (OperationalError $ CkCaseBuiltinError err) $ ckValueToTerm e
-      HeadOnly fX -> stack |> fX
-      HeadSpine f xs -> transferConstantSpine xs stack |> f
+    case fromList cs of
+      Array branches -> case unCaserBuiltin caser val branches of
+        HeadError err ->
+          throwErrorWithCause (OperationalError $ CkCaseBuiltinError err) $ ckValueToTerm e
+        HeadOnly fX -> stack |> fX
+        HeadSpine f xs -> transferConstantSpine xs stack |> f
   _ -> throwErrorWithCause (StructuralError NonConstrScrutinizedMachineError) $ ckValueToTerm e
 
 transferConstantSpine :: Spine (Some (ValueOf uni)) -> Context uni fun -> Context uni fun
