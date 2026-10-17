@@ -55,6 +55,7 @@ import Control.Monad.Extra
   , (>=>)
   )
 import Data.Bifunctor
+import Data.Bits (countLeadingZeros, finiteBitSize)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
 import Data.ByteString.Base64 qualified as Base64
@@ -66,7 +67,8 @@ import Data.List qualified as List
 import Data.Map.Merge.Strict qualified as M
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (fromMaybe)
+import Data.Set qualified as Set
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
 import GHC.Stack
@@ -475,51 +477,123 @@ policyFilterOverflow name =
 {-# INLINE policyFilterOverflow #-}
 
 {-| The `Value` restricted to the given currency symbols, in \(O(p \log m)\) for a list of
-\(p\) ids and an outer map of size \(m\).  Ids the `Value` does not have, including any
-longer than `maxKeyLen`, are ignored.  Fails if the `Value` holds more than
+\(p\) ids and an outer map of size \(m\).  Ids longer than `maxKeyLen` are dropped before any
+comparison, and the remaining ids must be strictly ascending; ids the `Value` does not have
+are ignored.  Fails if the ids are not strictly ascending, or if the `Value` holds more than
 `policyFilterMaxSize` policies. -}
 keepPolicies :: [ByteString] -> Value -> BuiltinResult Value
 keepPolicies ps (Value outer _ _ _ negs)
   | Map.size outer > policyFilterMaxSize = policyFilterOverflow "keepPolicies"
-  | otherwise =
-      let outer' = List.foldl' keep Map.empty (mapMaybe k ps)
-          keep acc currency = case Map.lookup currency outer of
-            Nothing -> acc
-            Just inner -> Map.insert currency inner acc
+  | otherwise = do
+      ks <- descendingKeys "keepPolicies" ps
+      let outer'
+            | atLeast (Map.size outer) ks =
+                Map.fromDistinctAscList (keepWalk ks (Map.toDescList outer) [])
+            | otherwise = Map.restrictKeys outer (Set.fromDistinctDescList ks)
           negs' = Map.intersection negs outer'
           !neg = Map.foldl' (+) 0 negs'
           Sizes sizes total = sizeCaches outer'
-       in pure $ Value outer' sizes total neg negs'
+      pure $ Value outer' sizes total neg negs'
 {-# INLINEABLE keepPolicies #-}
 
 {-| The `Value` with the given currency symbols removed, in \(O(p \log m)\) for a list of
-\(p\) ids and an outer map of size \(m\).  Ids the `Value` does not have, including any
-longer than `maxKeyLen`, are ignored.  Fails if the `Value` holds more than
-`policyFilterMaxSize` policies. -}
+\(p\) ids and an outer map of size \(m\).  Ids longer than `maxKeyLen` are dropped before any
+comparison, and the remaining ids must be strictly ascending; ids the `Value` does not have
+are ignored.  Fails if the ids are not strictly ascending, or if the `Value` holds more than
+`policyFilterMaxSize` policies.  A short list is removed id by id, a long one in one walk over
+the map (see `dropWalkFrom`). -}
 dropPolicies :: [ByteString] -> Value -> BuiltinResult Value
 dropPolicies ps v@(Value outer _ _ _ _)
   | Map.size outer > policyFilterMaxSize = policyFilterOverflow "dropPolicies"
-  | otherwise = pure $ List.foldl' dropPolicy v (mapMaybe k ps)
+  | otherwise = do
+      ks <- descendingKeys "dropPolicies" ps
+      let walk = maybe False (`atLeast` ks) (dropWalkFrom (Map.size outer))
+      pure $ if walk then dropWalk ks v else List.foldl' dropPolicy v ks
 {-# INLINEABLE dropPolicies #-}
 
-{-| Remove one currency and subtract its contribution from the cached fields.
+{-| The ids that can be keys, largest first; fails unless they are strictly ascending.  Ids
+longer than `maxKeyLen` are dropped before they are compared, so their length costs nothing. -}
+descendingKeys :: String -> [ByteString] -> BuiltinResult [K]
+descendingKeys name = go []
+  where
+    go acc [] = pure acc
+    go acc (b : bs) = case k b of
+      Nothing -> go acc bs
+      Just key -> case acc of
+        prev : _ | prev >= key -> fail $ name <> ": policy ids are not strictly ascending"
+        _ -> go (key : acc) bs
+{-# INLINE descendingKeys #-}
 
-A currency the `Value` does not have is a no-op. That is also why a repeated id in
-`dropPolicies` does no harm: the first occurrence removes it, and later ones find nothing. -}
+-- | Whether the list has at least @n@ elements, in \(O(\min(n, p))\).
+atLeast :: Int -> [a] -> Bool
+atLeast n xs = n <= 0 || not (null (drop (n - 1) xs))
+{-# INLINE atLeast #-}
+
+{-| The entries whose keys are among the ids, by one walk over both lists, largest first.  The
+entries are consed on the accumulator, so they come out ascending. -}
+keepWalk :: [K] -> [(K, a)] -> [(K, a)] -> [(K, a)]
+keepWalk xs@(x : xs') kvs@(kv@(kx, _) : kvs') !acc = case compare x kx of
+  GT -> keepWalk xs' kvs acc
+  LT -> keepWalk xs kvs' acc
+  EQ -> keepWalk xs' kvs' (kv : acc)
+keepWalk _ _ acc = acc
+
+{-| The list length from which `dropPolicies` walks the whole map instead of removing the ids
+one by one: \(p (L - 1) \ge 9m/4\), where \(L\) is the depth of a map of size \(m\).  The
+measured crossover lies at \(p (L - 1)/m\) between 1.3 and 2.2 for \(m \le 16383\); switching
+late only gives up the walk's advantage, while switching early raises the worst time per
+\(p L\).  `Nothing` when the map has at most one policy, where removing one by one always
+wins. -}
+dropWalkFrom :: Int -> Maybe Int
+dropWalkFrom m
+  | depth <= 1 = Nothing
+  | otherwise = Just $ (9 * m + 4 * (depth - 1) - 1) `div` (4 * (depth - 1))
+  where
+    depth = finiteBitSize m - countLeadingZeros m
+
+{-| Remove one currency and subtract its contribution from the cached fields.  A currency the
+`Value` does not have is a no-op, and the negative counts are left alone when there are none. -}
 dropPolicy :: Value -> K -> Value
 dropPolicy v@(Value outer sizes total neg negs) currency =
   case Map.updateLookupWithKey (\_ _ -> Nothing) currency outer of
     (Nothing, _) -> v
     (Just inner, outer') ->
       let innerSize = Map.size inner
-          (mInnerNeg, negs') = Map.updateLookupWithKey (\_ _ -> Nothing) currency negs
-       in Value
-            outer'
-            (updateSizes innerSize 0 sizes)
-            (total - innerSize)
-            (neg - fromMaybe 0 mInnerNeg)
-            negs'
+          (innerNeg, negs')
+            | neg == 0 = (0, negs)
+            | otherwise = case Map.updateLookupWithKey (\_ _ -> Nothing) currency negs of
+                (found, rest) -> (fromMaybe 0 found, rest)
+       in Value outer' (updateSizes innerSize 0 sizes) (total - innerSize) (neg - innerNeg) negs'
 {-# INLINE dropPolicy #-}
+
+{-| `dropPolicies` by one walk over the outer map against the ids, both largest first.  The size
+caches lose each removed policy's share on the way.  The negative counts are walked only when
+the `Value` has any, and only against the removed policies. -}
+dropWalk :: [K] -> Value -> Value
+dropWalk ks v@(Value outer sizes total neg negs) =
+  case go ks (Map.toDescList outer) [] [] sizes total of
+    (_, [], _, _) -> v
+    (kept, removed, sizes', total') ->
+      let (negs', removedNeg)
+            | neg == 0 = (negs, 0)
+            | otherwise = case negsWalk removed (Map.toAscList negs) [] 0 of
+                (keptDesc, d) -> (Map.fromDistinctDescList keptDesc, d)
+       in Value (Map.fromDistinctAscList kept) sizes' total' (neg - removedNeg) negs'
+  where
+    -- Both lists descending; kept entries and removed keys are consed on, so both ascending.
+    go xs@(x : xs') kvs@(kv@(kx, inner) : kvs') kept removed !ss !t = case compare x kx of
+      GT -> go xs' kvs kept removed ss t
+      LT -> go xs kvs' (kv : kept) removed ss t
+      EQ ->
+        let n = Map.size inner
+         in go xs' kvs' kept (kx : removed) (updateSizes n 0 ss) (t - n)
+    go _ kvs kept removed ss t = (List.foldl' (flip (:)) kept kvs, removed, ss, t)
+    -- Both lists ascending; kept entries are consed on, so descending.
+    negsWalk xs@(x : xs') kvs@(kv@(kx, c) : kvs') kept !d = case compare x kx of
+      LT -> negsWalk xs' kvs kept d
+      GT -> negsWalk xs kvs' (kv : kept) d
+      EQ -> negsWalk xs' kvs' kept (d + c)
+    negsWalk _ kvs kept d = (List.foldl' (flip (:)) kept kvs, d)
 
 {-| \(O(n_{2}\log \max(m_{1}, k_{1}))\), where \(n_{2}\) is the total size of the second
 `Value`, \(m_{1}\) is the size of the outer map in the first `Value` and \(k_{1}\) is

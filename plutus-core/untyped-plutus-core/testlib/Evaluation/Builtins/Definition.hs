@@ -2328,9 +2328,14 @@ test_KeepPolicies =
         evalKeepPolicies [] mixedValue @?= expectedValue Value.empty
     , testCase "absent policy id" do
         evalKeepPolicies ["nope"] mixedValue @?= expectedValue Value.empty
-    , testCase "duplicate ids are a no-op" do
-        evalKeepPolicies ["aaa", "aaa"] mixedValue
-          @?= expectedValue (unsafeMkValue [("aaa", "t1", 2), ("aaa", "t2", -7)])
+    , testCase "duplicate ids are refused" do
+        evalKeepPolicies ["aaa", "aaa"] mixedValue @?= Right EvaluationFailure
+    , testCase "ids out of order are refused" do
+        evalKeepPolicies ["bbb", "aaa"] mixedValue @?= Right EvaluationFailure
+    , testCase "oversized ids are ignored wherever they are" do
+        evalKeepPolicies [pack (replicate 33 255), "", pack (replicate 33 0), "aaa"] mixedValue
+          @?= expectedValue
+            (unsafeMkValue [("", "", 2000000), ("aaa", "t1", 2), ("aaa", "t2", -7)])
     , testCase "lovelace is an ordinary policy" do
         evalKeepPolicies [""] mixedValue
           @?= expectedValue (unsafeMkValue [("", "", 2000000)])
@@ -2362,9 +2367,13 @@ test_DropPolicies =
         evalDropPolicies [] mixedValue @?= expectedValue mixedValue
     , testCase "absent policy id" do
         evalDropPolicies ["nope"] mixedValue @?= expectedValue mixedValue
-    , testCase "duplicate ids are a no-op" do
-        evalDropPolicies ["aaa", "aaa"] mixedValue
-          @?= expectedValue (unsafeMkValue [("", "", 2000000), ("bbb", "t1", 1), ("bbb", "t2", 3)])
+    , testCase "duplicate ids are refused" do
+        evalDropPolicies ["aaa", "aaa"] mixedValue @?= Right EvaluationFailure
+    , testCase "ids out of order are refused" do
+        evalDropPolicies ["bbb", "aaa"] mixedValue @?= Right EvaluationFailure
+    , testCase "oversized ids are ignored wherever they are" do
+        evalDropPolicies [pack (replicate 33 255), "", pack (replicate 33 0), "aaa"] mixedValue
+          @?= expectedValue (unsafeMkValue [("bbb", "t1", 1), ("bbb", "t2", 3)])
     , testCase "lovelace is an ordinary policy" do
         evalDropPolicies [""] mixedValue
           @?= expectedValue
