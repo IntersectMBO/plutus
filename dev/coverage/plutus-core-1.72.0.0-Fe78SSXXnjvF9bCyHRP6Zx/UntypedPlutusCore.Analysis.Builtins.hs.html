@@ -1,0 +1,101 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    2 </span>{-# LANGUAGE GADTs #-}
+<span class="lineno">    3 </span>{-# LANGUAGE KindSignatures #-}
+<span class="lineno">    4 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    5 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    6 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    8 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>module UntypedPlutusCore.Analysis.Builtins
+<span class="lineno">   11 </span>  ( BuiltinsInfo (..)
+<span class="lineno">   12 </span>  , biSemanticsVariant
+<span class="lineno">   13 </span>  , biUnserializableConstants
+<span class="lineno">   14 </span>  , builtinArityInfo
+<span class="lineno">   15 </span>  , constantIsSerializable
+<span class="lineno">   16 </span>  , termIsSerializable
+<span class="lineno">   17 </span>  , defaultUniUnserializableConstants
+<span class="lineno">   18 </span>  ) where
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import Control.Lens hiding (parts)
+<span class="lineno">   21 </span>import Data.Kind
+<span class="lineno">   22 </span>import Data.Proxy
+<span class="lineno">   23 </span>import PlutusCore.Arity
+<span class="lineno">   24 </span>import PlutusCore.Builtin
+<span class="lineno">   25 </span>import PlutusCore.Builtin qualified as PLC
+<span class="lineno">   26 </span>import PlutusCore.Default
+<span class="lineno">   27 </span>import PlutusPrelude (Default (..))
+<span class="lineno">   28 </span>import UntypedPlutusCore.Core (Term)
+<span class="lineno">   29 </span>import UntypedPlutusCore.Core.Plated (termSubtermsDeep, _Constant)
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>-- | All non-static information about builtins that the compiler might want.
+<span class="lineno">   32 </span>data BuiltinsInfo (uni :: Type -&gt; Type) fun = BuiltinsInfo
+<span class="lineno">   33 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_biSemanticsVariant</span></span></span> :: PLC.BuiltinSemanticsVariant fun
+<span class="lineno">   34 </span>  , -- See Note [Unserializable constants]
+<span class="lineno">   35 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">_biUnserializableConstants</span></span></span> :: Some (ValueOf uni) -&gt; Bool
+<span class="lineno">   36 </span>  }
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff">makeLenses ''BuiltinsInfo</span></span></span></span></span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>instance Default (BuiltinsInfo DefaultUni DefaultFun) where
+<span class="lineno">   41 </span>  <span class="decl"><span class="istickedoff">def =</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">BuiltinsInfo</span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="istickedoff">{ _biSemanticsVariant = def</span>
+<span class="lineno">   44 </span><span class="spaces">      </span><span class="istickedoff">, _biUnserializableConstants = defaultUniUnserializableConstants</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="istickedoff">}</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>-- | Get the arity of a builtin function from the 'PLC.BuiltinInfo'.
+<span class="lineno">   48 </span>builtinArityInfo
+<span class="lineno">   49 </span>  :: forall uni fun
+<span class="lineno">   50 </span>   . ToBuiltinMeaning uni fun
+<span class="lineno">   51 </span>  =&gt; BuiltinsInfo uni fun
+<span class="lineno">   52 </span>  -&gt; fun
+<span class="lineno">   53 </span>  -&gt; Arity
+<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">builtinArityInfo binfo = builtinArity (Proxy @uni) (binfo ^. biSemanticsVariant)</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>constantIsSerializable
+<span class="lineno">   57 </span>  :: forall uni fun
+<span class="lineno">   58 </span>   . BuiltinsInfo uni fun
+<span class="lineno">   59 </span>  -&gt; Some (ValueOf uni)
+<span class="lineno">   60 </span>  -&gt; Bool
+<span class="lineno">   61 </span><span class="decl"><span class="istickedoff">constantIsSerializable bi v = not $ _biUnserializableConstants bi v</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>termIsSerializable :: BuiltinsInfo uni fun -&gt; Term name uni fun a -&gt; Bool
+<span class="lineno">   64 </span><span class="decl"><span class="istickedoff">termIsSerializable binfo =</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="istickedoff">allOf</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="istickedoff">(termSubtermsDeep . _Constant)</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff">(constantIsSerializable binfo . snd)</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>-- See Note [Unserializable constants]
+<span class="lineno">   70 </span>defaultUniUnserializableConstants :: Some (ValueOf DefaultUni) -&gt; Bool
+<span class="lineno">   71 </span><span class="decl"><span class="istickedoff">defaultUniUnserializableConstants = \case</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">Some (ValueOf DefaultUniBLS12_381_G1_Element _) -&gt; True</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">Some (ValueOf DefaultUniBLS12_381_G2_Element _) -&gt; True</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">Some (ValueOf DefaultUniBLS12_381_MlResult _) -&gt; <span class="nottickedoff">True</span></span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="istickedoff">_ -&gt; False</span></span>
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>{- See Note [Unserializable constants] in PlutusIR.Analysis.Builtins.
+<span class="lineno">   78 </span>-}
+
+</pre>
+</body>
+</html>

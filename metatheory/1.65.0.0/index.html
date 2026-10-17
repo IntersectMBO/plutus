@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Table of Contents</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Table of Contents</h1>
+    <section>
+      <h1 id="table-of-contents">Table of Contents</h1>
+
+<p><em>This documentation has been produced from the code, which is developed as <a href="https://agda.readthedocs.io/en/latest/tools/literate-programming.html">Literate Agda</a>. Consequently, it contains all of the necessary details to recreate and check the formalisation, including compiler options such as:</em></p>
+
+<pre class="Agda"><a id="370" class="Symbol">{-#</a> <a id="374" class="Keyword">OPTIONS</a> <a id="382" class="Pragma">--rewriting</a> <a id="394" class="Symbol">#-}</a>
+</pre>
+<h2 id="introduction">Introduction</h2>
+
+<p>The Formalisation is split into several sections.</p>
+
+<p>The main body of the formalisation involves a intrinsically typed
+implementation of Plutus Core (PLC). It contains types, normal types,
+builtins, terms indexed by ordinary types, and terms indexed by normal
+types. There is a reduction semantics, CK and CEK machines. There are
+proofs of various syntactic properties, a normalisation proof for the
+type level language, and a progress proof for the term level
+reduction semantics.</p>
+
+<p>There are two additional versions of the PLC language beyond the
+intrinsically typed treatment. There is an extrinsically typed but
+intrinsically scoped version which is used to represent terms prior
+to typechecking and also can be executed directly, and there is a
+untyped version of PLC which can also be executed directly.</p>
+
+<p>The final two pieces are a type checker which is guaranteed to be
+sound and an executable that is intended to be compiled into Haskell.</p>
+
+<ol>
+  <li><a href="#types">Types</a></li>
+  <li><a href="#normal-types">Normalisation of types</a></li>
+  <li><a href="#builtins">Builtin machinery</a></li>
+  <li><a href="#declarative-syntax">Declarative terms</a></li>
+  <li><a href="#algorithmic-syntax">Algorithmic terms</a></li>
+  <li><a href="#extrinsically-typed-syntax-aka-well-scoped-terms">Well-scoped types and terms</a></li>
+  <li><a href="#untyped-terms">Untyped terms</a></li>
+  <li><a href="#type-checker">A typechecker</a></li>
+  <li><a href="#executable">An executable</a></li>
+</ol>
+
+<h2 id="types">Types</h2>
+
+<p>The type level language is similar to simply-typed lambda-calculus
+with the addition of constants for forall, μ, and builtin
+constants. The <a href="Type.html"><code class="language-plaintext highlighter-rouge">Type</code></a> module contains kinds, contexts and
+types. Types are intrinsically scoped and kinded and variables are
+represented using De Bruijn indices. Parallel renaming and
+substitution are implemented in the
+<a href="Type.RenamingSubstitution.html"><code class="language-plaintext highlighter-rouge">Type.RenamingSubstitution</code></a> module
+and they are shown to be satisfy the functor and relative monad laws
+respectively. Equality of types is specified in the
+<a href="Type.Equality.html"><code class="language-plaintext highlighter-rouge">Type.Equality</code></a> module. Equality serves as a
+specification of type computation and is used in the normalisation
+proof.</p>
+
+<pre class="Agda"><a id="2440" class="Keyword">import</a> <a id="2447" href="Type.html" class="Module">Type</a>
+<a id="2452" class="Keyword">import</a> <a id="2459" href="Type.RenamingSubstitution.html" class="Module">Type.RenamingSubstitution</a>
+<a id="2485" class="Keyword">import</a> <a id="2492" href="Type.Equality.html" class="Module">Type.Equality</a>
+</pre>
+<h2 id="normal-types">Normal Types</h2>
+
+<p>Beta normal forms, a beta NBE algorithm and accompanying soundness,
+completeness and stability proofs and necessary equipment for
+substituting into normal types by embedding back into syntax,
+substituting and renormalising.</p>
+
+<pre class="Agda"><a id="2757" class="Keyword">import</a> <a id="2764" href="Type.BetaNormal.html" class="Module">Type.BetaNormal</a>
+<a id="2780" class="Keyword">import</a> <a id="2787" href="Type.BetaNBE.html" class="Module">Type.BetaNBE</a>
+<a id="2800" class="Keyword">import</a> <a id="2807" href="Type.BetaNBE.Soundness.html" class="Module">Type.BetaNBE.Soundness</a>
+<a id="2830" class="Keyword">import</a> <a id="2837" href="Type.BetaNBE.Completeness.html" class="Module">Type.BetaNBE.Completeness</a>
+<a id="2863" class="Keyword">import</a> <a id="2870" href="Type.BetaNBE.Stability.html" class="Module">Type.BetaNBE.Stability</a>
+<a id="2893" class="Keyword">import</a> <a id="2900" href="Type.BetaNBE.RenamingSubstitution.html" class="Module">Type.BetaNBE.RenamingSubstitution</a>
+</pre>
+<h2 id="builtins">Builtins</h2>
+
+<p>Builtins extend the core System F-omega-mu calculus with primitive
+types such as integers and bytestrings and operations on them.</p>
+
+<pre class="Agda"><a id="3087" class="Keyword">import</a> <a id="3094" href="Builtin.html" class="Module">Builtin</a>
+<a id="3102" class="Keyword">import</a> <a id="3109" href="Builtin.Constant.Type.html" class="Module">Builtin.Constant.Type</a>
+</pre>
+<p>The types of the built-in operations are defined by a signature.
+These types are abstract, and they can be made concrete to obtain the different
+notions of type used in the formalisation.</p>
+
+<pre class="Agda"><a id="3329" class="Keyword">import</a> <a id="3336" href="Builtin.Signature.html" class="Module">Builtin.Signature</a>
+</pre>
+<h2 id="declarative-syntax">Declarative syntax</h2>
+
+<p>A version of the syntax of terms, indexed by types, that includes the
+so-called conversion rule as a syntactic constructor. This is the most
+direct rendering of the typing rules as syntax but it is hard to
+execute programs presented in this syntax. No treatment of execution
+is given here, instead we introduce an alternative (algorithmic)
+syntax without the conversion rule below. This version serves as a
+reference/specification and we prove that the more algorithmic syntax
+is sound and complete with respect to it.</p>
+
+<pre class="Agda"><a id="3906" class="Keyword">import</a> <a id="3913" href="Declarative.html" class="Module">Declarative</a>
+<a id="3925" class="Keyword">import</a> <a id="3932" href="Declarative.RenamingSubstitution.html" class="Module">Declarative.RenamingSubstitution</a>
+<a id="3965" class="Keyword">import</a> <a id="3972" href="Declarative.Erasure.html" class="Module">Declarative.Erasure</a>
+
+<a id="3993" class="Keyword">import</a> <a id="4000" href="Declarative.Examples.html" class="Module">Declarative.Examples</a>
+<a id="4021" class="Keyword">import</a> <a id="4028" href="Declarative.Examples.StdLib.Function.html" class="Module">Declarative.Examples.StdLib.Function</a>
+<a id="4065" class="Keyword">import</a> <a id="4072" href="Declarative.Examples.StdLib.ChurchNat.html" class="Module">Declarative.Examples.StdLib.ChurchNat</a>
+<a id="4110" class="Keyword">import</a> <a id="4117" href="Declarative.Examples.StdLib.Nat.html" class="Module">Declarative.Examples.StdLib.Nat</a>
+</pre>
+<h2 id="algorithmic-syntax">Algorithmic syntax</h2>
+
+<p>Terms, reduction and evaluation where terms are indexed by normal
+types</p>
+
+<pre class="Agda"><a id="4253" class="Keyword">import</a> <a id="4260" href="Algorithmic.html" class="Module">Algorithmic</a>
+<a id="4272" class="Keyword">import</a> <a id="4279" href="Algorithmic.RenamingSubstitution.html" class="Module">Algorithmic.RenamingSubstitution</a>
+<a id="4312" class="Keyword">import</a> <a id="4319" href="Algorithmic.Reduction.html" class="Module">Algorithmic.Reduction</a>
+<a id="4341" class="Keyword">import</a> <a id="4348" href="Algorithmic.ReductionEC.html" class="Module">Algorithmic.ReductionEC</a>
+
+<a id="4373" class="Keyword">import</a> <a id="4380" href="Algorithmic.Evaluation.html" class="Module">Algorithmic.Evaluation</a>
+<a id="4403" class="Keyword">import</a> <a id="4410" href="Algorithmic.Completeness.html" class="Module">Algorithmic.Completeness</a>
+<a id="4435" class="Keyword">import</a> <a id="4442" href="Algorithmic.Soundness.html" class="Module">Algorithmic.Soundness</a>
+<a id="4464" class="Keyword">import</a> <a id="4471" href="Algorithmic.Erasure.html" class="Module">Algorithmic.Erasure</a>
+<a id="4491" class="Keyword">import</a> <a id="4498" href="Algorithmic.Erasure.RenamingSubstitution.html" class="Module">Algorithmic.Erasure.RenamingSubstitution</a>
+<a id="4539" class="Keyword">import</a> <a id="4546" href="Algorithmic.CC.html" class="Module">Algorithmic.CC</a>
+<a id="4561" class="Keyword">import</a> <a id="4568" href="Algorithmic.CK.html" class="Module">Algorithmic.CK</a>
+<a id="4583" class="Keyword">import</a> <a id="4590" href="Algorithmic.CEK.html" class="Module">Algorithmic.CEK</a>
+
+<a id="4607" class="Keyword">import</a> <a id="4614" href="Algorithmic.Examples.html" class="Module">Algorithmic.Examples</a>
+</pre>
+<p>Proof for Progress and Determinism of the Reduction Semantics:</p>
+
+<pre class="Agda"><a id="4708" class="Keyword">import</a> <a id="4715" href="Algorithmic.ReductionEC.Progress.html" class="Module">Algorithmic.ReductionEC.Progress</a>
+<a id="4748" class="Keyword">import</a> <a id="4755" href="Algorithmic.ReductionEC.Determinism.html" class="Module">Algorithmic.ReductionEC.Determinism</a>
+</pre>
+<p>There are proofs of correspondence of the semantics of:</p>
+<ul>
+  <li>Reduction semantics</li>
+  <li>CC machine</li>
+  <li>CK machine</li>
+  <li>(typed) CEK machine</li>
+</ul>
+
+<pre class="Agda"><a id="4931" class="Comment">--TODO : Finish proofs for SOPs</a>
+<a id="4963" class="Comment">--import Algorithmic.BehaviouralEquivalence.ReductionvsCC</a>
+<a id="5021" class="Comment">--import Algorithmic.BehaviouralEquivalence.CCvsCK</a>
+<a id="5072" class="Comment">--import Algorithmic.BehaviouralEquivalence.CKvsCEK</a>
+</pre>
+<h2 id="extrinsically-typed-syntax-aka-well-scoped-terms">Extrinsically typed syntax a.k.a. Well Scoped Terms</h2>
+
+<p>Extrinsically typed terms, reduction and evaluation</p>
+
+<pre class="Agda"><a id="5241" class="Keyword">import</a> <a id="5248" href="Scoped.html" class="Module">Scoped</a>
+<a id="5255" class="Keyword">import</a> <a id="5262" href="Scoped.RenamingSubstitution.html" class="Module">Scoped.RenamingSubstitution</a>
+<a id="5290" class="Keyword">import</a> <a id="5297" href="Scoped.Extrication.html" class="Module">Scoped.Extrication</a>
+<a id="5316" class="Keyword">import</a> <a id="5323" href="Scoped.Extrication.RenamingSubstitution.html" class="Module">Scoped.Extrication.RenamingSubstitution</a>
+</pre>
+<h2 id="untyped-terms">Untyped terms</h2>
+
+<p>Untyped terms, reduction and evaluation</p>
+
+<pre class="Agda"><a id="5431" class="Keyword">import</a> <a id="5438" href="Untyped.html" class="Module">Untyped</a>
+<a id="5446" class="Keyword">import</a> <a id="5453" href="Untyped.RenamingSubstitution.html" class="Module">Untyped.RenamingSubstitution</a>
+<a id="5482" class="Keyword">import</a> <a id="5489" href="Untyped.CEK.html" class="Module">Untyped.CEK</a>
+</pre>
+<h2 id="type-checker">Type checker</h2>
+
+<p>This takes a well-scoped term and produces an intrinsically typed term
+as evidence of successful typechecking.</p>
+
+<pre class="Agda"><a id="5639" class="Keyword">import</a> <a id="5646" href="Check.html" class="Module">Check</a>
+</pre>
+<h2 id="executable">Executable</h2>
+
+<p>This module is compiled to Haskell and then can be compiled by ghc
+to produce an executable.</p>
+
+<pre class="Agda"><a id="5770" class="Keyword">import</a> <a id="5777" href="Main.html" class="Module">Main</a>
+</pre>
+
+    </section>
+  </body>
+</html>

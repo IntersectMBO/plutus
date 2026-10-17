@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Relation.Binary.Construct.Constant.Core</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- The binary relation defined by a constant</a>
+<a id="151" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="225" class="Symbol">{-#</a> <a id="229" class="Keyword">OPTIONS</a> <a id="237" class="Pragma">--cubical-compatible</a> <a id="258" class="Pragma">--safe</a> <a id="265" class="Symbol">#-}</a>
+
+<a id="270" class="Keyword">module</a> <a id="277" href="Relation.Binary.Construct.Constant.Core.html" class="Module">Relation.Binary.Construct.Constant.Core</a> <a id="317" class="Keyword">where</a>
+
+<a id="324" class="Keyword">open</a> <a id="329" class="Keyword">import</a> <a id="336" href="Level.html" class="Module">Level</a> <a id="342" class="Keyword">using</a> <a id="348" class="Symbol">(</a><a id="349" href="Agda.Primitive.html#742" class="Postulate">Level</a><a id="354" class="Symbol">)</a>
+<a id="356" class="Keyword">open</a> <a id="361" class="Keyword">import</a> <a id="368" href="Relation.Binary.Core.html" class="Module">Relation.Binary.Core</a> <a id="389" class="Keyword">using</a> <a id="395" class="Symbol">(</a><a id="396" href="Relation.Binary.Core.html#780" class="Function">REL</a><a id="399" class="Symbol">)</a>
+
+<a id="402" class="Keyword">private</a>
+  <a id="412" class="Keyword">variable</a>
+    <a id="425" href="Relation.Binary.Construct.Constant.Core.html#425" class="Generalizable">a</a> <a id="427" href="Relation.Binary.Construct.Constant.Core.html#427" class="Generalizable">b</a> <a id="429" href="Relation.Binary.Construct.Constant.Core.html#429" class="Generalizable">c</a> <a id="431" class="Symbol">:</a> <a id="433" href="Agda.Primitive.html#742" class="Postulate">Level</a>
+    <a id="443" href="Relation.Binary.Construct.Constant.Core.html#443" class="Generalizable">A</a> <a id="445" class="Symbol">:</a> <a id="447" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="451" href="Relation.Binary.Construct.Constant.Core.html#425" class="Generalizable">a</a>
+    <a id="457" href="Relation.Binary.Construct.Constant.Core.html#457" class="Generalizable">B</a> <a id="459" class="Symbol">:</a> <a id="461" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="465" href="Relation.Binary.Construct.Constant.Core.html#427" class="Generalizable">b</a>
+
+<a id="468" class="Comment">------------------------------------------------------------------------</a>
+<a id="541" class="Comment">-- Definition</a>
+
+<a id="Const"></a><a id="556" href="Relation.Binary.Construct.Constant.Core.html#556" class="Function">Const</a> <a id="562" class="Symbol">:</a> <a id="564" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="568" href="Relation.Binary.Construct.Constant.Core.html#429" class="Generalizable">c</a> <a id="570" class="Symbol">→</a> <a id="572" href="Relation.Binary.Core.html#780" class="Function">REL</a> <a id="576" href="Relation.Binary.Construct.Constant.Core.html#443" class="Generalizable">A</a> <a id="578" href="Relation.Binary.Construct.Constant.Core.html#457" class="Generalizable">B</a> <a id="580" href="Relation.Binary.Construct.Constant.Core.html#429" class="Generalizable">c</a>
+<a id="582" href="Relation.Binary.Construct.Constant.Core.html#556" class="Function">Const</a> <a id="588" href="Relation.Binary.Construct.Constant.Core.html#588" class="Bound">I</a> <a id="590" class="Symbol">=</a> <a id="592" class="Symbol">λ</a> <a id="594" href="Relation.Binary.Construct.Constant.Core.html#594" class="Bound">_</a> <a id="596" href="Relation.Binary.Construct.Constant.Core.html#596" class="Bound">_</a> <a id="598" class="Symbol">→</a> <a id="600" href="Relation.Binary.Construct.Constant.Core.html#588" class="Bound">I</a>
+</pre></body></html>
