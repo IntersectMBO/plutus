@@ -323,7 +323,7 @@ builtinsIntroducedIn =
       Map.fromList
         [ (alonzoPV, Set.fromList batch1)
         , (vanRossemPV, Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
-        , (futurePV, Set.fromList batch7)
+        , (dijkstraPV, Set.fromList batch7)
         ]
     PlutusV2 ->
       Map.fromList
@@ -331,22 +331,21 @@ builtinsIntroducedIn =
         , (valentinePV, Set.fromList batch3)
         , (plominPV, Set.fromList batch4b)
         , (vanRossemPV, Set.fromList (batch4a ++ batch5 ++ batch6))
-        , (futurePV, Set.fromList batch7)
+        , (dijkstraPV, Set.fromList batch7)
         ]
     PlutusV3 ->
       Map.fromList
         [ (changPV, Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
         , (plominPV, Set.fromList batch5)
         , (vanRossemPV, Set.fromList batch6)
-        , (futurePV, Set.fromList batch7)
+        , (dijkstraPV, Set.fromList batch7)
         ]
     PlutusV4 ->
       Map.fromList
         [
           ( dijkstraPV
-          , Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6)
+          , Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6 ++ batch7)
           )
-        , (futurePV, Set.fromList batch7)
         ]
 
 {-| Return a set containing the builtins which are available in a given LL in a
