@@ -9,17 +9,23 @@ It is useful for developers who build, test, or ship Plutus scripts, whatever la
 
 ## Installation
 
-**Prebuilt binary (Linux x86_64).**
-Every [Plutus release](https://github.com/IntersectMBO/plutus/releases) ships a statically-linked `uplc` binary for x86_64 Linux, which runs on any distribution without further dependencies:
+**Prebuilt binary (Linux and macOS).**
+Every [Plutus release](https://github.com/IntersectMBO/plutus/releases) ships prebuilt `uplc` executables that run without Nix or any other dependencies installed: `uplc-x86_64-linux-ghc96` for Linux x86_64 (statically linked, runs on any distribution) and `uplc-aarch64-darwin-ghc96` for macOS on Apple Silicon.
 
 ```bash
+# Linux x86_64
 curl -L -o uplc https://github.com/IntersectMBO/plutus/releases/latest/download/uplc-x86_64-linux-ghc96
+# macOS (Apple Silicon)
+curl -L -o uplc https://github.com/IntersectMBO/plutus/releases/latest/download/uplc-aarch64-darwin-ghc96
 chmod +x uplc
 ./uplc --help
 ```
 
+The same assets exist for `plc`, `pir` and `plutus`.
+Replace `latest` with `download/<version>` (e.g. `download/1.70.0.0`) to fetch a specific release.
+
 **Nix (Linux and macOS).**
-With [Nix](https://nixos.org/download/) installed, you can run `uplc` straight from the repository — this also works on platforms without a prebuilt binary, such as Apple Silicon Macs:
+With [Nix](https://nixos.org/download/) installed, you can run `uplc` straight from the repository, including on platforms or releases without a prebuilt binary:
 
 ```bash
 nix run github:IntersectMBO/plutus#uplc -- --help
@@ -27,6 +33,17 @@ nix run github:IntersectMBO/plutus#uplc -- --help
 
 Replace `plutus` with `plutus/<version>` (e.g. `plutus/1.68.0.0`) to pin a released version.
 The first invocation may take a while, since Nix may need to download or build the toolchain.
+
+**Cabal (from CHaP).**
+Starting with release 1.72.0.0, `plutus-executables` is published to the [Cardano Haskell Packages](https://chap.intersectmbo.org/) repository (CHaP) alongside the Plutus libraries, so with GHC 9.6 and `cabal` installed you can build and install `uplc` (plus `plc`, `pir` and `plutus`) without cloning anything.
+Add the CHaP repository to your `~/.cabal/config` (or `~/.config/cabal/config`) if you don't have it already — the `repository` stanza to paste is given in the [CHaP README](https://github.com/IntersectMBO/cardano-haskell-packages#how-to-use-chap) — then:
+
+```bash
+cabal update
+cabal install plutus-executables
+```
+
+Building from CHaP compiles the Plutus libraries from source, so the first install takes a while, and needs the `libsodium`, `libsecp256k1` and `libblst` C libraries that Plutus Core depends on.
 
 **From source.**
 Clone the [Plutus repository](https://github.com/IntersectMBO/plutus), run `nix develop`, and then run `cabal build uplc`.
@@ -248,6 +265,7 @@ uplc optimize --if blueprint --of blueprint -i MyBlueprint.json -o MyBlueprint.o
 ```
 
 This makes `uplc` a drop-in post-build step for any toolchain that emits blueprints.
+If you'd rather do the same from Haskell, the blueprint plumbing `uplc` uses is a public library: depend on `plutus-ledger-api:plutus-execlib` (published to CHaP with every release) and use `readBlueprint` and `writeBlueprint` from `PlutusCore.Executable.Blueprint` together with `optimizeProgramWithTrace` from `UntypedPlutusCore`; `writeBlueprint` recomputes the hash fields for you.
 For example, `aiken build` writes a `plutus.json` blueprint at the root of an Aiken project, which can then be optimized as a whole:
 
 ```bash

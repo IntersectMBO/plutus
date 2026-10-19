@@ -1,4 +1,11 @@
 
+<a id='changelog-1.72.0.0'></a>
+# 1.72.0.0 — 2026-10-15
+
+## Added
+
+- Adds casing on data to the CEK implementation in the metatheory.
+
 <a id='changelog-1.69.0.0'></a>
 # 1.69.0.0 — 2026-09-11
 

@@ -199,19 +199,16 @@ scriptCBORDecoder
 scriptCBORDecoder ll pv =
   -- See Note [New builtins/language versions and protocol versions]
   let availableBuiltins = builtinsAvailableIn ll pv
-      maxBounds = maxBoundsByPV pv
-      maxBoundHeader = mbHeader maxBounds
-      maxBoundConstr = mbConstr maxBounds
       flatDecoder = UPLC.decodeProgram decodeDefaultUniValue checkConstant checkBuiltin checkConstr
 
       checkConstant (SomeTypeIn uni)
-        | defaultUniSize uni <= maxBoundHeader = Nothing
+        | defaultUniSize uni <= maxHeaderSize = Nothing
         | otherwise =
             Just $
               "Constant of type "
                 ++ show (pretty uni)
-                ++ " is not available in protocol version "
-                ++ show (pretty pv)
+                ++ " exceeds the maximum type header size of "
+                ++ show maxHeaderSize
       -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
       checkBuiltin f
         | f `Set.member` availableBuiltins = Nothing
@@ -225,13 +222,13 @@ scriptCBORDecoder ll pv =
                 ++ show (pretty pv)
 
       checkConstr n
-        | n <= maxBoundConstr = Nothing
+        | n <= maxConstrFields = Nothing
         | otherwise =
             Just $
               "constr with "
                 ++ show n
-                ++ " fields is not available in protocol version "
-                ++ show (pretty pv)
+                ++ " fields exceeds the maximum of "
+                ++ show maxConstrFields
    in do
         -- Deserialise using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <-

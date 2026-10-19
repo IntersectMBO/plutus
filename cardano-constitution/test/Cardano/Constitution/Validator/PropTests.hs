@@ -8,11 +8,10 @@ module Cardano.Constitution.Validator.PropTests
 import Cardano.Constitution.Validator
 import Cardano.Constitution.Validator.TestsCommon
 import Data.Map.Strict qualified as M
+import Helpers.CekTests
 import Helpers.TestBuilders
 import PlutusLedgerApi.V3.ArbitraryContexts qualified as V3
-import PlutusTx as Tx
 import PlutusTx.Builtins.Internal as BI (BuiltinUnit (..))
-import UntypedPlutusCore as UPLC
 
 import Test.Tasty.ExpectedFailure (ignoreTest)
 import Test.Tasty.QuickCheck
@@ -46,23 +45,6 @@ with two different eval machines (Hs/Tx) and checks that the machines agree.
 -}
 prop_hsAgreesWithTxAll :: Property
 prop_hsAgreesWithTxAll = conjoin $ hsAgreesWithTx <$> M.elems defaultValidatorsWithCodes
-
-hsAgreesWithTx
-  :: (ConstitutionValidator, CompiledCode ConstitutionValidator)
-  -> (V3.ArbitraryContext -> Property)
-hsAgreesWithTx (vHs, vCode) ctx = ioProperty $ do
-  resHs <- tryApplyOnData vHs ctx
-  let vPs =
-        _progTerm $
-          getPlcNoAnn $
-            vCode
-              `unsafeApplyCode` liftCode110 (toBuiltinData ctx)
-      resPs = runCekRes vPs
-
-  pure $ case (resHs, resPs) of
-    (Left _, Left _) -> property True
-    (Right okHs, Right okPs) -> liftCode110Norm okHs === okPs
-    _ -> property False
 
 tests :: TestTreeWithTestState
 tests =

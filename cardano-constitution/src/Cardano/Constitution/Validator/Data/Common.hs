@@ -28,8 +28,7 @@ type ConstitutionValidator =
   -> BuiltinUnit
   -- ^ No-error means the proposal conforms to the constitution
 
--- OPTIMIZE: operate on BuiltinList<BuiltinPair> directly, needs major refactoring of sorted&unsorted Validators
-type ChangedParams = [(BuiltinData, BuiltinData)]
+type ChangedParams = BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
 
 {- HLINT ignore "Redundant lambda" -}
 -- I like to see until where it supposed to be first applied.
@@ -52,7 +51,26 @@ validateParamValue = \case
   ParamList paramValues -> validateParamValues paramValues . BI.unsafeDataAsList
   -- accept the actual proposed value without examining it
   ParamAny -> const True
+  -- See Note [Optional parameter values]
+  ParamMaybe paramValue -> validateMaybeParamValue paramValue . BI.unsafeDataAsConstr
   where
+    validateMaybeParamValue
+      :: ParamValue -> BI.BuiltinPair Integer (BI.BuiltinList BuiltinData) -> Bool
+    validateMaybeParamValue paramValue constr =
+      BI.caseInteger
+        (BI.fst constr)
+        [ -- `Just v`: validate v
+          BI.unsafeCaseList
+            ( \x xs ->
+                validateParamValue paramValue x
+                  && B.fromOpaque (BI.null xs)
+            )
+        , \constrArgs ->
+            -- `Nothing`: unsets the parameter
+            B.fromOpaque (BI.null constrArgs)
+        ]
+        (BI.snd constr)
+
     validateParamValues :: [ParamValue] -> BI.BuiltinList BuiltinData -> Bool
     validateParamValues = \case
       (paramValueHd : paramValueTl) -> \actualValueData ->
@@ -93,10 +111,15 @@ scriptContextToValidGovAction =
 
     governanceActionToValidGovAction :: GovernanceAction -> Maybe ChangedParams
     governanceActionToValidGovAction govAction =
-      case govAction of
-        (ParameterChange _ cparams _) -> Just . B.unsafeDataAsMap . toBuiltinData $ cparams
-        (TreasuryWithdrawals _ _) -> Nothing
-        _ ->
-          traceError
-            "Not a ChangedParams. This should not ever happen, because ledger should guard before, against it."
+      BI.casePair (BI.unsafeDataAsConstr (toBuiltinData govAction)) $ \i args ->
+        BI.caseInteger
+          i
+          [ -- 0: ParameterChange
+            Just (BI.unsafeDataAsMap (BI.head (BI.tail args)))
+          , -- 1: HardForkInitiation
+            traceError
+              "Not a ChangedParams. This should not ever happen, because ledger should guard before, against it."
+          , -- 2: TreasuryWithdrawals
+            Nothing
+          ]
 {-# INLINEABLE scriptContextToValidGovAction #-}

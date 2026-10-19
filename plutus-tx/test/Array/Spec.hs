@@ -24,6 +24,12 @@ arrayTests =
         "multiIndexArray"
         [ testCase "in-order with duplicates" $
             unList (BI.multiIndexArray arr (BI.BuiltinList [2, 0, 0, 1])) @?= [30, 10, 10, 20]
+        , testCase "negative index fails" $
+            throwsErrorCall (BI.multiIndexArray arr (BI.BuiltinList [-1]))
+        , testCase "index into an empty array fails" $
+            let emptyArray :: BI.BuiltinArray BI.BuiltinInteger
+                emptyArray = BI.listToArray (BI.BuiltinList [])
+             in throwsErrorCall (BI.multiIndexArray emptyArray (BI.BuiltinList [0]))
         , testCase "index exceeding maxBound::Int fails" $
             throwsErrorCall (BI.multiIndexArray arr (BI.BuiltinList [2 ^ (64 :: Int) + 2]))
         , testCase "out-of-bounds index fails even if the result is not fully demanded" $

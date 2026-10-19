@@ -37,7 +37,7 @@ Modify `packages = {..}` in [./nix/outputs.nix](https://github.com/input-output-
 
 ### 7) How to build fully static Haskell executables with Nix
 
-Look at `static-haskell-packages = {..}` in [./nix/outputs.nix](https://github.com/input-output-hk/haskell.nix).
+Look at [./nix/static-executables.nix](./static-executables.nix): it builds `uplc`, `plc`, `pir` and `plutus` as musl static binaries on Linux (via haskell.nix's `projectCross`) and, on macOS, with every C library except libSystem linked statically from `pkgsStatic`, exposed as `packages.<system>.static-<exe>`, plus `packages.<system>.release-executables` with the files attached to GitHub releases (Hydra builds it, the release script fetches it from the cache).
 
 ### 8) How to manage cross-compilation on Windows via Wine with Nix
 

@@ -1,7 +1,13 @@
 cabal-version:   3.0
 name:            plutus-executables
-version:         1.71.0.0
+version:         1.72.0.0
 synopsis:        Tools for running plutus core programs
+description:
+  Command-line tools for working with Plutus Core programs: @uplc@ (evaluate,
+  optimise, certify and convert Untyped Plutus Core, including CIP-57
+  blueprints), @plc@ (typed Plutus Core) and @pir@ (Plutus IR), plus the
+  @plutus@ multi-tool.
+
 homepage:        https://github.com/IntersectMBO/plutus
 license:         Apache-2.0
 license-files:
@@ -63,10 +69,11 @@ common os-support
     buildable: False
 
 executable pir
-  import:         lang
-  main-is:        pir/Main.hs
-  other-modules:  Paths_plutus_executables
-  hs-source-dirs: executables
+  import:          lang
+  main-is:         pir/Main.hs
+  other-modules:   Paths_plutus_executables
+  autogen-modules: Paths_plutus_executables
+  hs-source-dirs:  executables
   build-depends:
     , base                              >=4.9   && <5
     , bytestring
@@ -76,30 +83,32 @@ executable pir
     , megaparsec
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.71
+    , plutus-core                       ^>=1.72
     , plutus-core:plutus-ir
     , plutus-ledger-api:plutus-execlib
     , text
 
 executable plc
-  import:         lang
-  main-is:        plc/Main.hs
-  other-modules:  Paths_plutus_executables
-  hs-source-dirs: executables
+  import:          lang
+  main-is:         plc/Main.hs
+  other-modules:   Paths_plutus_executables
+  autogen-modules: Paths_plutus_executables
+  hs-source-dirs:  executables
   build-depends:
     , base                              >=4.9   && <5
     , bytestring
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.71
+    , plutus-core                       ^>=1.72
     , plutus-core:flat
     , plutus-ledger-api:plutus-execlib
 
 executable uplc
-  import:         lang, os-support, ghc-version-support
-  main-is:        uplc/Main.hs
-  other-modules:  Paths_plutus_executables
-  hs-source-dirs: executables
+  import:          lang, os-support, ghc-version-support
+  main-is:         uplc/Main.hs
+  other-modules:   Paths_plutus_executables
+  autogen-modules: Paths_plutus_executables
+  hs-source-dirs:  executables
   build-depends:
     , base                              >=4.9   && <5
     , base16-bytestring
@@ -111,10 +120,10 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.71
+    , plutus-core                       ^>=1.72
     , plutus-core:flat
     , plutus-ledger-api:plutus-execlib
-    , plutus-metatheory                 ^>=1.71
+    , plutus-metatheory                 ^>=1.72
     , prettyprinter
     , serialise
     , split
@@ -155,6 +164,7 @@ executable plutus
     Paths_plutus_executables
     Types
 
+  autogen-modules:    Paths_plutus_executables
   build-depends:
     , aeson-pretty
     , base                   >=4.9   && <5
@@ -169,7 +179,7 @@ executable plutus
     , microlens-th           ^>=0.4
     , mono-traversable
     , mtl
-    , plutus-core            ^>=1.71
+    , plutus-core            ^>=1.72
     , plutus-core:flat
     , plutus-core:plutus-ir
     , prettyprinter
@@ -193,9 +203,9 @@ test-suite test-simple
   main-is:            Spec.hs
   hs-source-dirs:     test/simple
   build-depends:
-    , base
+    , base               >=4.9   && <5
     , extra
-    , plutus-metatheory  ^>=1.71
+    , plutus-metatheory  ^>=1.72
     , process
 
   build-tool-depends:
@@ -208,14 +218,14 @@ test-suite test-detailed
   main-is:            Spec.hs
   hs-source-dirs:     test/detailed
   build-depends:
-    , base
+    , base               >=4.9   && <5
     , base16-bytestring  ^>=1.0
     , bytestring
     , directory
     , extra
     , filepath
-    , plutus-core        ^>=1.71
-    , plutus-metatheory  ^>=1.71
+    , plutus-core        ^>=1.72
+    , plutus-metatheory  ^>=1.72
     , process
     , tasty
     , tasty-hunit
@@ -232,7 +242,7 @@ test-suite test-certifier
   hs-source-dirs:     test/certifier
   other-modules:      Test.Certifier.Executable
   build-depends:
-    , base
+    , base                              >=4.9 && <5
     , directory
     , filepath
     , plutus-core
@@ -252,7 +262,7 @@ test-suite test-cli
   main-is:            Spec.hs
   hs-source-dirs:     test/cli
   build-depends:
-    , base
+    , base                              >=4.9 && <5
     , plutus-ledger-api:plutus-execlib
     , prettyprinter
     , process

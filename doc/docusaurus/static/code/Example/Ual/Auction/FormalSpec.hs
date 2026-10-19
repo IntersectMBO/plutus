@@ -16,15 +16,138 @@ import PlutusTx.Ual.TH (ualModule)
     outbids :: { Integer : asNative } -> { Integer : asNative } -> { Bool : asNative }
 @-}
 
+-- These scenario constructors are part of the detached specification and are
+-- emitted into assurance.json. No handwritten Auction Lean module is imported.
+{-@ PREDICATE
+  def bakedMinBid : Integer := 100
+  def bakedEndTime : Integer := 1725227091000
+  def policyId : CurrencySymbol := ⟨String.mk (List.replicate 28 (Char.ofNat 0))⟩
+  def nftName : TokenName := "MY_TOKEN"
+  def sellerPKH : PubKeyHash := ⟨String.mk (List.replicate 40 (Char.ofNat 0))⟩
+  def scriptAddr : Address := ⟨.ScriptCredential "aa", none⟩
+  def ownRef : TxOutRef := ⟨"bb", 0⟩
+  def ownRef2 : TxOutRef := ⟨"bb", 1⟩
+  def oldBidAddr : ByteString := "oldAddr"
+  def oldBidPubKeyHash : PubKeyHash := "oldPKH"
+  def junkPolicy : CurrencySymbol := "junkcs"
+  def junkName : TokenName := "JUNK"
+
+  def bidData (addr pkh : ByteString) (amount : Integer) : Data :=
+    Data.Constr 0 [Data.B addr, Data.B pkh, Data.I amount]
+  def datumData (old : Integer) : Data :=
+    if old ≤ 0 then Data.Constr 1 []
+    else Data.Constr 0 [bidData oldBidAddr oldBidPubKeyHash old]
+  def newBidRed (amount : Integer) : Data :=
+    Data.Constr 0 [bidData "cc" "dd" amount]
+  def payoutRed : Data := Data.Constr 1 []
+  def adaE (n : Integer) : Data × Data :=
+    (Data.B "", Data.Map [(Data.B "", Data.I n)])
+  def tokE (pol : CurrencySymbol) (tn : TokenName) (n : Integer) : Data × Data :=
+    (Data.B pol, Data.Map [(Data.B tn, Data.I n)])
+  def scriptInput : TxInInfo :=
+    ⟨ownRef, ⟨scriptAddr, [], .NoOutputDatum, none⟩⟩
+  def contOut (value : Value) (datum : OutputDatum) : TxOut :=
+    ⟨scriptAddr, value, datum, none⟩
+  def upperRange (hi : Integer) : Data :=
+    Data.Constr 0 [Data.Constr 0 [Data.Constr 0 [], Data.Constr 1 []],
+                   Data.Constr 0 [Data.Constr 1 [Data.I hi], Data.Constr 1 []]]
+  def lowerRange (lo : Integer) : Data :=
+    Data.Constr 0 [Data.Constr 0 [Data.Constr 1 [Data.I lo], Data.Constr 1 []],
+                   Data.Constr 0 [Data.Constr 2 [], Data.Constr 1 []]]
+
+  def scenarioCtx (inputs : List TxInInfo) (outputs : List TxOut)
+      (mint : Value) (red range datum : Data) : ScriptContext :=
+    ⟨{ txInfoInputs := inputs, txInfoReferenceInputs := [], txInfoOutputs := outputs,
+       txInfoFee := 0, txInfoMint := mint, txInfoTxCerts := [], txInfoWdrl := [],
+       txInfoValidRange := range, txInfoSignatories := [], txInfoRedeemers := [],
+       txInfoData := [], txInfoId := "", txInfoVotes := [],
+       txInfoProposalProcedures := [],
+       txInfoCurrentTreasuryAmount := Data.Constr 1 [],
+       txInfoTreasuryDonation := Data.Constr 1 [] },
+     red, ScriptInfo.SpendingScript ownRef (some datum)⟩
+
+  def newBidContext (old proposed locked refund tokens hi : Integer) : ScriptContext :=
+    let continuing := contOut [adaE locked, tokE policyId nftName tokens]
+      (.OutputDatum (Data.Constr 0 [bidData "cc" "dd" proposed]))
+    let refundOutput : TxOut :=
+      ⟨⟨.PubKeyCredential oldBidPubKeyHash, none⟩, [adaE refund], .NoOutputDatum, none⟩
+    let outputs := if refund > 0 then [refundOutput, continuing] else [continuing]
+    scenarioCtx [scriptInput] outputs [] (newBidRed proposed) (upperRange hi) (datumData old)
+
+  def payoutContext (bid paid tokens lo : Integer) : ScriptContext :=
+    let winner : PubKeyHash := if 0 < bid then oldBidPubKeyHash else sellerPKH
+    let sellerOutput : TxOut :=
+      ⟨⟨.PubKeyCredential sellerPKH, none⟩, [adaE paid], .NoOutputDatum, none⟩
+    let assetOutput : TxOut :=
+      ⟨⟨.PubKeyCredential winner, none⟩, [tokE policyId nftName tokens], .NoOutputDatum, none⟩
+    let outputs := if 0 < bid then [sellerOutput, assetOutput] else [assetOutput]
+    scenarioCtx [scriptInput] outputs [] payoutRed (lowerRange lo) (datumData bid)
+
+  def newBidAttackContext (old proposed locked refund tokens hi junk minted : Integer) : ScriptContext :=
+    let continuing := contOut [adaE locked, tokE policyId nftName tokens,
+                               tokE junkPolicy junkName junk]
+      (.OutputDatum (Data.Constr 0 [bidData "cc" "dd" proposed]))
+    let refundOutput : TxOut :=
+      ⟨⟨.PubKeyCredential oldBidPubKeyHash, none⟩, [adaE refund], .NoOutputDatum, none⟩
+    let outputs := if refund > 0 then [refundOutput, continuing] else [continuing]
+    scenarioCtx [scriptInput] outputs [tokE junkPolicy junkName minted]
+      (newBidRed proposed) (upperRange hi) (datumData old)
+
+  def payoutDoubleSatContext (bid paid tokens lo : Integer) : ScriptContext :=
+    let winner : PubKeyHash := if 0 < bid then oldBidPubKeyHash else sellerPKH
+    let sellerOutput : TxOut :=
+      ⟨⟨.PubKeyCredential sellerPKH, none⟩, [adaE paid], .NoOutputDatum, none⟩
+    let assetOutput : TxOut :=
+      ⟨⟨.PubKeyCredential winner, none⟩, [tokE policyId nftName tokens], .NoOutputDatum, none⟩
+    let outputs := if 0 < bid then [sellerOutput, assetOutput] else [assetOutput]
+    scenarioCtx [scriptInput, ⟨ownRef2, ⟨scriptAddr, [], .NoOutputDatum, none⟩⟩]
+      outputs [] payoutRed (lowerRange lo) (datumData bid)
+
+  def demoCtx (outputs : List TxOut) (red : Data) (datum : Data) : ScriptContext :=
+    scenarioCtx [scriptInput] outputs [] red (upperRange 1000) datum
+  def demoBid : Data := bidData "cc" "dd" 200
+  def demoDatum : OutputDatum := .OutputDatum (Data.Constr 0 [demoBid])
+  def demoOutput : TxOut := contOut [adaE 200, tokE policyId nftName 1] demoDatum
+  def demoValidCtx : ScriptContext :=
+    demoCtx [demoOutput] (newBidRed 200) (datumData 0)
+  def demoWrongTnCtx : ScriptContext :=
+    demoCtx [contOut [adaE 200, tokE policyId junkName 1] demoDatum]
+      (newBidRed 200) (datumData 0)
+  def demoWrongPolicyCtx : ScriptContext :=
+    demoCtx [contOut [adaE 200, tokE junkPolicy nftName 1] demoDatum]
+      (newBidRed 200) (datumData 0)
+  def demoDatumHashCtx : ScriptContext :=
+    demoCtx [contOut [adaE 200, tokE policyId nftName 1] (.OutputDatumHash "h")]
+      (newBidRed 200) (datumData 0)
+  def demoNoDatumCtx : ScriptContext :=
+    demoCtx [contOut [adaE 200, tokE policyId nftName 1] .NoOutputDatum]
+      (newBidRed 200) (datumData 0)
+  def demoWrongDatumCtx : ScriptContext :=
+    demoCtx [contOut [adaE 200, tokE policyId nftName 1]
+      (.OutputDatum (Data.Constr 0 [bidData "cc" "dd" 201]))]
+      (newBidRed 200) (datumData 0)
+  def demoOtherRedeemerCtx : ScriptContext :=
+    demoCtx [demoOutput] (Data.Constr 2 []) (datumData 0)
+  def demoPayoutStakedCtx : ScriptContext :=
+    let stake : Option StakingCredential := some (.StakingHash (.PubKeyCredential "st"))
+    let sellerOutput : TxOut :=
+      ⟨⟨.PubKeyCredential sellerPKH, stake⟩, [adaE 200], .NoOutputDatum, none⟩
+    let assetOutput : TxOut :=
+      ⟨⟨.PubKeyCredential oldBidPubKeyHash, stake⟩,
+       [tokE policyId nftName 1], .NoOutputDatum, none⟩
+    scenarioCtx [scriptInput] [sellerOutput, assetOutput] [] payoutRed
+      (lowerRange bakedEndTime) (datumData 200)
+@-}
+
 {-@ PREDICATE
   def typedAuction (validator : Data → State) (ctx : CardanoLedgerApi.V3.Contexts.ScriptContext) :=
     validator (CardanoLedgerApi.IsData.Class.IsData.toData ctx)
 
   def bidScenario (validator : Data → State) (old proposed locked refund tokens hi : Integer) :=
-    typedAuction validator (CardanoLedgerApi.Examples.Auction.newBidContext old proposed locked refund tokens hi)
+    typedAuction validator (newBidContext old proposed locked refund tokens hi)
 
   def payoutScenario (validator : Data → State) (bid paid tokens lo : Integer) :=
-    typedAuction validator (CardanoLedgerApi.Examples.Auction.payoutContext bid paid tokens lo)
+    typedAuction validator (payoutContext bid paid tokens lo)
 @-}
 
 {-@ PROPERTY [scope: outbids] outbids_exact
@@ -60,9 +183,9 @@ import PlutusTx.Ual.TH (ualModule)
   def auditPayout (validator : Data → State) (bid paid tokens lo : Integer) : Prop :=
     isSuccessful (payoutScenario validator bid paid tokens lo)
   def auditAttack (validator : Data → State) (old proposed locked refund tokens hi junk minted : Integer) : Prop :=
-    isSuccessful (typedAuction validator (CardanoLedgerApi.Examples.Auction.newBidAttackContext old proposed locked refund tokens hi junk minted))
+    isSuccessful (typedAuction validator (newBidAttackContext old proposed locked refund tokens hi junk minted))
   def auditDouble (validator : Data → State) (bid paid tokens lo : Integer) : Prop :=
-    isSuccessful (typedAuction validator (CardanoLedgerApi.Examples.Auction.payoutDoubleSatContext bid paid tokens lo))
+    isSuccessful (typedAuction validator (payoutDoubleSatContext bid paid tokens lo))
   def auditAccepts (validator : Data → State) (ctx : CardanoLedgerApi.V3.Contexts.ScriptContext) : Prop :=
     isSuccessful (typedAuction validator ctx)
 @-}
@@ -71,7 +194,7 @@ import PlutusTx.Ual.TH (ualModule)
     "Upstream Auction audit: newBid_success_requires_sufficient_bid. Checked against this freshly compiled program."
   : ∀ (newBidAmt outAda outTok hi : Integer),
     auditBid auction 0 newBidAmt outAda 0 outTok hi
-    → CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt
+    → bakedMinBid ≤ newBidAmt
 @-}
 
 {-@ PROPERTY [scope: auction] audit_newBid_success_requires_bigger_bid
@@ -85,7 +208,7 @@ import PlutusTx.Ual.TH (ualModule)
     "Upstream Auction audit: newBid_success_requires_before_deadline. Checked against this freshly compiled program."
   : ∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),
     auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi
-    → hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime
+    → hi ≤ bakedEndTime
 @-}
 
 {-@ PROPERTY [scope: auction] audit_newBid_success_requires_output_locks_bid
@@ -105,9 +228,9 @@ import PlutusTx.Ual.TH (ualModule)
 {-@ PROPERTY [scope: auction] audit_valid_newBid_succeeds
     "Upstream Auction audit: valid_newBid_succeeds. Checked against this freshly compiled program."
   : ∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),
-    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt →
+    bakedMinBid ≤ newBidAmt →
     oldBidAmt < newBidAmt   →
-    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime       →
+    hi ≤ bakedEndTime       →
     outAda = newBidAmt      →
     refundAda = oldBidAmt   →
     outTok = 1
@@ -117,8 +240,8 @@ import PlutusTx.Ual.TH (ualModule)
 {-@ PROPERTY [scope: auction] audit_newBid_accepts_minimal_increment
     "Upstream Auction audit: newBid_accepts_minimal_increment. Checked against this freshly compiled program."
   : ∀ (oldBidAmt outAda refundAda outTok hi : Integer),
-    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ oldBidAmt + 1 →
-    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime          →
+    bakedMinBid ≤ oldBidAmt + 1 →
+    hi ≤ bakedEndTime          →
     outAda = oldBidAmt + 1     →
     refundAda = oldBidAmt      →
     outTok = 1
@@ -129,7 +252,7 @@ import PlutusTx.Ual.TH (ualModule)
     "Upstream Auction audit: payout_success_requires_after_deadline. Checked against this freshly compiled program."
   : ∀ (bidAmt sellerAda assetTok lo : Integer),
     auditPayout auction bidAmt sellerAda assetTok lo
-    → CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo
+    → bakedEndTime ≤ lo
 @-}
 
 {-@ PROPERTY [scope: auction] audit_payout_success_pays_seller_highest_bid
@@ -151,7 +274,7 @@ import PlutusTx.Ual.TH (ualModule)
     "Upstream Auction audit: valid_payout_with_bid_succeeds. Checked against this freshly compiled program."
   : ∀ (bidAmt sellerAda assetTok lo : Integer),
     0 < bidAmt         →
-    CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo  →
+    bakedEndTime ≤ lo  →
     sellerAda = bidAmt →
     assetTok = 1
     → auditPayout auction bidAmt sellerAda assetTok lo
@@ -160,7 +283,7 @@ import PlutusTx.Ual.TH (ualModule)
 {-@ PROPERTY [scope: auction] audit_valid_payout_no_bid_succeeds
     "Upstream Auction audit: valid_payout_no_bid_succeeds. Checked against this freshly compiled program."
   : ∀ (sellerAda assetTok lo : Integer),
-    CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo →
+    bakedEndTime ≤ lo →
     assetTok = 1
     → auditPayout auction 0 sellerAda assetTok lo
 @-}
@@ -168,9 +291,9 @@ import PlutusTx.Ual.TH (ualModule)
 {-@ PROPERTY [scope: auction] audit_newBid_accepts_dust_tokens
     "Upstream Auction audit: newBid_accepts_dust_tokens. Checked against this freshly compiled program."
   : ∀ (oldBidAmt newBidAmt outAda refundAda outTok hi junkTok : Integer),
-    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt →
+    bakedMinBid ≤ newBidAmt →
     oldBidAmt < newBidAmt   →
-    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime       →
+    hi ≤ bakedEndTime       →
     outAda = newBidAmt      →
     refundAda = oldBidAmt   →
     outTok = 1
@@ -180,9 +303,9 @@ import PlutusTx.Ual.TH (ualModule)
 {-@ PROPERTY [scope: auction] audit_newBid_ignores_minting
     "Upstream Auction audit: newBid_ignores_minting. Checked against this freshly compiled program."
   : ∀ (oldBidAmt newBidAmt outAda refundAda outTok hi mintTok : Integer),
-    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt →
+    bakedMinBid ≤ newBidAmt →
     oldBidAmt < newBidAmt   →
-    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime       →
+    hi ≤ bakedEndTime       →
     outAda = newBidAmt      →
     refundAda = oldBidAmt   →
     outTok = 1
@@ -193,7 +316,7 @@ import PlutusTx.Ual.TH (ualModule)
     "Upstream Auction audit: payout_double_satisfaction. Checked against this freshly compiled program."
   : ∀ (bidAmt sellerAda assetTok lo : Integer),
     0 < bidAmt         →
-    CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo  →
+    bakedEndTime ≤ lo  →
     sellerAda = bidAmt →
     assetTok = 1
     → auditDouble auction bidAmt sellerAda assetTok lo
@@ -223,42 +346,42 @@ import PlutusTx.Ual.TH (ualModule)
 
 {-@ PROPERTY [scope: auction] audit_demo_valid_bid_accepted
     "Upstream Auction audit: demo_valid_bid_accepted. Checked against this freshly compiled program."
-  : auditAccepts auction CardanoLedgerApi.Examples.Auction.demoValidCtx
+  : auditAccepts auction demoValidCtx
 @-}
 
 {-@ PROPERTY [scope: auction] audit_nb_wrong_token_name_rejected
     "Upstream Auction audit: nb_wrong_token_name_rejected. Checked against this freshly compiled program."
-  : ¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoWrongTnCtx
+  : ¬ auditAccepts auction demoWrongTnCtx
 @-}
 
 {-@ PROPERTY [scope: auction] audit_nb_wrong_policy_rejected
     "Upstream Auction audit: nb_wrong_policy_rejected. Checked against this freshly compiled program."
-  : ¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoWrongPolicyCtx
+  : ¬ auditAccepts auction demoWrongPolicyCtx
 @-}
 
 {-@ PROPERTY [scope: auction] audit_nb_datum_hash_rejected
     "Upstream Auction audit: nb_datum_hash_rejected. Checked against this freshly compiled program."
-  : ¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoDatumHashCtx
+  : ¬ auditAccepts auction demoDatumHashCtx
 @-}
 
 {-@ PROPERTY [scope: auction] audit_nb_datum_missing_rejected
     "Upstream Auction audit: nb_datum_missing_rejected. Checked against this freshly compiled program."
-  : ¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoNoDatumCtx
+  : ¬ auditAccepts auction demoNoDatumCtx
 @-}
 
 {-@ PROPERTY [scope: auction] audit_nb_datum_wrong_bid_rejected
     "Upstream Auction audit: nb_datum_wrong_bid_rejected. Checked against this freshly compiled program."
-  : ¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoWrongDatumCtx
+  : ¬ auditAccepts auction demoWrongDatumCtx
 @-}
 
 {-@ PROPERTY [scope: auction] audit_nb_other_redeemer_rejected
     "Upstream Auction audit: nb_other_redeemer_rejected. Checked against this freshly compiled program."
-  : ¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoOtherRedeemerCtx
+  : ¬ auditAccepts auction demoOtherRedeemerCtx
 @-}
 
 {-@ PROPERTY [scope: auction] audit_payout_staked_outputs_accepted
     "Upstream Auction audit: payout_staked_outputs_accepted. Checked against this freshly compiled program."
-  : auditAccepts auction CardanoLedgerApi.Examples.Auction.demoPayoutStakedCtx
+  : auditAccepts auction demoPayoutStakedCtx
 @-}
 
 annotations :: ModuleUal
