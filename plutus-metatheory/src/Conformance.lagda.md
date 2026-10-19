@@ -16,7 +16,7 @@ builtins that are still postulated on the Agda side. See `Conformance.Eval`.
 
 Test cases:
 
-- proved by `refl`: 228
+- stated with a `refl` proof: 228
 - pending (postulated constants or builtins, or known failures): 711
 - skipped, constant not expressible in Agda: 6
 - skipped, program does not parse or has free variables: 66
