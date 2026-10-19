@@ -27,6 +27,7 @@ test_evaluateBuiltins =
         )
         [ "addInteger"
         , "ifThenElse"
+        , "ifThenElseDiscardedFail"
         , "traceConservative"
         , "failingBuiltin"
         , "nonConstantArg"
