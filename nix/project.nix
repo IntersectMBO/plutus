@@ -27,6 +27,11 @@ let
           }];
         };
         ghc912.compiler-nix-name = "ghc912";
+        # Only for scripts/windows-th-crash-stress.sh, which builds this variant
+        # under `--override-input haskell-nix <rev-with-ghc9123>`. Inert in
+        # normal use: the pinned haskell.nix has no ghc9123, and nothing in CI
+        # or the dev shells references this variant, so it is never evaluated.
+        ghc9123.compiler-nix-name = "ghc9123";
         ghc96-coverage.modules = [{
           packages.plutus-metatheory.doCoverage = true;
           packages.plutus-core.doCoverage = true;
