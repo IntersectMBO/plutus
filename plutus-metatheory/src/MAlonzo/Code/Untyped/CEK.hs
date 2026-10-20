@@ -7063,11 +7063,7 @@ d_caseCon_1230 v0 v1 v2 v3 v4 v5
                                _ -> coe v6)
                 MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
                   -> case coe v4 of
-<<<<<<< HEAD
                        MAlonzo.Code.Utils.C_ConstrDATA_614 v9 v10
-=======
-                       MAlonzo.Code.Utils.C_ConstrDATA_620 v9 v10
->>>>>>> origin/master
                          -> case coe v9 of
                               _ | coe geqInt (coe v9) (coe (0 :: Integer)) ->
                                   coe
