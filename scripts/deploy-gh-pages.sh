@@ -37,7 +37,9 @@ export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
 WORK=$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/deploy-gh-pages.XXXXXX")
 trap 'rm -rf "$WORK"' EXIT
 
-for attempt in 1 2 3 4 5; do
+# One deploy attempt. Runs in a subshell with `set -e`, so any failing step
+# (clone, checkout, push rejected by the lease, ...) fails just this attempt.
+deploy_once() {
   rm -rf "$WORK/repo"
   git clone --quiet --depth=1 --filter=blob:none --no-checkout --single-branch \
     --branch "$BRANCH" "$REMOTE" "$WORK/repo"
@@ -49,14 +51,17 @@ for attempt in 1 2 3 4 5; do
   OLD=$(git rev-parse HEAD)
 
   if [[ -n "${PRUNE_DIR:-}" && -n "${PRUNE_KEEP:-}" ]]; then
-    BUILDS=$(git ls-tree -d --name-only "HEAD:$PRUNE_DIR" 2>/dev/null | sort || true)
-    EXCESS=$(( $(printf '%s' "$BUILDS" | grep -c . || true) - PRUNE_KEEP ))
-    if (( EXCESS > 0 )); then
+    # Existing builds other than the target; the target counts as one build
+    # if it lives in PRUNE_DIR, so at most PRUNE_KEEP remain after the deploy.
+    BUILDS=$(git ls-tree -d --name-only "HEAD:$PRUNE_DIR" 2>/dev/null \
+      | grep -vxF -- "${TARGET#"$PRUNE_DIR"/}" | sort || true)
+    COUNT=$(printf '%s' "$BUILDS" | grep -c . || true)
+    [[ "$(dirname "$TARGET")" == "$PRUNE_DIR" ]] && COUNT=$((COUNT + 1))
+    EXCESS=$((COUNT - PRUNE_KEEP))
+    if ((EXCESS > 0)); then
       printf '%s\n' "$BUILDS" | head -n "$EXCESS" | while read -r BUILD; do
-        if [[ "$PRUNE_DIR/$BUILD" != "$TARGET" ]]; then
-          echo "Pruning $PRUNE_DIR/$BUILD"
-          git rm -r --quiet --cached --sparse -- "$PRUNE_DIR/$BUILD"
-        fi
+        echo "Pruning $PRUNE_DIR/$BUILD"
+        git rm -r --quiet --cached --sparse -- "$PRUNE_DIR/$BUILD"
       done
     fi
   fi
@@ -70,12 +75,20 @@ for attempt in 1 2 3 4 5; do
   NEW=$(git commit-tree "$TREE" -m "Deploy $TARGET from ${GITHUB_REPOSITORY:-local}@${GITHUB_SHA:-local}")
 
   # The lease makes the push fail if another deploy updated the branch since we
-  # cloned it; in that case retry on top of the new tip instead of clobbering it.
-  if git push --quiet --force-with-lease="$BRANCH:$OLD" origin "$NEW:refs/heads/$BRANCH"; then
+  # cloned it; in that case we retry on top of the new tip instead of clobbering it.
+  git push --quiet --force-with-lease="$BRANCH:$OLD" origin "$NEW:refs/heads/$BRANCH"
+}
+
+for attempt in 1 2 3 4 5; do
+  set +e
+  (set -e; deploy_once)
+  status=$?
+  set -e
+  if ((status == 0)); then
     echo "Deployed $SRC to $BRANCH:$TARGET (attempt $attempt)"
     exit 0
   fi
-  cd /
+  echo "Attempt $attempt failed, retrying" >&2
   sleep $((attempt * 10))
 done
 
