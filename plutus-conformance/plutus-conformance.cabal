@@ -128,8 +128,8 @@ executable generate-agda-conformance
     , directory
     , filepath
     , plutus-conformance
-    , plutus-core         ^>=1.71
-    , plutus-metatheory   ^>=1.71
+    , plutus-core         ^>=1.72
+    , plutus-metatheory   ^>=1.72
     , text
     , transformers
 
