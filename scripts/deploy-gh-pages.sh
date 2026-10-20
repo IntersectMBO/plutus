@@ -49,11 +49,29 @@ export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
 WORK=$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/deploy-gh-pages.XXXXXX")
 trap 'rm -rf "$WORK"' EXIT
 
-# One deploy attempt. Runs in a subshell with `set -e`, so any failing step
-# (clone, checkout, push rejected by the lease, ...) fails just this attempt.
+# Exit status of an attempt that is worth retrying.
+RETRY=75
+
+# Runs a git command that talks to the remote. If it fails because of a race
+# with another deploy (the push lease) or a transient network/server error,
+# exit with $RETRY; any other failure (e.g. a 403) is permanent and exits 1.
+remote_git() {
+  local err
+  if err=$(git "$@" 2>&1); then
+    return 0
+  fi
+  printf '%s\n' "$err" >&2
+  if grep -Eqi 'stale info|incorrect old value|cannot lock ref|fetch first|unable to access|could not resolve|timed out|RPC failed|early EOF|remote end hung up|returned error: (429|5[0-9][0-9])' <<<"$err"; then
+    exit "$RETRY"
+  fi
+  exit 1
+}
+
+# One deploy attempt. Runs in a subshell with `set -e`: a remote_git failure
+# exits with $RETRY or 1 as above, and any other failing step exits non-zero.
 deploy_once() {
   rm -rf "$WORK/repo"
-  git clone --quiet --depth=1 --filter=blob:none --no-checkout --single-branch \
+  remote_git clone --quiet --depth=1 --filter=blob:none --no-checkout --single-branch \
     --branch "$BRANCH" "$REMOTE" "$WORK/repo"
   cd "$WORK/repo"
 
@@ -91,7 +109,7 @@ deploy_once() {
 
   # The lease makes the push fail if another deploy updated the branch since we
   # cloned it; in that case we retry on top of the new tip instead of clobbering it.
-  git push --quiet --force-with-lease="$BRANCH:$OLD" origin "$NEW:refs/heads/$BRANCH"
+  remote_git push --quiet --force-with-lease="$BRANCH:$OLD" origin "$NEW:refs/heads/$BRANCH"
 }
 
 for attempt in 1 2 3 4 5; do
@@ -103,7 +121,11 @@ for attempt in 1 2 3 4 5; do
     echo "Deployed $SRC to $BRANCH:$TARGET (attempt $attempt)"
     exit 0
   fi
-  echo "Attempt $attempt failed, retrying" >&2
+  if ((status != RETRY)); then
+    echo "Failed to deploy $TARGET: permanent error, not retrying" >&2
+    exit 1
+  fi
+  echo "Attempt $attempt failed with a transient error or a race, retrying" >&2
   sleep $((attempt * 10))
 done
 

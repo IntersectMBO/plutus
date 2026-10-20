@@ -92,31 +92,33 @@ jobs:
         run: | 
           nix develop --no-warn-dirty --accept-flake-config --command ./scripts/combined-haddock.sh _haddock all
 
-      # The checked-out ref may predate the deploy script, so take it from the
-      # commit this workflow runs from. This is fetched into a fresh repository
-      # right before deploying, after the build steps (which run code from
-      # inputs.ref) have finished, so they cannot tamper with it.
-      - name: Fetch Deploy Script
+      # The checked-out ref may predate the deploy script, so check it out from
+      # the commit this workflow runs from. This happens right before deploying,
+      # after the build steps (which run code from inputs.ref), so they cannot
+      # tamper with it.
+      - name: Checkout Deploy Script
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        run: |
-          SCRIPT_REPO=$(mktemp -d "$RUNNER_TEMP/deploy-script.XXXXXX")
-          git init --quiet --bare "$SCRIPT_REPO"
-          git -C "$SCRIPT_REPO" fetch --quiet --depth=1 "https://github.com/$GITHUB_REPOSITORY" "$GITHUB_SHA"
-          git -C "$SCRIPT_REPO" --no-replace-objects show "$GITHUB_SHA:scripts/deploy-gh-pages.sh" > "$SCRIPT_REPO/deploy-gh-pages.sh"
-          chmod +x "$SCRIPT_REPO/deploy-gh-pages.sh"
-          echo "DEPLOY_SCRIPT=$SCRIPT_REPO/deploy-gh-pages.sh" >> "$GITHUB_ENV"
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: .deploy-script
+          sparse-checkout: scripts/deploy-gh-pages.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
 
       - name: Deploy Site
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DESTINATION: ${{ inputs.destination || github.ref_name }}
+          # Keep the 6 newest version-numbered builds in haddock/ (master and
+          # latest are never pruned); any older ones are removed by this deploy.
           PRUNE_DIR: haddock
           PRUNE_KEEP: 6
-        run: '"$DEPLOY_SCRIPT" _haddock "haddock/$DESTINATION"'
+        run: .deploy-script/scripts/deploy-gh-pages.sh _haddock "haddock/$DESTINATION"
 
       - name: Deploy Site (latest)
         if: ${{ inputs.latest == true }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: '"$DEPLOY_SCRIPT" _haddock haddock/latest'
+        run: .deploy-script/scripts/deploy-gh-pages.sh _haddock haddock/latest
