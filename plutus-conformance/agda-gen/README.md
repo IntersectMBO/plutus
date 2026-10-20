@@ -8,16 +8,20 @@ when it type-checks the module, so a test "runs" when you type-check
 `Conformance.lagda.md`. The implementation is described in the header of
 [`Main.hs`](Main.hs) and in `Conformance.Eval` in the metatheory.
 
-Regenerate the tests from the nix shell with
+Regenerate and type-check the tests from the nix shell with
 
     generate-agda-conformance
 
-or, without nix, from the repository root with
+This fails if any generated test doesn't type-check. Without nix, run the two
+steps yourself from the repository root:
 
     cabal run plutus-conformance:generate-agda-conformance
+    cd plutus-metatheory && agda-with-stdlib src/Conformance.lagda.md
 
-A pre-push hook regenerates them when the test cases, this tool, or
-`plutus-metatheory/src/{Conformance,FFI}` change.
+The cabal executable only writes the files. The counts it prints are what it
+generated, not what Agda has checked. A pre-push hook runs
+`generate-agda-conformance` (generation and type-checking) when the test
+cases, this tool, or `plutus-metatheory/src/{Conformance,FFI}` change.
 
 ## Why this exists: compile-time vs runtime Agda
 
@@ -70,6 +74,13 @@ the tables at the top of `Main.hs`:
 
 The summary at the top of the generated `Conformance.lagda.md` gives the
 current counts.
+
+`builtinSupported` is maintained by hand and nothing ties it to the Agda
+source. If you postulate a builtin, or make its definition stop reducing (for
+example by making it `opaque`), and leave it marked as supported, the
+generator still emits `refl` proofs for its cases. Agda then rejects them,
+usually with an equation where one side is stuck on that builtin. To fix it,
+set the builtin to `False` in `builtinSupported` and regenerate.
 
 ### When the two suites disagree
 

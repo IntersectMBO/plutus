@@ -454,7 +454,7 @@ renderIndex groups summary =
          , ""
          , "Test cases:"
          , ""
-         , "- proved by `refl`: " <> show (summaryActive summary)
+         , "- stated with a `refl` proof: " <> show (summaryActive summary)
          , "- pending (postulated constants or builtins, or known failures): "
              <> show (summaryPending summary)
          , "- skipped, constant not expressible in Agda: " <> show (summarySkipped summary)
@@ -531,7 +531,9 @@ main = do
   let summary = summarise cases
   writeUtf8 (outDir </> "Conformance.lagda.md") (renderIndex groupsWritten summary)
   putStrLn $ "Generated " <> show (length groupsWritten) <> " modules under " <> conformanceDir
-  putStrLn $ "  proved by refl:                " <> show (summaryActive summary)
-  putStrLn $ "  pending:                       " <> show (summaryPending summary)
+  putStrLn $ "  emitted as refl:                " <> show (summaryActive summary)
+  putStrLn $ "  emitted as pending:             " <> show (summaryPending summary)
   putStrLn $ "  skipped (unprintable constant): " <> show (summarySkipped summary)
-  putStrLn $ "  skipped (parse/scope error):   " <> show (summaryParseErrors summary)
+  putStrLn $ "  skipped (parse/scope error):    " <> show (summaryParseErrors summary)
+  putStrLn "The generated tests have not been type-checked yet. Check them with:"
+  putStrLn "  cd plutus-metatheory && agda-with-stdlib src/Conformance.lagda.md"
