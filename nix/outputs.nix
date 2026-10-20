@@ -17,6 +17,10 @@ let
   agda-tools = import ./agda-tools.nix
     { inherit self pkgs lib; };
 
+  # Agda built with its `debug` flag, for the `metatheory-debug` shell only.
+  agda-tools-debug = import ./agda-tools.nix
+    { inherit self pkgs lib; debug = true; };
+
   build-latex-doc = import ./build-latex-doc.nix
     { inherit pkgs lib agda-tools; };
 
@@ -25,6 +29,9 @@ let
 
   metatheory = import ./metatheory.nix
     { inherit inputs self pkgs lib agda-tools; };
+
+  metatheory-debug = import ./metatheory.nix
+    { inherit inputs self pkgs lib; agda-tools = agda-tools-debug; };
 
   hydra-required-job = utils.makeHydraRequiredJob
     { inherit self pkgs; };
@@ -35,8 +42,10 @@ let
   mkFourmolu = import ./fourmolu.nix
     { inherit pkgs lib; };
 
-  mkShell = ghc: import ./shell.nix
+  mkShellWith = { agda-tools, metatheory }: ghc: import ./shell.nix
     { inherit inputs pkgs lib project agda-tools metatheory r-with-packages ghc mkFourmolu; };
+
+  mkShell = mkShellWith { inherit agda-tools metatheory; };
 
   exposed-haskell-packages = {
     plutus-core-test = project.flake'.packages."plutus-core:test:plutus-core-test";
@@ -104,6 +113,24 @@ let
       lib.remove metatheory.agda-with-stdlib-and-metatheory attrs.nativeBuildInputs;
   });
 
+  # Like the jailbreak shell, but with an Agda built with the `debug` flag, so that
+  # `agda -v` works. Not built by CI, so expect to compile Agda locally.
+  # We drop agda-with-stdlib-and-metatheory to avoid type-checking the whole
+  # metatheory with the (slower) debug Agda on shell entry.
+  metatheory-debug-shell =
+    (mkShellWith
+      {
+        agda-tools = agda-tools-debug;
+        metatheory = metatheory-debug;
+      }
+      "ghc96"
+    ).overrideAttrs (attrs: {
+      buildInputs =
+        lib.remove metatheory-debug.agda-with-stdlib-and-metatheory attrs.buildInputs;
+      nativeBuildInputs =
+        lib.remove metatheory-debug.agda-with-stdlib-and-metatheory attrs.nativeBuildInputs;
+    });
+
   devShells = rec {
     default = ghc96;
     ghc96 = mkShell "ghc96";
@@ -111,6 +138,7 @@ let
     ghc96-profiled = mkShell "ghc96-profiled";
     ghc912-profiled = mkShell "ghc912-profiled";
     metatheory-jailbreak = metatheory-jailbreak-shell;
+    metatheory-debug = metatheory-debug-shell;
   };
 
   nested-ci-jobs = {
@@ -151,6 +179,7 @@ let
     inherit pkgs;
     inherit project;
     inherit agda-tools;
+    inherit agda-tools-debug;
     inherit r-with-packages;
     inherit build-latex-doc;
     inherit extra-artifacts;

@@ -1,4 +1,6 @@
-{ self, pkgs, lib }:
+# `debug` builds Agda with its `debug` cabal flag, which enables `-v`/`--verbose`.
+# It is off by default since the debug build is slower and not in the binary cache.
+{ self, pkgs, lib, debug ? false }:
 
 let
 
@@ -139,7 +141,8 @@ let
     version = "2.8.0";
     compiler-nix-name = "ghc96";
     cabalProjectLocal = "extra-packages: ieee754, filemanip";
-    modules = [ agda-project-module-patch-default ];
+    modules = [ agda-project-module-patch-default ]
+      ++ lib.optional debug { packages.Agda.flags.debug = true; };
   };
 
   # Path to the stdlib .agda-lib file for shell export.
