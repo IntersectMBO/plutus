@@ -1,0 +1,14 @@
+{
+  "force-delay-baseline": "fa03af92051a67c22d5b9e2f1aeb0b55ddc4d74200043b83c52f6049a4684797",
+  "force-delay-ra-erased-context": "98a7012435d0f6f27b846e99c7f198e9839941f000751d4d8ff606bc265b3bdf",
+  "marlowe-baseline": "d5faa55e4deff25bb69287602703fe38c56ad0eedd3f572ff94810b42c46ed5e",
+  "marlowe-ra-erased-context": "641f15318b3feb418e1ffc6af8addf0a10e96da81ddcd63a3a21e8bed04f3ec1",
+  "nofib-baseline": "0c51d175769c1f0855c08a667892cf299f79eeb34753e0efe606fcde8842476d",
+  "nofib-ra-erased-context": "9a9309f7ecb61bc40bbb58ee8def46c8ca49742a5c778dd8c6ccf764cc425c4f",
+  "server-baseline": "d079d231e08bc4165ed177236545c4b2569be82835df80eb545fc74ef61d0f52",
+  "server-ra-erased-context": "a86f4d6c716461287ae629da026dceb681510a4e7363529f1d5ac4ed6160c8c4",
+  "validation-baseline": "7bf6ff0541d3f68fca0cf109d03f410ae0a17d00d16dd790d0363aea8dbee037",
+  "validation-full-baseline": "3d43dcbb891cd9c693145fa7606e5d4711ee7ac991d2e608e8e47d7cbea82004",
+  "validation-full-ra-erased-context": "625453e27171a53c93f37fba43cb5751d21e41724a4132b05de29220cf351c7b",
+  "validation-ra-erased-context": "d344fb31de991ee9155d2178025b12631e75c4df0d3637f4165c4eae1099cb0a"
+}

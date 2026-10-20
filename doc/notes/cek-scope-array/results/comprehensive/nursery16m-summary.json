@@ -1,0 +1,753 @@
+{
+  "rounds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "samples": 240,
+  "aggregates": {
+    "marlowe-semantics/cek": {
+      "count": 1,
+      "rounds": 8,
+      "ratio": 1.0096865015058194,
+      "low": 0.9994962829015849,
+      "high": 1.0194946113543866,
+      "cpu_ratio": 1.0097106128763838,
+      "summed_time_ratio": 1.0096553686216558,
+      "allocation_ratio": 0.9980009099145419,
+      "baseline_sum_ms": 2.363504679439875,
+      "candidate_sum_ms": 2.3863251883588754,
+      "baseline_cpu_ms": 2.3625463852405,
+      "candidate_cpu_ms": 2.3854139985465,
+      "baseline_gc_cpu_ms": 0.03797619536205125,
+      "candidate_gc_cpu_ms": 0.039133238372092496,
+      "baseline_gc_wall_ms": 0.03865386376849749,
+      "candidate_gc_wall_ms": 0.03985211997885749,
+      "baseline_sum_bytes": 22299391.306025375,
+      "candidate_sum_bytes": 22254812.81395375,
+      "baseline_gc_cpu_share": 0.016074264445895898,
+      "candidate_gc_cpu_share": 0.01640521871504799,
+      "baseline_gc_wall_share": 0.016354468897289445,
+      "candidate_gc_wall_share": 0.016700205057243105,
+      "round_ratios": [
+        1.0143703993353896,
+        1.0222427051177283,
+        0.9861054592112084,
+        1.0019600363519925,
+        1.034860972529136,
+        1.008700574019926,
+        1.0163722392722037,
+        0.9937359012519764
+      ],
+      "point_faster": 0,
+      "nominal_faster": 0,
+      "nominal_slower": 0
+    },
+    "nofib/cek": {
+      "count": 2,
+      "rounds": 8,
+      "ratio": 1.0091540373947623,
+      "low": 0.9900019030878211,
+      "high": 1.024390930692093,
+      "cpu_ratio": 1.0091780461227662,
+      "summed_time_ratio": 1.0050178301775587,
+      "allocation_ratio": 0.9713524268891573,
+      "baseline_sum_ms": 18.0139106749035,
+      "candidate_sum_ms": 18.104301419503877,
+      "baseline_cpu_ms": 18.006520662858748,
+      "candidate_cpu_ms": 18.097280040349872,
+      "baseline_gc_cpu_ms": 0.058652523532668754,
+      "candidate_gc_cpu_ms": 0.056685785229786755,
+      "baseline_gc_wall_ms": 0.06278379388150625,
+      "candidate_gc_wall_ms": 0.060532301148947504,
+      "baseline_sum_bytes": 149869492.42801738,
+      "candidate_sum_bytes": 145576095.18660086,
+      "baseline_gc_cpu_share": 0.003257293545534797,
+      "candidate_gc_cpu_share": 0.0031322820392567043,
+      "baseline_gc_wall_share": 0.0034852950597215387,
+      "candidate_gc_wall_share": 0.0033435314484841533,
+      "round_ratios": [
+        0.9515522104755059,
+        1.0147658385422254,
+        1.0425446916330385,
+        1.0260198080279024,
+        1.0135235555201423,
+        1.0051847548569848,
+        1.017942145208177,
+        1.0041716901235234
+      ],
+      "point_faster": 0,
+      "nominal_faster": 0,
+      "nominal_slower": 0
+    },
+    "validation/cek": {
+      "count": 6,
+      "rounds": 8,
+      "ratio": 0.9650522563610706,
+      "low": 0.9411130879310241,
+      "high": 0.9890655214438788,
+      "cpu_ratio": 0.9650467271994427,
+      "summed_time_ratio": 0.9677316949841626,
+      "allocation_ratio": 0.9495691654652025,
+      "baseline_sum_ms": 1.3038692976924375,
+      "candidate_sum_ms": 1.2617956454937123,
+      "baseline_cpu_ms": 1.3033318853882874,
+      "candidate_cpu_ms": 1.2612696329068749,
+      "baseline_gc_cpu_ms": 0.01792894124049375,
+      "candidate_gc_cpu_ms": 0.017016041307126275,
+      "baseline_gc_wall_ms": 0.018304158734231503,
+      "candidate_gc_wall_ms": 0.017377544952159714,
+      "baseline_sum_bytes": 12297617.074293626,
+      "candidate_sum_bytes": 11677437.982447624,
+      "baseline_gc_cpu_share": 0.013756236183197787,
+      "candidate_gc_cpu_share": 0.013491200345408336,
+      "baseline_gc_wall_share": 0.014038338633040784,
+      "candidate_gc_wall_share": 0.013772075545054106,
+      "round_ratios": [
+        0.900896262187364,
+        0.9651847962590057,
+        0.9604273927020329,
+        1.0301688194871148,
+        0.9692491750823268,
+        0.9667121868260725,
+        0.9674579677342083,
+        0.9646809629947437
+      ],
+      "point_faster": 3,
+      "nominal_faster": 2,
+      "nominal_slower": 0
+    },
+    "validation/full": {
+      "count": 6,
+      "rounds": 8,
+      "ratio": 0.996871326467326,
+      "low": 0.9836871550665119,
+      "high": 1.0049149987788981,
+      "cpu_ratio": 0.9968695960849987,
+      "summed_time_ratio": 0.9924470213822276,
+      "allocation_ratio": 0.9703243160783054,
+      "baseline_sum_ms": 2.509365972947375,
+      "candidate_sum_ms": 2.490412785409538,
+      "baseline_cpu_ms": 2.508240937176437,
+      "candidate_cpu_ms": 2.4893148283140625,
+      "baseline_gc_cpu_ms": 0.11444059126188735,
+      "candidate_gc_cpu_ms": 0.12617055208216424,
+      "baseline_gc_wall_ms": 0.11531669038313862,
+      "candidate_gc_wall_ms": 0.12698696286519462,
+      "baseline_sum_bytes": 20900676.53435613,
+      "candidate_sum_bytes": 20280434.663772997,
+      "baseline_gc_cpu_share": 0.0456258366433947,
+      "candidate_gc_cpu_share": 0.05068485136836457,
+      "baseline_gc_wall_share": 0.045954512664286046,
+      "candidate_gc_wall_share": 0.05099032722975367,
+      "round_ratios": [
+        0.9534162935108781,
+        1.0012641615837568,
+        0.9972719908255909,
+        1.001102920614286,
+        1.0072479835243553,
+        1.0066571356683234,
+        1.0052983358110528,
+        1.003867274617634
+      ],
+      "point_faster": 4,
+      "nominal_faster": 3,
+      "nominal_slower": 1
+    },
+    "all/cek": {
+      "count": 9,
+      "rounds": 8,
+      "ratio": 0.9795918470307533,
+      "low": 0.9598388567590291,
+      "high": 0.9976073515683568,
+      "cpu_ratio": 0.979595883463699,
+      "summed_time_ratio": 1.0032810602536864,
+      "allocation_ratio": 0.9731216518792987,
+      "baseline_sum_ms": 21.68128465203581,
+      "candidate_sum_ms": 21.752422253356464,
+      "baseline_cpu_ms": 21.672398933487532,
+      "candidate_cpu_ms": 21.74396367180325,
+      "baseline_gc_cpu_ms": 0.11455766013521375,
+      "candidate_gc_cpu_ms": 0.11283506490900552,
+      "baseline_gc_wall_ms": 0.11974181638423523,
+      "candidate_gc_wall_ms": 0.11776196607996471,
+      "baseline_sum_bytes": 184466500.80833638,
+      "candidate_sum_bytes": 179508345.98300228,
+      "baseline_gc_cpu_share": 0.005285878157133899,
+      "candidate_gc_cpu_share": 0.005189259263495081,
+      "baseline_gc_wall_share": 0.005522819256606726,
+      "candidate_gc_wall_share": 0.005413740350769151,
+      "round_ratios": [
+        0.9240148416150674,
+        0.9822374835210129,
+        0.9809696037472024,
+        1.0260750888326065,
+        0.9860681400731923,
+        0.979749941440469,
+        0.9838327856729575,
+        0.9765347140356495
+      ],
+      "point_faster": 3,
+      "nominal_faster": 2,
+      "nominal_slower": 0
+    }
+  },
+  "families": {
+    "marlowe-semantics/cek/marlowe-semantics": {
+      "count": 1,
+      "rounds": 8,
+      "ratio": 1.0096865015058194,
+      "low": 0.9994962829015849,
+      "high": 1.0194946113543866,
+      "cpu_ratio": 1.0097106128763838,
+      "summed_time_ratio": 1.0096553686216558,
+      "allocation_ratio": 0.9980009099145419,
+      "baseline_sum_ms": 2.363504679439875,
+      "candidate_sum_ms": 2.3863251883588754,
+      "baseline_cpu_ms": 2.3625463852405,
+      "candidate_cpu_ms": 2.3854139985465,
+      "baseline_gc_cpu_ms": 0.03797619536205125,
+      "candidate_gc_cpu_ms": 0.039133238372092496,
+      "baseline_gc_wall_ms": 0.03865386376849749,
+      "candidate_gc_wall_ms": 0.03985211997885749,
+      "baseline_sum_bytes": 22299391.306025375,
+      "candidate_sum_bytes": 22254812.81395375,
+      "baseline_gc_cpu_share": 0.016074264445895898,
+      "candidate_gc_cpu_share": 0.01640521871504799,
+      "baseline_gc_wall_share": 0.016354468897289445,
+      "candidate_gc_wall_share": 0.016700205057243105,
+      "round_ratios": [
+        1.0143703993353896,
+        1.0222427051177283,
+        0.9861054592112084,
+        1.0019600363519925,
+        1.034860972529136,
+        1.008700574019926,
+        1.0163722392722037,
+        0.9937359012519764
+      ]
+    },
+    "nofib/cek/primetest": {
+      "count": 2,
+      "rounds": 8,
+      "ratio": 1.0091540373947623,
+      "low": 0.9900019030878211,
+      "high": 1.024390930692093,
+      "cpu_ratio": 1.0091780461227662,
+      "summed_time_ratio": 1.0050178301775587,
+      "allocation_ratio": 0.9713524268891573,
+      "baseline_sum_ms": 18.0139106749035,
+      "candidate_sum_ms": 18.104301419503877,
+      "baseline_cpu_ms": 18.006520662858748,
+      "candidate_cpu_ms": 18.097280040349872,
+      "baseline_gc_cpu_ms": 0.058652523532668754,
+      "candidate_gc_cpu_ms": 0.056685785229786755,
+      "baseline_gc_wall_ms": 0.06278379388150625,
+      "candidate_gc_wall_ms": 0.060532301148947504,
+      "baseline_sum_bytes": 149869492.42801738,
+      "candidate_sum_bytes": 145576095.18660086,
+      "baseline_gc_cpu_share": 0.003257293545534797,
+      "candidate_gc_cpu_share": 0.0031322820392567043,
+      "baseline_gc_wall_share": 0.0034852950597215387,
+      "candidate_gc_wall_share": 0.0033435314484841533,
+      "round_ratios": [
+        0.9515522104755059,
+        1.0147658385422254,
+        1.0425446916330385,
+        1.0260198080279024,
+        1.0135235555201423,
+        1.0051847548569848,
+        1.017942145208177,
+        1.0041716901235234
+      ]
+    },
+    "validation/cek/coop": {
+      "count": 3,
+      "rounds": 8,
+      "ratio": 1.0195248292126549,
+      "low": 0.9923626916174759,
+      "high": 1.0378264676967333,
+      "cpu_ratio": 1.0195408427919368,
+      "summed_time_ratio": 1.0174114457348507,
+      "allocation_ratio": 0.9606714210228198,
+      "baseline_sum_ms": 0.65138371838855,
+      "candidate_sum_ms": 0.6627252506538375,
+      "baseline_cpu_ms": 0.6511034310768624,
+      "candidate_cpu_ms": 0.6624497395150499,
+      "baseline_gc_cpu_ms": 0.008118053653643001,
+      "candidate_gc_cpu_ms": 0.0076897352102933995,
+      "baseline_gc_wall_ms": 0.008298753137716875,
+      "candidate_gc_wall_ms": 0.007868895638007339,
+      "baseline_sum_bytes": 6046036.7647078745,
+      "candidate_sum_bytes": 5808254.730308126,
+      "baseline_gc_cpu_share": 0.012468147557165412,
+      "candidate_gc_cpu_share": 0.011608028128930525,
+      "baseline_gc_wall_share": 0.01274019123205452,
+      "candidate_gc_wall_share": 0.011873541305758264,
+      "round_ratios": [
+        0.9339132211731642,
+        1.0250401584898094,
+        1.0238980004974234,
+        1.0548499554569366,
+        1.032226930707649,
+        1.0268731075121953,
+        1.0326344281106503,
+        1.0314521877584721
+      ]
+    },
+    "validation/full/coop": {
+      "count": 3,
+      "rounds": 8,
+      "ratio": 1.00690124396996,
+      "low": 0.9900084761085296,
+      "high": 1.0163279096063447,
+      "cpu_ratio": 1.0068956947309047,
+      "summed_time_ratio": 0.9999939744606429,
+      "allocation_ratio": 0.9728233837819985,
+      "baseline_sum_ms": 1.0589580549516002,
+      "candidate_sum_ms": 1.0589516741581624,
+      "baseline_cpu_ms": 1.058474003399125,
+      "candidate_cpu_ms": 1.0584825102968376,
+      "baseline_gc_cpu_ms": 0.03703880469816236,
+      "candidate_gc_cpu_ms": 0.03785627603559925,
+      "baseline_gc_wall_ms": 0.037364349777734875,
+      "candidate_gc_wall_ms": 0.038163360196043376,
+      "baseline_sum_bytes": 8751507.495392751,
+      "candidate_sum_bytes": 8513671.1348615,
+      "baseline_gc_cpu_share": 0.0349926446745201,
+      "candidate_gc_cpu_share": 0.035764668445001466,
+      "baseline_gc_wall_share": 0.03528406965981539,
+      "candidate_gc_wall_share": 0.03603881189987466,
+      "round_ratios": [
+        0.9503566033103568,
+        1.0129894307250644,
+        1.016880622513215,
+        1.0133417022088231,
+        1.0163862378882615,
+        1.0176134334878593,
+        1.0172483485910244,
+        1.012299495529198
+      ]
+    },
+    "validation/cek/future-increase-margin": {
+      "count": 1,
+      "rounds": 8,
+      "ratio": 0.9062323691328679,
+      "low": 0.8957836866582553,
+      "high": 0.9131315811959015,
+      "cpu_ratio": 0.9062014529441783,
+      "summed_time_ratio": 0.906142571021653,
+      "allocation_ratio": 0.9395611350035409,
+      "baseline_sum_ms": 0.24682849346701252,
+      "candidate_sum_ms": 0.2236618056716,
+      "baseline_cpu_ms": 0.24673589792480005,
+      "candidate_cpu_ms": 0.2235701697302875,
+      "baseline_gc_cpu_ms": 0.003862990287749625,
+      "candidate_gc_cpu_ms": 0.0036419609584301253,
+      "baseline_gc_wall_ms": 0.0039371291823926255,
+      "candidate_gc_wall_ms": 0.00370909772865325,
+      "baseline_sum_bytes": 2367463.6655363753,
+      "candidate_sum_bytes": 2224376.848671,
+      "baseline_gc_cpu_share": 0.015656377204289033,
+      "candidate_gc_cpu_share": 0.01629001294235159,
+      "baseline_gc_wall_share": 0.0159508698817173,
+      "candidate_gc_wall_share": 0.016583509721365994,
+      "round_ratios": [
+        0.8726975825837102,
+        0.9161847197648321,
+        0.9101598089441724,
+        0.9051873301594738,
+        0.9167597224961423,
+        0.9124251930756448,
+        0.9101315059265414,
+        0.9071031695017898
+      ]
+    },
+    "validation/full/future-increase-margin": {
+      "count": 1,
+      "rounds": 8,
+      "ratio": 0.9949890478577487,
+      "low": 0.9819230130381997,
+      "high": 1.0065965529559862,
+      "cpu_ratio": 0.9950852416241369,
+      "summed_time_ratio": 0.9949599334050121,
+      "allocation_ratio": 0.9668942576398598,
+      "baseline_sum_ms": 0.5111302310864875,
+      "candidate_sum_ms": 0.5085541006831,
+      "baseline_cpu_ms": 0.5108517591892875,
+      "candidate_cpu_ms": 0.508325570038375,
+      "baseline_gc_cpu_ms": 0.02880410933570875,
+      "candidate_gc_cpu_ms": 0.0343143624444575,
+      "baseline_gc_wall_ms": 0.029032610329441252,
+      "candidate_gc_wall_ms": 0.03451042958930375,
+      "baseline_sum_bytes": 4322036.044871376,
+      "candidate_sum_bytes": 4178951.833098625,
+      "baseline_gc_cpu_share": 0.056384477135637844,
+      "candidate_gc_cpu_share": 0.0675046947606177,
+      "baseline_gc_wall_share": 0.05680080841183643,
+      "candidate_gc_wall_share": 0.06785989837255986,
+      "round_ratios": [
+        0.9611753708806611,
+        0.9992782989565453,
+        0.9760145256921204,
+        0.9909872303634959,
+        1.0022786405386865,
+        1.0158954442994395,
+        0.9989215477768318,
+        1.0166327686454253
+      ]
+    },
+    "validation/cek/future-settle-early": {
+      "count": 1,
+      "rounds": 8,
+      "ratio": 0.9403142913958635,
+      "low": 0.8972541707397356,
+      "high": 1.0207854955292168,
+      "cpu_ratio": 0.9403479428874392,
+      "summed_time_ratio": 0.9454927693651789,
+      "allocation_ratio": 0.9395624933308869,
+      "baseline_sum_ms": 0.2461962557879375,
+      "candidate_sum_ms": 0.23277677969227498,
+      "baseline_cpu_ms": 0.24609130033903748,
+      "candidate_cpu_ms": 0.23268313350353748,
+      "baseline_gc_cpu_ms": 0.0038593468417595003,
+      "candidate_gc_cpu_ms": 0.003757602513055625,
+      "baseline_gc_wall_ms": 0.00393348596440825,
+      "candidate_gc_wall_ms": 0.0038282521817759995,
+      "baseline_sum_bytes": 2367484.467385375,
+      "candidate_sum_bytes": 2224399.6090987497,
+      "baseline_gc_cpu_share": 0.015682581368957445,
+      "candidate_gc_cpu_share": 0.016149011131477212,
+      "baseline_gc_wall_share": 0.015977034060974424,
+      "candidate_gc_wall_share": 0.01644602260945809,
+      "round_ratios": [
+        0.8756098224252123,
+        0.9127463133752084,
+        0.9036814736394033,
+        1.2395717170334708,
+        0.9091316004320439,
+        0.9152827681553283,
+        0.9088931174423084,
+        0.9026963579895416
+      ]
+    },
+    "validation/full/future-settle-early": {
+      "count": 1,
+      "rounds": 8,
+      "ratio": 0.9792101729145405,
+      "low": 0.9680830372315709,
+      "high": 0.9886747586284769,
+      "cpu_ratio": 0.9791378091992319,
+      "summed_time_ratio": 0.9791501647142404,
+      "allocation_ratio": 0.9668901702845909,
+      "baseline_sum_ms": 0.5130574674350625,
+      "candidate_sum_ms": 0.5023603037469124,
+      "baseline_cpu_ms": 0.5128752125177001,
+      "candidate_cpu_ms": 0.5021446857035751,
+      "baseline_gc_cpu_ms": 0.02884201772791,
+      "candidate_gc_cpu_ms": 0.034162172832476245,
+      "baseline_gc_wall_ms": 0.029025859402093748,
+      "candidate_gc_wall_ms": 0.03434967996304625,
+      "baseline_sum_bytes": 4322097.072154375,
+      "candidate_sum_bytes": 4178993.174081875,
+      "baseline_gc_cpu_share": 0.056235936196496576,
+      "candidate_gc_cpu_share": 0.06803252888081501,
+      "baseline_gc_wall_share": 0.05657428503517014,
+      "candidate_gc_wall_share": 0.06837658092577217,
+      "round_ratios": [
+        0.9468726407549044,
+        0.9789762020724073,
+        0.982377936709901,
+        0.9905875675551697,
+        1.000964020196923,
+        0.9811158036603839,
+        0.9838122521832895,
+        0.9698871207408367
+      ]
+    },
+    "validation/cek/vesting": {
+      "count": 1,
+      "rounds": 8,
+      "ratio": 0.8945383311132528,
+      "low": 0.8832062423790437,
+      "high": 0.9025894512670287,
+      "cpu_ratio": 0.8944639372606435,
+      "summed_time_ratio": 0.8944629814872231,
+      "allocation_ratio": 0.9365532501717664,
+      "baseline_sum_ms": 0.1594608300489375,
+      "candidate_sum_ms": 0.14263180947600002,
+      "baseline_cpu_ms": 0.1594012560475875,
+      "candidate_cpu_ms": 0.142566590158,
+      "baseline_gc_cpu_ms": 0.0020885504573416253,
+      "candidate_gc_cpu_ms": 0.0019267426253471252,
+      "baseline_gc_wall_ms": 0.00213479044971375,
+      "candidate_gc_wall_ms": 0.0019712994037231254,
+      "baseline_sum_bytes": 1516632.1766640001,
+      "candidate_sum_bytes": 1420406.79436975,
+      "baseline_gc_cpu_share": 0.01310247176921938,
+      "candidate_gc_cpu_share": 0.013514685475831362,
+      "baseline_gc_wall_share": 0.013387553852934272,
+      "candidate_gc_wall_share": 0.013820895990629823,
+      "round_ratios": [
+        0.8589240072174557,
+        0.8976500525739215,
+        0.8889638731200389,
+        0.9075450932417324,
+        0.9044921572051883,
+        0.9025686943543109,
+        0.9001934939950833,
+        0.8969259116841117
+      ]
+    },
+    "validation/full/vesting": {
+      "count": 1,
+      "rounds": 8,
+      "ratio": 0.9866878418749059,
+      "low": 0.9778266475467453,
+      "high": 0.9941701490648273,
+      "cpu_ratio": 0.9866714117304013,
+      "summed_time_ratio": 0.9866887763798227,
+      "allocation_ratio": 0.972548811952422,
+      "baseline_sum_ms": 0.42622021947422495,
+      "candidate_sum_ms": 0.4205467068213625,
+      "baseline_cpu_ms": 0.426039962070325,
+      "candidate_cpu_ms": 0.420362062275275,
+      "baseline_gc_cpu_ms": 0.01975565950010625,
+      "candidate_gc_cpu_ms": 0.01983774076963125,
+      "baseline_gc_wall_ms": 0.019893870873868746,
+      "candidate_gc_wall_ms": 0.01996349311680125,
+      "baseline_sum_bytes": 3505035.921937625,
+      "candidate_sum_bytes": 3408818.5217309995,
+      "baseline_gc_cpu_share": 0.04637043765590526,
+      "candidate_gc_cpu_share": 0.04719203408189691,
+      "baseline_gc_wall_share": 0.04667509884540285,
+      "candidate_gc_wall_share": 0.04747033514467927,
+      "round_ratios": [
+        0.9614825918251942,
+        0.9908746027318333,
+        0.9757463475162765,
+        0.9854706450513431,
+        0.9913686236746622,
+        0.9907673351254214,
+        0.9978038905137795,
+        1.000565267015561
+      ]
+    }
+  },
+  "order_ratios": {
+    "candidate-first": 0.9895038724225551,
+    "baseline-first": 0.9834402513415542
+  },
+  "canonical": {
+    "validation": {
+      "rounds": [
+        {
+          "round": 1,
+          "count": 89,
+          "ratio": 0.9479754646358899
+        },
+        {
+          "round": 2,
+          "count": 89,
+          "ratio": 1.0506548867878607
+        }
+      ],
+      "ratio": 0.9979955182638299
+    },
+    "validation-full": {
+      "rounds": [
+        {
+          "round": 1,
+          "count": 89,
+          "ratio": 0.972447857345299
+        },
+        {
+          "round": 2,
+          "count": 89,
+          "ratio": 0.9421039203780128
+        }
+      ],
+      "ratio": 0.9571556502305175
+    },
+    "marlowe": {
+      "rounds": [
+        {
+          "round": 1,
+          "count": 200,
+          "ratio": 0.9306170502020952
+        },
+        {
+          "round": 2,
+          "count": 200,
+          "ratio": 0.9636078103375533
+        }
+      ],
+      "ratio": 0.9469687735126401
+    },
+    "nofib": {
+      "rounds": [
+        {
+          "round": 1,
+          "count": 22,
+          "ratio": 0.9709584922300222
+        },
+        {
+          "round": 2,
+          "count": 22,
+          "ratio": 0.9427112814897908
+        }
+      ],
+      "ratio": 0.9567306436419601
+    },
+    "force-delay": {
+      "rounds": [
+        {
+          "round": 1,
+          "count": 16,
+          "ratio": 0.8816893732886855
+        },
+        {
+          "round": 2,
+          "count": 16,
+          "ratio": 0.8809908200325015
+        }
+      ],
+      "ratio": 0.8813400274511203
+    }
+  },
+  "canonical_by_suite": {
+    "validation/cek": [
+      {
+        "round": 1,
+        "ratio": 0.9479754646358899
+      },
+      {
+        "round": 2,
+        "ratio": 1.0506548867878607
+      }
+    ],
+    "validation/full": [
+      {
+        "round": 1,
+        "ratio": 0.972447857345299
+      },
+      {
+        "round": 2,
+        "ratio": 0.9421039203780128
+      }
+    ],
+    "marlowe-semantics/cek": [
+      {
+        "round": 1,
+        "ratio": 0.9216737789865755
+      },
+      {
+        "round": 2,
+        "ratio": 0.9212857841165351
+      }
+    ],
+    "marlowe-rolepayout/cek": [
+      {
+        "round": 1,
+        "ratio": 0.9396471006033288
+      },
+      {
+        "round": 2,
+        "ratio": 1.007874025793153
+      }
+    ],
+    "nofib/cek": [
+      {
+        "round": 1,
+        "ratio": 0.9709584922300222
+      },
+      {
+        "round": 2,
+        "ratio": 0.9427112814897908
+      }
+    ],
+    "force-delay/cek": [
+      {
+        "round": 1,
+        "ratio": 0.8816893732886855
+      },
+      {
+        "round": 2,
+        "ratio": 0.8809908200325015
+      }
+    ]
+  },
+  "host_observations": {
+    "paired-canonical-host": {
+      "observed_seconds": 2292.5126988887787,
+      "load_min": 1.27,
+      "load_max": 9.58,
+      "busy_fraction": {
+        "cpu": 0.08386601381871223,
+        "cpu15": 0.999411125796616,
+        "cpu31": 0.015072238430495623
+      },
+      "median_cpu15_mhz": 5174.902
+    },
+    "nursery16m-paired-host": {
+      "observed_seconds": 50.01113295555115,
+      "load_min": 1.36,
+      "load_max": 1.5,
+      "busy_fraction": {
+        "cpu": 0.03489434680286415,
+        "cpu15": 0.9884023195360928,
+        "cpu31": 0.003
+      },
+      "median_cpu15_mhz": 5224.956
+    },
+    "paired-check-host": {
+      "observed_seconds": 4.000921726226807,
+      "load_min": 1.43,
+      "load_max": 1.43,
+      "busy_fraction": {
+        "cpu": 0.03379752777343139,
+        "cpu15": 0.9875,
+        "cpu31": 0.0
+      },
+      "median_cpu15_mhz": 5175.014
+    },
+    "confirmation-paired-host": {
+      "observed_seconds": 74.01651334762573,
+      "load_min": 1.14,
+      "load_max": 1.42,
+      "busy_fraction": {
+        "cpu": 0.035166527083386204,
+        "cpu15": 0.9886501824077827,
+        "cpu31": 0.00081113965120995
+      },
+      "median_cpu15_mhz": 5224.948
+    },
+    "nursery4m-paired-host": {
+      "observed_seconds": 50.01039505004883,
+      "load_min": 1.24,
+      "load_max": 1.71,
+      "busy_fraction": {
+        "cpu": 0.03645070422535211,
+        "cpu15": 0.987997599519904,
+        "cpu31": 0.008803521408563426
+      },
+      "median_cpu15_mhz": 5200.013000000001
+    },
+    "paired-paired-host": {
+      "observed_seconds": 1357.263592004776,
+      "load_min": 1.16,
+      "load_max": 2.96,
+      "busy_fraction": {
+        "cpu": 0.04214548598497105,
+        "cpu15": 0.9926755581755213,
+        "cpu31": 0.0036643540193613553
+      },
+      "median_cpu15_mhz": 5199.998
+    }
+  }
+}

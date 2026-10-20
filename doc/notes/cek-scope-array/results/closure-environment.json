@@ -1,0 +1,45 @@
+{
+  "base_commit": "5d9feef021f94c0162c8ddcd6b4ec4780d37a5e5",
+  "recorded_utc": "2026-10-09T03:06:10.051572+00:00",
+  "binaries": {
+    "baseline": "e47199c7627e0ab61d8c748fdc967a848b09c098e34d01af2ced92237562b4ac",
+    "fixed-cow-checked": "37b057b4025c304efbe0d5a048aa4dff549510390bbfa55fb6aa3d10b0b3b05a",
+    "fixed-reuse-checked": "c9c65023f98bbfcdba215244e990739c0dad5137d09cf2dc6615eaf25b3425f3",
+    "fixed-reuse-erased": "7bdca12d143c77b26f8976bb2047e085f6e96342a966d00d7bec5288bab407dc",
+    "fixed-reuse-erased-context": "ac0e5138d0cd9ceda1e05b5e095d02d05bef6f91839fa49b64c12acf3489511d",
+    "ra-erased": "acc2c5f25b92d8be90cc607f412953c09705fa6597fb7325726296b9d5fe0a24",
+    "ra-erased-context": "d5f24cb3c626d8f48b2e1143f137df60a185d59d0661c008793c2ac807ac8520",
+    "fixed-escape-erased-context": "52a0c4e12ee3ca7dc105d1cfb7705c53c48d06d8ecc33b6207c7fbbdb616edd1"
+  },
+  "first_matrix": "closure-cek-commands.json",
+  "host_contention_observed": "Unrelated Lean and Z3 processes were active during the first matrix; neither process was modified.",
+  "second_phase_binaries": {
+    "baseline": "e47199c7627e0ab61d8c748fdc967a848b09c098e34d01af2ced92237562b4ac",
+    "fixed-cow-checked": "37b057b4025c304efbe0d5a048aa4dff549510390bbfa55fb6aa3d10b0b3b05a",
+    "fixed-reuse-checked": "c9c65023f98bbfcdba215244e990739c0dad5137d09cf2dc6615eaf25b3425f3",
+    "fixed-reuse-erased": "7bdca12d143c77b26f8976bb2047e085f6e96342a966d00d7bec5288bab407dc",
+    "fixed-reuse-erased-context": "ac0e5138d0cd9ceda1e05b5e095d02d05bef6f91839fa49b64c12acf3489511d",
+    "ra-erased": "acc2c5f25b92d8be90cc607f412953c09705fa6597fb7325726296b9d5fe0a24",
+    "ra-erased-context": "4572ee0440aeedbc9aa462406bd5aa7be7d09d9ceab5ae2f2b0af6af4f3d4d9f",
+    "fixed-escape-erased-context": "52a0c4e12ee3ca7dc105d1cfb7705c53c48d06d8ecc33b6207c7fbbdb616edd1"
+  },
+  "canonical_binaries": {
+    "baseline": "4534f6784e6cdd65c8a4f726da7bca89e428d4911167baa6f45eb210504dff39",
+    "ra-erased-context": "b0bd36080d526e5d8dc86a1e10f9c2b32935e846defd203c7f9c2b69046ee2c3"
+  },
+  "rebuild_note": "ra-erased-context was rebuilt from identical generated source while building the canonical benchmark; the separate phase hashes record both builds.",
+  "patches": {
+    "ra-erased-context": {
+      "patch_sha256": "2ecb4efa4531e9a3f22a04345f6b6fdf452d4094cdbaaf2a4f9c2cb91a98a1d6",
+      "lines": 74
+    },
+    "fixed-reuse-erased-context": {
+      "patch_sha256": "0608ed6d38bb805d4a6efde3763d25df79f5bd6767835b1eccaef67dc18b9507",
+      "lines": 410
+    },
+    "fixed-escape-erased-context": {
+      "patch_sha256": "7d808d6352ee5c3a0d461b5a0bea92be028ad0dfb077ed5058732aa2ce5f3543",
+      "lines": 425
+    }
+  }
+}

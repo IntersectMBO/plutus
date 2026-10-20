@@ -1,0 +1,74 @@
+{
+  "baseline": {
+    "scripts": 89,
+    "processes": 5,
+    "time_ratio": 1.0,
+    "process_bootstrap_95": [
+      1.0,
+      1.0
+    ],
+    "time_weighted_ratio": 1.0,
+    "allocation_ratio": 1.0,
+    "round_time_ratios": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "fixed-escape-erased-context": {
+    "scripts": 89,
+    "processes": 5,
+    "time_ratio": 3.52193191141819,
+    "process_bootstrap_95": [
+      3.5104685419254094,
+      3.5334327143300603
+    ],
+    "time_weighted_ratio": 5.299854089394355,
+    "allocation_ratio": 2.7144680947312962,
+    "round_time_ratios": [
+      3.5347236228903407,
+      3.5377404927198075,
+      3.5133948184368857,
+      3.5016692969084993,
+      3.5222587647974177
+    ]
+  },
+  "fixed-reuse-erased-context": {
+    "scripts": 89,
+    "processes": 5,
+    "time_ratio": 1.8762965621633727,
+    "process_bootstrap_95": [
+      1.8686310641214117,
+      1.8833902893825367
+    ],
+    "time_weighted_ratio": 2.4000995321772183,
+    "allocation_ratio": 2.107568809903523,
+    "round_time_ratios": [
+      1.8804594397368333,
+      1.888082515819466,
+      1.868353954071024,
+      1.8647970143109611,
+      1.8798870343122338
+    ]
+  },
+  "ra-erased-context": {
+    "scripts": 89,
+    "processes": 5,
+    "time_ratio": 0.9459665953431741,
+    "process_bootstrap_95": [
+      0.9300437265440447,
+      0.9712597874469369
+    ],
+    "time_weighted_ratio": 0.9522484046457514,
+    "allocation_ratio": 0.9421061417450927,
+    "round_time_ratios": [
+      0.994272434260304,
+      0.9461184028658063,
+      0.9318357954892236,
+      0.9297653778005613,
+      0.9294271491096763
+    ]
+  }
+}

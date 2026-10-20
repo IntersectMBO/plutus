@@ -1,0 +1,12 @@
+{
+  "arguments": {
+    "mode": "check",
+    "rounds": 10,
+    "seconds": 0.075,
+    "cpu": 15,
+    "prefix": "paired",
+    "only": null
+  },
+  "started": 1791519425.4711537,
+  "data_root": "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark"
+}

@@ -1,0 +1,127 @@
+{
+  "base_commit": "5d9feef021f94c0162c8ddcd6b4ec4780d37a5e5",
+  "application": "Each patch applies independently to the base commit; do not stack patches.",
+  "experimental_only": true,
+  "variants": {
+    "compact-checked": {
+      "patch_sha256": "7b404bab15456a0bb5bc1951abcdf331754a0140dbb3d71d5456cac20ff31d9e",
+      "scope_information": "none; checked exact-length array control",
+      "unchecked_lookup": false,
+      "closure_erasure": "none",
+      "source_sha256": {
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs": "77c563ee7d1e47bd9ac4c73adbec7cb3b17cef17485ff21e6ac628c60c873924",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs": "2d86175cc67ea82cefe81296089b77a1f6e571dc3432573a3fa8b643cb87c2ee",
+        "plutus-core/plutus-core.cabal": "6ace7f09b825724ce7ddc3c599b863f8d90242ae246853a222c7b8dd1bdbbddd",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs": "bc9eb05979e6deb06186ac935cb7f03d2f47ae37e2cd67ec63963c4ace4dbc42"
+      }
+    },
+    "compact-unchecked": {
+      "patch_sha256": "16e8a0d603d151e88f93daf7dbac51104d243eef2e7a1e614f91336b69a7a878",
+      "scope_information": "full closedness proof for unchecked lookup",
+      "unchecked_lookup": true,
+      "closure_erasure": "none",
+      "source_sha256": {
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs": "2c0e827e9377d8ec456beb71c238b5798fe88d6436521a6203b433b4a47c4ae5",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs": "2d86175cc67ea82cefe81296089b77a1f6e571dc3432573a3fa8b643cb87c2ee",
+        "plutus-core/plutus-core.cabal": "6ace7f09b825724ce7ddc3c599b863f8d90242ae246853a222c7b8dd1bdbbddd",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs": "bc9eb05979e6deb06186ac935cb7f03d2f47ae37e2cd67ec63963c4ace4dbc42"
+      }
+    },
+    "fixed-checked": {
+      "patch_sha256": "c450b3ac6530af6e79f9738b358ef64e7cc57c2051ebccc1ebe290864168456e",
+      "scope_information": "maximum lexical lambda depth",
+      "unchecked_lookup": false,
+      "closure_erasure": "none",
+      "source_sha256": {
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs": "ef36d2df6b2d76a46465112fd186c2a12bdb761865f0d9dcd401ad6e7643669d",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs": "2d86175cc67ea82cefe81296089b77a1f6e571dc3432573a3fa8b643cb87c2ee",
+        "plutus-core/plutus-core.cabal": "6ace7f09b825724ce7ddc3c599b863f8d90242ae246853a222c7b8dd1bdbbddd",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs": "f1d541c8b9a374e4f21c9474051c4593eceb31e667ffd32956b9e37f61d15ba3"
+      }
+    },
+    "fixed-unchecked": {
+      "patch_sha256": "686bb15a2d03c482b7b077650b0456e5bf7b7aa65c49e7c1117932e9e29ee77c",
+      "scope_information": "maximum lexical lambda depth",
+      "unchecked_lookup": true,
+      "closure_erasure": "none",
+      "source_sha256": {
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs": "bd2d66de390a7407ad16d67abd2831d0c784cced0b2dc74f24779e8ffcfe51da",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs": "2d86175cc67ea82cefe81296089b77a1f6e571dc3432573a3fa8b643cb87c2ee",
+        "plutus-core/plutus-core.cabal": "6ace7f09b825724ce7ddc3c599b863f8d90242ae246853a222c7b8dd1bdbbddd",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs": "f1d541c8b9a374e4f21c9474051c4593eceb31e667ffd32956b9e37f61d15ba3"
+      }
+    },
+    "fixed-cow-checked": {
+      "patch_sha256": "a63dee40adfc077e94b90ba1fa00bc748cd5f7d30a0e10fbadf8294a8ff2f532",
+      "scope_information": "maximum lexical lambda depth",
+      "unchecked_lookup": false,
+      "closure_erasure": "none",
+      "source_sha256": {
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs": "1be5aa9dfc394599f7687a12f9cd8614e4aa1926c0985648b46ff5e8b94999ed",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs": "2d86175cc67ea82cefe81296089b77a1f6e571dc3432573a3fa8b643cb87c2ee",
+        "plutus-core/plutus-core.cabal": "6ace7f09b825724ce7ddc3c599b863f8d90242ae246853a222c7b8dd1bdbbddd",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs": "2ca26a92a1061db7028e7925a90d750aa425a581016d1daa3b31f71ba8a5577d"
+      }
+    },
+    "fixed-cow-unchecked": {
+      "patch_sha256": "1f6e80db81d0b4d6cf3bbff3c508ba87feab0be08dadc72dd6e536d615b38d3e",
+      "scope_information": "maximum lexical lambda depth",
+      "unchecked_lookup": true,
+      "closure_erasure": "none",
+      "source_sha256": {
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs": "42a7e8c03c078838026310f8f746656b6dbfb9384f2f6e34fcacd12c83407101",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs": "2d86175cc67ea82cefe81296089b77a1f6e571dc3432573a3fa8b643cb87c2ee",
+        "plutus-core/plutus-core.cabal": "6ace7f09b825724ce7ddc3c599b863f8d90242ae246853a222c7b8dd1bdbbddd",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs": "2ca26a92a1061db7028e7925a90d750aa425a581016d1daa3b31f71ba8a5577d"
+      }
+    },
+    "fixed-reuse-checked": {
+      "patch_sha256": "5c1e8be51149081394c62b93ccbdb3fc65fc7d6088414d30071f5e36258856ab",
+      "scope_information": "maximum lexical lambda depth",
+      "unchecked_lookup": false,
+      "closure_erasure": "none",
+      "source_sha256": {
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs": "0b298f0cfc8df2aa05201585b2bc3274611bfec326299ea910e0890f3a91e7ef",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs": "2d86175cc67ea82cefe81296089b77a1f6e571dc3432573a3fa8b643cb87c2ee",
+        "plutus-core/plutus-core.cabal": "6ace7f09b825724ce7ddc3c599b863f8d90242ae246853a222c7b8dd1bdbbddd",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs": "2d2b5a05a3135e16b41f3575121e374e71f861815f84cf0b317b54da0fc22c0f"
+      }
+    },
+    "fixed-reuse-erased": {
+      "patch_sha256": "64a923e3c7aff045ee81badc856e7b55eab2bb20b1f31255ba7575f5edf855f0",
+      "scope_information": "maximum lexical lambda depth",
+      "unchecked_lookup": false,
+      "closure_erasure": "syntactic",
+      "source_sha256": {
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs": "0962aedc78f1eb95d467bdbc8f23e079b9a94f6be97ab70051a2c7f3b7d435fa",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs": "2d86175cc67ea82cefe81296089b77a1f6e571dc3432573a3fa8b643cb87c2ee",
+        "plutus-core/plutus-core.cabal": "6ace7f09b825724ce7ddc3c599b863f8d90242ae246853a222c7b8dd1bdbbddd",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs": "2d2b5a05a3135e16b41f3575121e374e71f861815f84cf0b317b54da0fc22c0f"
+      }
+    },
+    "fixed-reuse-erased-context": {
+      "patch_sha256": "de6d2dc5ef143d6041f52a94f107dd7f0e661923e949e9b63370aa8baf8b419e",
+      "scope_information": "maximum lexical lambda depth",
+      "unchecked_lookup": false,
+      "closure_erasure": "context",
+      "source_sha256": {
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs": "4f2d1a35db1c7a7a71bfd6a6eb376d3ac0d47167dcb01e0150f0d5fe76e7f262",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs": "2d86175cc67ea82cefe81296089b77a1f6e571dc3432573a3fa8b643cb87c2ee",
+        "plutus-core/plutus-core.cabal": "6ace7f09b825724ce7ddc3c599b863f8d90242ae246853a222c7b8dd1bdbbddd",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs": "2d2b5a05a3135e16b41f3575121e374e71f861815f84cf0b317b54da0fc22c0f"
+      }
+    },
+    "fixed-escape-erased-context": {
+      "patch_sha256": "ce6999632e7f4e7becef60365d4fdcc2e5b4fc02aa1016dc9c3d415e2a120716",
+      "scope_information": "maximum lexical lambda depth",
+      "unchecked_lookup": false,
+      "closure_erasure": "context",
+      "source_sha256": {
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs": "4f2d1a35db1c7a7a71bfd6a6eb376d3ac0d47167dcb01e0150f0d5fe76e7f262",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs": "2d86175cc67ea82cefe81296089b77a1f6e571dc3432573a3fa8b643cb87c2ee",
+        "plutus-core/plutus-core.cabal": "6ace7f09b825724ce7ddc3c599b863f8d90242ae246853a222c7b8dd1bdbbddd",
+        "plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs": "ea1c91305baa002d081d8961767a7df48f95d91dcf721a55d15f7979a4fedf35"
+      }
+    }
+  }
+}

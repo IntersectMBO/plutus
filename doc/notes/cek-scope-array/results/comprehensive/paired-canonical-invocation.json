@@ -1,0 +1,13 @@
+{
+  "arguments": {
+    "mode": "canonical",
+    "rounds": 2,
+    "seconds": 0.1,
+    "cpu": 15,
+    "prefix": "paired",
+    "nursery": null,
+    "only": null
+  },
+  "started": 1791520853.9112003,
+  "data_root": "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark"
+}

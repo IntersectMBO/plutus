@@ -1,0 +1,362 @@
+[
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/validation-baseline",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-validation-baseline-r1.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-validation-baseline-r1.html"
+    ],
+    "elapsed": 128.2462112903595,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/validation-ra-erased-context",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-validation-ra-erased-context-r1.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-validation-ra-erased-context-r1.html"
+    ],
+    "elapsed": 127.66626214981079,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/validation-full-baseline",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-validation-full-baseline-r1.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-validation-full-baseline-r1.html"
+    ],
+    "elapsed": 120.46580958366394,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/validation-full-ra-erased-context",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-validation-full-ra-erased-context-r1.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-validation-full-ra-erased-context-r1.html"
+    ],
+    "elapsed": 120.5956540107727,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/marlowe-baseline",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-marlowe-baseline-r1.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-marlowe-baseline-r1.html"
+    ],
+    "elapsed": 290.24726843833923,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/marlowe-ra-erased-context",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-marlowe-ra-erased-context-r1.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-marlowe-ra-erased-context-r1.html"
+    ],
+    "elapsed": 289.2048099040985,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/nofib-baseline",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-nofib-baseline-r1.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-nofib-baseline-r1.html"
+    ],
+    "elapsed": 17.657471895217896,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/nofib-ra-erased-context",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-nofib-ra-erased-context-r1.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-nofib-ra-erased-context-r1.html"
+    ],
+    "elapsed": 17.64665937423706,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/force-delay-baseline",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-force-delay-baseline-r1.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-force-delay-baseline-r1.html"
+    ],
+    "elapsed": 17.973021507263184,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/force-delay-ra-erased-context",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-force-delay-ra-erased-context-r1.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-force-delay-ra-erased-context-r1.html"
+    ],
+    "elapsed": 18.033082723617554,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/validation-full-ra-erased-context",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-validation-full-ra-erased-context-r2.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-validation-full-ra-erased-context-r2.html"
+    ],
+    "elapsed": 120.0561215877533,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/validation-full-baseline",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-validation-full-baseline-r2.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-validation-full-baseline-r2.html"
+    ],
+    "elapsed": 118.63467025756836,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/marlowe-ra-erased-context",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-marlowe-ra-erased-context-r2.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-marlowe-ra-erased-context-r2.html"
+    ],
+    "elapsed": 289.54854011535645,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/marlowe-baseline",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-marlowe-baseline-r2.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-marlowe-baseline-r2.html"
+    ],
+    "elapsed": 289.75062441825867,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/nofib-ra-erased-context",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-nofib-ra-erased-context-r2.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-nofib-ra-erased-context-r2.html"
+    ],
+    "elapsed": 17.978505611419678,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/nofib-baseline",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-nofib-baseline-r2.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-nofib-baseline-r2.html"
+    ],
+    "elapsed": 17.758235454559326,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/force-delay-ra-erased-context",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-force-delay-ra-erased-context-r2.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-force-delay-ra-erased-context-r2.html"
+    ],
+    "elapsed": 18.243809700012207,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/force-delay-baseline",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-force-delay-baseline-r2.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-force-delay-baseline-r2.html"
+    ],
+    "elapsed": 18.144269943237305,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/validation-ra-erased-context",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-validation-ra-erased-context-r2.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-validation-ra-erased-context-r2.html"
+    ],
+    "elapsed": 127.72914600372314,
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/validation-baseline",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-validation-baseline-r2.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-validation-baseline-r2.html"
+    ],
+    "elapsed": 128.04819464683533,
+    "exit_code": 0
+  }
+]

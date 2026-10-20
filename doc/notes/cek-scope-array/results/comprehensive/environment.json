@@ -1,0 +1,55 @@
+{
+  "baseline_commit": "5d9feef021f94c0162c8ddcd6b4ec4780d37a5e5",
+  "branch": "sho/scopeCheckOpt",
+  "cpu_affinity": 15,
+  "smt_sibling": 31,
+  "evaluator_optimization": "Cabal default -O1",
+  "harness_optimization": "-O2",
+  "ghc": "9.6.7",
+  "cabal": "3.12.1.0",
+  "flags": {
+    "with-crypto": true,
+    "with-inline-r": false,
+    "with-cert": false
+  },
+  "governor": "powersave",
+  "recorded_utc": "2026-10-09T04:16:16.338143+00:00",
+  "system": {
+    "system": "Linux",
+    "node": "Trajan",
+    "release": "7.0.0-31-generic",
+    "version": "#31-Ubuntu SMP PREEMPT_DYNAMIC Sat Aug  1 04:26:38 UTC 2026",
+    "machine": "x86_64",
+    "processor": ""
+  },
+  "baseline_verified": "5d9feef021f94c0162c8ddcd6b4ec4780d37a5e5",
+  "scope": "327 distinct workloads plus 89 full-validation mode measurements",
+  "baseline": "baseline",
+  "candidate": "ra-erased-context",
+  "cek_contexts": {
+    "validation": "PlutusV3, semantics E",
+    "force-delay": "PlutusV3, semantics E",
+    "marlowe": "maxBound, semantics maxBound (V4/G at this commit)",
+    "nofib": "maxBound, semantics maxBound (V4/G at this commit)"
+  },
+  "full_context": "PlutusV1, semantics A, futurePV, enormous restricting budget",
+  "rts": [
+    "-N1",
+    "-T",
+    "-s",
+    "-K512M"
+  ],
+  "external_activity": "Shared desktop; no external processes or affinity settings changed. No builds or correctness tests overlap benchmark timing.",
+  "source_hashes": {
+    "Comprehensive.hs": "7686965726a7d7529f52ae6e162554d689c829fed66b8019f98098609d6bac19",
+    "closure-variants.py": "101cd0970b08799e05b0536215a20fb9769731ca680424aa6f4d6492e7abac5a",
+    "select-variant.py": "d8c2955540df5af90dc75441d5cf7949321ad5602f716fbbe21075263038ce2b"
+  },
+  "canonical_rts": "Default single-threaded runtime; native executables were not linked with -threaded or -rtsopts",
+  "GHCRTS": null,
+  "native_external_work_observation": {
+    "utc": "2026-10-09T05:06:21.268991+00:00",
+    "phase": "second native Marlowe candidate process, after second full-validation pair",
+    "observation": "An unrelated lean process was observed at 159% CPU. Native-stage 1-minute load reached 5.47 by this observation. No external process or affinity was changed."
+  }
+}

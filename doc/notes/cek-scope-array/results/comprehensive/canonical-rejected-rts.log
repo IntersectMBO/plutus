@@ -1,0 +1,2 @@
+validation-baseline: the flag -N1 requires the program to be built with -threaded
+validation-baseline: Most RTS options are disabled. Link with -rtsopts to enable them.

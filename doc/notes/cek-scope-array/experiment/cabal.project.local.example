@@ -1,0 +1,7 @@
+package plutus-core
+  flags: -with-inline-r -with-cert
+constraints:
+  cardano-base source,
+  cardano-crypto-class source,
+  cardano-binary source,
+  cardano-strict-containers source

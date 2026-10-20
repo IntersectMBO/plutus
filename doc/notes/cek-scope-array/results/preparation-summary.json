@@ -1,0 +1,21 @@
+{
+  "scope": {
+    "median_us": 10.366778621773893,
+    "time_over_scope_geomean": 1.0,
+    "time_over_scope_sum": 1.0,
+    "estimated_fraction_of_pass_plus_cek_sum": 0.05644337169160121
+  },
+  "capacity-forced": {
+    "median_us": 26.661527168458807,
+    "time_over_scope_geomean": 2.471787108694575,
+    "time_over_scope_sum": 2.338486875437777,
+    "estimated_fraction_of_pass_plus_cek_sum": 0.12272069354672041
+  },
+  "capacity-strict": {
+    "median_us": 15.659968425243854,
+    "time_over_scope_geomean": 1.4363602276659668,
+    "time_over_scope_sum": 1.382854299730086,
+    "estimated_fraction_of_pass_plus_cek_sum": 0.0764019447220378
+  },
+  "note": "Fully forced results. Component estimates from separately measured preparation and evaluation; excludes decoding and transaction processing."
+}

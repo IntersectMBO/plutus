@@ -1,0 +1,11 @@
+{
+  "scripts": 14,
+  "paired_process_rounds": 3,
+  "compact_checked_time_ratio": 1.7301484668631557,
+  "round_ratios": [
+    1.7255432735146734,
+    1.7504485397837575,
+    1.7146477498716652
+  ],
+  "time_weighted_ratio": 1.8157473388474945
+}

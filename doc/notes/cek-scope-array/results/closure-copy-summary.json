@@ -1,0 +1,57 @@
+{
+  "fixed-cow-checked": {
+    "extensions": 422084,
+    "buffers": 146678,
+    "copies": 142678,
+    "copied_slots": 6045648,
+    "seals": 0,
+    "borrows": 0,
+    "erased_closures": 0,
+    "copies_vs_cow": 1.0,
+    "slots_vs_cow": 1.0
+  },
+  "fixed-escape-erased-context": {
+    "extensions": 422084,
+    "buffers": 196494,
+    "copies": 192494,
+    "copied_slots": 13045673,
+    "seals": 196310,
+    "borrows": 788925,
+    "erased_closures": 336034,
+    "copies_vs_cow": 1.3491498338917003,
+    "slots_vs_cow": 2.157861820602192
+  },
+  "fixed-reuse-checked": {
+    "extensions": 422084,
+    "buffers": 126762,
+    "copies": 122762,
+    "copied_slots": 5277921,
+    "seals": 532344,
+    "borrows": 581890,
+    "erased_closures": 0,
+    "copies_vs_cow": 0.8604129578491428,
+    "slots_vs_cow": 0.8730116275376932
+  },
+  "fixed-reuse-erased-context": {
+    "extensions": 422084,
+    "buffers": 121389,
+    "copies": 117389,
+    "copied_slots": 5080990,
+    "seals": 196310,
+    "borrows": 788925,
+    "erased_closures": 336034,
+    "copies_vs_cow": 0.822754734436984,
+    "slots_vs_cow": 0.8404376172744427
+  },
+  "fixed-reuse-erased": {
+    "extensions": 422084,
+    "buffers": 126524,
+    "copies": 122524,
+    "copied_slots": 5271305,
+    "seals": 464547,
+    "borrows": 581890,
+    "erased_closures": 67797,
+    "copies_vs_cow": 0.8587448660620418,
+    "slots_vs_cow": 0.871917286616753
+  }
+}

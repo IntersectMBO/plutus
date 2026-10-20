@@ -1,0 +1,51 @@
+{
+  "baseline": {
+    "median_process_max_residency_bytes": 25174392,
+    "range": [
+      25174392,
+      25174392
+    ]
+  },
+  "compact-checked": {
+    "median_process_max_residency_bytes": 25174432,
+    "range": [
+      25174432,
+      25174432
+    ]
+  },
+  "compact-unchecked": {
+    "median_process_max_residency_bytes": 25174432,
+    "range": [
+      25174432,
+      25174432
+    ]
+  },
+  "fixed-checked": {
+    "median_process_max_residency_bytes": 25174424,
+    "range": [
+      25174424,
+      25174424
+    ]
+  },
+  "fixed-unchecked": {
+    "median_process_max_residency_bytes": 25174424,
+    "range": [
+      25174424,
+      25174424
+    ]
+  },
+  "fixed-cow-checked": {
+    "median_process_max_residency_bytes": 25630944,
+    "range": [
+      25630912,
+      25630944
+    ]
+  },
+  "fixed-cow-unchecked": {
+    "median_process_max_residency_bytes": 25630944,
+    "range": [
+      25630944,
+      25630944
+    ]
+  }
+}

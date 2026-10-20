@@ -1,0 +1,23 @@
+{
+  "arguments": {
+    "mode": "paired",
+    "rounds": 8,
+    "seconds": 0.1,
+    "cpu": 15,
+    "prefix": "nursery16m",
+    "nursery": "16m",
+    "only": [
+      "validation/future-settle-early-2",
+      "validation/future-increase-margin-2",
+      "validation/coop-1",
+      "validation/coop-2",
+      "validation/coop-7",
+      "nofib/primetest/05digits",
+      "nofib/primetest/30digits",
+      "marlowe/semantics/f339f59bdf92495ed2b14e2e4d3705972b4dda59aa929cffe0f1ff5355db8d79",
+      "validation/vesting-1"
+    ]
+  },
+  "started": 1791523284.7919636,
+  "data_root": "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark"
+}

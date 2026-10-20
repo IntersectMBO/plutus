@@ -1,0 +1,48 @@
+{
+  "corpus": {
+    "validation_scripts": 89,
+    "synthetic_programs": 14,
+    "full_discharge": true,
+    "budgets": "CountingSt exact equality",
+    "logs": "exact equality",
+    "baseline_tsv_sha256": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437"
+  },
+  "upstream_tests": {
+    "baseline": [
+      "919",
+      "14.68s"
+    ],
+    "compact-checked": [
+      "919",
+      "15.29s"
+    ],
+    "fixed-cow-checked": [
+      "919",
+      "19.64s"
+    ]
+  },
+  "representation_tests": {
+    "retained_prefixes": true,
+    "forks_per_layout": 2000,
+    "concurrent_siblings": 64,
+    "invalid_indices": [
+      0,
+      "length+1",
+      "maxBound"
+    ]
+  },
+  "scope_tests": [
+    "Full rejects free index in Constr accepted by NoCaseConstr",
+    "Unused lambda binders increase capacity",
+    "zero and oversized indices rejected"
+  ],
+  "variant_output_sha256": {
+    "baseline": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+    "compact-checked": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+    "compact-unchecked": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+    "fixed-checked": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+    "fixed-unchecked": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+    "fixed-cow-checked": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+    "fixed-cow-unchecked": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437"
+  }
+}

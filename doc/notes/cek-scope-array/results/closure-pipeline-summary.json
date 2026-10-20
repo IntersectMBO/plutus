@@ -1,0 +1,56 @@
+{
+  "baseline": {
+    "scripts": 89,
+    "processes": 5,
+    "time_ratio": 1.0,
+    "process_bootstrap_95": [
+      1.0,
+      1.0
+    ],
+    "time_weighted_ratio": 1.0,
+    "allocation_ratio": 1.0,
+    "round_time_ratios": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "fixed-escape-erased-context": {
+    "scripts": 89,
+    "processes": 5,
+    "time_ratio": 3.190195474191956,
+    "process_bootstrap_95": [
+      3.169724005580863,
+      3.2100083368232353
+    ],
+    "time_weighted_ratio": 4.695156045052157,
+    "allocation_ratio": 2.7144757053531148,
+    "round_time_ratios": [
+      3.193721079401031,
+      3.173432198999711,
+      3.225522887290259,
+      3.2003773940893305,
+      3.1583404478703145
+    ]
+  },
+  "ra-erased-context": {
+    "scripts": 89,
+    "processes": 5,
+    "time_ratio": 0.9345509794335107,
+    "process_bootstrap_95": [
+      0.9296426323857968,
+      0.9391791884472227
+    ],
+    "time_weighted_ratio": 0.9464362285950421,
+    "allocation_ratio": 0.9421055368342685,
+    "round_time_ratios": [
+      0.9270669793786239,
+      0.936994883313203,
+      0.9417157450480091,
+      0.9293174923350954,
+      0.9377405786068964
+    ]
+  }
+}

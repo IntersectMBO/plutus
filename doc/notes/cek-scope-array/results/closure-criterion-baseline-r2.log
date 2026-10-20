@@ -1,0 +1,88 @@
+benchmarking crowdfunding-success-1
+time                 98.98 μs   (98.88 μs .. 99.12 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 99.05 μs   (98.94 μs .. 99.16 μs)
+std dev              235.3 ns   (179.4 ns .. 299.0 ns)
+
+benchmarking crowdfunding-success-2
+time                 99.20 μs   (98.93 μs .. 99.51 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 99.26 μs   (99.06 μs .. 99.65 μs)
+std dev              566.4 ns   (325.3 ns .. 923.3 ns)
+
+benchmarking crowdfunding-success-3
+time                 100.4 μs   (100.4 μs .. 100.5 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 100.4 μs   (100.3 μs .. 100.4 μs)
+std dev              142.7 ns   (103.6 ns .. 221.8 ns)
+
+benchmarking prism-1
+time                 77.32 μs   (77.12 μs .. 77.58 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 77.42 μs   (77.14 μs .. 77.64 μs)
+std dev              536.2 ns   (398.0 ns .. 703.2 ns)
+
+benchmarking prism-2
+time                 184.7 μs   (184.6 μs .. 184.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 184.8 μs   (184.6 μs .. 185.1 μs)
+std dev              530.8 ns   (352.3 ns .. 774.8 ns)
+
+benchmarking prism-3
+time                 178.8 μs   (170.1 μs .. 188.5 μs)
+                     0.991 R²   (0.983 R² .. 0.999 R²)
+mean                 173.5 μs   (169.3 μs .. 181.6 μs)
+std dev              11.81 μs   (5.883 μs .. 20.02 μs)
+variance introduced by outliers: 58% (severely inflated)
+
+benchmarking token-account-1
+time                 94.35 μs   (90.52 μs .. 101.2 μs)
+                     0.964 R²   (0.944 R² .. 0.988 R²)
+mean                 102.2 μs   (94.66 μs .. 111.5 μs)
+std dev              19.01 μs   (14.64 μs .. 21.50 μs)
+variance introduced by outliers: 93% (severely inflated)
+
+benchmarking token-account-2
+time                 173.1 μs   (161.0 μs .. 190.4 μs)
+                     0.975 R²   (0.956 R² .. 0.999 R²)
+mean                 167.0 μs   (161.4 μs .. 184.0 μs)
+std dev              18.48 μs   (6.230 μs .. 33.43 μs)
+variance introduced by outliers: 79% (severely inflated)
+
+benchmarking uniswap-1
+time                 279.9 μs   (277.7 μs .. 283.1 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 282.0 μs   (280.3 μs .. 283.9 μs)
+std dev              4.035 μs   (3.121 μs .. 4.981 μs)
+
+benchmarking uniswap-2
+time                 160.7 μs   (159.1 μs .. 161.8 μs)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 160.0 μs   (159.0 μs .. 160.8 μs)
+std dev              1.861 μs   (1.270 μs .. 2.898 μs)
+
+benchmarking uniswap-3
+time                 1.339 ms   (1.320 ms .. 1.353 ms)
+                     0.998 R²   (0.996 R² .. 0.999 R²)
+mean                 1.327 ms   (1.312 ms .. 1.340 ms)
+std dev              30.76 μs   (22.47 μs .. 42.67 μs)
+
+benchmarking uniswap-4
+time                 219.7 μs   (195.8 μs .. 240.5 μs)
+                     0.942 R²   (0.907 R² .. 0.983 R²)
+mean                 231.5 μs   (211.3 μs .. 245.5 μs)
+std dev              40.61 μs   (26.26 μs .. 49.43 μs)
+variance introduced by outliers: 90% (severely inflated)
+
+benchmarking uniswap-5
+time                 866.2 μs   (850.4 μs .. 885.8 μs)
+                     0.992 R²   (0.984 R² .. 0.998 R²)
+mean                 857.9 μs   (848.5 μs .. 866.2 μs)
+std dev              19.16 μs   (13.90 μs .. 27.53 μs)
+
+benchmarking uniswap-6
+time                 202.5 μs   (179.5 μs .. 224.9 μs)
+                     0.931 R²   (0.910 R² .. 0.962 R²)
+mean                 216.5 μs   (194.3 μs .. 230.2 μs)
+std dev              36.46 μs   (22.78 μs .. 43.06 μs)
+variance introduced by outliers: 90% (severely inflated)

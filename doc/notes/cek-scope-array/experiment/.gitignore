@@ -1,0 +1,6 @@
+.selected
+bin/
+build/
+logs/
+
+__pycache__/

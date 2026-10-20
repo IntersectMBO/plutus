@@ -1,0 +1,141 @@
+benchmarking clausify/formula1
+time                 1.126 ms   (1.123 ms .. 1.129 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.124 ms   (1.122 ms .. 1.126 ms)
+std dev              4.179 μs   (3.275 μs .. 6.107 μs)
+
+benchmarking clausify/formula2
+time                 1.511 ms   (1.504 ms .. 1.516 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.513 ms   (1.509 ms .. 1.517 ms)
+std dev              8.603 μs   (5.654 μs .. 12.30 μs)
+
+benchmarking clausify/formula3
+time                 4.137 ms   (4.058 ms .. 4.184 ms)
+                     0.999 R²   (0.996 R² .. 1.000 R²)
+mean                 4.214 ms   (4.172 ms .. 4.354 ms)
+std dev              123.9 μs   (25.96 μs .. 217.2 μs)
+
+benchmarking clausify/formula4
+time                 8.346 ms   (8.235 ms .. 8.417 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 8.380 ms   (8.329 ms .. 8.514 ms)
+std dev              125.0 μs   (26.48 μs .. 194.3 μs)
+
+benchmarking clausify/formula5
+time                 20.53 ms   (19.99 ms .. 20.98 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 20.42 ms   (20.28 ms .. 20.61 ms)
+std dev              210.1 μs   (118.1 μs .. 286.2 μs)
+variance introduced by outliers: 14% (moderately inflated)
+
+benchmarking knights/4x4
+time                 6.397 ms   (6.359 ms .. 6.427 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 6.354 ms   (6.337 ms .. 6.369 ms)
+std dev              27.27 μs   (20.23 μs .. 40.02 μs)
+
+benchmarking knights/6x6
+time                 16.21 ms   (16.07 ms .. 16.30 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 16.29 ms   (16.24 ms .. 16.32 ms)
+std dev              56.14 μs   (28.39 μs .. 88.71 μs)
+variance introduced by outliers: 12% (moderately inflated)
+
+benchmarking knights/8x8
+time                 28.80 ms   (28.57 ms .. 29.09 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 28.68 ms   (28.62 ms .. 28.75 ms)
+std dev              76.83 μs   (25.00 μs .. 99.49 μs)
+variance introduced by outliers: 16% (moderately inflated)
+
+benchmarking primetest/05digits
+time                 2.592 ms   (2.582 ms .. 2.598 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 2.609 ms   (2.603 ms .. 2.617 ms)
+std dev              13.32 μs   (8.700 μs .. 17.96 μs)
+
+benchmarking primetest/10digits
+time                 5.458 ms   (5.412 ms .. 5.522 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 5.502 ms   (5.478 ms .. 5.526 ms)
+std dev              42.26 μs   (29.85 μs .. 57.31 μs)
+
+benchmarking primetest/30digits
+time                 16.58 ms   (16.51 ms .. 16.65 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 16.51 ms   (16.47 ms .. 16.54 ms)
+std dev              45.84 μs   (30.06 μs .. 65.17 μs)
+variance introduced by outliers: 12% (moderately inflated)
+
+benchmarking primetest/50digits
+time                 27.44 ms   (27.29 ms .. 27.59 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 27.38 ms   (27.34 ms .. 27.43 ms)
+std dev              54.95 μs   (21.97 μs .. 67.47 μs)
+variance introduced by outliers: 16% (moderately inflated)
+
+benchmarking queens4x4/bt
+time                 2.045 ms   (2.038 ms .. 2.051 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 2.041 ms   (2.037 ms .. 2.047 ms)
+std dev              10.95 μs   (6.737 μs .. 18.15 μs)
+
+benchmarking queens4x4/bm
+time                 2.693 ms   (2.679 ms .. 2.706 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 2.670 ms   (2.659 ms .. 2.677 ms)
+std dev              17.85 μs   (12.77 μs .. 25.61 μs)
+
+benchmarking queens4x4/bjbt1
+time                 2.474 ms   (2.463 ms .. 2.485 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 2.475 ms   (2.468 ms .. 2.481 ms)
+std dev              12.98 μs   (10.45 μs .. 15.72 μs)
+
+benchmarking queens4x4/bjbt2
+time                 2.317 ms   (2.303 ms .. 2.332 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 2.320 ms   (2.314 ms .. 2.328 ms)
+std dev              14.94 μs   (10.59 μs .. 20.08 μs)
+
+benchmarking queens4x4/fc
+time                 5.200 ms   (5.168 ms .. 5.237 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 5.179 ms   (5.161 ms .. 5.191 ms)
+std dev              25.47 μs   (17.83 μs .. 36.33 μs)
+
+benchmarking queens5x5/bt
+time                 27.72 ms   (26.06 ms .. 28.90 ms)
+                     0.999 R²   (0.992 R² .. 1.000 R²)
+mean                 27.67 ms   (26.99 ms .. 28.05 ms)
+std dev              645.4 μs   (60.82 μs .. 818.0 μs)
+variance introduced by outliers: 16% (moderately inflated)
+
+benchmarking queens5x5/bm
+time                 30.27 ms   (27.12 ms .. 31.66 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 30.78 ms   (30.05 ms .. 31.94 ms)
+std dev              1.119 ms   (356.0 μs .. 1.510 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking queens5x5/bjbt1
+time                 32.55 ms   (30.22 ms .. 35.43 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 33.15 ms   (32.40 ms .. 34.29 ms)
+std dev              1.077 ms   (58.77 μs .. 1.347 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking queens5x5/bjbt2
+time                 30.88 ms   (28.44 ms .. NaN s)
+                     0.998 R²   (0.994 R² .. 1.000 R²)
+mean                 32.10 ms   (31.51 ms .. 33.12 ms)
+std dev              992.1 μs   (210.5 μs .. 1.300 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking queens5x5/fc
+time                 63.83 ms   (60.66 ms .. 65.72 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 64.08 ms   (63.27 ms .. 64.99 ms)
+std dev              965.9 μs   (452.3 μs .. 1.354 ms)
+variance introduced by outliers: 19% (moderately inflated)

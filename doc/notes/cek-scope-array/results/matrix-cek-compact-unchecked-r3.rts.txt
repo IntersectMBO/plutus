@@ -1,0 +1,23 @@
+  68,199,704,096 bytes allocated in the heap
+   4,720,003,560 bytes copied during GC
+      25,174,432 bytes maximum residency (235 sample(s))
+         139,224 bytes maximum slop
+              61 MiB total memory in use (0 MiB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0     16942 colls,     0 par    0.859s   0.869s     0.0001s    0.0007s
+  Gen  1       235 colls,     0 par    1.430s   1.431s     0.0061s    0.0214s
+
+  TASKS: 4 (1 bound, 3 peak workers (3 total), using -N1)
+
+  SPARKS: 0 (0 converted, 0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
+
+  INIT    time    0.000s  (  0.000s elapsed)
+  MUT     time    5.823s  (  5.814s elapsed)
+  GC      time    2.289s  (  2.299s elapsed)
+  EXIT    time    0.000s  (  0.007s elapsed)
+  Total   time    8.113s  (  8.120s elapsed)
+
+  Alloc rate    11,711,793,766 bytes per MUT second
+
+  Productivity  71.8% of total user, 71.6% of total elapsed

@@ -1,0 +1,26 @@
+[
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/comprehensive/validation-baseline",
+      "-L",
+      "0.1",
+      "--resamples",
+      "1000",
+      "--csv",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/results/comprehensive/canonical-validation-baseline-r1.csv",
+      "-o",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/logs/canonical-validation-baseline-r1.html",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-K512M",
+      "-RTS"
+    ],
+    "elapsed": 0.0036149024963378906,
+    "exit_code": 1
+  }
+]

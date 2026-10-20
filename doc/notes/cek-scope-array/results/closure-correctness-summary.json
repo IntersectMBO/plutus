@@ -1,0 +1,54 @@
+{
+  "differential": {
+    "baseline": {
+      "extended_sha256": "344a84880d1b66c6e890e466e6e691c91af103b83e6e9bad3b69e192ba2887f3",
+      "corpus_sha256": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+      "extended_reports": 1602,
+      "corpus_cases": 103
+    },
+    "fixed-reuse-checked": {
+      "extended_sha256": "344a84880d1b66c6e890e466e6e691c91af103b83e6e9bad3b69e192ba2887f3",
+      "corpus_sha256": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+      "extended_reports": 1602,
+      "corpus_cases": 103
+    },
+    "fixed-reuse-erased": {
+      "extended_sha256": "344a84880d1b66c6e890e466e6e691c91af103b83e6e9bad3b69e192ba2887f3",
+      "corpus_sha256": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+      "extended_reports": 1602,
+      "corpus_cases": 103
+    },
+    "fixed-reuse-erased-context": {
+      "extended_sha256": "344a84880d1b66c6e890e466e6e691c91af103b83e6e9bad3b69e192ba2887f3",
+      "corpus_sha256": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+      "extended_reports": 1602,
+      "corpus_cases": 103
+    },
+    "fixed-escape-erased-context": {
+      "extended_sha256": "344a84880d1b66c6e890e466e6e691c91af103b83e6e9bad3b69e192ba2887f3",
+      "corpus_sha256": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+      "extended_reports": 1602,
+      "corpus_cases": 103
+    },
+    "ra-erased": {
+      "extended_sha256": "344a84880d1b66c6e890e466e6e691c91af103b83e6e9bad3b69e192ba2887f3",
+      "corpus_sha256": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+      "extended_reports": 1602,
+      "corpus_cases": 103
+    },
+    "ra-erased-context": {
+      "extended_sha256": "344a84880d1b66c6e890e466e6e691c91af103b83e6e9bad3b69e192ba2887f3",
+      "corpus_sha256": "700ee2586134010a194b4714f8c52a8811f78381f122d5a7622e3285790a2437",
+      "extended_reports": 1602,
+      "corpus_cases": 103
+    }
+  },
+  "upstream_919_passed": [
+    "fixed-reuse-erased",
+    "fixed-escape-erased-context",
+    "ra-erased-context",
+    "fixed-reuse-erased-context"
+  ],
+  "concurrent_evaluations_per_variant": 64,
+  "mutable_reuse_iterations": 2000
+}

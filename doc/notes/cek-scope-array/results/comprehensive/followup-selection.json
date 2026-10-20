@@ -1,0 +1,14 @@
+{
+  "selection_basis": "Selected after the ten-round paired run, before native full-validation results: two representative futures regressions, three cooperative cases, two primality sizes, one Marlowe semantics regression, and a vesting improvement as a control.",
+  "names": [
+    "validation/future-settle-early-2",
+    "validation/future-increase-margin-2",
+    "validation/coop-1",
+    "validation/coop-2",
+    "validation/coop-7",
+    "nofib/primetest/05digits",
+    "nofib/primetest/30digits",
+    "marlowe/semantics/f339f59bdf92495ed2b14e2e4d3705972b4dda59aa929cffe0f1ff5355db8d79",
+    "validation/vesting-1"
+  ]
+}

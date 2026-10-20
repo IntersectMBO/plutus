@@ -1,0 +1,128 @@
+{
+  "baseline": {
+    "scripts": 14,
+    "processes": 5,
+    "time_ratio": 1.0,
+    "process_bootstrap_95": [
+      1.0,
+      1.0
+    ],
+    "time_weighted_ratio": 1.0,
+    "allocation_ratio": 1.0,
+    "round_time_ratios": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "compact-checked": {
+    "scripts": 14,
+    "processes": 5,
+    "time_ratio": 1.2179203662298892,
+    "process_bootstrap_95": [
+      1.2144274207351842,
+      1.2235409637729802
+    ],
+    "time_weighted_ratio": 1.0703051032819964,
+    "allocation_ratio": 1.0523920457537161,
+    "round_time_ratios": [
+      1.2152846268914483,
+      1.2141141371622373,
+      1.2143122982964876,
+      1.217091694949024,
+      1.2288623872021358
+    ]
+  },
+  "compact-unchecked": {
+    "scripts": 14,
+    "processes": 5,
+    "time_ratio": 1.2240616073270196,
+    "process_bootstrap_95": [
+      1.19106299594008,
+      1.2579744510905655
+    ],
+    "time_weighted_ratio": 1.0802508079979858,
+    "allocation_ratio": 1.0523921290318718,
+    "round_time_ratios": [
+      1.1863253304325114,
+      1.2235074083120097,
+      1.17985795528384,
+      1.2639936939661907,
+      1.2694960187710052
+    ]
+  },
+  "fixed-checked": {
+    "scripts": 14,
+    "processes": 5,
+    "time_ratio": 1.5922479686240216,
+    "process_bootstrap_95": [
+      1.5684273836214762,
+      1.6141410627081705
+    ],
+    "time_weighted_ratio": 1.6120561741547568,
+    "allocation_ratio": 1.3282353504848075,
+    "round_time_ratios": [
+      1.6075674236163502,
+      1.5881225220624362,
+      1.549735288823624,
+      1.6306564651708388,
+      1.586281709604904
+    ]
+  },
+  "fixed-cow-checked": {
+    "scripts": 14,
+    "processes": 5,
+    "time_ratio": 1.4112955098407756,
+    "process_bootstrap_95": [
+      1.3992585355536427,
+      1.4275084859173381
+    ],
+    "time_weighted_ratio": 1.4907437886152246,
+    "allocation_ratio": 0.980854221461615,
+    "round_time_ratios": [
+      1.4024149725570751,
+      1.4108914183472647,
+      1.3943545904630483,
+      1.441587873728639,
+      1.4076844591461906
+    ]
+  },
+  "fixed-cow-unchecked": {
+    "scripts": 14,
+    "processes": 5,
+    "time_ratio": 1.3965916635320494,
+    "process_bootstrap_95": [
+      1.3840943651560005,
+      1.4095422155064607
+    ],
+    "time_weighted_ratio": 1.5032241811537304,
+    "allocation_ratio": 0.9808547753684952,
+    "round_time_ratios": [
+      1.3865340214451147,
+      1.4073727838807137,
+      1.418024015857341,
+      1.3953414052009647,
+      1.3760793581600337
+    ]
+  },
+  "fixed-unchecked": {
+    "scripts": 14,
+    "processes": 5,
+    "time_ratio": 1.5893417540175576,
+    "process_bootstrap_95": [
+      1.5759928376900496,
+      1.603137394096238
+    ],
+    "time_weighted_ratio": 1.6327870698655,
+    "allocation_ratio": 1.3282351504797607,
+    "round_time_ratios": [
+      1.5840978132738648,
+      1.612954984159856,
+      1.5750681845161192,
+      1.6020926290707496,
+      1.572878740079978
+    ]
+  }
+}

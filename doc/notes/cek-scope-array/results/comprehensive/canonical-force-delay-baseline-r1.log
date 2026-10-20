@@ -1,0 +1,101 @@
+benchmarking nested-0-10k
+time                 63.83 μs   (63.61 μs .. 63.97 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 63.67 μs   (63.63 μs .. 63.72 μs)
+std dev              91.28 ns   (67.13 ns .. 113.4 ns)
+
+benchmarking nested-0-40k
+time                 272.9 μs   (270.1 μs .. 275.5 μs)
+                     0.999 R²   (0.999 R² .. 0.999 R²)
+mean                 275.5 μs   (273.6 μs .. 277.2 μs)
+std dev              3.896 μs   (3.149 μs .. 4.652 μs)
+
+benchmarking nested-0-70k
+time                 570.3 μs   (565.5 μs .. 574.7 μs)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 570.2 μs   (568.5 μs .. 575.2 μs)
+std dev              5.759 μs   (1.965 μs .. 10.73 μs)
+
+benchmarking nested-0-100k
+time                 1.008 ms   (994.8 μs .. 1.022 ms)
+                     0.998 R²   (0.997 R² .. 0.999 R²)
+mean                 1.004 ms   (998.0 μs .. 1.012 ms)
+std dev              15.83 μs   (12.09 μs .. 21.37 μs)
+
+benchmarking nested-0-300k
+time                 5.726 ms   (5.219 ms .. 6.064 ms)
+                     0.985 R²   (0.967 R² .. 0.997 R²)
+mean                 5.861 ms   (5.749 ms .. 5.999 ms)
+std dev              202.3 μs   (142.1 μs .. 294.9 μs)
+
+benchmarking nested-0-500k
+time                 11.99 ms   (10.15 ms .. 13.40 ms)
+                     0.970 R²   (0.909 R² .. 0.993 R²)
+mean                 12.63 ms   (11.76 ms .. 13.90 ms)
+std dev              1.515 ms   (801.5 μs .. 2.321 ms)
+variance introduced by outliers: 32% (moderately inflated)
+
+benchmarking nested-1-5k
+time                 105.7 μs   (105.6 μs .. 105.8 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 105.6 μs   (105.5 μs .. 105.7 μs)
+std dev              186.9 ns   (125.6 ns .. 310.2 ns)
+
+benchmarking nested-1-10k
+time                 249.3 μs   (248.6 μs .. 249.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 248.6 μs   (248.1 μs .. 249.3 μs)
+std dev              1.271 μs   (985.5 ns .. 1.707 μs)
+
+benchmarking nested-1-30k
+time                 1.385 ms   (1.363 ms .. 1.405 ms)
+                     0.998 R²   (0.996 R² .. 0.999 R²)
+mean                 1.376 ms   (1.363 ms .. 1.390 ms)
+std dev              29.50 μs   (22.51 μs .. 38.29 μs)
+
+benchmarking nested-1-60k
+time                 4.673 ms   (4.440 ms .. 4.918 ms)
+                     0.990 R²   (0.978 R² .. 0.996 R²)
+mean                 4.549 ms   (4.424 ms .. 4.662 ms)
+std dev              206.0 μs   (144.4 μs .. 292.5 μs)
+variance introduced by outliers: 11% (moderately inflated)
+
+benchmarking nested-1-90k
+time                 8.711 ms   (7.972 ms .. 9.151 ms)
+                     0.987 R²   (0.967 R² .. 0.997 R²)
+mean                 8.695 ms   (8.408 ms .. 9.134 ms)
+std dev              570.3 μs   (394.7 μs .. 753.1 μs)
+variance introduced by outliers: 17% (moderately inflated)
+
+benchmarking nested-2-5k
+time                 205.3 μs   (204.7 μs .. 205.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 205.0 μs   (204.4 μs .. 205.4 μs)
+std dev              1.172 μs   (964.8 ns .. 1.458 μs)
+
+benchmarking nested-2-10k
+time                 525.2 μs   (520.7 μs .. 531.9 μs)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 526.5 μs   (523.3 μs .. 533.9 μs)
+std dev              9.401 μs   (2.935 μs .. 16.13 μs)
+
+benchmarking nested-2-30k
+time                 3.735 ms   (3.566 ms .. 3.922 ms)
+                     0.989 R²   (0.980 R² .. 0.996 R²)
+mean                 3.849 ms   (3.751 ms .. 3.972 ms)
+std dev              202.4 μs   (154.9 μs .. 263.3 μs)
+variance introduced by outliers: 20% (moderately inflated)
+
+benchmarking nested-2-60k
+time                 12.86 ms   (10.52 ms .. 15.10 ms)
+                     0.971 R²   (0.943 R² .. 0.996 R²)
+mean                 13.00 ms   (12.40 ms .. 13.88 ms)
+std dev              1.039 ms   (548.1 μs .. 1.488 ms)
+variance introduced by outliers: 23% (moderately inflated)
+
+benchmarking nested-2-90k
+time                 20.43 ms   (11.80 ms .. 27.49 ms)
+                     0.884 R²   (0.575 R² .. 0.994 R²)
+mean                 20.11 ms   (15.66 ms .. 23.41 ms)
+std dev              4.800 ms   (3.024 ms .. 6.434 ms)
+variance introduced by outliers: 65% (severely inflated)

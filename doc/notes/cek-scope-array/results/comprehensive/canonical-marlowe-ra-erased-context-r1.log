@@ -1,0 +1,1216 @@
+benchmarking semantics/0000020002010200020101020201000100010001020101020201010000020102
+time                 100.3 μs   (100.2 μs .. 100.5 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 100.3 μs   (100.2 μs .. 100.5 μs)
+std dev              314.5 ns   (219.2 ns .. 477.6 ns)
+
+benchmarking semantics/0001000101000000010101000001000001010101010100000001000001010000
+time                 148.9 μs   (148.7 μs .. 149.2 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 148.9 μs   (148.7 μs .. 149.2 μs)
+std dev              469.1 ns   (385.7 ns .. 619.5 ns)
+
+benchmarking semantics/0003040402030103010203030303000200000104030002040304020400000102
+time                 334.4 μs   (333.6 μs .. 335.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 333.9 μs   (333.4 μs .. 334.4 μs)
+std dev              1.202 μs   (970.0 ns .. 1.518 μs)
+
+benchmarking semantics/004025fd712d6c325ffa12c16d157064192992faf62e0b991d7310a2f91666b8
+time                 263.0 μs   (262.0 μs .. 264.7 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 264.8 μs   (262.9 μs .. 271.2 μs)
+std dev              6.093 μs   (1.714 μs .. 11.39 μs)
+variance introduced by outliers: 12% (moderately inflated)
+
+benchmarking semantics/0101010001010101010101000100010100000001010000010001000001000101
+time                 379.5 μs   (378.5 μs .. 380.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 380.5 μs   (380.0 μs .. 381.0 μs)
+std dev              1.020 μs   (758.9 ns .. 1.440 μs)
+
+benchmarking semantics/0101020201010201010200010102000201000201010102000102010201010000
+time                 90.45 μs   (90.34 μs .. 90.55 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 90.42 μs   (90.30 μs .. 90.52 μs)
+std dev              218.4 ns   (146.4 ns .. 359.1 ns)
+
+benchmarking semantics/0101080808040600020306010000000302050807010208060100070207080202
+time                 239.2 μs   (238.8 μs .. 239.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 239.1 μs   (238.8 μs .. 239.4 μs)
+std dev              621.4 ns   (500.5 ns .. 873.9 ns)
+
+benchmarking semantics/0104010200020000040103020102020004040300030304040400010301040303
+time                 238.9 μs   (238.4 μs .. 239.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 239.3 μs   (238.8 μs .. 239.8 μs)
+std dev              1.011 μs   (701.1 ns .. 1.486 μs)
+
+benchmarking semantics/04000f0b04051006000e060f09080d0b090d0104050a0b0f0506070f0a070008
+time                 242.7 μs   (242.2 μs .. 243.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 242.5 μs   (242.1 μs .. 242.9 μs)
+std dev              838.0 ns   (663.9 ns .. 1.143 μs)
+
+benchmarking semantics/0543a00ba1f63076c1db6bf94c6ff13ae7d266dd7544678743890b0e8e1add63
+time                 358.8 μs   (357.3 μs .. 360.3 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 359.9 μs   (358.0 μs .. 365.0 μs)
+std dev              6.035 μs   (1.914 μs .. 10.15 μs)
+
+benchmarking semantics/0705030002040601010206030604080208020207000101060706050502040301
+time                 353.1 μs   (346.1 μs .. 367.9 μs)
+                     0.958 R²   (0.918 R² .. 0.991 R²)
+mean                 391.7 μs   (362.0 μs .. 438.0 μs)
+std dev              84.51 μs   (48.29 μs .. 104.2 μs)
+variance introduced by outliers: 93% (severely inflated)
+
+benchmarking semantics/07070c070510030509010e050d00040907050e0a0d06030f1006030701020607
+time                 320.2 μs   (319.2 μs .. 321.3 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 320.3 μs   (319.9 μs .. 321.1 μs)
+std dev              1.198 μs   (484.4 ns .. 2.050 μs)
+
+benchmarking semantics/0bcfd9487614104ec48de2ea0b2c0979866a95115748c026f9ec129384c262c4
+time                 364.9 μs   (364.2 μs .. 365.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 364.7 μs   (364.3 μs .. 365.3 μs)
+std dev              1.062 μs   (844.3 ns .. 1.479 μs)
+
+benchmarking semantics/0be82588e4e4bf2ef428d2f44b7687bbb703031d8de696d90ec789e70d6bc1d8
+time                 463.1 μs   (462.1 μs .. 464.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 463.7 μs   (462.9 μs .. 464.6 μs)
+std dev              1.735 μs   (1.344 μs .. 2.220 μs)
+
+benchmarking semantics/0f1d0110001b121d051e15140c0c05141d151c1f1d201c040f10091b020a0e1a
+time                 143.2 μs   (143.0 μs .. 143.3 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 143.2 μs   (143.0 μs .. 143.4 μs)
+std dev              372.1 ns   (265.2 ns .. 545.4 ns)
+
+benchmarking semantics/119fbea4164e2bf21d2b53aa6c2c4e79414fe55e4096f5ce2e804735a7fbaf91
+time                 239.4 μs   (238.8 μs .. 239.8 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 239.2 μs   (238.9 μs .. 239.5 μs)
+std dev              700.6 ns   (510.3 ns .. 1.018 μs)
+
+benchmarking semantics/12910f24d994d451ff379b12c9d1ecdb9239c9b87e5d7bea570087ec506935d5
+time                 147.0 μs   (146.8 μs .. 147.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 147.0 μs   (146.9 μs .. 147.2 μs)
+std dev              328.2 ns   (251.6 ns .. 411.3 ns)
+
+benchmarking semantics/18cefc240debc0fcab14efdd451adfd02793093efe7bc76d6322aed6ddb582ad
+time                 242.5 μs   (241.8 μs .. 243.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 242.4 μs   (241.9 μs .. 242.8 μs)
+std dev              1.014 μs   (695.9 ns .. 1.388 μs)
+
+benchmarking semantics/1a2f2540121f09321216090b2b1f211e3f020c2c133a1a3c3f3c232a26153a04
+time                 91.42 μs   (91.23 μs .. 91.63 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 91.53 μs   (91.30 μs .. 91.72 μs)
+std dev              451.4 ns   (316.7 ns .. 676.6 ns)
+
+benchmarking semantics/1a573aed5c46d637919ccb5548dfc22a55c9fc38298d567d15ee9f2eea69d89e
+time                 294.5 μs   (294.1 μs .. 294.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 294.9 μs   (294.5 μs .. 295.3 μs)
+std dev              749.2 ns   (604.0 ns .. 991.7 ns)
+
+benchmarking semantics/1d56060c3b271226064c672a282663643b1b0823471c67737f0b076870331260
+time                 260.6 μs   (260.0 μs .. 260.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 260.4 μs   (260.0 μs .. 260.8 μs)
+std dev              839.6 ns   (668.0 ns .. 1.053 μs)
+
+benchmarking semantics/1d6e3c137149a440f35e0efc685b16bfb8052ebcf66ec4ad77e51c11501381c7
+time                 90.43 μs   (90.31 μs .. 90.57 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 90.46 μs   (90.34 μs .. 90.58 μs)
+std dev              261.7 ns   (180.2 ns .. 385.5 ns)
+
+benchmarking semantics/1f0f02191604101e1f201016171604060d010d1d1c150e110a110e1006160a0d
+time                 492.7 μs   (490.7 μs .. 493.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 492.9 μs   (492.1 μs .. 493.8 μs)
+std dev              1.857 μs   (1.531 μs .. 2.345 μs)
+
+benchmarking semantics/202d273721330b31193405101e0637202e2a0f1140211c3e3f171e26312b0220
+time                 3.285 ms   (2.503 ms .. 4.264 ms)
+                     0.622 R²   (0.336 R² .. 0.887 R²)
+mean                 3.914 ms   (3.177 ms .. 5.533 ms)
+std dev              1.815 ms   (1.023 ms .. 2.806 ms)
+variance introduced by outliers: 95% (severely inflated)
+
+benchmarking semantics/21953bf8798b28df60cb459db24843fb46782b19ba72dc4951941fb4c20d2263
+time                 106.4 μs   (106.2 μs .. 106.5 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 106.2 μs   (106.1 μs .. 106.4 μs)
+std dev              292.0 ns   (213.9 ns .. 401.9 ns)
+
+benchmarking semantics/238b21364ab5bdae3ddb514d7001c8feba128b4ddcf426852b441f9a9d02c882
+time                 91.16 μs   (90.72 μs .. 91.53 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 90.90 μs   (90.57 μs .. 91.30 μs)
+std dev              767.1 ns   (659.1 ns .. 894.1 ns)
+
+benchmarking semantics/26e24ee631a6d927ea4fb4fac530cfd82ff7636986014de2d2aaa460ddde0bc3
+time                 165.2 μs   (165.0 μs .. 165.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 165.2 μs   (165.0 μs .. 165.4 μs)
+std dev              440.0 ns   (256.7 ns .. 802.4 ns)
+
+benchmarking semantics/2797d7ac77c1b6aff8e42cf9a47fa86b1e60f22719a996871ad412cbe4de78b5
+time                 948.0 μs   (938.5 μs .. 957.7 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 947.1 μs   (944.1 μs .. 953.7 μs)
+std dev              9.199 μs   (4.979 μs .. 16.82 μs)
+
+benchmarking semantics/28fdce478e179db0e38fb5f3f4105e940ece450b9ce8a0f42a6e313b752e6f2c
+time                 350.8 μs   (349.9 μs .. 351.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 350.7 μs   (350.1 μs .. 351.2 μs)
+std dev              1.179 μs   (845.0 ns .. 1.646 μs)
+
+benchmarking semantics/2cb21612178a2d9336b59d06cbf80488577463d209a453048a66c6eee624a695
+time                 249.0 μs   (248.3 μs .. 250.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 249.4 μs   (248.8 μs .. 250.7 μs)
+std dev              1.722 μs   (1.069 μs .. 3.064 μs)
+
+benchmarking semantics/2f58c9d884813042bce9cf7c66048767dff166785e8b5183c8139db2aa7312d1
+time                 262.5 μs   (259.1 μs .. 268.0 μs)
+                     0.998 R²   (0.995 R² .. 1.000 R²)
+mean                 261.5 μs   (259.1 μs .. 269.6 μs)
+std dev              8.559 μs   (1.359 μs .. 15.99 μs)
+variance introduced by outliers: 22% (moderately inflated)
+
+benchmarking semantics/30aa34dfbe89e0c43f569929a96c0d2b74c321d13fec0375606325eee9a34a6a
+time                 354.0 μs   (352.7 μs .. 355.3 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 354.6 μs   (353.4 μs .. 355.9 μs)
+std dev              2.609 μs   (2.081 μs .. 3.435 μs)
+
+benchmarking semantics/322acde099bc34a929182d5b894214fc87ec88446e2d10625119a9d17fa3ec3d
+time                 90.88 μs   (90.63 μs .. 91.05 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 90.98 μs   (90.86 μs .. 91.15 μs)
+std dev              325.8 ns   (247.0 ns .. 438.4 ns)
+
+benchmarking semantics/331e4a1bb30f28d7073c54f9a13c10ae19e2e396c299a0ce101ee6bf4b2020db
+time                 138.7 μs   (138.4 μs .. 139.0 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 138.3 μs   (138.1 μs .. 138.6 μs)
+std dev              509.9 ns   (416.4 ns .. 670.2 ns)
+
+benchmarking semantics/33c3efd79d9234a78262b52bc6bbf8124cb321a467dedb278328215167eca455
+time                 190.6 μs   (190.2 μs .. 190.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 190.4 μs   (190.1 μs .. 190.6 μs)
+std dev              637.2 ns   (511.5 ns .. 890.6 ns)
+
+benchmarking semantics/383683bfcecdab0f4df507f59631c702bd11a81ca3841f47f37633e8aacbb5de
+time                 229.5 μs   (229.2 μs .. 229.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 229.6 μs   (229.3 μs .. 230.1 μs)
+std dev              886.2 ns   (655.7 ns .. 1.209 μs)
+
+benchmarking semantics/3bb75b2e53eb13f718eacd3263ab4535f9137fabffc9de499a0de7cabb335479
+time                 90.99 μs   (90.61 μs .. 91.32 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 90.71 μs   (90.45 μs .. 91.02 μs)
+std dev              574.4 ns   (433.3 ns .. 717.9 ns)
+
+benchmarking semantics/3db496e6cd39a8b888a89d0de07dace4397878958cab3b9d9353978b08c36d8a
+time                 260.2 μs   (259.4 μs .. 260.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 259.7 μs   (259.0 μs .. 260.4 μs)
+std dev              1.588 μs   (1.248 μs .. 2.170 μs)
+
+benchmarking semantics/44a9e339fa25948b48637fe7e10dcfc6d1256319a7b5ce4202cb54dfef8e37e7
+time                 91.12 μs   (90.65 μs .. 91.48 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 91.20 μs   (90.81 μs .. 91.34 μs)
+std dev              493.3 ns   (187.3 ns .. 867.2 ns)
+
+benchmarking semantics/4c3efd13b6c69112a8a888372d56c86e60c232125976f29b1c3e21d9f537845c
+time                 324.8 μs   (323.9 μs .. 325.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 325.0 μs   (324.4 μs .. 325.6 μs)
+std dev              1.365 μs   (970.6 ns .. 2.075 μs)
+
+benchmarking semantics/4d7adf91bfc93cebe95a7e054ec17cfbb912b32bd8aecb48a228b50e02b055c8
+time                 220.0 μs   (219.6 μs .. 220.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 219.2 μs   (219.0 μs .. 219.5 μs)
+std dev              510.2 ns   (373.4 ns .. 703.3 ns)
+
+benchmarking semantics/4f9e8d361b85e62db2350dd3ae77463540e7af0d28e1eb68faeecc45f4655f57
+time                 128.6 μs   (128.4 μs .. 128.7 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 128.5 μs   (128.4 μs .. 128.7 μs)
+std dev              291.6 ns   (201.5 ns .. 426.2 ns)
+
+benchmarking semantics/52df7c8dfaa5f801cd837faa65f2fd333665fff00a555ce8c55e36ddc003007a
+time                 111.6 μs   (111.4 μs .. 111.7 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 111.7 μs   (111.6 μs .. 111.9 μs)
+std dev              367.8 ns   (240.3 ns .. 512.7 ns)
+
+benchmarking semantics/53ed4db7ab33d6f907eec91a861d1188269be5ae1892d07ee71161bfb55a7cb7
+time                 112.2 μs   (112.0 μs .. 112.3 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 112.0 μs   (112.0 μs .. 112.2 μs)
+std dev              220.7 ns   (153.0 ns .. 314.9 ns)
+
+benchmarking semantics/55dfe42688ad683b638df1fa7700219f00f53b335a85a2825502ab1e0687197e
+time                 92.55 μs   (92.34 μs .. 92.70 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 92.35 μs   (92.22 μs .. 92.48 μs)
+std dev              281.3 ns   (216.0 ns .. 392.3 ns)
+
+benchmarking semantics/56333d4e413dbf1a665463bf68067f63c118f38f7539b7ba7167d577c0c8b8ce
+time                 228.4 μs   (227.4 μs .. 229.7 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 229.0 μs   (228.1 μs .. 229.6 μs)
+std dev              1.602 μs   (1.037 μs .. 2.153 μs)
+
+benchmarking semantics/57728d8b19b0e06412786f3dfed9e1894cd0ad1d2bc2bd497ec0ecb68f989d2b
+time                 91.27 μs   (91.03 μs .. 91.45 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 91.16 μs   (90.97 μs .. 91.36 μs)
+std dev              417.6 ns   (333.3 ns .. 531.6 ns)
+
+benchmarking semantics/5abae75af26f45658beccbe48f7c88e74efdfc0b8409ba1e98f95fa5b6caf999
+time                 145.4 μs   (145.3 μs .. 145.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 145.6 μs   (145.5 μs .. 145.7 μs)
+std dev              241.1 ns   (189.5 ns .. 335.3 ns)
+
+benchmarking semantics/5d0a88250f13c49c20e146819357a808911c878a0e0a7d6f7fe1d4a619e06112
+time                 349.4 μs   (348.4 μs .. 350.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 348.3 μs   (347.5 μs .. 350.0 μs)
+std dev              2.344 μs   (1.200 μs .. 4.053 μs)
+
+benchmarking semantics/5e274e0f593511543d41570a4b03646c1d7539062b5728182e073e5760561a66
+time                 325.7 μs   (325.2 μs .. 326.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 325.7 μs   (325.2 μs .. 326.2 μs)
+std dev              1.094 μs   (808.1 ns .. 1.464 μs)
+
+benchmarking semantics/5e2c68ac9f62580d626636679679b97109109df7ac1a8ce86d3e43dfb5e4f6bc
+time                 155.8 μs   (155.4 μs .. 156.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 155.5 μs   (155.1 μs .. 155.8 μs)
+std dev              676.0 ns   (520.0 ns .. 941.2 ns)
+
+benchmarking semantics/5f130d19918807b60eab4c03119d67878fb6c6712c28c54f5a25792049294acc
+time                 91.16 μs   (90.84 μs .. 91.71 μs)
+                     1.000 R²   (0.998 R² .. 1.000 R²)
+mean                 91.70 μs   (91.03 μs .. 94.28 μs)
+std dev              2.679 μs   (342.3 ns .. 5.255 μs)
+variance introduced by outliers: 23% (moderately inflated)
+
+benchmarking semantics/5f306b4b24ff2b39dab6cdc9ac6ca9bb442c1dc6f4e7e412eeb5a3ced42fb642
+time                 226.2 μs   (225.6 μs .. 227.0 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 226.5 μs   (226.0 μs .. 227.1 μs)
+std dev              1.255 μs   (956.9 ns .. 1.736 μs)
+
+benchmarking semantics/5f3d46c57a56cef6764f96c9de9677ac6e494dd7a4e368d1c8dd9c1f7a4309a5
+time                 146.3 μs   (146.1 μs .. 146.7 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 146.5 μs   (146.3 μs .. 146.8 μs)
+std dev              529.3 ns   (458.5 ns .. 685.5 ns)
+
+benchmarking semantics/64c3d5b43f005855ffc4d0950a02fd159aa1575294ea39061b81a194ebb9eaae
+time                 197.7 μs   (197.4 μs .. 197.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 197.4 μs   (197.1 μs .. 197.7 μs)
+std dev              548.8 ns   (320.0 ns .. 777.1 ns)
+
+benchmarking semantics/65bc4b69b46d18fdff0fadbf00dd5ec2b3e03805fac9d5fb4ff2d3066e53fc7e
+time                 1.289 ms   (1.131 ms .. 1.476 ms)
+                     0.823 R²   (0.659 R² .. 0.959 R²)
+mean                 1.389 ms   (1.211 ms .. 1.854 ms)
+std dev              549.9 μs   (230.8 μs .. 981.8 μs)
+variance introduced by outliers: 97% (severely inflated)
+
+benchmarking semantics/66af9e473d75e3f464971f6879cc0f2ef84bafcb38fbfa1dbc31ac2053628a38
+time                 454.3 μs   (453.3 μs .. 455.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 454.5 μs   (453.6 μs .. 455.1 μs)
+std dev              1.430 μs   (897.5 ns .. 2.396 μs)
+
+benchmarking semantics/675d63836cad11b547d1b4cddd498f04c919d4342612accf40913f9ae9419fac
+time                 347.0 μs   (346.3 μs .. 347.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 346.3 μs   (345.9 μs .. 346.8 μs)
+std dev              1.029 μs   (670.5 ns .. 1.479 μs)
+
+benchmarking semantics/67ba5a9a0245ee3aff4f34852b9889b8c810fccd3dce2a23910bddd35c503b71
+time                 3.608 ms   (2.921 ms .. 4.264 ms)
+                     0.834 R²   (0.662 R² .. 0.935 R²)
+mean                 3.794 ms   (3.301 ms .. 4.404 ms)
+std dev              1.050 ms   (711.3 μs .. 1.570 ms)
+variance introduced by outliers: 89% (severely inflated)
+
+benchmarking semantics/6d88f7294dd2b5ce02c3dc609bc7715bd508009738401d264bf9b3eb7c6f49c1
+time                 147.3 μs   (147.1 μs .. 147.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 147.3 μs   (147.2 μs .. 147.6 μs)
+std dev              390.8 ns   (243.7 ns .. 599.1 ns)
+
+benchmarking semantics/70f65b21b77ddb451f3df9d9fb403ced3d10e1e953867cc4900cc25e5b9dec47
+time                 249.7 μs   (249.1 μs .. 250.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 250.3 μs   (249.7 μs .. 251.0 μs)
+std dev              1.500 μs   (1.132 μs .. 1.919 μs)
+
+benchmarking semantics/71965c9ccae31f1ffc1d85aa20a356d4ed97a420954018d8301ec4f9783be0d7
+time                 141.0 μs   (140.8 μs .. 141.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 141.0 μs   (140.9 μs .. 141.2 μs)
+std dev              334.9 ns   (263.0 ns .. 440.8 ns)
+
+benchmarking semantics/74c67f2f182b9a0a66c62b95d6fac5ace3f7e71ea3abfc52ffbe3ecb93436ea2
+time                 261.9 μs   (261.3 μs .. 262.5 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 261.9 μs   (261.5 μs .. 262.3 μs)
+std dev              953.1 ns   (667.5 ns .. 1.415 μs)
+
+benchmarking semantics/7529b206a78becb793da74b78c04d9d33a2540a1abd79718e681228f4057403a
+time                 247.2 μs   (246.6 μs .. 247.7 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 247.3 μs   (246.8 μs .. 247.7 μs)
+std dev              986.3 ns   (742.1 ns .. 1.287 μs)
+
+benchmarking semantics/75a8bb183688bce447e00f435a144c835435e40a5defc6f3b9be68b70b4a3db6
+time                 219.0 μs   (218.6 μs .. 219.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 218.0 μs   (217.7 μs .. 218.4 μs)
+std dev              770.4 ns   (622.2 ns .. 947.9 ns)
+
+benchmarking semantics/7a758e17486d1a30462c32a5d5309bd1e98322a9dcbe277c143ed3aede9d265f
+time                 163.2 μs   (162.9 μs .. 163.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 163.0 μs   (162.8 μs .. 163.2 μs)
+std dev              522.2 ns   (414.1 ns .. 679.2 ns)
+
+benchmarking semantics/7cbc5644b745f4ea635aca42cce5e4a4b9d2e61afdb3ac18128e1688c07071ba
+time                 143.5 μs   (143.3 μs .. 143.7 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 143.6 μs   (143.5 μs .. 143.8 μs)
+std dev              312.0 ns   (252.3 ns .. 408.9 ns)
+
+benchmarking semantics/82213dfdb6a812b40446438767c61a388d2c0cfd0cbf7fd4a372b0dc59fa17e1
+time                 456.5 μs   (455.4 μs .. 458.5 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 459.0 μs   (457.8 μs .. 460.8 μs)
+std dev              3.022 μs   (2.213 μs .. 4.425 μs)
+
+benchmarking semantics/8c7fdc3da6822b5112074380003524f50fb3a1ce6db4e501df1086773c6c0201
+time                 352.9 μs   (352.0 μs .. 353.5 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 352.2 μs   (351.5 μs .. 352.9 μs)
+std dev              1.450 μs   (1.134 μs .. 1.821 μs)
+
+benchmarking semantics/8d9ae67656a2911ab15a8e5301c960c69aa2517055197aff6b60a87ff718d66c
+time                 105.9 μs   (105.7 μs .. 106.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 105.7 μs   (105.6 μs .. 105.9 μs)
+std dev              262.5 ns   (152.4 ns .. 418.1 ns)
+
+benchmarking semantics/96e1a2fa3ceb9a402f2a5841a0b645f87b4e8e75beb636692478ec39f74ee221
+time                 90.89 μs   (90.72 μs .. 91.05 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 90.90 μs   (90.77 μs .. 91.01 μs)
+std dev              265.3 ns   (214.3 ns .. 359.4 ns)
+
+benchmarking semantics/9fabc4fc3440cdb776b28c9bb1dd49c9a5b1605fe1490aa3f4f64a3fa8881b25
+time                 346.9 μs   (346.0 μs .. 347.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 346.0 μs   (345.2 μs .. 346.9 μs)
+std dev              1.830 μs   (1.295 μs .. 2.413 μs)
+
+benchmarking semantics/a85173a832db3ea944fafc406dfe3fa3235254897d6d1d0e21bc380147687bd5
+time                 119.8 μs   (113.6 μs .. 127.8 μs)
+                     0.985 R²   (0.978 R² .. 1.000 R²)
+mean                 117.4 μs   (113.5 μs .. 125.8 μs)
+std dev              10.65 μs   (685.4 ns .. 16.10 μs)
+variance introduced by outliers: 74% (severely inflated)
+
+benchmarking semantics/a9a853b6d083551f4ed2995551af287880ef42aee239a2d9bc5314d127cce592
+time                 164.6 μs   (163.7 μs .. 165.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 164.5 μs   (163.9 μs .. 165.5 μs)
+std dev              1.671 μs   (1.114 μs .. 2.256 μs)
+
+benchmarking semantics/acb9c83c2b78dabef8674319ad69ba54912cd9997bdf2d8b2998c6bfeef3b122
+time                 200.7 μs   (199.9 μs .. 201.8 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 201.5 μs   (200.7 μs .. 202.5 μs)
+std dev              1.982 μs   (1.447 μs .. 2.510 μs)
+
+benchmarking semantics/acce04815e8fd51be93322888250060da173eccf3df3a605bd6bc6a456cde871
+time                 93.03 μs   (92.95 μs .. 93.12 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 92.95 μs   (92.88 μs .. 93.04 μs)
+std dev              169.2 ns   (111.2 ns .. 233.0 ns)
+
+benchmarking semantics/ad6db94ed69b7161c7604568f44358e1cc11e81fea90e41afebd669e51bb60c8
+time                 180.0 μs   (179.6 μs .. 180.3 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 179.8 μs   (179.4 μs .. 180.2 μs)
+std dev              777.7 ns   (587.1 ns .. 988.5 ns)
+
+benchmarking semantics/b21a4df3b0266ad3481a26d3e3d848aad2fcde89510b29cccce81971e38e0835
+time                 435.6 μs   (433.4 μs .. 437.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 432.7 μs   (431.1 μs .. 434.2 μs)
+std dev              3.166 μs   (2.646 μs .. 4.172 μs)
+
+benchmarking semantics/b50170cea48ee84b80558c02b15c6df52faf884e504d2c410ad63ba46d8ca35c
+time                 232.9 μs   (232.1 μs .. 233.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 232.4 μs   (231.9 μs .. 232.9 μs)
+std dev              1.036 μs   (797.3 ns .. 1.336 μs)
+
+benchmarking semantics/bb5345bfbbc460af84e784b900ec270df1948bb1d1e29eacecd022eeb168b315
+time                 320.3 μs   (319.6 μs .. 321.0 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 320.1 μs   (319.7 μs .. 320.6 μs)
+std dev              902.3 ns   (598.1 ns .. 1.385 μs)
+
+benchmarking semantics/c4bb185380df6e9b66fc1ee0564f09a8d1253a51a0c0c7890f2214df9ac19274
+time                 235.8 μs   (235.4 μs .. 236.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 235.5 μs   (235.2 μs .. 235.8 μs)
+std dev              669.6 ns   (500.5 ns .. 843.2 ns)
+
+benchmarking semantics/c9efcb705ee057791f7c18a1de79c49f6e40ba143ce0579f1602fd780cabf153
+time                 245.9 μs   (245.4 μs .. 246.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 245.5 μs   (245.0 μs .. 246.1 μs)
+std dev              1.126 μs   (886.3 ns .. 1.564 μs)
+
+benchmarking semantics/ccab11ce1a8774135d0e3c9e635631b68af9e276b5dabc66ff669d5650d0be1c
+time                 470.2 μs   (468.8 μs .. 471.3 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 473.4 μs   (472.5 μs .. 474.4 μs)
+std dev              2.161 μs   (1.629 μs .. 3.087 μs)
+
+benchmarking semantics/cdb9d5c233b288a5a9dcfbd8d5c1831a0bb46eec7a26fa31b80ae69d44805efc
+time                 283.7 μs   (283.0 μs .. 284.3 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 283.4 μs   (283.0 μs .. 284.1 μs)
+std dev              1.050 μs   (666.6 ns .. 1.683 μs)
+
+benchmarking semantics/ced1ea04649e093a501e43f8568ac3e6b37cd3eccec8cac9c70a4857b88a5eb8
+time                 258.2 μs   (257.7 μs .. 258.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 257.8 μs   (257.4 μs .. 258.6 μs)
+std dev              1.179 μs   (697.9 ns .. 1.868 μs)
+
+benchmarking semantics/cf542b7df466b228ca2197c2aaa89238a8122f3330fe5b77b3222f570395d9f5
+time                 154.9 μs   (154.3 μs .. 155.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 155.0 μs   (154.5 μs .. 156.4 μs)
+std dev              1.573 μs   (545.8 ns .. 2.825 μs)
+
+benchmarking semantics/d1ab832dfab25688f8845bec9387e46ee3f00ba5822197ade7dd540489ec5e95
+time                 25.85 ms   (19.20 ms .. 33.83 ms)
+                     0.970 R²   (0.843 R² .. 1.000 R²)
+mean                 25.84 ms   (22.93 ms .. 28.27 ms)
+std dev              3.034 ms   (1.379 ms .. 4.112 ms)
+variance introduced by outliers: 36% (moderately inflated)
+
+benchmarking semantics/d1c03759810747b7cab38c4296593b38567e11195d161b5bb0a2b58f89b2c65a
+time                 326.3 μs   (324.7 μs .. 327.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 325.5 μs   (324.8 μs .. 326.7 μs)
+std dev              2.002 μs   (1.237 μs .. 3.374 μs)
+
+benchmarking semantics/d64607eb8a1448595081547ea8780886fcbd9e06036460eea3705c88ea867e33
+time                 92.40 μs   (92.01 μs .. 92.84 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 92.63 μs   (92.27 μs .. 92.91 μs)
+std dev              674.8 ns   (470.1 ns .. 900.8 ns)
+
+benchmarking semantics/dc241ac6ad1e04fb056d555d6a4f2d08a45d054c6f7f34355fcfeefebef479f3
+time                 146.5 μs   (146.1 μs .. 147.0 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 146.3 μs   (146.0 μs .. 146.7 μs)
+std dev              832.3 ns   (522.9 ns .. 1.350 μs)
+
+benchmarking semantics/dd11ae574eaeab0e9925319768989313a93913fdc347c704ddaa27042757d990
+time                 233.4 μs   (233.0 μs .. 233.8 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 233.1 μs   (232.8 μs .. 233.7 μs)
+std dev              837.0 ns   (369.6 ns .. 1.497 μs)
+
+benchmarking semantics/e26c1cddba16e05fd10c34cbdb16ea6acdbac7c8323256c31c90c520ee6a1080
+time                 116.2 μs   (116.1 μs .. 116.3 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 116.2 μs   (116.0 μs .. 116.3 μs)
+std dev              233.2 ns   (176.8 ns .. 327.1 ns)
+
+benchmarking semantics/e34b48f80d49360e88c612f4016f7d68cb5678dd8cd5ddb981375a028b3a40a5
+time                 120.3 μs   (120.0 μs .. 120.5 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 120.2 μs   (120.0 μs .. 120.4 μs)
+std dev              358.8 ns   (251.7 ns .. 496.0 ns)
+
+benchmarking semantics/e3afd22d01ff12f381cf915fd32358634e6c413f979f2492cf3339319d8cc079
+time                 93.12 μs   (92.89 μs .. 93.27 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 93.09 μs   (92.92 μs .. 93.25 μs)
+std dev              341.9 ns   (262.4 ns .. 426.2 ns)
+
+benchmarking semantics/e9234d2671760874f3f660aae5d3416d18ce6dfd7af4231bdd41b9ec268bc7e1
+time                 401.1 μs   (397.4 μs .. 407.7 μs)
+                     0.997 R²   (0.994 R² .. 1.000 R²)
+mean                 405.3 μs   (399.1 μs .. 418.9 μs)
+std dev              18.82 μs   (9.215 μs .. 28.85 μs)
+variance introduced by outliers: 34% (moderately inflated)
+
+benchmarking semantics/eb4a605ed3a64961e9e66ad9631c2813dadf7131740212762ae4483ec749fe1d
+time                 92.15 μs   (91.64 μs .. 92.63 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 92.08 μs   (91.67 μs .. 92.68 μs)
+std dev              1.046 μs   (799.2 ns .. 1.601 μs)
+
+benchmarking semantics/ecb5e8308b57724e0f8533921693f111eba942123cf8660aac2b5bac21ec28f0
+time                 209.9 μs   (209.4 μs .. 210.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 210.2 μs   (209.8 μs .. 210.6 μs)
+std dev              832.6 ns   (648.1 ns .. 1.167 μs)
+
+benchmarking semantics/f2a8fd2014922f0d8e01541205d47e9bb2d4e54333bdd408cbe7c47c55e73ae4
+time                 251.1 μs   (250.8 μs .. 251.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 250.7 μs   (250.3 μs .. 251.3 μs)
+std dev              1.012 μs   (658.2 ns .. 1.535 μs)
+
+benchmarking semantics/f339f59bdf92495ed2b14e2e4d3705972b4dda59aa929cffe0f1ff5355db8d79
+time                 2.580 ms   (2.507 ms .. 2.660 ms)
+                     0.995 R²   (0.991 R² .. 0.998 R²)
+mean                 2.643 ms   (2.605 ms .. 2.689 ms)
+std dev              87.28 μs   (60.73 μs .. 125.5 μs)
+variance introduced by outliers: 11% (moderately inflated)
+
+benchmarking semantics/ffdd68a33afd86f8844c9f5e45b2bda5b035aa02274161b23d57709c0f8b8de6
+time                 316.9 μs   (315.8 μs .. 318.0 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 316.2 μs   (315.6 μs .. 317.0 μs)
+std dev              1.553 μs   (1.075 μs .. 2.468 μs)
+
+benchmarking role-payout/0004000402010401030101030100040000010104020201030001000204020401
+time                 60.18 μs   (60.08 μs .. 60.28 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 60.06 μs   (59.98 μs .. 60.16 μs)
+std dev              190.1 ns   (149.0 ns .. 251.0 ns)
+
+benchmarking role-payout/0100000100010000000001000100010101000101000001000000010000010000
+time                 87.00 μs   (86.77 μs .. 87.23 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 86.82 μs   (86.55 μs .. 87.08 μs)
+std dev              575.6 ns   (458.3 ns .. 725.1 ns)
+
+benchmarking role-payout/0101000100000101010000010101000100010101000001000001000000010101
+time                 66.48 μs   (66.07 μs .. 66.81 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 66.60 μs   (66.23 μs .. 66.77 μs)
+std dev              524.3 ns   (224.6 ns .. 923.2 ns)
+
+benchmarking role-payout/01dcc372ea619cb9f23c45b17b9a0a8a16b7ca0e04093ef8ecce291667a99a4c
+time                 52.03 μs   (51.86 μs .. 52.25 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 52.06 μs   (51.91 μs .. 52.20 μs)
+std dev              309.9 ns   (227.9 ns .. 423.6 ns)
+
+benchmarking role-payout/0201020201020000020000010201020001020200000002010200000101010100
+time                 58.67 μs   (58.54 μs .. 58.79 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 58.55 μs   (58.45 μs .. 58.70 μs)
+std dev              262.2 ns   (180.8 ns .. 389.2 ns)
+
+benchmarking role-payout/0202010002010100020102020102020001010101020102010001010101000100
+time                 54.37 μs   (54.30 μs .. 54.45 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 54.43 μs   (54.36 μs .. 54.50 μs)
+std dev              147.6 ns   (125.8 ns .. 178.0 ns)
+
+benchmarking role-payout/0303020000020001010201060303040208070100050401080304020801030001
+time                 55.38 μs   (55.29 μs .. 55.44 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.34 μs   (55.28 μs .. 55.40 μs)
+std dev              132.6 ns   (108.1 ns .. 159.0 ns)
+
+benchmarking role-payout/031d56d71454e2c4216ffaa275c4a8b3eb631109559d0e56f44ea8489f57ba97
+time                 67.93 μs   (67.86 μs .. 67.98 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 67.85 μs   (67.81 μs .. 67.89 μs)
+std dev              93.15 ns   (67.96 ns .. 129.9 ns)
+
+benchmarking role-payout/03d730a62332c51c7b70c16c64da72dd1c3ea36c26b41cd1a1e00d39fda3d6cc
+time                 61.44 μs   (61.37 μs .. 61.50 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 61.46 μs   (61.41 μs .. 61.53 μs)
+std dev              133.7 ns   (107.6 ns .. 178.7 ns)
+
+benchmarking role-payout/0403020000030204010000030001000202010101000304030001040404030100
+time                 59.50 μs   (59.29 μs .. 59.73 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 59.57 μs   (59.38 μs .. 59.70 μs)
+std dev              355.4 ns   (236.3 ns .. 502.3 ns)
+
+benchmarking role-payout/0405010105020401010304080005050800040301010800080207080704020206
+time                 62.04 μs   (61.82 μs .. 62.20 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 62.06 μs   (61.97 μs .. 62.19 μs)
+std dev              244.1 ns   (177.3 ns .. 314.2 ns)
+
+benchmarking role-payout/041a2c3b111139201a3a2c173c392b170e16370d300f2d28342d0f2f0e182e01
+time                 63.63 μs   (63.45 μs .. 63.78 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 63.51 μs   (63.40 μs .. 63.64 μs)
+std dev              252.8 ns   (174.9 ns .. 334.9 ns)
+
+benchmarking role-payout/04f592afc6e57c633b9c55246e7c82e87258f04e2fb910c37d8e2417e9db46e5
+time                 75.73 μs   (75.55 μs .. 76.00 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 75.70 μs   (75.57 μs .. 75.83 μs)
+std dev              277.0 ns   (218.8 ns .. 359.4 ns)
+
+benchmarking role-payout/057ebc80922f16a5f4bf13e985bf586b8cff37a2f6fe0f3ce842178c16981027
+time                 53.48 μs   (53.32 μs .. 53.58 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 53.28 μs   (53.09 μs .. 53.43 μs)
+std dev              356.2 ns   (269.4 ns .. 438.5 ns)
+
+benchmarking role-payout/06317060a8e488b1219c9dae427f9ce27918a9e09ee8ac424afa33ca923f7954
+time                 57.71 μs   (57.56 μs .. 57.81 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 57.68 μs   (57.62 μs .. 57.74 μs)
+std dev              132.0 ns   (90.89 ns .. 194.6 ns)
+
+benchmarking role-payout/07658a6c898ad6d624c37df1e49e909c2e9349ba7f4c0a6be5f166fe239bfcae
+time                 52.84 μs   (52.72 μs .. 52.97 μs)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 52.83 μs   (52.73 μs .. 52.94 μs)
+std dev              224.5 ns   (172.8 ns .. 281.5 ns)
+
+benchmarking role-payout/0bdca1cb8fa7e38e09062557b82490714052e84e2054e913092cd84ac071b961
+time                 62.80 μs   (62.32 μs .. 63.72 μs)
+                     0.988 R²   (0.970 R² .. 0.999 R²)
+mean                 64.72 μs   (62.41 μs .. 73.72 μs)
+std dev              9.638 μs   (258.7 ns .. 18.88 μs)
+variance introduced by outliers: 90% (severely inflated)
+
+benchmarking role-payout/0c9d3634aeae7038f839a1262d1a8bc724dc77af9426459417a56ec73240f0e0
+time                 55.53 μs   (55.41 μs .. 55.62 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.47 μs   (55.38 μs .. 55.58 μs)
+std dev              206.0 ns   (157.7 ns .. 278.7 ns)
+
+benchmarking role-payout/0d0f01050a0a0a0b0b050d0404090e0d0506000d0a041003040e0f100e0a0408
+time                 56.59 μs   (56.53 μs .. 56.68 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 56.60 μs   (56.53 μs .. 56.67 μs)
+std dev              144.0 ns   (111.2 ns .. 192.8 ns)
+
+benchmarking role-payout/0dbb692d2bf22d25eeceac461cfebf616f54003077a8473abc0457f18e025960
+time                 65.48 μs   (65.15 μs .. 65.71 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 65.19 μs   (64.96 μs .. 65.48 μs)
+std dev              565.2 ns   (492.5 ns .. 629.2 ns)
+
+benchmarking role-payout/0e00171d0f1e1f14070d0a00091f07101808021d081e1b120219081312081e15
+time                 55.30 μs   (55.25 μs .. 55.35 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.26 μs   (55.20 μs .. 55.30 μs)
+std dev              112.6 ns   (88.49 ns .. 140.6 ns)
+
+benchmarking role-payout/0e72f62b0f922e31a2340baccc768104025400cf7fdd7dae62fbba5fc770936d
+time                 62.74 μs   (62.59 μs .. 62.89 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 62.67 μs   (62.59 μs .. 62.77 μs)
+std dev              200.4 ns   (152.5 ns .. 261.6 ns)
+
+benchmarking role-payout/0e97c9d9417354d9460f2eb35018d3904b7b035af16ab299258adab93be0911a
+time                 59.39 μs   (59.30 μs .. 59.47 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 59.28 μs   (59.18 μs .. 59.37 μs)
+std dev              201.7 ns   (151.6 ns .. 270.4 ns)
+
+benchmarking role-payout/0f010d040810040b10020e040f0e030b0a0d100f0c080c0c05000d04100c100f
+time                 61.80 μs   (61.42 μs .. 62.24 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 61.80 μs   (61.51 μs .. 62.09 μs)
+std dev              637.9 ns   (522.3 ns .. 794.5 ns)
+
+benchmarking role-payout/1138a04a83edc0579053f9ffa9394b41df38230121fbecebee8c039776a88c0c
+time                 54.21 μs   (54.05 μs .. 54.37 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 54.05 μs   (53.88 μs .. 54.21 μs)
+std dev              355.4 ns   (268.1 ns .. 501.0 ns)
+
+benchmarking role-payout/121a0a1b12030616111f02121a0e070716090a0e031c071419121f141409031d
+time                 54.50 μs   (54.40 μs .. 54.61 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 54.45 μs   (54.35 μs .. 54.54 μs)
+std dev              201.6 ns   (155.7 ns .. 254.1 ns)
+
+benchmarking role-payout/159e5a1bf16fe984b5569be7011b61b5e98f5d2839ca7e1b34c7f2afc7ffb58e
+time                 54.76 μs   (54.70 μs .. 54.83 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 54.71 μs   (54.67 μs .. 54.78 μs)
+std dev              118.1 ns   (79.04 ns .. 170.6 ns)
+
+benchmarking role-payout/195f522b596360690d04586a2563470f2214163435331a6622311f7323433f1c
+time                 53.74 μs   (53.70 μs .. 53.77 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 53.69 μs   (53.65 μs .. 53.73 μs)
+std dev              78.94 ns   (63.53 ns .. 100.9 ns)
+
+benchmarking role-payout/1a20b465d48a585ffd622bd8dc26a498a3c12f930ab4feab3a5064cfb3bc536a
+time                 59.66 μs   (59.47 μs .. 59.78 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 59.54 μs   (59.36 μs .. 59.71 μs)
+std dev              371.3 ns   (304.0 ns .. 442.1 ns)
+
+benchmarking role-payout/211e1b6c10260c4620074d2e372c260d38643a3d605f63772524034f0a4a7632
+time                 56.05 μs   (56.01 μs .. 56.07 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 56.01 μs   (55.97 μs .. 56.04 μs)
+std dev              74.43 ns   (48.01 ns .. 116.6 ns)
+
+benchmarking role-payout/21a1426fb3fb3019d5dc93f210152e90b0a6e740ef509b1cdd423395f010e0ca
+time                 58.96 μs   (58.77 μs .. 59.16 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 58.81 μs   (58.67 μs .. 58.95 μs)
+std dev              310.1 ns   (215.8 ns .. 437.4 ns)
+
+benchmarking role-payout/224ce46046fab9a17be4197622825f45cc0c59a6bd1604405148e43768c487ef
+time                 54.61 μs   (54.45 μs .. 54.75 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 54.51 μs   (54.37 μs .. 54.66 μs)
+std dev              313.6 ns   (249.5 ns .. 385.4 ns)
+
+benchmarking role-payout/332c2b1c11383d1b373e1315201f1128010e0e1518332f273f141b23243f2a07
+time                 52.04 μs   (51.97 μs .. 52.08 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 52.00 μs   (51.96 μs .. 52.03 μs)
+std dev              79.99 ns   (64.44 ns .. 109.1 ns)
+
+benchmarking role-payout/3565ee025317e065e8555eef288080276716366769aad89e03389f5ec4ce26d7
+time                 57.91 μs   (57.85 μs .. 57.96 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 57.83 μs   (57.75 μs .. 57.89 μs)
+std dev              153.9 ns   (105.1 ns .. 216.1 ns)
+
+benchmarking role-payout/3569299fc986f5354d02e627a9eaa48ab46d5af52722307a0af72bae87e256dc
+time                 53.74 μs   (53.49 μs .. 53.97 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 53.72 μs   (53.40 μs .. 53.92 μs)
+std dev              548.6 ns   (309.5 ns .. 855.8 ns)
+
+benchmarking role-payout/36866914aa07cf62ef36cf2cd64c7f240e3371e27bb9fff5464301678e809c40
+time                 54.49 μs   (53.88 μs .. 55.61 μs)
+                     0.998 R²   (0.993 R² .. 1.000 R²)
+mean                 54.55 μs   (53.82 μs .. 57.20 μs)
+std dev              2.774 μs   (319.7 ns .. 5.434 μs)
+variance introduced by outliers: 50% (severely inflated)
+
+benchmarking role-payout/371c10d2526fc0f09dbe9ed59e44dcd949270b27dc42035addd7ff9f7e0d05e7
+time                 66.47 μs   (65.85 μs .. 67.09 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 66.71 μs   (66.21 μs .. 66.99 μs)
+std dev              817.8 ns   (289.4 ns .. 1.192 μs)
+
+benchmarking role-payout/3897ef714bba3e6821495b706c75f8d64264c3fdaa58a3826c808b5a768c303d
+time                 54.81 μs   (54.59 μs .. 54.93 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 54.73 μs   (54.55 μs .. 54.89 μs)
+std dev              378.9 ns   (312.8 ns .. 448.4 ns)
+
+benchmarking role-payout/4121d88f14387d33ac5e1329618068e3848445cdd66b29e5ba382be2e02a174a
+time                 64.40 μs   (64.31 μs .. 64.47 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 64.41 μs   (64.33 μs .. 64.47 μs)
+std dev              145.8 ns   (110.8 ns .. 209.9 ns)
+
+benchmarking role-payout/4299c7fcf093a5dbfe114c188e32ca199b571a7c25cb7f766bf49f12dab308be
+time                 60.62 μs   (60.57 μs .. 60.67 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 60.57 μs   (60.52 μs .. 60.63 μs)
+std dev              115.7 ns   (75.60 ns .. 195.0 ns)
+
+benchmarking role-payout/452e17d16222a427707fa83f63ffb79f606cc25c755a18b1e3274c964ed5ec99
+time                 66.10 μs   (66.05 μs .. 66.15 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 66.06 μs   (66.01 μs .. 66.10 μs)
+std dev              95.59 ns   (72.66 ns .. 133.3 ns)
+
+benchmarking role-payout/46f8d00030436e4da490a86b331fa6c3251425fb8c19556080e124d75bad7bd6
+time                 56.00 μs   (55.96 μs .. 56.05 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.95 μs   (55.91 μs .. 56.00 μs)
+std dev              100.3 ns   (76.24 ns .. 134.3 ns)
+
+benchmarking role-payout/47364cfaf2c00f7d633283dce6cf84e4fd4e8228c0a0aa50e7c55f35c3ecaa1c
+time                 55.17 μs   (55.10 μs .. 55.26 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.11 μs   (54.96 μs .. 55.20 μs)
+std dev              253.5 ns   (128.0 ns .. 373.4 ns)
+
+benchmarking role-payout/49b8275d0cb817be40865694ab05e3cfe5fc35fb43b78e7de68c1f3519b536bd
+time                 57.33 μs   (57.01 μs .. 57.68 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 57.51 μs   (57.20 μs .. 57.72 μs)
+std dev              547.7 ns   (349.4 ns .. 721.3 ns)
+
+benchmarking role-payout/4dd7755b6ca1f0c9747c1fc0ee4da799f6f1c07108e980bd9f820911ad711ff2
+time                 74.19 μs   (74.02 μs .. 74.37 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 74.30 μs   (74.11 μs .. 74.46 μs)
+std dev              343.0 ns   (262.9 ns .. 443.2 ns)
+
+benchmarking role-payout/4fbcfdb577a56b842d6f6938187a783f71d9da7519353e3da3ef0c564e1eb344
+time                 68.52 μs   (68.42 μs .. 68.58 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 68.42 μs   (68.32 μs .. 68.50 μs)
+std dev              194.0 ns   (148.8 ns .. 272.2 ns)
+
+benchmarking role-payout/5a0725d49c733130eda8bc6ed5234f7f6ff8c9dd2d201e8806125e5fbcc081f9
+time                 58.96 μs   (58.91 μs .. 59.01 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 58.89 μs   (58.85 μs .. 58.95 μs)
+std dev              111.4 ns   (85.39 ns .. 140.7 ns)
+
+benchmarking role-payout/5a2aae344e569a2c644dd9fa8c7b1f129850937eb562b7748c275f9e40bed596
+time                 55.22 μs   (55.15 μs .. 55.26 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.16 μs   (55.10 μs .. 55.22 μs)
+std dev              132.2 ns   (103.4 ns .. 187.4 ns)
+
+benchmarking role-payout/5ade103e9530dd0d572fe1b053ea65ad925c6ebbe321e873ace8b804363fa82c
+time                 76.54 μs   (76.49 μs .. 76.59 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 76.51 μs   (76.47 μs .. 76.57 μs)
+std dev              99.50 ns   (74.23 ns .. 136.6 ns)
+
+benchmarking role-payout/5d4c62a0671c65a14f6a15093e3efc4f1816d95a5a58fd92486bedaae8d9526b
+time                 64.07 μs   (63.97 μs .. 64.15 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 64.01 μs   (63.95 μs .. 64.08 μs)
+std dev              137.5 ns   (106.0 ns .. 182.9 ns)
+
+benchmarking role-payout/5efe992e306e31cc857c64a62436ad2f9325acc5b4a74a8cebccdfd853ce63d2
+time                 57.92 μs   (57.79 μs .. 58.05 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 57.97 μs   (57.86 μs .. 58.05 μs)
+std dev              206.5 ns   (148.3 ns .. 316.7 ns)
+
+benchmarking role-payout/622a7f3bc611b5149253c9189da022a9ff296f60a5b7c172a6dc286faa7284fa
+time                 64.86 μs   (64.66 μs .. 65.07 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 64.89 μs   (64.63 μs .. 65.05 μs)
+std dev              429.4 ns   (289.1 ns .. 592.3 ns)
+
+benchmarking role-payout/6621a69217f09d91f42876a9c0cecf79de0e29bdd5b16c82c6c52cf959092ec4
+time                 60.06 μs   (59.99 μs .. 60.14 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 60.00 μs   (59.93 μs .. 60.06 μs)
+std dev              138.2 ns   (119.4 ns .. 162.5 ns)
+
+benchmarking role-payout/674b0577409957172ad85223c765d17e94c27714276c49c38dfae0a47a561a1e
+time                 53.65 μs   (53.56 μs .. 53.75 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 53.73 μs   (53.63 μs .. 53.82 μs)
+std dev              193.3 ns   (144.8 ns .. 256.3 ns)
+
+benchmarking role-payout/6b7bc2b9002a71b33cfd535d43f26334a283d0b9ad189b7cd74baac232c3b9fc
+time                 52.92 μs   (52.65 μs .. 53.19 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 52.85 μs   (52.61 μs .. 53.17 μs)
+std dev              569.7 ns   (460.4 ns .. 673.7 ns)
+
+benchmarking role-payout/6c364699767a84059ffd99cf718562a8c09d96e343f23dc481e8ffda13af424f
+time                 55.24 μs   (55.09 μs .. 55.35 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.12 μs   (54.98 μs .. 55.24 μs)
+std dev              286.4 ns   (237.7 ns .. 361.4 ns)
+
+benchmarking role-payout/6d66bddb4269bdf77392d3894da5341cf019d39787522af4f83f01285991e93c
+time                 57.90 μs   (55.44 μs .. 61.63 μs)
+                     0.970 R²   (0.940 R² .. 1.000 R²)
+mean                 60.37 μs   (56.10 μs .. 69.67 μs)
+std dev              11.48 μs   (2.279 μs .. 16.42 μs)
+variance introduced by outliers: 94% (severely inflated)
+
+benchmarking role-payout/73f044f34a30f26639c58bafe952047f74c7bf1eafebab5aadf5b73cfb9024ed
+time                 54.43 μs   (54.30 μs .. 54.64 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 54.57 μs   (54.42 μs .. 54.75 μs)
+std dev              356.5 ns   (225.3 ns .. 497.0 ns)
+
+benchmarking role-payout/7b1dd76edc27f00eb382bf996378155baf74d6a7c6f3d5ec837c39d29784aade
+time                 54.51 μs   (54.39 μs .. 54.62 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 54.46 μs   (54.29 μs .. 54.60 μs)
+std dev              322.7 ns   (257.0 ns .. 439.7 ns)
+
+benchmarking role-payout/803eae94d62e2afc0e835c204af8362170301bc329e2d849d5f5a47dddf479ec
+time                 63.39 μs   (63.30 μs .. 63.47 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 63.35 μs   (63.28 μs .. 63.42 μs)
+std dev              140.7 ns   (103.0 ns .. 190.7 ns)
+
+benchmarking role-payout/87167fc5469adac97c1be749326fa79a6b7862ce68aa4abcb438e3c034bd0899
+time                 65.69 μs   (65.58 μs .. 65.76 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 65.61 μs   (65.54 μs .. 65.68 μs)
+std dev              147.6 ns   (119.3 ns .. 173.8 ns)
+
+benchmarking role-payout/8c0fa5d9d6724c5c72c67e055d4bfc36a385ded7c3c81c08cdbd8705829af6e6
+time                 67.51 μs   (67.40 μs .. 67.59 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 67.54 μs   (67.44 μs .. 67.59 μs)
+std dev              142.2 ns   (80.11 ns .. 240.8 ns)
+
+benchmarking role-payout/962c2c658b19904372984a56409707401e64e9b03c1986647134cfd329ec5139
+time                 58.73 μs   (58.49 μs .. 58.95 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 58.78 μs   (58.60 μs .. 58.88 μs)
+std dev              295.4 ns   (120.1 ns .. 477.5 ns)
+
+benchmarking role-payout/996804e90f2c75fe68886fc8511304b8ab9b36785f8858f5cb098e91c159dde9
+time                 56.02 μs   (55.86 μs .. 56.15 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.90 μs   (55.83 μs .. 56.01 μs)
+std dev              199.9 ns   (134.4 ns .. 281.0 ns)
+
+benchmarking role-payout/a004a989c005d59043f996500e110fa756ad1b85800b889d5815a0106388e1d7
+time                 55.97 μs   (55.78 μs .. 56.18 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.91 μs   (55.74 μs .. 56.06 μs)
+std dev              360.7 ns   (293.1 ns .. 443.9 ns)
+
+benchmarking role-payout/a0fba5740174b5cd24036c8b008cb1efde73f1edae097b9325c6117a0ff40d3b
+time                 58.74 μs   (58.64 μs .. 58.87 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 58.72 μs   (58.65 μs .. 58.80 μs)
+std dev              162.4 ns   (130.4 ns .. 220.3 ns)
+
+benchmarking role-payout/a1b25347409c3993feca1a60b6fcaf93d1d4bbaae19ab06fdf50cedc26cee68d
+time                 52.73 μs   (52.61 μs .. 52.81 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 52.69 μs   (52.63 μs .. 52.75 μs)
+std dev              129.3 ns   (100.6 ns .. 163.1 ns)
+
+benchmarking role-payout/a27524cfad019df45e4e8316f927346d4cc39da6bdd294fb2c33c3f58e6a8994
+time                 55.58 μs   (55.52 μs .. 55.62 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.55 μs   (55.47 μs .. 55.60 μs)
+std dev              126.9 ns   (95.77 ns .. 170.0 ns)
+
+benchmarking role-payout/a6664a2d2a82f370a34a36a45234f6b33120a39372331678a3b3690312560ce9
+time                 68.14 μs   (68.09 μs .. 68.19 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 68.06 μs   (68.02 μs .. 68.11 μs)
+std dev              90.02 ns   (63.00 ns .. 132.3 ns)
+
+benchmarking role-payout/a6f064b83b31032ea7f25921364727224707268e472a569f584cc6b1d8c017e8
+time                 55.73 μs   (55.65 μs .. 55.80 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.69 μs   (55.65 μs .. 55.76 μs)
+std dev              120.1 ns   (87.68 ns .. 157.7 ns)
+
+benchmarking role-payout/a7cb09f417c3f089619fe25b7624392026382b458486129efcff18f8912bf302
+time                 55.49 μs   (55.43 μs .. 55.55 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.52 μs   (55.48 μs .. 55.57 μs)
+std dev              107.3 ns   (86.60 ns .. 131.7 ns)
+
+benchmarking role-payout/a92b4072cb8601fa697e1150c08463b14ffced54eb963df08d322216e27373cb
+time                 55.21 μs   (55.06 μs .. 55.38 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.29 μs   (55.17 μs .. 55.44 μs)
+std dev              309.1 ns   (228.8 ns .. 410.3 ns)
+
+benchmarking role-payout/af2e072b5adfaa7211e0b341e1f7319c4f4e7364a4247c9247132a927e914753
+time                 63.24 μs   (63.17 μs .. 63.28 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 63.23 μs   (63.18 μs .. 63.29 μs)
+std dev              131.1 ns   (103.5 ns .. 161.7 ns)
+
+benchmarking role-payout/b43564af5f13cc5208b92b1ad6d45369446f378d3891e5cb3e353b30d4f3fb10
+time                 55.05 μs   (55.00 μs .. 55.09 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.02 μs   (54.99 μs .. 55.06 μs)
+std dev              70.76 ns   (50.57 ns .. 104.5 ns)
+
+benchmarking role-payout/b6243a5b4c353ce4852aa41705111d57867d2783eeef76f6d59beb2360da6e90
+time                 77.00 μs   (76.89 μs .. 77.10 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 77.01 μs   (76.92 μs .. 77.07 μs)
+std dev              149.7 ns   (97.18 ns .. 207.0 ns)
+
+benchmarking role-payout/b869f3928200061abb1c3060425b9354b0e08cbf4400b340b8707c14b34317cd
+time                 84.67 μs   (84.48 μs .. 84.88 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 84.67 μs   (84.48 μs .. 84.87 μs)
+std dev              427.9 ns   (363.0 ns .. 529.7 ns)
+
+benchmarking role-payout/bcdbc576d63b0454100ad06893812edafc2e7e4934fec1b44e2d06eb34f36eb8
+time                 58.34 μs   (55.63 μs .. 62.77 μs)
+                     0.977 R²   (0.951 R² .. 1.000 R²)
+mean                 58.64 μs   (55.88 μs .. 64.84 μs)
+std dev              8.028 μs   (1.010 μs .. 14.06 μs)
+variance introduced by outliers: 89% (severely inflated)
+
+benchmarking role-payout/bd460b7549b70c52e37b312a4242041eac18fe4a266f018bcea0c78a9085a271
+time                 67.67 μs   (65.10 μs .. 71.85 μs)
+                     0.969 R²   (0.938 R² .. 0.999 R²)
+mean                 72.02 μs   (66.65 μs .. 80.88 μs)
+std dev              14.37 μs   (6.429 μs .. 19.64 μs)
+variance introduced by outliers: 95% (severely inflated)
+
+benchmarking role-payout/bd79f4a84db23b7c4cd219d498bd581e085cbc3437957e74a8862281a700700b
+time                 60.82 μs   (60.61 μs .. 60.99 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 60.73 μs   (60.57 μs .. 60.91 μs)
+std dev              400.1 ns   (329.8 ns .. 514.5 ns)
+
+benchmarking role-payout/c11490431db3a92efdda70933ba411a0423935e73a75c856e326dbcf6672f3bf
+time                 53.35 μs   (53.30 μs .. 53.38 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 53.32 μs   (53.29 μs .. 53.36 μs)
+std dev              77.66 ns   (64.79 ns .. 94.86 ns)
+
+benchmarking role-payout/c4d4c88c5fe378a25a034025994a0d0b1642f10c8e6e513f872327fa895bfc7e
+time                 59.14 μs   (59.09 μs .. 59.20 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 59.10 μs   (59.06 μs .. 59.16 μs)
+std dev              105.7 ns   (75.98 ns .. 161.4 ns)
+
+benchmarking role-payout/c78eeba7681d2ab51b4758efa4c812cc041928837c6e7563d8283cce67ce2e02
+time                 59.37 μs   (59.18 μs .. 59.49 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 59.20 μs   (59.02 μs .. 59.34 μs)
+std dev              361.1 ns   (294.0 ns .. 418.4 ns)
+
+benchmarking role-payout/c99ecc2146ce2066ba6dffc734923264f8794815acbc2ec74c2c2c42ba272e4d
+time                 70.01 μs   (69.93 μs .. 70.09 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 69.98 μs   (69.92 μs .. 70.03 μs)
+std dev              122.5 ns   (83.29 ns .. 190.2 ns)
+
+benchmarking role-payout/caa409c40e39aed9b0f59214b4baa178c375526dea6026b4552b88d2cc729716
+time                 51.95 μs   (51.85 μs .. 52.05 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 51.87 μs   (51.71 μs .. 52.00 μs)
+std dev              310.7 ns   (198.5 ns .. 469.3 ns)
+
+benchmarking role-payout/cb2ab8e22d1f64e8d204dece092e90e9bf1fa8b2a6e9cba5012dbe4978065832
+time                 53.84 μs   (53.76 μs .. 53.89 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 53.77 μs   (53.71 μs .. 53.83 μs)
+std dev              122.9 ns   (93.90 ns .. 157.1 ns)
+
+benchmarking role-payout/cc1e82927f6c65b3e912200ae30588793d2066e1d4a6627c21955944ac9bd528
+time                 65.08 μs   (62.50 μs .. 68.46 μs)
+                     0.992 R²   (0.983 R² .. 1.000 R²)
+mean                 63.90 μs   (62.66 μs .. 67.94 μs)
+std dev              4.231 μs   (1.118 μs .. 7.932 μs)
+variance introduced by outliers: 63% (severely inflated)
+
+benchmarking role-payout/d5cda74eb0947e025e02fb8ed365df39d0a43e4b42cd3573ac2d8fcb29115997
+time                 61.27 μs   (61.22 μs .. 61.32 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 61.22 μs   (61.19 μs .. 61.27 μs)
+std dev              86.72 ns   (69.73 ns .. 111.3 ns)
+
+benchmarking role-payout/d6bc8ac4155e22300085784148bbc9d9bbfea896e1009dd396610a90e3943032
+time                 64.40 μs   (64.31 μs .. 64.46 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 64.35 μs   (64.29 μs .. 64.41 μs)
+std dev              128.9 ns   (96.32 ns .. 174.4 ns)
+
+benchmarking role-payout/da353bf9219801fa1bf703fc161497570954e9af7e10ffe95c911a9ef97e77bd
+time                 56.65 μs   (56.60 μs .. 56.72 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 56.65 μs   (56.61 μs .. 56.70 μs)
+std dev              105.5 ns   (80.18 ns .. 140.8 ns)
+
+benchmarking role-payout/dc45c5f1b700b1334db99f50823321daaef0e6925b9b2fabbc9df7cde65af62e
+time                 57.69 μs   (57.65 μs .. 57.75 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 57.57 μs   (57.52 μs .. 57.61 μs)
+std dev              98.50 ns   (76.84 ns .. 129.3 ns)
+
+benchmarking role-payout/df487b2fd5c1583fa33644423849bc1ab5f02f37edc0c235f34ef01cb12604f6
+time                 55.90 μs   (55.84 μs .. 55.94 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.85 μs   (55.79 μs .. 55.89 μs)
+std dev              102.1 ns   (78.37 ns .. 135.8 ns)
+
+benchmarking role-payout/eabeeae18131af89fa57936c0e9eb8d2c7adba534f7e1a517d75410028fa0d6c
+time                 55.24 μs   (55.08 μs .. 55.44 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.30 μs   (55.13 μs .. 55.39 μs)
+std dev              258.6 ns   (149.8 ns .. 429.9 ns)
+
+benchmarking role-payout/ec4712ee820eb959a43ebedfab6735f2325fa52994747526ffd2a4f4f84dd58e
+time                 61.05 μs   (60.88 μs .. 61.23 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 61.00 μs   (60.89 μs .. 61.12 μs)
+std dev              266.6 ns   (211.8 ns .. 349.1 ns)
+
+benchmarking role-payout/ee3962fbd7373360f46decef3c9bda536a0b1daf6cda3b8a4bcfd6deeb5b4c53
+time                 61.60 μs   (61.56 μs .. 61.64 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 61.62 μs   (61.57 μs .. 61.66 μs)
+std dev              104.2 ns   (79.22 ns .. 154.1 ns)
+
+benchmarking role-payout/f1a1e6a487f91feca5606f72bbb1e948c71abf043c6a0ea83bfea9ec6a0f08d8
+time                 54.96 μs   (54.86 μs .. 55.11 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 54.88 μs   (54.82 μs .. 54.94 μs)
+std dev              130.2 ns   (109.2 ns .. 169.0 ns)
+
+benchmarking role-payout/f2932e4ca4bbb94b0a9ffbe95fcb7bd5639d9751d75d56d5e14efa5bbed981df
+time                 52.87 μs   (52.74 μs .. 52.94 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 52.77 μs   (52.66 μs .. 52.85 μs)
+std dev              200.5 ns   (151.4 ns .. 269.2 ns)
+
+benchmarking role-payout/f53e8cafe26647ccce51e4c31db13608aea1f39034c0f52dee2e5634ef66e747
+time                 59.19 μs   (58.92 μs .. 59.35 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 59.04 μs   (58.81 μs .. 59.25 μs)
+std dev              486.1 ns   (419.7 ns .. 557.6 ns)
+
+benchmarking role-payout/f7275afb60e33a550df13a132102e7e925dd28965a4efbe510a89b077ff9417f
+time                 55.20 μs   (55.10 μs .. 55.33 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.22 μs   (55.13 μs .. 55.30 μs)
+std dev              177.6 ns   (149.7 ns .. 222.7 ns)
+
+benchmarking role-payout/fc8c5f45ffcdb024c21e0f34b22c23de8045a94d5e1a5bda1555c45ddb059f82
+time                 55.63 μs   (55.45 μs .. 55.94 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 55.80 μs   (55.57 μs .. 56.00 μs)
+std dev              491.4 ns   (441.2 ns .. 550.8 ns)
+
+benchmarking role-payout/ff38b1ec89952d0247630f107a90cbbeb92ecbfcd19b284f60255718e4ec7548
+time                 65.59 μs   (65.42 μs .. 65.77 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 65.69 μs   (65.55 μs .. 65.80 μs)
+std dev              272.7 ns   (219.1 ns .. 359.1 ns)

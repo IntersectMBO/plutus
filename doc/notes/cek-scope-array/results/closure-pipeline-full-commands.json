@@ -1,0 +1,317 @@
+[
+  {
+    "round": 1,
+    "variant": "baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/baseline",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-baseline-r1.csv",
+    "elapsed": 5.33836555480957
+  },
+  {
+    "round": 1,
+    "variant": "ra-erased-context",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/ra-erased-context",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-ra-erased-context-r1.csv",
+    "elapsed": 5.318640470504761
+  },
+  {
+    "round": 1,
+    "variant": "fixed-escape-erased-context",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/fixed-escape-erased-context",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-fixed-escape-erased-context-r1.csv",
+    "elapsed": 5.580420017242432
+  },
+  {
+    "round": 2,
+    "variant": "baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/baseline",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-baseline-r2.csv",
+    "elapsed": 5.328401565551758
+  },
+  {
+    "round": 2,
+    "variant": "fixed-escape-erased-context",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/fixed-escape-erased-context",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-fixed-escape-erased-context-r2.csv",
+    "elapsed": 5.570899248123169
+  },
+  {
+    "round": 2,
+    "variant": "ra-erased-context",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/ra-erased-context",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-ra-erased-context-r2.csv",
+    "elapsed": 5.400798797607422
+  },
+  {
+    "round": 3,
+    "variant": "fixed-escape-erased-context",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/fixed-escape-erased-context",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-fixed-escape-erased-context-r3.csv",
+    "elapsed": 5.714097023010254
+  },
+  {
+    "round": 3,
+    "variant": "baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/baseline",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-baseline-r3.csv",
+    "elapsed": 5.429148197174072
+  },
+  {
+    "round": 3,
+    "variant": "ra-erased-context",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/ra-erased-context",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-ra-erased-context-r3.csv",
+    "elapsed": 5.438730239868164
+  },
+  {
+    "round": 4,
+    "variant": "fixed-escape-erased-context",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/fixed-escape-erased-context",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-fixed-escape-erased-context-r4.csv",
+    "elapsed": 5.580896615982056
+  },
+  {
+    "round": 4,
+    "variant": "ra-erased-context",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/ra-erased-context",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-ra-erased-context-r4.csv",
+    "elapsed": 5.358809232711792
+  },
+  {
+    "round": 4,
+    "variant": "baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/baseline",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-baseline-r4.csv",
+    "elapsed": 5.348746061325073
+  },
+  {
+    "round": 5,
+    "variant": "ra-erased-context",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/ra-erased-context",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-ra-erased-context-r5.csv",
+    "elapsed": 5.448872089385986
+  },
+  {
+    "round": 5,
+    "variant": "fixed-escape-erased-context",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/fixed-escape-erased-context",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-fixed-escape-erased-context-r5.csv",
+    "elapsed": 5.581184148788452
+  },
+  {
+    "round": 5,
+    "variant": "baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "15",
+      "/home/sho/io/plutus-scopeCheckOpt/doc/notes/cek-scope-array/experiment/bin/baseline",
+      "sample",
+      "/home/sho/io/plutus-scopeCheckOpt/plutus-benchmark/validation/data",
+      "0.03",
+      "full",
+      "+RTS",
+      "-N1",
+      "-T",
+      "-s",
+      "-RTS"
+    ],
+    "output": "closure-pipeline-full-baseline-r5.csv",
+    "elapsed": 5.3485023975372314
+  }
+]

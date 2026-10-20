@@ -1,0 +1,38 @@
+{
+  "baseline": {
+    "scripts": 89,
+    "processes": 5,
+    "time_ratio": 1.0,
+    "process_bootstrap_95": [
+      1.0,
+      1.0
+    ],
+    "time_weighted_ratio": 1.0,
+    "allocation_ratio": 1.0,
+    "round_time_ratios": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "compact-unchecked": {
+    "scripts": 89,
+    "processes": 5,
+    "time_ratio": 1.686713274995859,
+    "process_bootstrap_95": [
+      1.680051978680791,
+      1.6947343268388195
+    ],
+    "time_weighted_ratio": 1.836301610787143,
+    "allocation_ratio": 1.928241807236455,
+    "round_time_ratios": [
+      1.6819648979895987,
+      1.7000962482292343,
+      1.6838781734354886,
+      1.6762335711755594,
+      1.6914948350803358
+    ]
+  }
+}

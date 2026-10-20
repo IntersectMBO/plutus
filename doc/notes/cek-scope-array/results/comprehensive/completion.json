@@ -1,0 +1,22 @@
+{
+  "finished_utc": "2026-10-09T05:27:59.140715+00:00",
+  "native_estimates": 1664,
+  "paired_measurements": 8320,
+  "confirmation_measurements": 360,
+  "nursery_measurements": 480,
+  "exact_cek_checks": 327,
+  "exact_full_checks": 89,
+  "production_source": "baseline, unchanged from recorded master",
+  "source_sha256": {
+    "Comprehensive.hs": "7686965726a7d7529f52ae6e162554d689c829fed66b8019f98098609d6bac19",
+    "build-comprehensive.sh": "6e1bba00e92aa68b49741de70c416644222ee61dd938f73f91c2cb87d173c6a5",
+    "run-comprehensive.py": "546a5c2f7c9b056896d5973d7c247b0a7ba71c56f11d50c822381c7d8c6ebbfc",
+    "analyze-comprehensive.py": "9804d4ff024277c4f5d5ddcb4bdf5a6d2fc76e3d1d400f02eab6d1771402e56d",
+    "run-comprehensive-followup.py": "35a9da8021ce30a526cab90face11641d14a5a8bdac8e53c2c6481c162b570c3",
+    "summarize-comprehensive-followup.py": "e5c6bcee56aa10ed0584ae604e9ce5b2139731e6ad6445918882f8cee7bd28f8",
+    "package-comprehensive.py": "48dcaaa06e05fb679891f9f7ba2afec353a4e38ec8db5b817d55978c9cec75fe",
+    "requirements-analysis.txt": "66f71c864985e4331d2f7f854eb0451184e560cb52d981898e00b8c7a39ad11b",
+    "select-variant.py": "d8c2955540df5af90dc75441d5cf7949321ad5602f716fbbe21075263038ce2b",
+    "closure-variants.py": "101cd0970b08799e05b0536215a20fb9769731ca680424aa6f4d6492e7abac5a"
+  }
+}

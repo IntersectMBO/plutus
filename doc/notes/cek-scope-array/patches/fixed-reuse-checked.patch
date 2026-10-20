@@ -1,0 +1,345 @@
+diff --git a/plutus-core/plutus-core.cabal b/plutus-core/plutus-core.cabal
+--- a/plutus-core/plutus-core.cabal
++++ b/plutus-core/plutus-core.cabal
+@@ -245,6 +245,7 @@
+     UntypedPlutusCore.Evaluation.Machine.Cek
+     UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+     UntypedPlutusCore.Evaluation.Machine.Cek.Internal
++    UntypedPlutusCore.Evaluation.Machine.Cek.ArrayEnv
+     UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
+     UntypedPlutusCore.Evaluation.Machine.SteppableCek
+     UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
+diff --git a/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs b/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs
+new file mode 100644
+--- /dev/null
++++ b/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/ArrayEnv.hs
+@@ -0,0 +1,154 @@
++-- EXPERIMENT ONLY. The evaluator owns its active environment; continuations
++-- borrow prefixes in LIFO order, and escaping values permanently seal prefixes.
++-- A slot may be overwritten only above BOTH barriers. This does not attempt
++-- to reclaim a sealed prefix after its last closure dies.
++-- RealWorld is an experimental bridge to the public, state-free CekValue type.
++{-# LANGUAGE BangPatterns #-}
++{-# LANGUAGE LambdaCase #-}
++{-# LANGUAGE TypeFamilies #-}
++{-# OPTIONS_GHC -fno-cse -fno-full-laziness #-}
++module UntypedPlutusCore.Evaluation.Machine.Cek.ArrayEnv where
++
++import Data.Primitive.PrimArray
++import Data.Primitive.SmallArray
++import Data.Word (Word64)
++import GHC.Exts (IsList (..), RealWorld)
++import System.IO.Unsafe (unsafePerformIO, unsafeDupablePerformIO)
++import UntypedPlutusCore.Core.Type qualified as U
++
++-- Metadata: slot 0 = permanent barrier, slot 1 = dynamic barrier.
++-- The final field is the previous dynamic barrier, or -1 for an active handle.
++data RAList a
++  = Empty {-# UNPACK #-} !Int
++  | ArrayEnv {-# UNPACK #-} !Int {-# UNPACK #-} !Int
++      !(SmallMutableArray RealWorld a) !(MutablePrimArray RealWorld Int)
++      {-# UNPACK #-} !Int
++
++empty :: RAList a
++empty = Empty 0
++{-# INLINE empty #-}
++
++emptyFor :: U.Term name uni fun ann -> RAList a
++emptyFor t = Empty (maxDepth t)
++{-# INLINE emptyFor #-}
++
++maxDepth :: U.Term name uni fun ann -> Int
++maxDepth = go 0
++  where
++    go !d = \case
++      U.LamAbs _ _ t -> go (d + 1) t
++      U.Apply _ f x -> max (go d f) (go d x)
++      U.Delay _ t -> go d t
++      U.Force _ t -> go d t
++      U.Constr _ _ ts -> foldr (max . go d) d ts
++      U.Case _ t ts -> foldr (max . go d) (go d t) ts
++      _ -> d
++{-# NOINLINE maxDepth #-}
++
++newMetadata :: IO (MutablePrimArray RealWorld Int)
++newMetadata = do
++  m <- newPrimArray 2
++  setPrimArray m 0 2 0
++  pure m
++{-# INLINE newMetadata #-}
++
++-- This entry point is persistent, including concurrent callers. It always
++-- copies and seals the result; it is used by the steppable evaluator/IsList.
++cons :: a -> RAList a -> RAList a
++cons x e = unsafePerformIO $ do
++  result <- copyConsM x e
++  sealM result
++{-# NOINLINE cons #-}
++
++copyConsM :: a -> RAList a -> IO (RAList a)
++copyConsM x e = case e of
++  Empty capacity -> do
++    a <- newSmallArray (max 1 capacity) (error "uninitialized slot")
++    writeSmallArray a 0 x
++    m <- newMetadata
++    pure (ArrayEnv 1 capacity a m (-1))
++  ArrayEnv n capacity a _ _ -> do
++    let size = if capacity == 0 then n + 1 else capacity
++    if n >= size then error "array environment capacity exceeded" else do
++      b <- newSmallArray size (error "uninitialized slot")
++      copySmallMutableArray b 0 a 0 n
++      writeSmallArray b n x
++      m <- newMetadata
++      pure (ArrayEnv (n + 1) capacity b m (-1))
++{-# INLINE copyConsM #-}
++
++-- Only the sequential CEK engine may call the borrowing/mutable API.
++consM :: a -> RAList a -> IO (RAList a)
++consM x e = case e of
++  Empty _ -> copyConsM x e
++  ArrayEnv n capacity a m _ -> do
++    sealed <- readPrimArray m 0
++    borrowed <- readPrimArray m 1
++    if n < sealed || n < borrowed || n >= sizeofSmallMutableArray a
++      then copyConsM x e
++      else do
++        writeSmallArray a n x
++        pure (ArrayEnv (n + 1) capacity a m (-1))
++{-# INLINE consM #-}
++
++-- All actual closures must be sealed BEFORE they can enter a value/context,
++-- a builtin runtime, or a lazy discharge/error term.
++sealM :: RAList a -> IO (RAList a)
++sealM e = case e of
++  Empty _ -> pure e
++  ArrayEnv n _ _ m _ -> do
++    old <- readPrimArray m 0
++    if n > old then writePrimArray m 0 n else pure ()
++    pure e
++{-# INLINE sealM #-}
++
++pinM :: RAList a -> IO (RAList a)
++pinM e = case e of
++  Empty _ -> pure e
++  ArrayEnv n capacity a m _ -> do
++    old <- readPrimArray m 1
++    writePrimArray m 1 (max old n)
++    pure (ArrayEnv n capacity a m old)
++{-# INLINE pinM #-}
++
++unpinM :: RAList a -> IO (RAList a)
++unpinM e = case e of
++  Empty _ -> pure e
++  ArrayEnv n capacity a m old
++    | old < 0 -> error "unpin of active environment"
++    | otherwise -> do
++        writePrimArray m 1 old
++        pure (ArrayEnv n capacity a m (-1))
++{-# INLINE unpinM #-}
++
++-- Active reads must execute in the machine monad before a later overwrite.
++indexOneM :: RAList a -> Word64 -> IO (Maybe a)
++indexOneM (Empty _) _ = pure Nothing
++indexOneM (ArrayEnv n _ a _ _) i
++  | i == 0 || i > fromIntegral n = pure Nothing
++  | otherwise = do
++      !x <- readSmallArray a (n - fromIntegral i)
++      pure (Just x)
++{-# INLINE indexOneM #-}
++
++-- Pure reads are reserved for permanently sealed snapshots (discharge,
++-- steppable evaluation, and persistent representation checks).
++contIndexOne :: b -> (a -> b) -> RAList a -> Word64 -> b
++contIndexOne z f e i = case unsafeDupablePerformIO (indexOneM e i) of
++  Nothing -> z
++  Just x -> f x
++{-# INLINE contIndexOne #-}
++
++indexOne :: RAList a -> Word64 -> Maybe a
++indexOne e i = contIndexOne Nothing Just e i
++{-# INLINE indexOne #-}
++
++instance IsList (RAList a) where
++  type Item (RAList a) = a
++  fromList = foldr cons empty
++  toList (Empty _) = []
++  toList e@(ArrayEnv n _ _ _ _) =
++    [contIndexOne (error "impossible index") id e (fromIntegral i) | i <- [1 .. n]]
++
++instance Show a => Show (RAList a) where
++  showsPrec d = showsPrec d . toList
+diff --git a/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs b/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs
+--- a/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs
++++ b/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/Cek/Internal.hs
+@@ -74,8 +74,7 @@
+ 
+ import UntypedPlutusCore.Core
+ 
+-import Data.RandomAccessList.Class qualified as Env
+-import Data.RandomAccessList.SkewBinary qualified as Env
++import UntypedPlutusCore.Evaluation.Machine.Cek.ArrayEnv qualified as Env
+ import PlutusCore.Builtin
+ import PlutusCore.DeBruijn
+ import PlutusCore.Evaluation.Machine.ExBudget
+@@ -841,11 +840,13 @@
+     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
+     computeCek !ctx !env (LamAbs _ name body) = do
+       stepAndMaybeSpend BLamAbs
+-      returnCek ctx (VLamAbs name body env)
++      captured <- CekM $ unsafeIOToST $ Env.sealM env
++      returnCek ctx (VLamAbs name body captured)
+     -- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)
+     computeCek !ctx !env (Delay _ body) = do
+       stepAndMaybeSpend BDelay
+-      returnCek ctx (VDelay body env)
++      captured <- CekM $ unsafeIOToST $ Env.sealM env
++      returnCek ctx (VDelay body captured)
+     -- s ; ρ ▻ force T  ↦  s , force _ ; ρ ▻ L
+     computeCek !ctx !env (Force _ body) = do
+       stepAndMaybeSpend BForce
+@@ -853,7 +854,8 @@
+     -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
+     computeCek !ctx !env (Apply _ fun arg) = do
+       stepAndMaybeSpend BApply
+-      computeCek (FrameAwaitFunTerm env arg ctx) env fun
++      saved <- CekM $ unsafeIOToST $ Env.pinM env
++      computeCek (FrameAwaitFunTerm saved arg ctx) env fun
+     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
+     computeCek !ctx !_ (Builtin _ bn) = do
+       stepAndMaybeSpend BBuiltin
+@@ -864,12 +866,15 @@
+     computeCek !ctx !env (Constr _ i es) = do
+       stepAndMaybeSpend BConstr
+       case es of
+-        (t : rest) -> computeCek (FrameConstr env i rest NilStack ctx) env t
++        (t : rest) -> do
++          saved <- CekM $ unsafeIOToST $ Env.pinM env
++          computeCek (FrameConstr saved i rest NilStack ctx) env t
+         [] -> returnCek ctx $ VConstr i EmptyStack
+     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
+     computeCek !ctx !env (Case _ scrut cs) = do
+       stepAndMaybeSpend BCase
+-      computeCek (FrameCases env cs ctx) env scrut
++      saved <- CekM $ unsafeIOToST $ Env.pinM env
++      computeCek (FrameCases saved cs ctx) env scrut
+     -- s ; ρ ▻ error  ↦  <> A
+     computeCek !_ !_ (Error _) =
+       throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
+@@ -895,7 +900,8 @@
+     -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
+     returnCek (FrameForce ctx) fun = forceEvaluate ctx fun
+     -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
+-    returnCek (FrameAwaitFunTerm argVarEnv arg ctx) fun =
++    returnCek (FrameAwaitFunTerm saved arg ctx) fun = do
++      argVarEnv <- CekM $ unsafeIOToST $ Env.unpinM saved
+       computeCek (FrameAwaitArg fun ctx) argVarEnv arg
+     -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
+     -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1878):
+@@ -923,31 +929,34 @@
+     returnCek (FrameConstr env i todo done ctx) e = do
+       case todo of
+         (next : todo') -> computeCek (FrameConstr env i todo' (ConsStack e done) ctx) env next
+-        [] ->
++        [] -> do
++          _ <- CekM $ unsafeIOToST $ Env.unpinM env
+           let go acc NilStack = acc
+               go acc (ConsStack x xs) = go (ConsStackNonEmpty x acc) xs
+-           in returnCek ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
++          returnCek ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
+     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
+-    returnCek (FrameCases env cs ctx) e = case e of
+-      -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
+-      -- As it happens, this will currently never trigger, since i is a Word64, and the largest
+-      -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
+-      -- "apparently good" value.
+-      (VConstr i _)
+-        | i > fromIntegral @Int @Word64 maxBound ->
+-            throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
+-      -- Otherwise, we can safely convert the index to an Int and use it.
+-      (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
+-        Just t -> case args of
+-          EmptyStack -> computeCek ctx env t
+-          MultiStack rest -> computeCek (FrameAwaitFunValueN rest ctx) env t
+-        Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+-      -- Proceed with caser when expression given is not Constr.
+-      VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
+-        HeadError err -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+-        HeadOnly fX -> computeCek ctx env fX
+-        HeadSpine f xs -> computeCek (FrameAwaitFunConN xs ctx) env f
+-      _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
++    returnCek (FrameCases saved cs ctx) e = do
++      env <- CekM $ unsafeIOToST $ Env.unpinM saved
++      case e of
++        -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
++        -- As it happens, this will currently never trigger, since i is a Word64, and the largest
++        -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
++        -- "apparently good" value.
++        (VConstr i _)
++          | i > fromIntegral @Int @Word64 maxBound ->
++              throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
++        -- Otherwise, we can safely convert the index to an Int and use it.
++        (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
++          Just t -> case args of
++            EmptyStack -> computeCek ctx env t
++            MultiStack rest -> computeCek (FrameAwaitFunValueN rest ctx) env t
++          Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
++        -- Proceed with caser when expression given is not Constr.
++        VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
++          HeadError err -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
++          HeadOnly fX -> computeCek ctx env fX
++          HeadSpine f xs -> computeCek (FrameAwaitFunConN xs ctx) env f
++        _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
+ 
+     -- \| @force@ a term and proceed.
+     -- If v is a delay then compute the body of v;
+@@ -989,7 +998,9 @@
+       -> CekValue uni fun ann -- rhs of application
+       -> CekM uni fun s (DischargeResult uni fun)
+     applyEvaluate !ctx (VLamAbs _ body env) arg =
+-      computeCek ctx (Env.cons arg env) body
++      do
++        extended <- CekM $ unsafeIOToST $ Env.consM arg env
++        computeCek ctx extended body
+     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
+     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
+     applyEvaluate !ctx (VBuiltin fun funTerm runtime) arg = do
+@@ -1080,12 +1091,11 @@
+ 
+     -- \| Look up a variable name in the environment.
+     lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+-    lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
+-      Env.contIndexOne
+-        (throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName)
+-        pure
+-        varEnv
+-        (coerce varIx)
++    lookupVarName varName@(NamedDeBruijn _ varIx) varEnv = do
++      found <- CekM $ unsafeIOToST $ Env.indexOneM varEnv (coerce varIx)
++      case found of
++        Nothing -> throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName
++        Just !val -> pure val
+     {-# INLINE lookupVarName #-}
+ 
+ -- See Note [Compilation peculiarities].
+@@ -1100,7 +1110,7 @@
+ runCekDeBruijn params mode emitMode term =
+   runCekM params mode emitMode $ do
+     unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts
+-    enterComputeCek NoFrame Env.empty term
++    enterComputeCek NoFrame (Env.emptyFor term) term
+ 
+ {- Note [Accumulators for terms]
+ At a couple of points in the CEK machine (notably building the arguments to a constructor value)
+diff --git a/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs b/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs
+--- a/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs
++++ b/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine/SteppableCek/Internal.hs
+@@ -59,8 +59,7 @@
+ import Control.Monad
+ import Control.Monad.Primitive
+ import Data.Proxy
+-import Data.RandomAccessList.Class qualified as Env
+-import Data.RandomAccessList.SkewBinary qualified as Env
++import UntypedPlutusCore.Evaluation.Machine.Cek.ArrayEnv qualified as Env
+ import Data.Semigroup (stimes)
+ import Data.Vector qualified as V
+ import GHC.TypeNats
