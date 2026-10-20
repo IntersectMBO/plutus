@@ -7,12 +7,14 @@
 # Usage: deploy-gh-pages.sh <source-dir> <target-folder>
 #
 # Environment:
-#   GITHUB_TOKEN, GITHUB_REPOSITORY  used to build the remote URL (in CI)
+#   GITHUB_REPOSITORY  used to build the remote URL (in CI)
+#   GITHUB_TOKEN       used to authenticate the push (in CI)
 #   REMOTE       overrides the remote URL (e.g. for local testing)
 #   BRANCH       branch to deploy to (default: gh-pages)
-#   PRUNE_DIR    optional: a folder whose subfolders are versioned builds
-#   PRUNE_KEEP   keep at most this many subfolders of PRUNE_DIR, deleting the
-#                lexicographically smallest (oldest) ones first
+#   PRUNE_DIR    optional: a folder whose subfolders are builds
+#   PRUNE_KEEP   keep at most this many version-numbered subfolders of
+#                PRUNE_DIR (those starting with a digit), deleting the oldest
+#                ones first. Other subfolders (master, latest) are never pruned.
 set -euo pipefail
 
 if [[ $# -ne 2 ]]; then
@@ -27,7 +29,17 @@ if ! printf '%s' "$TARGET" | grep -Eq '^[A-Za-z0-9_][A-Za-z0-9._/-]*$' || [[ "/$
   exit 1
 fi
 BRANCH=${BRANCH:-gh-pages}
-REMOTE=${REMOTE:-https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git}
+REMOTE=${REMOTE:-https://github.com/${GITHUB_REPOSITORY}.git}
+
+# Hand the token to git through the environment rather than in the remote URL,
+# where it would be visible to every process on the runner via the command line.
+if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+  AUTH=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 | tr -d '\n')
+  export GIT_CONFIG_COUNT=1
+  export GIT_CONFIG_KEY_0="http.https://github.com/.extraheader"
+  export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $AUTH"
+  unset AUTH
+fi
 
 export GIT_AUTHOR_NAME="github-actions[bot]"
 export GIT_AUTHOR_EMAIL="github-actions[bot]@users.noreply.github.com"
@@ -51,12 +63,15 @@ deploy_once() {
   OLD=$(git rev-parse HEAD)
 
   if [[ -n "${PRUNE_DIR:-}" && -n "${PRUNE_KEEP:-}" ]]; then
-    # Existing builds other than the target; the target counts as one build
-    # if it lives in PRUNE_DIR, so at most PRUNE_KEEP remain after the deploy.
+    # Existing version builds other than the target, oldest first by version
+    # order; a version target counts as one build, so at most PRUNE_KEEP remain.
+    TARGET_BUILD=${TARGET#"$PRUNE_DIR"/}
     BUILDS=$(git ls-tree -d --name-only "HEAD:$PRUNE_DIR" 2>/dev/null \
-      | grep -vxF -- "${TARGET#"$PRUNE_DIR"/}" | sort || true)
+      | grep -E '^[0-9]' | grep -vxF -- "$TARGET_BUILD" | LC_ALL=C sort -V || true)
     COUNT=$(printf '%s' "$BUILDS" | grep -c . || true)
-    [[ "$(dirname "$TARGET")" == "$PRUNE_DIR" ]] && COUNT=$((COUNT + 1))
+    if [[ "$PRUNE_DIR/$TARGET_BUILD" == "$TARGET" && "$TARGET_BUILD" =~ ^[0-9][^/]*$ ]]; then
+      COUNT=$((COUNT + 1))
+    fi
     EXCESS=$((COUNT - PRUNE_KEEP))
     if ((EXCESS > 0)); then
       printf '%s\n' "$BUILDS" | head -n "$EXCESS" | while read -r BUILD; do
@@ -69,7 +84,7 @@ deploy_once() {
   git rm -r --quiet --cached --sparse --ignore-unmatch -- "$TARGET"
   mkdir -p "$TARGET"
   cp -R "$SRC"/. "$TARGET"/
-  git add --sparse --force -- "$TARGET"
+  git add --sparse -- "$TARGET"
 
   TREE=$(git write-tree)
   NEW=$(git commit-tree "$TREE" -m "Deploy $TARGET from ${GITHUB_REPOSITORY:-local}@${GITHUB_SHA:-local}")

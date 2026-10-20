@@ -57,30 +57,35 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref_name }}
 
-      # The checked-out ref may predate the deploy script, so take it from the
-      # commit this workflow runs from.
-      - name: Fetch Deploy Script
-        run: |
-          git fetch --depth=1 origin "$GITHUB_SHA"
-          git show "$GITHUB_SHA:scripts/deploy-gh-pages.sh" > "$RUNNER_TEMP/deploy-gh-pages.sh"
-          chmod +x "$RUNNER_TEMP/deploy-gh-pages.sh"
-
       - name: Build Site
         run: | 
           nix build --accept-flake-config .#metatheory-site
           mkdir _metatheory
           cp -RL result/* _metatheory
 
+      # The checked-out ref may predate the deploy script, so take it from the
+      # commit this workflow runs from. This is fetched into a fresh repository
+      # right before deploying, after the build steps (which run code from
+      # inputs.ref) have finished, so they cannot tamper with it.
+      - name: Fetch Deploy Script
+        run: |
+          SCRIPT_REPO=$(mktemp -d "$RUNNER_TEMP/deploy-script.XXXXXX")
+          git init --quiet --bare "$SCRIPT_REPO"
+          git -C "$SCRIPT_REPO" fetch --quiet --depth=1 "https://github.com/$GITHUB_REPOSITORY" "$GITHUB_SHA"
+          git -C "$SCRIPT_REPO" --no-replace-objects show "$GITHUB_SHA:scripts/deploy-gh-pages.sh" > "$SCRIPT_REPO/deploy-gh-pages.sh"
+          chmod +x "$SCRIPT_REPO/deploy-gh-pages.sh"
+          echo "DEPLOY_SCRIPT=$SCRIPT_REPO/deploy-gh-pages.sh" >> "$GITHUB_ENV"
+
       - name: Deploy Site
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DESTINATION: ${{ inputs.destination || github.ref_name }}
           PRUNE_DIR: metatheory
-          PRUNE_KEEP: 10
-        run: '"$RUNNER_TEMP/deploy-gh-pages.sh" _metatheory "metatheory/$DESTINATION"'
+          PRUNE_KEEP: 8
+        run: '"$DEPLOY_SCRIPT" _metatheory "metatheory/$DESTINATION"'
 
       - name: Deploy Site (latest)
         if: ${{ inputs.latest == true }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: '"$RUNNER_TEMP/deploy-gh-pages.sh" _metatheory metatheory/latest'
+        run: '"$DEPLOY_SCRIPT" _metatheory metatheory/latest'
