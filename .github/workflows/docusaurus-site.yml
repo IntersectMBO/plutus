@@ -37,11 +37,23 @@ jobs:
         working-directory: doc/docusaurus
         run: nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
 
+      # The build runs third-party yarn packages, which could modify the working
+      # tree, so check out a fresh copy of the deploy script after the build.
+      - name: Checkout Deploy Script
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: .deploy-script
+          sparse-checkout: scripts/deploy-gh-pages.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       - name: Deploy Site
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./scripts/deploy-gh-pages.sh doc/docusaurus/build docs
+        run: .deploy-script/scripts/deploy-gh-pages.sh doc/docusaurus/build docs
 
       - name: Build Preview Site
         if: github.event_name == 'pull_request' && github.event.action != 'closed'
