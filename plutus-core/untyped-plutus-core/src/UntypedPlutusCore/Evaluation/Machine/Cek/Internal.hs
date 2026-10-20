@@ -5,6 +5,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -73,6 +74,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
   , Projection (..)
   , lam
   , var
+  , delay
   , lookupEnv
   )
 where
@@ -120,8 +122,10 @@ import GHC.TypeLits
 import Prettyprinter
 import Universe
 
+import Data.GADT.Show
 import Data.List qualified as List
-import Data.Map as Map (Map, insert, lookup, (!))
+import Data.Map (Map)
+import Data.Map qualified as Map
 import Data.Primitive.PrimArray as Prim
 import Data.Primitive.SmallArray
 import Data.Set as Set (Set, insert, singleton, union)
@@ -376,18 +380,19 @@ freeVars (Constr _ i ts) = Constr fvs i ts'
 freeVars (Error _) = Error mempty
 
 -- Testing
-lam :: NTerm uni fun () -> NTerm uni fun ()
+
+lam :: NTerm uni () () -> NTerm uni () ()
 lam = LamAbs () (NamedDeBruijn "" 0)
 
-var :: Word64 -> NTerm uni fun ()
+var :: Word64 -> NTerm uni () ()
 var x = Var () (NamedDeBruijn "" (Index x))
+
+delay :: NTerm uni () () -> NTerm uni () ()
+delay t = Delay () t
 
 -- Which elements to project out of the CEK environment into the closure's
 -- environment
 newtype Projection = Projection (PrimArray Int)
-
-projectionFromList :: [Int] -> Projection
-projectionFromList = Projection . primArrayFromList
 
 data ClosureAnn
   = AnnNone
@@ -396,10 +401,10 @@ data ClosureAnn
 
 -- TODO: could all of this be faster when using named Uniques in variables?
 -- Would require no shifting
--- TODO: should conv's list be a Map Index Int?
 
-mkProjection :: [Index] -> [Index] -> Projection
-mkProjection closure surrounding = projectionFromList $ map varSlot closure
+-- For each variable in the closure, get the position in the surrounding layout
+mkProjection :: Map Index Int -> Map Index Int -> Projection
+mkProjection closure surrounding = Projection . primArrayFromList $ map varSlot (Map.keys closure)
   where
     -- Each `Index n` is a free variable of the closure,
     -- and we return its index in the surrounding layout
@@ -408,28 +413,30 @@ mkProjection closure surrounding = projectionFromList $ map varSlot closure
       fromMaybe
         -- This should be impossible if the term is well-scoped
         (error $ "conv: variable " <> show db <> "not in layout" <> show surrounding)
-        (List.elemIndex db surrounding)
+        (Map.lookup db surrounding)
+
+fvsToLayout :: Set Index -> Map Index Int
+fvsToLayout fvs = Map.fromAscList (zip (toList fvs) [1 ..])
 
 -- Closure conversion: annotate variables with their index in the environment and lambdas with a
--- projection to construct closure environments at run-time. `layout` has the shape of the run-time
--- CEK environment, but with a variable for each slot.
-conv :: [Index] -> NTerm uni fun (Set Index) -> NTerm uni fun ClosureAnn
+-- projection to construct closure environments at run-time. `layout` maps
+-- original de Bruijn indices to their slot index in the run-time `Env`.
+conv :: Map Index Int -> NTerm uni fun (Set Index) -> NTerm uni fun ClosureAnn
 conv layout (Var _ x@(NamedDeBruijn _ db)) =
-  case List.elemIndex db layout of
+  case Map.lookup db layout of
     Nothing -> error "conv: impossible: variable that is not in layout (free variables)"
     Just ix -> Var (AnnIx ix) x
 conv layout (LamAbs fvs x t) = LamAbs ann x (conv bodyLayout t)
   where
     ann = AnnProjection $ mkProjection closureLayout layout
-    closureLayout = toList fvs
-    bodyLayout = Index 1 : map shift closureLayout
+    closureLayout = fvsToLayout fvs
+    bodyLayout = Map.insert (Index 1) 0 (Map.mapKeysMonotonic shift closureLayout)
 conv layout (Apply _ s t) = Apply AnnNone (conv layout s) (conv layout t)
 conv layout (Force _ t) = Force AnnNone (conv layout t)
-conv layout (Delay fvs t) = Delay ann (conv bodyLayout t)
+conv layout (Delay fvs t) = Delay ann (conv closureLayout t)
   where
     ann = AnnProjection $ mkProjection closureLayout layout
-    closureLayout = toList fvs
-    bodyLayout = map shift closureLayout
+    closureLayout = fvsToLayout fvs
 conv _ (Constant _ c) = Constant AnnNone c
 conv _ (Builtin _ b) = Builtin AnnNone b
 conv layout (Case _ t ts) = Case AnnNone (conv layout t) (V.map (conv layout) ts)
@@ -441,22 +448,32 @@ conv _ (Error _) = Error AnnNone
 -- | Array containing `CekValue`s
 newtype ValueArray uni fun ann = ValueArray (SmallArray (CekValue uni fun ann))
 
--- | Environment with optional head
-data Env uni fun ann
-  = Env
-  { arg :: Maybe (CekValue uni fun ann)
-  , values :: ValueArray uni fun ann
-  }
+-- | Environment with optional first element
+data Env uni fun ann = Env (Maybe (CekValue uni fun ann)) (ValueArray uni fun ann)
 
-lookupEnv :: Int -> Env uni fun ClosureAnn -> CekValue uni fun ClosureAnn
-lookupEnv 0 (Env m _) =
-  case m of
-    Nothing -> error "lookupEnv: impossible (slot index 0, without value in env)"
-    Just v -> v
-lookupEnv n (Env _ (ValueArray vs)) = indexSmallArray vs (n - 1)
+lookupEnv :: Int -> Env uni fun ann -> ST s (CekValue uni fun ann)
+lookupEnv 0 (Env Nothing _) = error "lookupEnv: impossible (slot index 0, without value in env)"
+lookupEnv 0 (Env (Just v) _) = pure v
+lookupEnv n (Env _ (ValueArray vs)) = indexSmallArrayM vs (n - 1)
+{-# INLINE lookupEnv #-}
 
-project :: Projection -> Env uni fun ann -> Env uni fun ann
-project _ _ = undefined
+project :: Projection -> Env uni fun ann -> ValueArray uni fun ann
+project (Projection ixs) env =
+  ValueArray
+    $ createSmallArray
+      len
+      (error "project: uninitialized array")
+    $ \arr ->
+      let go !i
+            | i >= len = pure ()
+            | otherwise = do
+                let !slot = indexPrimArray ixs i
+                v <- lookupEnv slot env
+                writeSmallArray arr i v
+                go (i + 1)
+       in go 0
+  where
+    len = Prim.sizeofPrimArray ixs
 
 {-| The CEK machine is parameterized over a @spendBudget@ function. This makes the budgeting machinery extensible
 and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
