@@ -50,11 +50,9 @@ jobs:
 
       - name: Publish Papers
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        uses: JamesIves/github-pages-deploy-action@v4.9.0
-        with:
-          folder: _resources
-          target-folder: resources
-          single-commit: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/deploy-gh-pages.sh _resources resources
 
       - name: Publish Preview Papers 
         if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'

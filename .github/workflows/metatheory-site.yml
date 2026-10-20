@@ -52,29 +52,18 @@ jobs:
     environment:
       name: github-pages
     steps:
-      - name: Checkout gh-pages
-        uses: actions/checkout@v7.0.1
-        with:
-          ref: gh-pages
-
-      - name: Delete Oldest Build
-        run: |
-          # Delete the oldest metatheory build if there are more than 10 builds.
-          if [[ $(ls -1A metatheory | wc -l) -gt 10 ]]; then
-            OLDEST_BUILD=$(ls -1A metatheory | sort | head -n 1)
-            rm -rf metatheory/$OLDEST_BUILD
-
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git rm -r --cached metatheory/$OLDEST_BUILD || true
-            git commit -am "Delete oldest metatheory build $OLDEST_BUILD"
-            git push origin gh-pages
-          fi  
-
       - name: Checkout
         uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.ref || github.ref_name }}
+
+      # The checked-out ref may predate the deploy script, so take it from the
+      # commit this workflow runs from.
+      - name: Fetch Deploy Script
+        run: |
+          git fetch --depth=1 origin "$GITHUB_SHA"
+          git show "$GITHUB_SHA:scripts/deploy-gh-pages.sh" > "$RUNNER_TEMP/deploy-gh-pages.sh"
+          chmod +x "$RUNNER_TEMP/deploy-gh-pages.sh"
 
       - name: Build Site
         run: | 
@@ -83,16 +72,15 @@ jobs:
           cp -RL result/* _metatheory
 
       - name: Deploy Site
-        uses: JamesIves/github-pages-deploy-action@v4.9.0
-        with:
-          folder: _metatheory
-          target-folder: metatheory/${{ inputs.destination || github.ref_name }}
-          single-commit: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DESTINATION: ${{ inputs.destination || github.ref_name }}
+          PRUNE_DIR: metatheory
+          PRUNE_KEEP: 10
+        run: '"$RUNNER_TEMP/deploy-gh-pages.sh" _metatheory "metatheory/$DESTINATION"'
 
       - name: Deploy Site (latest)
         if: ${{ inputs.latest == true }}
-        uses: JamesIves/github-pages-deploy-action@v4.9.0
-        with:
-          folder: _metatheory
-          target-folder: metatheory/latest
-          single-commit: true          
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: '"$RUNNER_TEMP/deploy-gh-pages.sh" _metatheory metatheory/latest'
