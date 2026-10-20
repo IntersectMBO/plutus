@@ -4,7 +4,7 @@
 -- | Golden tests pinning the user-visible text of `PlutusTx.Options.ParseError`s.
 module Options.Spec where
 
-import PlutusTx.Options (parsePluginOptions, posPlcTargetVersion)
+import PlutusTx.Options (parsePluginOptions, posForceTimings, posPlcTargetVersion)
 
 import Control.Lens (view)
 import Data.Either.Validation (Validation (..))
@@ -25,7 +25,18 @@ tests =
     , testParseErrorGolden "plcParserOptionMalformed" ["target-version=notaversion"]
     , testParseErrorGolden "readOptionMalformed" ["context-level=abc"]
     , testParseErrorGolden "fromReadOptionMalformed" ["verbosity=abc"]
+    , testForcingOption "forcing disabled by default" [] False
+    , testForcingOption "enable timing forcing" ["force-timings"] True
+    , testForcingOption "disable timing forcing explicitly" ["force-timings", "no-force-timings"] False
     ]
+
+-- | Check the parsed value of @force-timings@.
+testForcingOption :: String -> [String] -> Bool -> TestNested
+testForcingOption name options expected = embed $
+  testCase name $
+    case parsePluginOptions options of
+      Success parsed -> view posForceTimings parsed @?= expected
+      Failure errors -> error (show errors)
 
 testParseErrorGolden :: String -> [String] -> TestNested
 testParseErrorGolden name opts =

@@ -1,4 +1,11 @@
 
+<a id='changelog-1.72.0.0'></a>
+# 1.72.0.0 — 2026-10-15
+
+## Fixed
+
+- Fixed the UPLC scope check for PV >= 12
+
 <a id='changelog-1.71.0.0'></a>
 # 1.71.0.0 — 2026-09-29
 

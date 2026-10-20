@@ -615,8 +615,9 @@ unsafeDataAsConstr _ = Haskell.error "not a Constr"
 {-# OPAQUE unsafeDataAsConstr #-}
 
 {-| Dispatches on the constructor index of a 'BuiltinData' value and passes its fields to the
-selected branch. This is a Plinth compiler marker: with builtin casing enabled it compiles to a
-single native @case@ on the data value. -}
+selected branch. This is a Plinth compiler marker: with sums of products and target version 1.2.0
+or later it compiles to a single native @case@ on the data value; older targets go through
+@unConstrData@. -}
 caseData :: BuiltinData -> [BuiltinList BuiltinData -> a] -> a
 caseData (BuiltinData (PLC.Constr i args)) branches =
   caseInteger i branches (BuiltinList $ fmap dataToBuiltinData args)

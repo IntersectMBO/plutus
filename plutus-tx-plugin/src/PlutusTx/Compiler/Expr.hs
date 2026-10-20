@@ -75,6 +75,7 @@ import PlutusCore.Data (Data)
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.StdLib.Data.Function qualified
 import PlutusCore.Subst qualified as PLC
+import PlutusCore.Version qualified as PLC
 
 import Control.Applicative
 import Control.Exception (displayException)
@@ -1026,49 +1027,67 @@ compileExpr mloc e = do
           pure $ mkChain (0 :: Integer) branches
 
     compileDataCase resultTy scrutinee branches =
-      case coDatatypeStyle opts of
-        PIR.SumsOfProducts ->
-          pure $ PIR.kase annAlwaysInline resultTy scrutinee branches
-        PIR.ScottEncoding -> do
-          pairName <- safeFreshName "dataConstr"
-          let integerTy = PLC.mkTyBuiltin @_ @Integer annMayInline
-              dataTy = PLC.mkTyBuiltin @_ @Data annMayInline
-              listDataTy =
-                PLC.TyApp annMayInline (PLC.mkTyBuiltin @_ @[] annMayInline) dataTy
-              pairTy =
-                PLC.TyApp
-                  annMayInline
-                  ( PLC.TyApp
+      let integerTy = PLC.mkTyBuiltin @_ @Integer annMayInline
+          dataTy = PLC.mkTyBuiltin @_ @Data annMayInline
+          listDataTy =
+            PLC.TyApp annMayInline (PLC.mkTyBuiltin @_ @[] annMayInline) dataTy
+          branchTy = PLC.TyFun annMayInline listDataTy resultTy
+          unConstr = PIR.apply annMayInline (PIR.builtin annMayInline PLC.UnConstrData) scrutinee
+       in case coDatatypeStyle opts of
+            PIR.SumsOfProducts
+              -- Casing on Data requires 1.2.0, casing on pairs and integers only 1.1.0.
+              | coPlcTargetVersion opts >= PLC.plcVersion120 ->
+                  pure $ PIR.kase annAlwaysInline resultTy scrutinee branches
+              | otherwise -> do
+                  -- > case (unConstrData d) [\index fields -> case index branches fields]
+                  indexName <- safeFreshName "index"
+                  fieldsName <- safeFreshName "fields"
+                  selectedBranch <-
+                    compileIntegerCase branchTy (PIR.var annMayInline indexName) branches
+                  pure $
+                    PIR.kase
                       annMayInline
-                      (PLC.mkTyBuiltin @_ @(,) annMayInline)
-                      integerTy
-                  )
-                  listDataTy
-              pairVar = PIR.var annMayInline pairName
-              atPair builtinName =
-                PIR.apply
-                  annMayInline
-                  ( PIR.tyInst
+                      resultTy
+                      unConstr
+                      [ PIR.lamAbs annMayInline indexName integerTy $
+                          PIR.lamAbs annMayInline fieldsName listDataTy $
+                            PIR.apply annMayInline selectedBranch (PIR.var annMayInline fieldsName)
+                      ]
+            PIR.ScottEncoding -> do
+              pairName <- safeFreshName "dataConstr"
+              let pairTy =
+                    PLC.TyApp
                       annMayInline
-                      (PIR.tyInst annMayInline (PIR.builtin annMayInline builtinName) integerTy)
+                      ( PLC.TyApp
+                          annMayInline
+                          (PLC.mkTyBuiltin @_ @(,) annMayInline)
+                          integerTy
+                      )
                       listDataTy
-                  )
-                  pairVar
-              index = atPair PLC.FstPair
-              fields = atPair PLC.SndPair
-              branchTy = PLC.TyFun annMayInline listDataTy resultTy
-          selectedBranch <- compileIntegerCase branchTy index branches
-          pure $
-            PIR.mkLet
-              annMayInline
-              PIR.NonRec
-              [ PIR.TermBind
+                  pairVar = PIR.var annMayInline pairName
+                  atPair builtinName =
+                    PIR.apply
+                      annMayInline
+                      ( PIR.tyInst
+                          annMayInline
+                          (PIR.tyInst annMayInline (PIR.builtin annMayInline builtinName) integerTy)
+                          listDataTy
+                      )
+                      pairVar
+                  index = atPair PLC.FstPair
+                  fields = atPair PLC.SndPair
+              selectedBranch <- compileIntegerCase branchTy index branches
+              pure $
+                PIR.mkLet
                   annMayInline
-                  PIR.Strict
-                  (PIR.VarDecl annMayInline pairName pairTy)
-                  (PIR.apply annMayInline (PIR.builtin annMayInline PLC.UnConstrData) scrutinee)
-              ]
-              (PIR.apply annMayInline selectedBranch fields)
+                  PIR.NonRec
+                  [ PIR.TermBind
+                      annMayInline
+                      PIR.Strict
+                      (PIR.VarDecl annMayInline pairName pairTy)
+                      unConstr
+                  ]
+                  (PIR.apply annMayInline selectedBranch fields)
 
   case extractUnsupported unsupportedName e of
     Just (msg, sp) -> traceCompilationL 2 (traceExprMsg (Just sp) GHC.$$ GHC.ppr e) (Just sp) $ do

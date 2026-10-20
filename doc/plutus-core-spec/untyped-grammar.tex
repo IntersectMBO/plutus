@@ -120,21 +120,21 @@ concrete syntax.  If the sequence ${N_1 \ldots N_k}$ is empty (which will happen
 when $k=0$, for instance) then $\appU{M}{\repetition{N}}$ is just $M$.
 
 \paragraph{Constructors and case analysis.}
-Plutus Core supports creating structured data using $\keyword{constr}$ and
-deconstructing it using $\keyword{case}$. Both of these terms are unusual in
-that they have (possibly empty) lists of children: $\keyword{constr}$ has the
-(0-based) \emph{tag} and then a list of arguments; $\keyword{case}$ has a
-scrutinee and then a list of case branches. The behaviour of $\keyword{constr}$
-and $\keyword{case}$ is mostly straightforward: $\keyword{constr}$ evaluates its
-arguments and forms a value; $\keyword{case}$ evaluates the scrutinee into a
-$\keyword{constr}$ value, selects the branch corresponding to the tag on the
-value (if the tag is $k$ and the branches are $N_1, \ldots, N_n$ then it selects
-$N_{k+1}$, with an error occurring if $k$ does not lie between 0 and $n-1$), and
-then applies that to the arguments in the value. Note that $\keyword{case}$ does
-\emph{not} strictly evaluate the case branches, only applying (and hence
-evaluating) the one that is eventually selected.  The list of branches in
-$\keyword{case}$ is allowed to be empty, but in that case there will be an error
-if it is ever applied to a scrutinee.
+In version 1.1.0 and later, Plutus Core supports creating structured data using
+$\keyword{constr}$ and deconstructing it using $\keyword{case}$. Both of these
+terms are unusual in that they have (possibly empty) lists of children:
+$\keyword{constr}$ has the (0-based) \emph{tag} and then a list of arguments;
+$\keyword{case}$ has a scrutinee and then a list of case branches. The behaviour
+of $\keyword{constr}$ and $\keyword{case}$ is mostly straightforward:
+$\keyword{constr}$ evaluates its arguments and forms a value; $\keyword{case}$
+evaluates the scrutinee into a $\keyword{constr}$ value, selects the branch
+corresponding to the tag on the value (if the tag is $k$ and the branches are
+$N_1, \ldots, N_n$ then it selects $N_{k+1}$, with an error occurring if $k$
+does not lie between 0 and $n-1$), and then applies that to the arguments in the
+value. Note that $\keyword{case}$ does \emph{not} strictly evaluate the case
+branches, only applying (and hence evaluating) the one that is eventually
+selected.  The list of branches in $\keyword{case}$ is allowed to be empty, but
+in that case there will be an error if it is ever applied to a scrutinee.
 
 \paragraph{Constructor tags.}
 Constructor tags can in principle be any natural number. In practice, since they
