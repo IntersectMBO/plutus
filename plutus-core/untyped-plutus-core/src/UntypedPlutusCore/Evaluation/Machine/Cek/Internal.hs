@@ -70,8 +70,13 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
   , runCekM
   , freeVars
   , conv
+  , Env (..)
+  , emptyEnv
+  , ValueArray (..)
+  , emptyValueArray
   , ClosureAnn (..)
   , Projection (..)
+  , project
   , lam
   , var
   , delay
@@ -306,8 +311,8 @@ deriving stock instance
 data CekValue uni fun ann
   = -- This bang gave us a 1-2% speed-up at the time of writing.
     VCon !(Some (ValueOf uni))
-  | VDelay !(NTerm uni fun ann) !(CekValEnv uni fun ann)
-  | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
+  | VDelay !(NTerm uni fun ann) !(ValueArray uni fun ann)
+  | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(ValueArray uni fun ann)
   | {-| A partial builtin application, accumulating arguments for eventual full application.
     We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
     values always store their corresponding 'Term's fully discharged, see the comments at
@@ -448,13 +453,31 @@ conv _ (Error _) = Error AnnNone
 -- | Array containing `CekValue`s
 newtype ValueArray uni fun ann = ValueArray (SmallArray (CekValue uni fun ann))
 
+emptyValueArray :: ValueArray uni fun ann
+emptyValueArray = ValueArray emptySmallArray
+
+deriving stock instance
+  (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+  => Show (ValueArray uni fun ann)
+
 -- | Environment with optional first element
 data Env uni fun ann = Env (Maybe (CekValue uni fun ann)) (ValueArray uni fun ann)
 
-lookupEnv :: Int -> Env uni fun ann -> ST s (CekValue uni fun ann)
-lookupEnv 0 (Env Nothing _) = error "lookupEnv: impossible (slot index 0, without value in env)"
-lookupEnv 0 (Env (Just v) _) = pure v
-lookupEnv n (Env _ (ValueArray vs)) = indexSmallArrayM vs (n - 1)
+emptyEnv :: Env uni fun ann
+emptyEnv = Env Nothing emptyValueArray
+
+deriving stock instance
+  (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+  => Show (Env uni fun ann)
+
+lookupEnvST :: Int -> Env uni fun ann -> ST s (CekValue uni fun ann)
+lookupEnvST 0 (Env Nothing _) = error "lookupEnvST: impossible (slot index 0, without value in env)"
+lookupEnvST 0 (Env (Just v) _) = pure v
+lookupEnvST n (Env _ (ValueArray vs)) = indexSmallArrayM vs (n - 1)
+{-# INLINE lookupEnvST #-}
+
+lookupEnv :: Int -> Env uni fun ann -> CekValue uni fun ann
+lookupEnv n env = runST $ lookupEnvST n env
 {-# INLINE lookupEnv #-}
 
 project :: Projection -> Env uni fun ann -> ValueArray uni fun ann
@@ -468,7 +491,7 @@ project (Projection ixs) env =
             | i >= len = pure ()
             | otherwise = do
                 let !slot = indexPrimArray ixs i
-                v <- lookupEnv slot env
+                v <- lookupEnvST slot env
                 writeSmallArray arr i v
                 go (i + 1)
        in go 0
@@ -965,11 +988,11 @@ runCekM
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
-  :: forall uni fun s
-   . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ClosureAnn s)
-  => Context uni fun ClosureAnn
-  -> Env uni fun ClosureAnn
-  -> NTerm uni fun ClosureAnn
+  :: forall uni fun ann s
+   . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s, ann ~ ClosureAnn)
+  => Context uni fun ann
+  -> Env uni fun ann
+  -> NTerm uni fun ann
   -> CekM uni fun s (DischargeResult uni fun)
 enterComputeCek = computeCek
   where
@@ -980,16 +1003,16 @@ enterComputeCek = computeCek
     -- 3. throws 'EvaluationFailure' ('Error')
     -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
     computeCek
-      :: Context uni fun ClosureAnn
-      -> Env uni fun ClosureAnn
-      -> NTerm uni fun ClosureAnn
+      :: Context uni fun ann
+      -> Env uni fun ann
+      -> NTerm uni fun ann
       -> CekM uni fun s (DischargeResult uni fun)
     -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
     computeCek !ctx !env (Var ann _) = do
       stepAndMaybeSpend BVar
       case ann of
         AnnIx i -> do
-          let val = runST $ lookupEnv i env
+          let !val = lookupEnv i env
           returnCek ctx val
         _ -> error "computeCEK: Wrong annotation on variable"
     -- s ; ρ ▻ con c  ↦  s ◅ con c
@@ -997,13 +1020,22 @@ enterComputeCek = computeCek
       stepAndMaybeSpend BConst
       returnCek ctx (VCon val)
     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
-    computeCek !ctx !env (LamAbs _ name body) = do
+    computeCek !ctx !env (LamAbs ann name body) = do
       stepAndMaybeSpend BLamAbs
-      returnCek ctx (VLamAbs name body env)
+      case ann of
+        AnnProjection p ->
+          let !lamEnv = project p env
+           in returnCek ctx (VLamAbs name body lamEnv)
+        _ -> error "computeCek: wrong annotation on lambda"
     -- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)
-    computeCek !ctx !env (Delay _ body) = do
+    computeCek !ctx !env (Delay ann body) = do
       stepAndMaybeSpend BDelay
-      returnCek ctx (VDelay body env)
+      case ann of
+        AnnProjection p ->
+          let !delayEnv = project p env
+           in returnCek ctx (VDelay body delayEnv)
+        _ -> error "computeCek: wrong annotation on delay"
+
     -- s ; ρ ▻ force T  ↦  s , force _ ; ρ ▻ L
     computeCek !ctx !env (Force _ body) = do
       stepAndMaybeSpend BForce
@@ -1042,8 +1074,8 @@ enterComputeCek = computeCek
     --          stored in the frame to an argument.
     --
     returnCek
-      :: Context uni fun ClosureAnn
-      -> CekValue uni fun ClosureAnn
+      :: Context uni fun ann
+      -> CekValue uni fun ann
       -> CekM uni fun s (DischargeResult uni fun)
     --- Instantiate all the free variable of the resulting term in case there are any.
     -- . ◅ V           ↦  [] V
@@ -1114,10 +1146,10 @@ enterComputeCek = computeCek
     -- representation depending on whether the application is saturated or not,
     -- if v is anything else, fail.
     forceEvaluate
-      :: Context uni fun ClosureAnn
-      -> CekValue uni fun ClosureAnn
+      :: Context uni fun ann
+      -> CekValue uni fun ann
       -> CekM uni fun s (DischargeResult uni fun)
-    forceEvaluate !ctx (VDelay body env) = computeCek ctx env body
+    forceEvaluate !ctx (VDelay body env) = computeCek ctx (Env Nothing env) body
     forceEvaluate !ctx (VBuiltin fun term runtime) = do
       -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
       let term' = Force () term
@@ -1142,12 +1174,13 @@ enterComputeCek = computeCek
     -- representation depending on whether the application is saturated or not.
     -- If v is anything else, fail.
     applyEvaluate
-      :: Context uni fun ClosureAnn
-      -> CekValue uni fun ClosureAnn -- lhs of application
-      -> CekValue uni fun ClosureAnn -- rhs of application
+      :: Context uni fun ann
+      -> CekValue uni fun ann -- lhs of application
+      -> CekValue uni fun ann -- rhs of application
       -> CekM uni fun s (DischargeResult uni fun)
     applyEvaluate !ctx (VLamAbs _ body env) arg =
-      computeCek ctx (Env.cons arg env) body
+      -- computeCek ctx (Env.cons arg env) body
+      computeCek ctx (Env (Just arg) env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
     applyEvaluate !ctx (VBuiltin fun funTerm runtime) arg = do
@@ -1208,10 +1241,10 @@ enterComputeCek = computeCek
     --
     -- and proceed with the returning phase of the CEK machine.
     evalBuiltinApp
-      :: Context uni fun ClosureAnn
+      :: Context uni fun ann
       -> fun
       -> NTerm uni fun ()
-      -> BuiltinRuntime (CekValue uni fun ClosureAnn)
+      -> BuiltinRuntime (CekValue uni fun ann)
       -> CekM uni fun s (DischargeResult uni fun)
     evalBuiltinApp ctx fun term runtime = case runtime of
       BuiltinCostedResult budgets0 getFXs -> do
@@ -1238,7 +1271,7 @@ enterComputeCek = computeCek
 
     -- \| Look up a variable name in the environment.
     lookupVarName
-      :: NamedDeBruijn -> CekValEnv uni fun ClosureAnn -> CekM uni fun s (CekValue uni fun ClosureAnn)
+      :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
     lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
       Env.contIndexOne
         (throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName)
@@ -1250,16 +1283,16 @@ enterComputeCek = computeCek
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
-  :: ThrowableBuiltins uni fun
-  => MachineParameters CekMachineCosts fun (CekValue uni fun ClosureAnn)
+  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
+  => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
   -> ExBudgetMode cost uni fun
   -> EmitterMode uni fun
-  -> NTerm uni fun ClosureAnn
+  -> NTerm uni fun ann
   -> CekReport cost NamedDeBruijn uni fun
 runCekDeBruijn params mode emitMode term =
   runCekM params mode emitMode $ do
     unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts
-    enterComputeCek NoFrame Env.empty term
+    enterComputeCek NoFrame (Env Nothing (ValueArray empty)) term
 
 {- Note [Accumulators for terms]
 At a couple of points in the CEK machine (notably building the arguments to a constructor value)
