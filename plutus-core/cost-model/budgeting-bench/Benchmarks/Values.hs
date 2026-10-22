@@ -16,9 +16,9 @@ import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Int (Int64)
-import Data.List (find, sort)
+import Data.List (find, nub, sort, sortOn)
 import Data.Map.Strict qualified as Map
-import Data.Word (Word8)
+import Data.Word (Word64, Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore
   ( DefaultFun
@@ -56,6 +56,7 @@ import System.Random.Stateful
   , StatefulGen
   , StdGen
   , runStateGen_
+  , uniformM
   , uniformRM
   )
 
@@ -449,8 +450,8 @@ Every benchmark case becomes one row of `benching-conway.csv`, named after those
 the `Value` by depth, not by policy count. 5000 and 8000 policies are both depth 13, so they
 share a row name and the fit reads them as one point measured twice.
 
-The grid stops at `maxPolicies`, the most policies either builtin accepts. If that bound
-goes up, rerun the benchmarks and refit both models on the larger sizes.
+Lists go up to `Value.policyFilterMaxIds`, the longest either builtin accepts, and outer maps up
+to `maxPolicies`.
 
 A list longer than the map has a different worst case for each builtin, see `Filler`.
 -}
@@ -498,6 +499,7 @@ data Shape
   , shapeNegative :: Int
   -- ^ How many policies hold a negative amount. Invisible to the model.
   }
+  deriving stock (Eq)
 
 {-| The costliest shape of its two visible sizes: every list element that can name a
 policy of the `Value` does, and every policy holds a negative amount. -}
@@ -517,7 +519,7 @@ keepDropArgs filler g = do
   randoms <- randomShapes g
   shaped <-
     traverse (buildShape filler g) $
-      randoms <> linearGrid <> depthSweep <> shapeSweep <> hitSweep <> signSweep <> listOnly
+      randoms <> nub (linearGrid <> depthSweep <> shapeSweep <> hitSweep <> signSweep <> listOnly)
   -- Lovelace: the empty bytestring is a valid policy id, and both builtins keep it.
   lovelace <- do
     tokenName <- generateKey g
@@ -527,7 +529,7 @@ keepDropArgs filler g = do
 -- | List length and policy count drawn independently on a log scale.
 randomShapes :: StatefulGen g m => g -> m [Shape]
 randomShapes g = replicateM 100 do
-  listLen <- logUniform g maxValueTotalSize
+  listLen <- logUniform g Value.policyFilterMaxIds
   numPolicies <- logUniform g maxPolicies
   numTokens <- uniformRM (1, max 1 (maxValueTotalSize `div` numPolicies)) g
   pure (worstCase numPolicies numTokens listLen)
@@ -537,15 +539,15 @@ linearGrid :: [Shape]
 linearGrid =
   [ worstCase numPolicies 1 listLen
   | numPolicies <- takeWhile (<= maxPolicies) [2 ^ l - 1 | l <- [1 :: Int ..]]
-  , listLen <- [5000, 10_000 .. maxValueTotalSize]
+  , listLen <- [32, 64 .. Value.policyFilterMaxIds]
   ]
 
--- | Short lists against outer maps across the powers of two.
+-- | List lengths and outer map sizes across the powers of two and their bounds.
 depthSweep :: [Shape]
 depthSweep =
   [ worstCase numPolicies 1 listLen
-  | listLen <- [1, 10, 100]
-  , numPolicies <- [1, 2, 8, 64, 512, 4096, maxPolicies]
+  | listLen <- doublingGrid Value.policyFilterMaxIds
+  , numPolicies <- doublingGrid maxPolicies
   ]
 
 -- | Both visible sizes fixed, tokens per policy varying.
@@ -553,36 +555,39 @@ shapeSweep :: [Shape]
 shapeSweep =
   [ worstCase numPolicies numTokens listLen
   | (numPolicies, listLen, tokenCounts) <-
-      [(100, 100, [1, 10, 100, 400]), (maxPolicies, 10_000, [1, 4])]
+      [(100, 100, [1, 10, 100, 400]), (8191, Value.policyFilterMaxIds, [1, 4])]
   , numTokens <- tokenCounts
   ]
 
 -- | One point, with hits going from none to all.
 hitSweep :: [Shape]
 hitSweep =
-  [ (worstCase maxPolicies 1 maxPolicies) {shapeHits = numHits}
-  | numHits <- [0, 2000, 4000, 6000, maxPolicies]
+  [ (worstCase maxPolicies 1 Value.policyFilterMaxIds) {shapeHits = numHits}
+  | numHits <- [0] <> doublingGrid (min maxPolicies Value.policyFilterMaxIds)
   ]
 
 -- | The same point, with the policies holding a negative amount going from none to all.
 signSweep :: [Shape]
 signSweep =
-  [ (worstCase maxPolicies 1 maxPolicies) {shapeNegative = numNegative}
-  | numNegative <- [0, 2000, 4000, maxPolicies]
+  [ (worstCase maxPolicies 1 Value.policyFilterMaxIds) {shapeNegative = numNegative}
+  | numNegative <- [0] <> doublingGrid maxPolicies
   ]
 
 -- | The shortest and longest list against an empty `Value`.
 listOnly :: [Shape]
-listOnly = [worstCase 0 0 listLen | listLen <- [0, maxValueTotalSize]]
+listOnly = [worstCase 0 0 listLen | listLen <- [0, Value.policyFilterMaxIds]]
 
-{-| Build the arguments a `Shape` describes. The list beyond its hits is filled as the `Filler`
-says once the hits name every policy, and with misses otherwise, as in `hitSweep`. -}
+{-| Build the arguments a `Shape` describes. The hits are policies chosen at random: the first
+policies generated are measurably cheaper to look up. The list beyond its hits is filled as the
+`Filler` says once the hits name every policy, and with misses otherwise, as in `hitSweep`. -}
 buildShape :: StatefulGen g m => Filler -> g -> Shape -> m ([ByteString], Value)
 buildShape filler g shape = do
   policyIds <- replicateM (shapePolicies shape) (generateKey g)
   tokenNames <- replicateM (shapeTokens shape) (generateKey g)
+  ranks <- replicateM (shapePolicies shape) (uniformM g)
   let numHits = min (shapeHits shape) (min (shapePolicies shape) (shapeListLen shape))
-      hits = Value.unK <$> take numHits policyIds
+      shuffled = snd <$> sortOn fst (zip (ranks :: [Word64]) policyIds)
+      hits = Value.unK <$> take numHits shuffled
       rest = shapeListLen shape - numHits
   ps <- case filler of
     Repeats
@@ -613,10 +618,9 @@ buildSignedValue numNegative policyIds tokenNames =
 maxValueTotalSize :: Int
 maxValueTotalSize = Value.valueDataMaxSize
 
-{-| The most policies `keepPolicies` and `dropPolicies` accept, and so the largest outer map
-worth timing for them: a row beyond it would fail instead of timing a descent. -}
+-- | The largest outer map timed for `keepPolicies` and `dropPolicies`: the largest of depth 15.
 maxPolicies :: Int
-maxPolicies = Value.policyFilterMaxSize
+maxPolicies = 32_767
 
 {-| A `Value` of @numPolicies@ policies holding @numTokens@ tokens each, together with its
 policy ids. -}
@@ -727,6 +731,13 @@ generateConstrainedValue numPolicies tokensPerPolicy g = do
 
 ----------------------------------------------------------------------------------------------------
 -- Other Generators --------------------------------------------------------------------------------
+
+-- | Powers of two below a positive bound, followed by the bound itself.
+doublingGrid :: Int -> [Int]
+doublingGrid hi
+  | hi <= 0 = []
+  | otherwise =
+      map fromInteger (takeWhile (< toInteger hi) (iterate (* 2) 1)) <> [hi]
 
 {-| Sample @[1, hi]@ uniformly on a log scale, so that every decade gets a similar number of
 points. Sampling the count itself would put almost every point above 1000, leaving the sizes
