@@ -17,10 +17,6 @@ let
   agda-tools = import ./agda-tools.nix
     { inherit self pkgs lib; };
 
-  # Agda built with its `debug` flag, for the `metatheory-debug` shell only.
-  agda-tools-debug = import ./agda-tools.nix
-    { inherit self pkgs lib; debug = true; };
-
   build-latex-doc = import ./build-latex-doc.nix
     { inherit pkgs lib agda-tools; };
 
@@ -29,9 +25,6 @@ let
 
   metatheory = import ./metatheory.nix
     { inherit inputs self pkgs lib agda-tools; };
-
-  metatheory-debug = import ./metatheory.nix
-    { inherit inputs self pkgs lib; agda-tools = agda-tools-debug; };
 
   hydra-required-job = utils.makeHydraRequiredJob
     { inherit self pkgs; };
@@ -42,10 +35,8 @@ let
   mkFourmolu = import ./fourmolu.nix
     { inherit pkgs lib; };
 
-  mkShellWith = { agda-tools, metatheory }: ghc: import ./shell.nix
+  mkShell = ghc: import ./shell.nix
     { inherit inputs pkgs lib project agda-tools metatheory r-with-packages ghc mkFourmolu; };
-
-  mkShell = mkShellWith { inherit agda-tools metatheory; };
 
   exposed-haskell-packages = {
     plutus-core-test = project.flake'.packages."plutus-core:test:plutus-core-test";
@@ -113,22 +104,19 @@ let
       lib.remove metatheory.agda-with-stdlib-and-metatheory attrs.nativeBuildInputs;
   });
 
-  # Like the jailbreak shell, but with an Agda built with the `debug` flag, so that
-  # `agda -v` works. Not built by CI, so expect to compile Agda locally.
-  # We drop agda-with-stdlib-and-metatheory to avoid type-checking the whole
-  # metatheory with the (slower) debug Agda on shell entry.
-  metatheory-debug-shell =
-    (mkShellWith
-      {
-        agda-tools = agda-tools-debug;
-        metatheory = metatheory-debug;
-      }
-      "ghc96"
-    ).overrideAttrs (attrs: {
-      buildInputs =
-        lib.remove metatheory-debug.agda-with-stdlib-and-metatheory attrs.buildInputs;
-      nativeBuildInputs =
-        lib.remove metatheory-debug.agda-with-stdlib-and-metatheory attrs.nativeBuildInputs;
+  # Like the jailbreak shell, but with agda/agda-mode built with the `debug` flag (for `agda -v`).
+  metatheory-debug-shell = devShells.default.overrideAttrs (attrs:
+    let
+      agda-debug = (agda-tools.agda-project.appendModule {
+        modules = [{ packages.Agda.flags.debug = true; }];
+      }).hsPkgs.Agda.components.exes;
+      remove = lib.subtractLists
+        [ agda-tools.agda agda-tools.agda-mode metatheory.agda-with-stdlib-and-metatheory ];
+    in
+    {
+      buildInputs = remove attrs.buildInputs;
+      nativeBuildInputs = remove attrs.nativeBuildInputs
+        ++ [ agda-debug.agda agda-debug.agda-mode ];
     });
 
   devShells = rec {
@@ -179,7 +167,6 @@ let
     inherit pkgs;
     inherit project;
     inherit agda-tools;
-    inherit agda-tools-debug;
     inherit r-with-packages;
     inherit build-latex-doc;
     inherit extra-artifacts;
