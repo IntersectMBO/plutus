@@ -1,0 +1,94 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    2 </span>{-# LANGUAGE ViewPatterns #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>{-| This module mirrors 'PlutusIR.Transform.EvaluateBuiltins', adapted for UPLC's
+<span class="lineno">    5 </span>untyped 'Term' and 'AppCtx'. See that module for detailed commentary. -}
+<span class="lineno">    6 </span>module UntypedPlutusCore.Transform.EvaluateBuiltins
+<span class="lineno">    7 </span>  ( evaluateBuiltinsPass
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import PlutusCore.Builtin
+<span class="lineno">   11 </span>import UntypedPlutusCore.Analysis.Builtins
+<span class="lineno">   12 </span>import UntypedPlutusCore.Contexts
+<span class="lineno">   13 </span>import UntypedPlutusCore.Core
+<span class="lineno">   14 </span>import UntypedPlutusCore.Transform.Certify.Trace
+<span class="lineno">   15 </span>import UntypedPlutusCore.Transform.Optimizer
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Control.Lens (transformOf, (^.))
+<span class="lineno">   18 </span>import Data.Functor (void)
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>evaluateBuiltinsPass
+<span class="lineno">   21 </span>  :: (Monad m, ToBuiltinMeaning uni fun, Typeable name)
+<span class="lineno">   22 </span>  =&gt; Bool
+<span class="lineno">   23 </span>  -- ^ Whether to be conservative and try to retain logging behaviour.
+<span class="lineno">   24 </span>  -&gt; BuiltinsInfo uni fun
+<span class="lineno">   25 </span>  -&gt; CostingPart uni fun
+<span class="lineno">   26 </span>  -&gt; Term name uni fun a
+<span class="lineno">   27 </span>  -&gt; OptimizerT name uni fun a m (Term name uni fun a)
+<span class="lineno">   28 </span><span class="decl"><span class="istickedoff">evaluateBuiltinsPass preserveLogging binfo costModel term = do</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="istickedoff">result &lt;- evaluateBuiltins preserveLogging binfo costModel term</span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="istickedoff">recordOptimization term ConstantFoldingStage <span class="nottickedoff">result</span></span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="istickedoff">return result</span></span>
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>evaluateBuiltins
+<span class="lineno">   34 </span>  :: forall m name uni fun a
+<span class="lineno">   35 </span>   . ( Monad m
+<span class="lineno">   36 </span>     , ToBuiltinMeaning uni fun
+<span class="lineno">   37 </span>     , Typeable name
+<span class="lineno">   38 </span>     )
+<span class="lineno">   39 </span>  =&gt; Bool
+<span class="lineno">   40 </span>  -- ^ Whether to be conservative and try to retain logging behaviour.
+<span class="lineno">   41 </span>  -&gt; BuiltinsInfo uni fun
+<span class="lineno">   42 </span>  -&gt; CostingPart uni fun
+<span class="lineno">   43 </span>  -&gt; Term name uni fun a
+<span class="lineno">   44 </span>  -&gt; OptimizerT name uni fun a m (Term name uni fun a)
+<span class="lineno">   45 </span><span class="decl"><span class="istickedoff">evaluateBuiltins preserveLogging binfo costModel =</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">pure . transformOf termSubterms processTerm</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="istickedoff">eval</span>
+<span class="lineno">   49 </span><span class="spaces">      </span><span class="istickedoff">:: BuiltinRuntime (Term name uni fun ())</span>
+<span class="lineno">   50 </span><span class="spaces">      </span><span class="istickedoff">-&gt; AppCtx name uni fun a</span>
+<span class="lineno">   51 </span><span class="spaces">      </span><span class="istickedoff">-&gt; Maybe (Term name uni fun ())</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="istickedoff">eval (BuiltinCostedResult _ getFXs) AppCtxEnd =</span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="istickedoff">case getFXs of</span>
+<span class="lineno">   54 </span><span class="spaces">        </span><span class="istickedoff">BuiltinSuccess y -&gt; Just y</span>
+<span class="lineno">   55 </span><span class="spaces">        </span><span class="istickedoff">BuiltinSuccessWithLogs _ y -&gt; if preserveLogging then Nothing else Just y</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="istickedoff">BuiltinFailure {} -&gt; Nothing</span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="istickedoff">eval (BuiltinExpectArgument toRuntime) (AppCtxTerm _ arg ctx) =</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff">eval (toRuntime $ void arg) ctx</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">eval (BuiltinExpectForce runtime) (AppCtxType _ ctx) =</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="istickedoff">eval runtime ctx</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">eval _ _ = Nothing</span>
+<span class="lineno">   62 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">   63 </span><span class="spaces">    </span><span class="istickedoff">processTerm :: Term name uni fun a -&gt; Term name uni fun a</span>
+<span class="lineno">   64 </span><span class="spaces">    </span><span class="istickedoff">-- See Note [Context splitting in a recursive pass]</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="istickedoff">processTerm t@(splitAppCtx -&gt; (Builtin x bn, argCtx)) =</span>
+<span class="lineno">   66 </span><span class="spaces">      </span><span class="istickedoff">let runtime = toBuiltinRuntime costModel (toBuiltinMeaning (binfo ^. biSemanticsVariant) bn)</span>
+<span class="lineno">   67 </span><span class="spaces">       </span><span class="istickedoff">in case eval runtime argCtx of</span>
+<span class="lineno">   68 </span><span class="spaces">            </span><span class="istickedoff">-- See Note [Unserializable constants] in PlutusIR.Analysis.Builtins</span>
+<span class="lineno">   69 </span><span class="spaces">            </span><span class="istickedoff">Just t' | termIsSerializable binfo t' -&gt; x &lt;$ t'</span>
+<span class="lineno">   70 </span><span class="spaces">            </span><span class="istickedoff">_ -&gt; t</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="istickedoff">processTerm t = t</span></span>
+
+</pre>
+</body>
+</html>

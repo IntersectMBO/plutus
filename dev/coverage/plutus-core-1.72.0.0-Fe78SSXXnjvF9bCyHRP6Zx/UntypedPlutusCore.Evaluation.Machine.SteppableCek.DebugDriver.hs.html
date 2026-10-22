@@ -1,0 +1,205 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE FunctionalDependencies #-}
+<span class="lineno">    3 </span>{-# LANGUAGE GADTs #-}
+<span class="lineno">    4 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>module UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
+<span class="lineno">    9 </span>  ( Breakpointable (..)
+<span class="lineno">   10 </span>  , CekState
+<span class="lineno">   11 </span>  , Cmd (..)
+<span class="lineno">   12 </span>  , runDriverT
+<span class="lineno">   13 </span>  , DebugF (..)
+<span class="lineno">   14 </span>    -- | Reexport some functions for convenience
+<span class="lineno">   15 </span>  , mkCekTrans
+<span class="lineno">   16 </span>  , CekTrans
+<span class="lineno">   17 </span>  , F.MonadFree
+<span class="lineno">   18 </span>  , F.iterM
+<span class="lineno">   19 </span>  , F.iterTM
+<span class="lineno">   20 </span>  , F.partialIterT
+<span class="lineno">   21 </span>  , F.cutoff
+<span class="lineno">   22 </span>  , FreeT
+<span class="lineno">   23 </span>  ) where
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>import Control.Lens hiding (Context)
+<span class="lineno">   28 </span>import Control.Monad (void)
+<span class="lineno">   29 </span>import Control.Monad.Reader (MonadReader, ask, local, runReaderT)
+<span class="lineno">   30 </span>import Control.Monad.Trans.Free as F
+<span class="lineno">   31 </span>import Data.Function
+<span class="lineno">   32 </span>import Data.Text
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>{- Note [Stepping the driver]
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>The client instructs the driver to do a single step of the Cek (`Step` Cmd) or multiple steps until
+<span class="lineno">   37 </span>a condition is met (`Continue`,`Next`,`Finish`). The driver upon receiving a Command (via `inputF`)
+<span class="lineno">   38 </span>fires a series of `stepF` actions to fulfill the command. A `stepF` action is supposed to move the
+<span class="lineno">   39 </span>underlying CEK machine a *single* step forward. Since the driver is written as a free monad, the
+<span class="lineno">   40 </span>interpretation of the `stepF` action is left open.
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>When the driver calls `stepF state`, it yields its coroutine with the current driver/cek state
+<span class="lineno">   43 </span>(before the stepping interpretation). The interpreter of `stepF` receives the currentState and
+<span class="lineno">   44 </span>calculates a newstate from it (e.g. **actually stepping the cek machine**). The interpreter then
+<span class="lineno">   45 </span>resumes the driver coroutine with the new state.
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>The sensible interpretation to this is the CEK's state transition function (`cekTrans oldState
+<span class="lineno">   48 </span>===&gt; newState`), but other exotic options may be: logging the before/after states, or even
+<span class="lineno">   49 </span>&quot;mutating&quot; the running program's variables in the environment before/after the state transition
+<span class="lineno">   50 </span>(similar to C debuggers). The interpreter can even supply a different state transition function
+<span class="lineno">   51 </span>(e.g. `id`), but we see little benefit in it at the moment. Currently all interpreters
+<span class="lineno">   52 </span>(brick,repl,testing) just call`cekTrans`.
+<span class="lineno">   53 </span>-}
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>{-| Leave abstract the types of annotation and breakpoints.
+<span class="lineno">   56 </span>The only thing the driver requires is an inclusion relation of breakpoints into the Annotation -}
+<span class="lineno">   57 </span>class Breakpointable ann bps | ann -&gt; bps where
+<span class="lineno">   58 </span>  -- MAYBE: we cannot know which breakpoint fired, return instead `Maybe Breakpoint`?
+<span class="lineno">   59 </span>  hasBreakpoints :: ann -&gt; bps -&gt; Bool
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>-- | The commands that the driver may receive from the client (tui,cli,test,etc)
+<span class="lineno">   62 </span>data Cmd bps
+<span class="lineno">   63 </span>  = {-| Instruct the driver to a *SINGLE* step.
+<span class="lineno">   64 </span>    Note: No need to pass breakpoints here because the stepping granularity is *minimal*. -}
+<span class="lineno">   65 </span>    Step
+<span class="lineno">   66 </span>  | -- | Instruct to multi-step until end-of-program or until breakpoint reached
+<span class="lineno">   67 </span>    Continue bps
+<span class="lineno">   68 </span>  | -- | Instruct to multi-step over the function call at point or until breakpoint reached
+<span class="lineno">   69 </span>    Next bps
+<span class="lineno">   70 </span>  | -- | Instruct to multi-step to end of current function or until breakpoint reached
+<span class="lineno">   71 </span>    Finish bps
+<span class="lineno">   72 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Read</span></span></span></span></span></span></span></span>)
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>-- | The drivers's suspension functor
+<span class="lineno">   75 </span>data DebugF uni fun ann bps a
+<span class="lineno">   76 </span>  = -- | Await for the client (e.g. TUI) to tell what to do next (Cmd).
+<span class="lineno">   77 </span>    InputF (Cmd bps -&gt; a)
+<span class="lineno">   78 </span>  | -- | The debug driver wants to log something
+<span class="lineno">   79 </span>    DriverLogF Text a
+<span class="lineno">   80 </span>  | {-| An enumeratee of Driver State (generator+iteratee):
+<span class="lineno">   81 </span>    Yield a state before doing a step, then await for a state to resume after the step.
+<span class="lineno">   82 </span>    See Note [Stepping the driver]. -}
+<span class="lineno">   83 </span>    StepF
+<span class="lineno">   84 </span>      (CekState uni fun ann)
+<span class="lineno">   85 </span>      -- ^ yield with the current driver's state before running a step
+<span class="lineno">   86 </span>      (CekState uni fun ann -&gt; a)
+<span class="lineno">   87 </span>      {-^ resume back with a state after the step interpretation
+<span class="lineno">   88 </span>      | A generator of CekState to yield to client (e.g. TUI) -}
+<span class="lineno">   89 </span>  | UpdateClientF (CekState uni fun ann) a
+<span class="lineno">   90 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>)
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>-- | The monad that the driver operates in
+<span class="lineno">   93 </span>type Driving m uni fun ann bps =
+<span class="lineno">   94 </span>  ( MonadReader (CekState uni fun ann) m -- the state of the debugger
+<span class="lineno">   95 </span>  , MonadFree (DebugF uni fun ann bps) m -- the effects of the driver
+<span class="lineno">   96 </span>  , Breakpointable ann bps
+<span class="lineno">   97 </span>  )
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>-- | Entrypoint of the driver
+<span class="lineno">  100 </span>runDriverT
+<span class="lineno">  101 </span>  :: forall uni fun ann bps m
+<span class="lineno">  102 </span>   . (Breakpointable ann bps, MonadFree (DebugF uni fun ann bps) m)
+<span class="lineno">  103 </span>  =&gt; NTerm uni fun ann -&gt; m ()
+<span class="lineno">  104 </span><span class="decl"><span class="istickedoff">runDriverT = void . runReaderT driver . initState</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  106 </span><span class="spaces">    </span><span class="istickedoff">initState :: NTerm uni fun ann -&gt; CekState uni fun ann</span>
+<span class="lineno">  107 </span><span class="spaces">    </span><span class="istickedoff">initState = Starting</span></span>
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>-- | The driver action. The driver repeatedly:
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>---
+<span class="lineno">  112 </span>-- 1) waits for a `Cmd`
+<span class="lineno">  113 </span>-- 2) runs one or more CEK steps
+<span class="lineno">  114 </span>-- 3) informs the client for CEK updates&amp;logs
+<span class="lineno">  115 </span>---
+<span class="lineno">  116 </span>-- The driver computation exits when it reaches a CEK `Terminating` state.
+<span class="lineno">  117 </span>driver :: Driving m uni fun ann bps =&gt; m ()
+<span class="lineno">  118 </span><span class="decl"><span class="istickedoff">driver =</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="istickedoff">inputF &gt;&gt;= \case</span>
+<span class="lineno">  120 </span><span class="spaces">    </span><span class="istickedoff">-- Condition immediately satisfied</span>
+<span class="lineno">  121 </span><span class="spaces">    </span><span class="istickedoff">Step -&gt; multiStepUntil $ const True</span>
+<span class="lineno">  122 </span><span class="spaces">    </span><span class="istickedoff">Continue bs -&gt; <span class="nottickedoff">multiStepUntil $ maybe False (`hasBreakpoints` bs) . cekStateAnn</span></span>
+<span class="lineno">  123 </span><span class="spaces">    </span><span class="istickedoff">Next bs -&gt; <span class="nottickedoff">do</span></span>
+<span class="lineno">  124 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">startState &lt;- ask</span></span>
+<span class="lineno">  125 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">multiStepUntil $ \curState -&gt;</span></span>
+<span class="lineno">  126 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">maybe False (`hasBreakpoints` bs) (cekStateAnn curState)</span></span>
+<span class="lineno">  127 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">||</span></span>
+<span class="lineno">  128 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">-- has activation record length been restored?</span></span>
+<span class="lineno">  129 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">let leCtx = onCtxLen (&lt;)</span></span>
+<span class="lineno">  130 </span><span class="spaces">           </span><span class="istickedoff"><span class="nottickedoff">in curState `leCtx` startState</span></span>
+<span class="lineno">  131 </span><span class="spaces">    </span><span class="istickedoff">Finish bs -&gt; <span class="nottickedoff">do</span></span>
+<span class="lineno">  132 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">startState &lt;- ask</span></span>
+<span class="lineno">  133 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">multiStepUntil $ \curState -&gt;</span></span>
+<span class="lineno">  134 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">maybe False (`hasBreakpoints` bs) (cekStateAnn curState)</span></span>
+<span class="lineno">  135 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">||</span></span>
+<span class="lineno">  136 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">-- has activation record length become smaller?</span></span>
+<span class="lineno">  137 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">let ltCtx = onCtxLen (&lt;=)</span></span>
+<span class="lineno">  138 </span><span class="spaces">           </span><span class="istickedoff"><span class="nottickedoff">in curState `ltCtx` startState</span></span>
+<span class="lineno">  139 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  140 </span><span class="spaces">    </span><span class="istickedoff">-- \| Comparison on states' contexts</span>
+<span class="lineno">  141 </span><span class="spaces">    </span><span class="istickedoff">onCtxLen</span>
+<span class="lineno">  142 </span><span class="spaces">      </span><span class="istickedoff">:: ( state ~ CekState uni fun ann</span>
+<span class="lineno">  143 </span><span class="spaces">         </span><span class="istickedoff">, ctxLen ~ Maybe Word -- `Maybe` because ctx can be missing if terminating</span>
+<span class="lineno">  144 </span><span class="spaces">         </span><span class="istickedoff">)</span>
+<span class="lineno">  145 </span><span class="spaces">      </span><span class="istickedoff">=&gt; (ctxLen -&gt; ctxLen -&gt; a)</span>
+<span class="lineno">  146 </span><span class="spaces">      </span><span class="istickedoff">-&gt; state</span>
+<span class="lineno">  147 </span><span class="spaces">      </span><span class="istickedoff">-&gt; state</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="istickedoff">-&gt; a</span>
+<span class="lineno">  149 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">onCtxLen = (`on` preview (cekStateContext . to lenContext))</span></span></span>
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span>-- | Do one or more cek steps until Terminating state is reached or condition on 'CekState' is met.
+<span class="lineno">  152 </span>multiStepUntil
+<span class="lineno">  153 </span>  :: Driving m uni fun ann bp
+<span class="lineno">  154 </span>  =&gt; (CekState uni fun ann -&gt; Bool) -&gt; m ()
+<span class="lineno">  155 </span><span class="decl"><span class="istickedoff">multiStepUntil cond = do</span>
+<span class="lineno">  156 </span><span class="spaces">  </span><span class="istickedoff">driverLogF &quot;Driver is going to do a single step&quot;</span>
+<span class="lineno">  157 </span><span class="spaces">  </span><span class="istickedoff">newState &lt;- stepF =&lt;&lt; ask</span>
+<span class="lineno">  158 </span><span class="spaces">  </span><span class="istickedoff">case newState of</span>
+<span class="lineno">  159 </span><span class="spaces">    </span><span class="istickedoff">Terminating {} -&gt;</span>
+<span class="lineno">  160 </span><span class="spaces">      </span><span class="istickedoff">-- don't recurse to driver, but EXIT the driver</span>
+<span class="lineno">  161 </span><span class="spaces">      </span><span class="istickedoff">updateClientF <span class="nottickedoff">newState</span></span>
+<span class="lineno">  162 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt;</span>
+<span class="lineno">  163 </span><span class="spaces">      </span><span class="istickedoff">-- update state</span>
+<span class="lineno">  164 </span><span class="spaces">      </span><span class="istickedoff">local (const newState) $</span>
+<span class="lineno">  165 </span><span class="spaces">        </span><span class="istickedoff">if <span class="tickonlytrue">cond <span class="nottickedoff">newState</span></span></span>
+<span class="lineno">  166 </span><span class="spaces">          </span><span class="istickedoff">then do</span>
+<span class="lineno">  167 </span><span class="spaces">            </span><span class="istickedoff">updateClientF <span class="nottickedoff">newState</span></span>
+<span class="lineno">  168 </span><span class="spaces">            </span><span class="istickedoff">driver -- tail recurse</span>
+<span class="lineno">  169 </span><span class="spaces">          </span><span class="istickedoff">else</span>
+<span class="lineno">  170 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">multiStepUntil cond</span></span></span> -- tail recurse
+<span class="lineno">  171 </span>
+<span class="lineno">  172 </span>-- * boilerplate &quot;suspension actions&quot;
+<span class="lineno">  173 </span>
+<span class="lineno">  174 </span>-- Being in 'Driving' monad here is too constraining, but it does not matter.
+<span class="lineno">  175 </span>inputF :: Driving m uni fun ann bps =&gt; m (Cmd bps)
+<span class="lineno">  176 </span><span class="decl"><span class="istickedoff">inputF = liftF $ InputF id</span></span>
+<span class="lineno">  177 </span>driverLogF :: Driving m uni fun ann bps =&gt; Text -&gt; m ()
+<span class="lineno">  178 </span><span class="decl"><span class="istickedoff">driverLogF text = liftF $ DriverLogF text <span class="nottickedoff">()</span></span></span>
+<span class="lineno">  179 </span>updateClientF :: Driving m uni fun ann bps =&gt; CekState uni fun ann -&gt; m ()
+<span class="lineno">  180 </span><span class="decl"><span class="istickedoff">updateClientF dState = liftF $ UpdateClientF <span class="nottickedoff">dState</span> <span class="nottickedoff">()</span></span></span>
+<span class="lineno">  181 </span>stepF :: Driving m uni fun ann bps =&gt; CekState uni fun ann -&gt; m (CekState uni fun ann)
+<span class="lineno">  182 </span><span class="decl"><span class="istickedoff">stepF yieldState = liftF $ StepF yieldState id</span></span>
+
+</pre>
+</body>
+</html>

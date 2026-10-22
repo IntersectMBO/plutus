@@ -1,0 +1,978 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Timing of Plinth compilation stages through GHC's own timing infrastructure.
+
+Each stage is wrapped in 'GHC.Utils.Error.withTiming', so it is reported alongside GHC's
+own phases under @-ddump-timings@ (or @-v2@) and emits begin/end events to the eventlog. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Plugin.Timing</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Timing.html#timeStage"
+	><span class="hs-identifier"
+	  >timeStage</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Timing.html#timingsEnabled"
+	><span class="hs-identifier"
+	  >timingsEnabled</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.IO.Class.html"
+	><span class="hs-identifier"
+	  >Control.Monad.IO.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.IO.Class.html#MonadIO"
+	><span class="hs-identifier"
+	  >MonadIO</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html"
+	><span class="hs-identifier"
+	  >GHC.Driver.Flags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#DumpFlag"
+	><span class="hs-identifier"
+	  >DumpFlag</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_D_dump_timings"
+	><span class="hs-identifier"
+	  >Opt_D_dump_timings</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Error.html"
+	><span class="hs-identifier"
+	  >GHC.Utils.Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Error.html#withTiming"
+	><span class="hs-identifier"
+	  >withTiming</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Logger.html"
+	><span class="hs-identifier"
+	  >GHC.Utils.Logger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Logger.html#Logger"
+	><span class="hs-identifier"
+	  >Logger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Logger.html#logHasDumpFlag"
+	><span class="hs-identifier"
+	  >logHasDumpFlag</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Logger.html#logVerbAtLeast"
+	><span class="hs-identifier"
+	  >logVerbAtLeast</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html"
+	><span class="hs-identifier"
+	  >GHC.Utils.Outputable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#brackets"
+	><span class="hs-identifier"
+	  >brackets</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#text"
+	><span class="hs-identifier"
+	  >text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#%3C%2B%3E"
+	><span class="hs-operator"
+	  >(&lt;+&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Time an action as the phase @Plinth \&lt;stage\&gt; [\&lt;scope\&gt;]@.
+
+When timings are off this is just the action. When they are on, the result is
+evaluated to WHNF and, if forcing is requested, further with the given function
+before the clocks stop. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span id="local-6989586621679635592"
+      ><span id="local-6989586621679635595"
+	><span class="annot"
+	  ><a href="PlutusTx.Plugin.Timing.html#timeStage"
+	    ><span class="hs-identifier hs-type"
+	      >timeStage</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-19"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.IO.Class.html#MonadIO"
+	    ><span class="hs-identifier hs-type"
+	      >MonadIO</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679635592"
+	    ><span class="hs-identifier hs-type"
+	      >monad</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-20"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Logger.html#Logger"
+	    ><span class="hs-identifier hs-type"
+	      >Logger</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-21"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	    ><span class="hs-identifier hs-type"
+	      >Bool</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-22"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><span class="hs-comment"
+	    >-- ^ Whether to force the result with the given function.</span
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-23"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	    ><span class="hs-identifier hs-type"
+	      >String</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-24"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><span class="hs-comment"
+	    >-- ^ Module or expression scope.</span
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-25"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	    ><span class="hs-identifier hs-type"
+	      >String</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-26"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><span class="hs-comment"
+	    >-- ^ Stage name.</span
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-27"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679635595"
+	    ><span class="hs-identifier hs-type"
+	      >result</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-28"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><span class="hs-comment"
+	    >-- ^ Forces the result; only called when timings are on and forcing is requested.</span
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-29"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679635592"
+	    ><span class="hs-identifier hs-type"
+	      >monad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679635595"
+	    ><span class="hs-identifier hs-type"
+	      >result</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-30"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="annot"
+	  ><span class="hs-comment"
+	    >-- ^ Action to measure.</span
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-31"
+	  ></span
+	  ><span
+	  >  </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679635592"
+	    ><span class="hs-identifier hs-type"
+	      >monad</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679635595"
+	    ><span class="hs-identifier hs-type"
+	      >result</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span id="timeStage"
+      ><span class="annot"
+	><span class="annottext"
+	  >timeStage :: forall (monad :: * -&gt; *) result.
+MonadIO monad =&gt;
+Logger
+-&gt; Bool
+-&gt; String
+-&gt; String
+-&gt; (result -&gt; ())
+-&gt; monad result
+-&gt; monad result
+</span
+	  ><a href="PlutusTx.Plugin.Timing.html#timeStage"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >timeStage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679635625"
+      ><span class="annot"
+	><span class="annottext"
+	  >Logger
+</span
+	  ><a href="#local-6989586621679635625"
+	  ><span class="hs-identifier hs-var"
+	    >logger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679635626"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679635626"
+	  ><span class="hs-identifier hs-var"
+	    >forceResults</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679635627"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679635627"
+	  ><span class="hs-identifier hs-var"
+	    >scope</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679635628"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679635628"
+	  ><span class="hs-identifier hs-var"
+	    >stage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679635629"
+      ><span class="annot"
+	><span class="annottext"
+	  >result -&gt; ()
+</span
+	  ><a href="#local-6989586621679635629"
+	  ><span class="hs-identifier hs-var"
+	    >forceResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Logger -&gt; SDoc -&gt; (result -&gt; ()) -&gt; monad result -&gt; monad result
+forall (m :: * -&gt; *) a.
+MonadIO m =&gt;
+Logger -&gt; SDoc -&gt; (a -&gt; ()) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Error.html#withTiming"
+	><span class="hs-identifier hs-var"
+	  >withTiming</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Logger
+</span
+	><a href="#local-6989586621679635625"
+	><span class="hs-identifier hs-var"
+	  >logger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; SDoc
+forall doc. IsLine doc =&gt; String -&gt; doc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#text"
+	><span class="hs-identifier hs-var"
+	  >text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Plinth&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc -&gt; SDoc -&gt; SDoc
+forall doc. IsLine doc =&gt; doc -&gt; doc -&gt; doc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; SDoc
+forall doc. IsLine doc =&gt; String -&gt; doc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#text"
+	><span class="hs-identifier hs-var"
+	  >text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679635628"
+	><span class="hs-identifier hs-var"
+	  >stage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc -&gt; SDoc -&gt; SDoc
+forall doc. IsLine doc =&gt; doc -&gt; doc -&gt; doc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc -&gt; SDoc
+forall doc. IsLine doc =&gt; doc -&gt; doc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#brackets"
+	><span class="hs-identifier hs-var"
+	  >brackets</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; SDoc
+forall doc. IsLine doc =&gt; String -&gt; doc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#text"
+	><span class="hs-identifier hs-var"
+	  >text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679635627"
+	><span class="hs-identifier hs-var"
+	  >scope</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679635626"
+	><span class="hs-identifier hs-var"
+	  >forceResults</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>result -&gt; ()
+</span
+	><a href="#local-6989586621679635629"
+	><span class="hs-identifier hs-var"
+	  >forceResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; result -&gt; ()
+forall a b. a -&gt; b -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#const"
+	><span class="hs-identifier hs-var"
+	  >const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Whether GHC will report timings: the same condition 'withTiming' checks.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Timing.html#timingsEnabled"
+	><span class="hs-identifier hs-type"
+	  >timingsEnabled</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Logger.html#Logger"
+	><span class="hs-identifier hs-type"
+	  >Logger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span id="timingsEnabled"
+      ><span class="annot"
+	><span class="annottext"
+	  >timingsEnabled :: Logger -&gt; Bool
+</span
+	  ><a href="PlutusTx.Plugin.Timing.html#timingsEnabled"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >timingsEnabled</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679635631"
+      ><span class="annot"
+	><span class="annottext"
+	  >Logger
+</span
+	  ><a href="#local-6989586621679635631"
+	  ><span class="hs-identifier hs-var"
+	    >logger</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Logger -&gt; Int -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Logger.html#logVerbAtLeast"
+	><span class="hs-identifier hs-var"
+	  >logVerbAtLeast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Logger
+</span
+	><a href="#local-6989586621679635631"
+	><span class="hs-identifier hs-var"
+	  >logger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>2</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Logger -&gt; DumpFlag -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Logger.html#logHasDumpFlag"
+	><span class="hs-identifier hs-var"
+	  >logHasDumpFlag</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Logger
+</span
+	><a href="#local-6989586621679635631"
+	><span class="hs-identifier hs-var"
+	  >logger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DumpFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_D_dump_timings"
+	><span class="hs-identifier hs-var"
+	  >Opt_D_dump_timings</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

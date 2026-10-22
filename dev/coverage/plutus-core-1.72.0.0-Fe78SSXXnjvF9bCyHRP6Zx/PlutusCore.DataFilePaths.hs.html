@@ -1,0 +1,77 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-| Various file paths used in plutus-core, currently all to do with the cost
+<span class="lineno">    2 </span>model. -}
+<span class="lineno">    3 </span>module PlutusCore.DataFilePaths
+<span class="lineno">    4 </span>where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import System.FilePath
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>costModelDataDir :: FilePath
+<span class="lineno">    9 </span><span class="decl"><span class="istickedoff">costModelDataDir = &quot;cost-model&quot; &lt;/&gt; &quot;data&quot;</span></span>
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>builtinCostModelFileA :: FilePath
+<span class="lineno">   12 </span><span class="decl"><span class="istickedoff">builtinCostModelFileA = costModelDataDir &lt;/&gt; &quot;builtinCostModelA&quot; &lt;.&gt; &quot;json&quot;</span></span>
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>builtinCostModelFileB :: FilePath
+<span class="lineno">   15 </span><span class="decl"><span class="istickedoff">builtinCostModelFileB = costModelDataDir &lt;/&gt; &quot;builtinCostModelB&quot; &lt;.&gt; &quot;json&quot;</span></span>
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>builtinCostModelFileC :: FilePath
+<span class="lineno">   18 </span><span class="decl"><span class="istickedoff">builtinCostModelFileC = costModelDataDir &lt;/&gt; &quot;builtinCostModelC&quot; &lt;.&gt; &quot;json&quot;</span></span>
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>builtinCostModelFileD :: FilePath
+<span class="lineno">   21 </span><span class="decl"><span class="istickedoff">builtinCostModelFileD = costModelDataDir &lt;/&gt; &quot;builtinCostModelD&quot; &lt;.&gt; &quot;json&quot;</span></span>
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>builtinCostModelFileE :: FilePath
+<span class="lineno">   24 </span><span class="decl"><span class="istickedoff">builtinCostModelFileE = costModelDataDir &lt;/&gt; &quot;builtinCostModelE&quot; &lt;.&gt; &quot;json&quot;</span></span>
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>latestBuiltinCostModelFile :: FilePath
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">latestBuiltinCostModelFile = builtinCostModelFileC</span></span>
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>cekMachineCostsFileA :: FilePath
+<span class="lineno">   30 </span><span class="decl"><span class="istickedoff">cekMachineCostsFileA = costModelDataDir &lt;/&gt; &quot;cekMachineCostsA&quot; &lt;.&gt; &quot;json&quot;</span></span>
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>cekMachineCostsFileB :: FilePath
+<span class="lineno">   33 </span><span class="decl"><span class="istickedoff">cekMachineCostsFileB = costModelDataDir &lt;/&gt; &quot;cekMachineCostsB&quot; &lt;.&gt; &quot;json&quot;</span></span>
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>cekMachineCostsFileC :: FilePath
+<span class="lineno">   36 </span><span class="decl"><span class="istickedoff">cekMachineCostsFileC = costModelDataDir &lt;/&gt; &quot;cekMachineCostsC&quot; &lt;.&gt; &quot;json&quot;</span></span>
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>cekMachineCostsFileD :: FilePath
+<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">cekMachineCostsFileD = costModelDataDir &lt;/&gt; &quot;cekMachineCostsD&quot; &lt;.&gt; &quot;json&quot;</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>cekMachineCostsFileE :: FilePath
+<span class="lineno">   42 </span><span class="decl"><span class="istickedoff">cekMachineCostsFileE = costModelDataDir &lt;/&gt; &quot;cekMachineCostsE&quot; &lt;.&gt; &quot;json&quot;</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>latestMachineCostsFile :: FilePath
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">latestMachineCostsFile = cekMachineCostsFileC</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>-- | The file containing the R models: only needed for cost-model-test.
+<span class="lineno">   48 </span>rModelFile :: FilePath
+<span class="lineno">   49 </span><span class="decl"><span class="nottickedoff">rModelFile = costModelDataDir &lt;/&gt; &quot;models&quot; &lt;.&gt; &quot;R&quot;</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>{-| The file containing the benchmark results for the built-in functions: only
+<span class="lineno">   52 </span>needed for cost-model-test. -}
+<span class="lineno">   53 </span>benchingResultsFile :: FilePath
+<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">benchingResultsFile = costModelDataDir &lt;/&gt; &quot;benching-conway&quot; &lt;.&gt; &quot;csv&quot;</span></span>
+
+</pre>
+</body>
+</html>

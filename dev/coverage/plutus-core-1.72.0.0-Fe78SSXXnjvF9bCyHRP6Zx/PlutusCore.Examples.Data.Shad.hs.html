@@ -1,0 +1,149 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module PlutusCore.Examples.Data.Shad
+<span class="lineno">    6 </span>  ( shad
+<span class="lineno">    7 </span>  , mkShad
+<span class="lineno">    8 </span>  , recUnit
+<span class="lineno">    9 </span>  , runRecUnit
+<span class="lineno">   10 </span>  ) where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import PlutusCore.Core
+<span class="lineno">   13 </span>import PlutusCore.MkPlc
+<span class="lineno">   14 </span>import PlutusCore.Name.Unique
+<span class="lineno">   15 </span>import PlutusCore.Quote
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>{-|
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>&gt; getShadF a = \(rec :: * -&gt; *) (i :: *) -&gt; a -&gt; all (a :: * -&gt; *). a i -&gt; integer -}
+<span class="lineno">   20 </span>getShadF :: uni `HasTypeLevel` Integer =&gt; TyName -&gt; Quote (Type TyName uni ())
+<span class="lineno">   21 </span><span class="decl"><span class="istickedoff">getShadF a = do</span>
+<span class="lineno">   22 </span><span class="spaces">  </span><span class="istickedoff">rec &lt;- freshTyName &quot;rec&quot;</span>
+<span class="lineno">   23 </span><span class="spaces">  </span><span class="istickedoff">i &lt;- freshTyName &quot;i&quot;</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   25 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> rec (KindArrow <span class="nottickedoff">()</span> (Type <span class="nottickedoff">()</span>) $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   26 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> i (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">   28 </span><span class="spaces">    </span><span class="istickedoff">. TyForall <span class="nottickedoff">()</span> a (KindArrow <span class="nottickedoff">()</span> (Type <span class="nottickedoff">()</span>) $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   29 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> a) $ TyVar <span class="nottickedoff">()</span> i)</span>
+<span class="lineno">   30 </span><span class="spaces">    </span><span class="istickedoff">$ mkTyBuiltin @_ @Integer <span class="nottickedoff">()</span></span></span>
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>{-|
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>&gt; \(a :: *) -&gt; ifix (getShadF a) a -}
+<span class="lineno">   35 </span>shad :: uni `HasTypeLevel` Integer =&gt; Type TyName uni ()
+<span class="lineno">   36 </span><span class="decl"><span class="istickedoff">shad = runQuote $ do</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">shadF &lt;- getShadF a</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">. TyIFix <span class="nottickedoff">()</span> shadF</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> a</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>{-| Test that shadowing does not result in variable capture. The definition is as follows:
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>&gt; /\(a :: *) -&gt; wrap (getShadF a) a (\(x : a) -&gt; /\(f :: * -&gt; *) -&gt; \(y : f i) -&gt; 0)
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>Type checking this term we eventually reach
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>&gt; NORM (vPat (\(a :: k) -&gt; ifix vPat a) arg)
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>(where in our case @vPat@ is @shadF@ and @arg@ is @a@), which, if we were naive,
+<span class="lineno">   53 </span>would unfold into
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>&gt; a -&gt; all (a :: * -&gt; *). a a -&gt; integer
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>i.e. we substituted the outer @a@ for @i@, but due to variable capture via @all@ that outer @a@
+<span class="lineno">   58 </span>now became an inner one, which would be a bug.
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span>But that problem is already solved before type checking starts as we rename the program and that
+<span class="lineno">   61 </span>makes all binders uniques, so no variable capture is possible due to the outer and inner bindings
+<span class="lineno">   62 </span>being distinct. -}
+<span class="lineno">   63 </span>mkShad :: uni `HasTypeAndTermLevel` Integer =&gt; Term TyName Name uni fun ()
+<span class="lineno">   64 </span><span class="decl"><span class="istickedoff">mkShad = runQuote $ do</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshTyName &quot;f&quot;</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="istickedoff">shadF &lt;- getShadF a</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">y &lt;- freshName &quot;y&quot;</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="istickedoff">. IWrap <span class="nottickedoff">()</span> shadF (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> x (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">   74 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> f (KindArrow <span class="nottickedoff">()</span> (Type <span class="nottickedoff">()</span>) $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> y (TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> f) $ TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">   76 </span><span class="spaces">    </span><span class="istickedoff">$ mkConstant @Integer <span class="nottickedoff">()</span> 0</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>{-|
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>&gt; recUnitF = \(rec :: * -&gt; *) (i :: *) -&gt; all (r :: *). rec i -&gt; r -&gt; r -}
+<span class="lineno">   81 </span>recUnitF :: Type TyName uni ()
+<span class="lineno">   82 </span><span class="decl"><span class="istickedoff">recUnitF = runQuote $ do</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">rec &lt;- freshTyName &quot;rec&quot;</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="istickedoff">i &lt;- freshTyName &quot;i&quot;</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> rec (KindArrow <span class="nottickedoff">()</span> (Type <span class="nottickedoff">()</span>) $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> i (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">. TyForall <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> rec) $ TyVar <span class="nottickedoff">()</span> i)</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> r</span></span>
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>{-|
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>&gt; ifix recUnitF () -}
+<span class="lineno">   97 </span>recUnit :: uni `HasTypeLevel` () =&gt; Type TyName uni ()
+<span class="lineno">   98 </span><span class="decl"><span class="istickedoff">recUnit = TyIFix <span class="nottickedoff">()</span> recUnitF $ mkTyBuiltin @_ @() <span class="nottickedoff">()</span></span></span>
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>{-|  Test that a binder in a pattern functor does not get duplicated. The definition is as follows:
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>&gt; /\(a :: *) -&gt; \(ru : recUnit) -&gt; unwrap ru {a} ru
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>Type checking this term we eventually reach
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span>&gt; NORM (vPat (\(a :: k) -&gt; ifix vPat a) arg)
+<span class="lineno">  107 </span>
+<span class="lineno">  108 </span>(where in our case @vPat@ is @recUnitF@ and @arg@ is @()@), which, if we were naive,
+<span class="lineno">  109 </span>would unfold into
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>&gt; all (r :: *). ifix (\(rec :: * -&gt; *) (i :: *) -&gt; all (r :: *). rec i -&gt; r -&gt; r) () -&gt; r -&gt; r
+<span class="lineno">  112 </span>
+<span class="lineno">  113 </span>and break global uniqueness as the @all (r :: *)@ binder appears twice.
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>But this doesn't happen in the actual code, since when a variable gets looked up during type
+<span class="lineno">  116 </span>normalization, its value gets renamed, which means that a fresh variable will be generated for
+<span class="lineno">  117 </span>the inner binder and there will be no shadowing. -}
+<span class="lineno">  118 </span>runRecUnit :: uni `HasTypeAndTermLevel` () =&gt; Term TyName Name uni fun ()
+<span class="lineno">  119 </span><span class="decl"><span class="istickedoff">runRecUnit = runQuote $ do</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="istickedoff">ru &lt;- freshName &quot;ru&quot;</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  123 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  124 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> ru recUnit</span>
+<span class="lineno">  125 </span><span class="spaces">    </span><span class="istickedoff">. Apply <span class="nottickedoff">()</span> (TyInst <span class="nottickedoff">()</span> (Unwrap <span class="nottickedoff">()</span> $ Var <span class="nottickedoff">()</span> ru) $ TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="istickedoff">$ Var <span class="nottickedoff">()</span> ru</span></span>
+
+</pre>
+</body>
+</html>

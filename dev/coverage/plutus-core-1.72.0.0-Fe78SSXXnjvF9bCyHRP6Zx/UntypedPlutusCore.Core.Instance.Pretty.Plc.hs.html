@@ -1,0 +1,48 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    3 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    4 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>module UntypedPlutusCore.Core.Instance.Pretty.Plc () where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import PlutusPrelude
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import UntypedPlutusCore.Core.Instance.Pretty.Classic ()
+<span class="lineno">   11 </span>import UntypedPlutusCore.Core.Instance.Pretty.Readable ()
+<span class="lineno">   12 </span>import UntypedPlutusCore.Core.Type
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import PlutusCore.Pretty.Plc
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">   17 </span><span class="spaces">  </span><span class="nottickedoff">PrettyAny (Term name uni fun ann)</span>
+<span class="lineno">   18 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">   19 </span><span class="spaces">    </span><span class="nottickedoff">DefaultPrettyPlcStrategy (Term name uni fun ann)</span>
+<span class="lineno">   20 </span><span class="spaces">    </span><span class="nottickedoff">=&gt; PrettyBy PrettyConfigPlc (Term name uni fun ann)</span></span></span></span>
+<span class="lineno">   21 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">   22 </span><span class="spaces">  </span><span class="nottickedoff">PrettyAny (Program name uni fun ann)</span>
+<span class="lineno">   23 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">   24 </span><span class="spaces">    </span><span class="nottickedoff">DefaultPrettyPlcStrategy (Program name uni fun ann)</span>
+<span class="lineno">   25 </span><span class="spaces">    </span><span class="nottickedoff">=&gt; PrettyBy PrettyConfigPlc (Program name uni fun ann)</span></span></span></span>
+
+</pre>
+</body>
+</html>
