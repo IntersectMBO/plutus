@@ -1,175 +1,81 @@
 #!/usr/bin/env bash
-# Deploys a directory to a folder of the gh-pages branch without ever checking
-# out the branch: we clone commits and trees only (no file contents), replace
-# the target folder in the index, and push a single parentless commit.
-# Disk usage is proportional to the deployed directory, not to the whole site.
+# Deploys <source-dir> to <target-folder> on the gh-pages branch, replacing that
+# folder and squashing the branch to a single commit. The branch is cloned
+# without file contents and never checked out, so disk usage is proportional
+# to <source-dir>, not to the whole site.
 #
 # Usage: deploy-gh-pages.sh <source-dir> <target-folder>
-#        deploy-gh-pages.sh --remove <folder>...
-#
-# Environment:
-#   GITHUB_REPOSITORY  used to build the remote URL (in CI)
-#   GITHUB_TOKEN       used to authenticate the push (in CI)
-#   REMOTE       overrides the remote URL (e.g. for local testing)
-#   BRANCH       branch to deploy to (default: gh-pages)
-#   PRUNE_DIR    optional: a folder whose subfolders are builds
-#   PRUNE_KEEP   keep at most this many version-numbered subfolders of
-#                PRUNE_DIR (named like 1.72.0.0), deleting the oldest ones
-#                first. Other subfolders (master, latest, ...) are never pruned.
-#
-# --remove deletes the given folders in a single commit (missing ones are
-# ignored). If the result is identical to the branch, nothing is pushed.
-#
-# The source directory is deployed verbatim, except that .git and .github are
-# left out, as the github-pages-deploy-action this replaces did. The branch's
-# own .gitignore files are not applied: they would silently drop deployed
-# files (gh-pages has a stale copy of master's, ignoring e.g. `scripts`).
+# Env:   GITHUB_TOKEN, GITHUB_REPOSITORY (or REMOTE, e.g. for local testing)
+#        PRUNE_DIR, PRUNE_KEEP: keep only the PRUNE_KEEP newest version folders
+#        (like 1.72.0.0) in PRUNE_DIR; other folders (master, latest) are kept.
 set -euo pipefail
 
-usage() {
-  echo "Usage: $0 <source-dir> <target-folder>" >&2
-  echo "       $0 --remove <folder>..." >&2
+SRC=$(cd "$1" && pwd)
+TARGET=${2%/}
+VALID='^[A-Za-z0-9_][A-Za-z0-9._/-]*$'
+if [[ ! "$TARGET" =~ $VALID || "/$TARGET/" == */../* ]]; then
+  echo "Invalid target folder: $TARGET" >&2
   exit 1
-}
-
-validate_folder() {
-  if ! printf '%s' "$1" | grep -Eq '^[A-Za-z0-9_][A-Za-z0-9._/-]*$' || [[ "/$1/" == */../* ]]; then
-    echo "Invalid target folder '$1'" >&2
-    exit 1
-  fi
-}
-
-SRC=""
-REMOVE=()
-if [[ "${1:-}" == "--remove" ]]; then
-  (($# >= 2)) || usage
-  for folder in "${@:2}"; do
-    folder=${folder%/}
-    validate_folder "$folder"
-    REMOVE+=("$folder")
-  done
-  TARGET=${REMOVE[*]}
-else
-  (($# == 2)) || usage
-  SRC=$(cd "$1" && pwd)
-  TARGET=${2%/}
-  validate_folder "$TARGET"
 fi
-BRANCH=${BRANCH:-gh-pages}
-REMOTE=${REMOTE:-https://github.com/${GITHUB_REPOSITORY}.git}
+REMOTE=${REMOTE:-https://github.com/$GITHUB_REPOSITORY.git}
 
-# Hand the token to git through the environment rather than in the remote URL,
-# where it would be visible to every process on the runner via the command line.
+# Pass the token through the environment rather than in the remote URL, where
+# it would be visible to every process on the runner via the command line.
 if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-  AUTH=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 | tr -d '\n')
-  export GIT_CONFIG_COUNT=1
-  export GIT_CONFIG_KEY_0="http.https://github.com/.extraheader"
-  export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $AUTH"
-  unset AUTH
+  export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader
+  export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 | tr -d '\n')"
 fi
+export GIT_AUTHOR_NAME="github-actions[bot]" GIT_AUTHOR_EMAIL="github-actions[bot]@users.noreply.github.com"
+export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
 
-export GIT_AUTHOR_NAME="github-actions[bot]"
-export GIT_AUTHOR_EMAIL="github-actions[bot]@users.noreply.github.com"
-export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
-export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
-
-WORK=$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/deploy-gh-pages.XXXXXX")
+WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 
-# Exit status of an attempt that is worth retrying.
-RETRY=75
-MAX_ATTEMPTS=5
-VERSION_RE='^[0-9]+(\.[0-9]+)+$'
-
-# Runs a git command that may talk to the remote, including commands that
-# lazily fetch blobs in this blobless clone. If it fails because of a race with
-# another deploy (the push lease) or a transient network/server error, exit
-# with $RETRY; any other failure (e.g. HTTP 403) is permanent and exits 1.
-remote_git() {
-  local err
-  if err=$(git "$@" 2>&1); then
-    return 0
-  fi
-  printf '%s\n' "$err" >&2
-  if grep -Eqi 'stale info|incorrect old value|cannot lock ref|fetch first|failed to connect|could not connect|could not resolve|timed out|connection reset|RPC failed|early EOF|remote end hung up|returned error: (429|5[0-9][0-9])' <<<"$err"; then
-    exit "$RETRY"
-  fi
-  exit 1
-}
-
-# One deploy attempt. Runs in a subshell with `set -e`: a remote_git failure
-# exits with $RETRY or 1 as above, and any other failing step exits non-zero.
-deploy_once() {
+deploy() {
   rm -rf "$WORK/repo"
-  remote_git clone --quiet --depth=1 --filter=blob:none --no-checkout --single-branch \
-    --branch "$BRANCH" "$REMOTE" "$WORK/repo"
+  git clone --quiet --depth=1 --filter=blob:none --no-checkout --branch gh-pages "$REMOTE" "$WORK/repo"
   cd "$WORK/repo"
-
-  # Populate the index without writing (or downloading) any existing file.
-  git sparse-checkout set --no-cone "/.deploy-gh-pages-nothing/"
-  remote_git checkout --quiet "$BRANCH"
+  git sparse-checkout set --no-cone /.nothing/ # fill the index, but write no files
+  git checkout --quiet gh-pages
   OLD=$(git rev-parse HEAD)
 
-  if [[ -n "${PRUNE_DIR:-}" && -n "${PRUNE_KEEP:-}" ]]; then
-    # Existing version builds other than the target, oldest first by version
-    # order; a version target counts as one build, so at most PRUNE_KEEP remain.
-    TARGET_BUILD=${TARGET#"$PRUNE_DIR"/}
-    BUILDS=$(git ls-tree -d --name-only "HEAD:$PRUNE_DIR" 2>/dev/null \
-      | grep -E "$VERSION_RE" | grep -vxF -- "$TARGET_BUILD" | LC_ALL=C sort -V || true)
-    COUNT=$(printf '%s' "$BUILDS" | grep -c . || true)
-    if [[ "$PRUNE_DIR/$TARGET_BUILD" == "$TARGET" && "$TARGET_BUILD" =~ $VERSION_RE ]]; then
-      COUNT=$((COUNT + 1))
-    fi
-    EXCESS=$((COUNT - PRUNE_KEEP))
-    if ((EXCESS > 0)); then
-      printf '%s\n' "$BUILDS" | head -n "$EXCESS" | while read -r BUILD; do
-        echo "Pruning $PRUNE_DIR/$BUILD"
-        git rm -r --quiet --cached --sparse -- "$PRUNE_DIR/$BUILD"
+  # Replace the target folder. .git and .github are left out, as the
+  # github-pages-deploy-action this replaces did; --force because gh-pages has
+  # a stale .gitignore (a copy of master's) that would drop e.g. `scripts/`.
+  git rm -r --quiet --cached --sparse --ignore-unmatch -- "$TARGET"
+  mkdir -p "$TARGET"
+  cp -R "$SRC"/. "$TARGET"/
+  find "$TARGET" \( -name .git -o -name .github \) -prune -exec rm -rf {} +
+  git add --sparse --force -- "$TARGET"
+
+  if [[ -n "${PRUNE_DIR:-}" ]]; then
+    git ls-tree -d --name-only "$(git write-tree):$PRUNE_DIR" | grep -E '^[0-9]+(\.[0-9]+)+$' |
+      LC_ALL=C sort -rV | tail -n "+$((PRUNE_KEEP + 1))" | { grep -vxF "${TARGET#"$PRUNE_DIR"/}" || true; } |
+      while read -r old_build; do
+        echo "Pruning $PRUNE_DIR/$old_build"
+        git rm -r --quiet --cached --sparse -- "$PRUNE_DIR/$old_build"
       done
-    fi
   fi
 
-  if [[ -n "$SRC" ]]; then
-    git rm -r --quiet --cached --sparse --ignore-unmatch -- "$TARGET"
-    mkdir -p "$TARGET"
-    cp -R "$SRC"/. "$TARGET"/
-    find "$TARGET" \( -name .git -o -name .github \) -prune -exec rm -rf {} +
-    remote_git add --sparse --force -- "$TARGET"
-  else
-    git rm -r --quiet --cached --sparse --ignore-unmatch -- "${REMOVE[@]}"
-  fi
-
-  TREE=$(git write-tree)
-  if [[ "$TREE" == "$(git rev-parse "HEAD^{tree}")" ]]; then
-    echo "Nothing changed on $BRANCH, not pushing"
-    return 0
-  fi
-  NEW=$(git commit-tree "$TREE" -m "Deploy $TARGET from ${GITHUB_REPOSITORY:-local}@${GITHUB_SHA:-local}")
-
-  # The lease makes the push fail if another deploy updated the branch since we
-  # cloned it; in that case we retry on top of the new tip instead of clobbering it.
-  remote_git push --quiet --force-with-lease="$BRANCH:$OLD" origin "$NEW:refs/heads/$BRANCH"
-  echo "Updated $BRANCH:$TARGET"
+  # The lease fails the push if another deploy updated the branch since we
+  # cloned it; we then retry on top of its commit instead of overwriting it.
+  NEW=$(git commit-tree "$(git write-tree)" -m "Deploy $TARGET from ${GITHUB_REPOSITORY:-local}@${GITHUB_SHA:-local}")
+  git push --quiet --force-with-lease="gh-pages:$OLD" origin "$NEW:refs/heads/gh-pages"
 }
 
-for ((attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)); do
+for attempt in 1 2 3; do
   set +e
-  (set -e; deploy_once)
+  (set -e; deploy)
   status=$?
   set -e
   if ((status == 0)); then
+    echo "Deployed $SRC to gh-pages:$TARGET"
     exit 0
   fi
-  if ((status != RETRY)); then
-    echo "Failed to deploy $TARGET: permanent error, not retrying" >&2
-    exit 1
+  if ((attempt < 3)); then
+    echo "Attempt $attempt failed, retrying" >&2
+    sleep $((attempt * 10))
   fi
-  if ((attempt == MAX_ATTEMPTS)); then
-    break
-  fi
-  echo "Attempt $attempt failed with a transient error or a race, retrying" >&2
-  sleep $((attempt * 10))
 done
-
-echo "Failed to deploy $TARGET after $MAX_ATTEMPTS attempts" >&2
+echo "Failed to deploy $TARGET" >&2
 exit 1
