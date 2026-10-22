@@ -1,0 +1,70 @@
+# This workflow removes PR previews from gh-pages.
+#
+# The docusaurus, cost-models and papers workflows deploy a preview of each
+# same-repository PR to pr-preview/<site>/pr-<number>. When a PR is closed,
+# this workflow removes its previews. When triggered manually, it removes the
+# previews of every PR that is no longer open.
+
+name: "🧹 PR Preview Cleanup"
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+
+concurrency:
+  group: pr-preview-cleanup
+
+jobs:
+  cleanup:
+    name: Cleanup
+    # PRs from forks never get previews, and their token is read-only.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      # Use the script from the default branch rather than from the PR.
+      - name: Checkout Deploy Script
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: scripts/deploy-gh-pages.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Remove Closed PR Previews
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          ./scripts/deploy-gh-pages.sh --remove \
+            "pr-preview/docs/pr-$PR_NUMBER" \
+            "pr-preview/cost-models/pr-$PR_NUMBER" \
+            "pr-preview/resources/pr-$PR_NUMBER"
+
+      - name: Remove All Stale Previews
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OPEN=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 1000 --json number --jq '.[].number')
+          STALE=()
+          for site in docs cost-models resources; do
+            while read -r name; do
+              number=${name#pr-}
+              if [[ "$name" =~ ^pr-[0-9]+$ ]] && ! grep -qxF "$number" <<<"$OPEN"; then
+                STALE+=("pr-preview/$site/$name")
+              fi
+            done < <(gh api "repos/$GITHUB_REPOSITORY/contents/pr-preview/$site?ref=gh-pages" \
+                       --jq '.[] | select(.type == "dir") | .name' 2>/dev/null || true)
+          done
+          if ((${#STALE[@]} == 0)); then
+            echo "No stale previews"
+            exit 0
+          fi
+          printf 'Removing %s\n' "${STALE[@]}"
+          ./scripts/deploy-gh-pages.sh --remove "${STALE[@]}"

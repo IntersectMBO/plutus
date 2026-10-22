@@ -55,7 +55,8 @@ jobs:
         run: ./scripts/deploy-gh-pages.sh _resources resources
 
       - name: Publish Preview Papers
-        if: github.event_name == 'pull_request'
+        # PRs from forks get a read-only token, so they can't deploy previews.
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}

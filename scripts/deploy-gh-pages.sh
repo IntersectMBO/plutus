@@ -5,6 +5,7 @@
 # Disk usage is proportional to the deployed directory, not to the whole site.
 #
 # Usage: deploy-gh-pages.sh <source-dir> <target-folder>
+#        deploy-gh-pages.sh --remove <folder>...
 #
 # Environment:
 #   GITHUB_REPOSITORY  used to build the remote URL (in CI)
@@ -16,20 +17,43 @@
 #                PRUNE_DIR (named like 1.72.0.0), deleting the oldest ones
 #                first. Other subfolders (master, latest, ...) are never pruned.
 #
-# Deploying an empty <source-dir> removes <target-folder>. As with the
-# github-pages-deploy-action this replaces, .git and .github are not deployed.
+# --remove deletes the given folders in a single commit (missing ones are
+# ignored). If the result is identical to the branch, nothing is pushed.
+#
+# The source directory is deployed verbatim, except that .git and .github are
+# left out, as the github-pages-deploy-action this replaces did. The branch's
+# own .gitignore files are not applied: they would silently drop deployed
+# files (gh-pages has a stale copy of master's, ignoring e.g. `scripts`).
 set -euo pipefail
 
-if [[ $# -ne 2 ]]; then
+usage() {
   echo "Usage: $0 <source-dir> <target-folder>" >&2
+  echo "       $0 --remove <folder>..." >&2
   exit 1
-fi
+}
 
-SRC=$(cd "$1" && pwd)
-TARGET=${2%/}
-if ! printf '%s' "$TARGET" | grep -Eq '^[A-Za-z0-9_][A-Za-z0-9._/-]*$' || [[ "/$TARGET/" == */../* ]]; then
-  echo "Invalid target folder '$TARGET'" >&2
-  exit 1
+validate_folder() {
+  if ! printf '%s' "$1" | grep -Eq '^[A-Za-z0-9_][A-Za-z0-9._/-]*$' || [[ "/$1/" == */../* ]]; then
+    echo "Invalid target folder '$1'" >&2
+    exit 1
+  fi
+}
+
+SRC=""
+REMOVE=()
+if [[ "${1:-}" == "--remove" ]]; then
+  (($# >= 2)) || usage
+  for folder in "${@:2}"; do
+    folder=${folder%/}
+    validate_folder "$folder"
+    REMOVE+=("$folder")
+  done
+  TARGET=${REMOVE[*]}
+else
+  (($# == 2)) || usage
+  SRC=$(cd "$1" && pwd)
+  TARGET=${2%/}
+  validate_folder "$TARGET"
 fi
 BRANCH=${BRANCH:-gh-pages}
 REMOTE=${REMOTE:-https://github.com/${GITHUB_REPOSITORY}.git}
@@ -105,19 +129,27 @@ deploy_once() {
     fi
   fi
 
-  git rm -r --quiet --cached --sparse --ignore-unmatch -- "$TARGET"
-  mkdir -p "$TARGET"
-  cp -R "$SRC"/. "$TARGET"/
-  find "$TARGET" \( -name .git -o -name .github \) -prune -exec rm -rf {} +
-  # git add may lazily fetch the branch's .gitignore files, which it honours.
-  remote_git add --sparse -- "$TARGET"
+  if [[ -n "$SRC" ]]; then
+    git rm -r --quiet --cached --sparse --ignore-unmatch -- "$TARGET"
+    mkdir -p "$TARGET"
+    cp -R "$SRC"/. "$TARGET"/
+    find "$TARGET" \( -name .git -o -name .github \) -prune -exec rm -rf {} +
+    remote_git add --sparse --force -- "$TARGET"
+  else
+    git rm -r --quiet --cached --sparse --ignore-unmatch -- "${REMOVE[@]}"
+  fi
 
   TREE=$(git write-tree)
+  if [[ "$TREE" == "$(git rev-parse "HEAD^{tree}")" ]]; then
+    echo "Nothing changed on $BRANCH, not pushing"
+    return 0
+  fi
   NEW=$(git commit-tree "$TREE" -m "Deploy $TARGET from ${GITHUB_REPOSITORY:-local}@${GITHUB_SHA:-local}")
 
   # The lease makes the push fail if another deploy updated the branch since we
   # cloned it; in that case we retry on top of the new tip instead of clobbering it.
   remote_git push --quiet --force-with-lease="$BRANCH:$OLD" origin "$NEW:refs/heads/$BRANCH"
+  echo "Updated $BRANCH:$TARGET"
 }
 
 for ((attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)); do
@@ -126,7 +158,6 @@ for ((attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)); do
   status=$?
   set -e
   if ((status == 0)); then
-    echo "Deployed $SRC to $BRANCH:$TARGET (attempt $attempt)"
     exit 0
   fi
   if ((status != RETRY)); then

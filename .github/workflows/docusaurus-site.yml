@@ -66,14 +66,16 @@ jobs:
         run: .deploy-script/scripts/deploy-gh-pages.sh doc/docusaurus/build docs
 
       - name: Deploy Preview Site
-        if: github.event_name == 'pull_request'
+        # PRs from forks get a read-only token, so they can't deploy previews.
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: .deploy-script/scripts/deploy-gh-pages.sh doc/docusaurus/build "pr-preview/docs/pr-$PR_NUMBER"
 
       - name: Comment Preview Link
-        if: github.event_name == 'pull_request'
+        # PRs from forks get a read-only token, so they can't deploy previews.
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v7.1.0
         env:
           PREVIEW_URL: https://plutus.cardano.intersectmbo.org/pr-preview/docs/pr-${{ github.event.pull_request.number }}/

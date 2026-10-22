@@ -42,7 +42,8 @@ jobs:
         run: ./scripts/deploy-gh-pages.sh doc/cost-models cost-models
 
       - name: Deploy Preview Site
-        if: github.event_name == 'pull_request'
+        # PRs from forks get a read-only token, so they can't deploy previews.
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -53,7 +54,8 @@ jobs:
       # The `branch` parameter in the link overrides that, so the preview of this PR
       # plots this PR's data for everyone who opens it.
       - name: Comment Preview Link
-        if: github.event_name == 'pull_request'
+        # PRs from forks get a read-only token, so they can't deploy previews.
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v7.1.0
         env:
           PREVIEW_URL: https://plutus.cardano.intersectmbo.org/pr-preview/cost-models/pr-${{ github.event.pull_request.number }}/
