@@ -68,7 +68,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
   , defaultSlippage
   , NTerm
   , runCekM
-  , freeVars
   , conv
   , Env (..)
   , emptyEnv
@@ -351,38 +350,38 @@ unshift (Index n) = Index (n - 1)
 
 -- Free variables
 -- TODO, check case Var _ (NamedDeBruijn _ i) where i <= 0
-freeVars :: NTerm uni fun ann -> NTerm uni fun (Set Index)
-freeVars (Var _ x@(NamedDeBruijn _ i)) = Var (singleton i) x
-freeVars (LamAbs _ x t) = LamAbs fvs x t'
+annotateFV :: NTerm uni fun ann -> NTerm uni fun (Set Index)
+annotateFV (Var _ x@(NamedDeBruijn _ i)) = Var (singleton i) x
+annotateFV (LamAbs _ x t) = LamAbs fvs x t'
   where
-    t' = freeVars t
+    t' = annotateFV t
     fvs = foldr unshiftOrDrop mempty (getAnn t')
 
     unshiftOrDrop :: Index -> Set Index -> Set Index
     unshiftOrDrop (Index 1) xs = xs
     unshiftOrDrop n xs = Set.insert (unshift n) xs
-freeVars (Apply _ s t) = Apply (getAnn s' <> getAnn t') s' t'
+annotateFV (Apply _ s t) = Apply (getAnn s' <> getAnn t') s' t'
   where
-    s' = freeVars s
-    t' = freeVars t
-freeVars (Force _ t) = Force (getAnn t') t'
+    s' = annotateFV s
+    t' = annotateFV t
+annotateFV (Force _ t) = Force (getAnn t') t'
   where
-    t' = freeVars t
-freeVars (Delay _ t) = Delay (getAnn t') t'
+    t' = annotateFV t
+annotateFV (Delay _ t) = Delay (getAnn t') t'
   where
-    t' = freeVars t
-freeVars (Constant _ c) = Constant mempty c
-freeVars (Builtin _ b) = Builtin mempty b
-freeVars (Case _ t ts) = Case fvs t' ts'
+    t' = annotateFV t
+annotateFV (Constant _ c) = Constant mempty c
+annotateFV (Builtin _ b) = Builtin mempty b
+annotateFV (Case _ t ts) = Case fvs t' ts'
   where
-    t' = freeVars t
-    ts' = V.map freeVars ts
+    t' = annotateFV t
+    ts' = V.map annotateFV ts
     fvs = V.foldr union (getAnn t') (V.map getAnn ts')
-freeVars (Constr _ i ts) = Constr fvs i ts'
+annotateFV (Constr _ i ts) = Constr fvs i ts'
   where
-    ts' = map freeVars ts
+    ts' = map annotateFV ts
     fvs = foldr union mempty (map getAnn ts')
-freeVars (Error _) = Error mempty
+annotateFV (Error _) = Error mempty
 
 -- Testing
 
@@ -426,27 +425,34 @@ fvsToLayout fvs = Map.fromAscList (zip (toList fvs) [1 ..])
 -- Closure conversion: annotate variables with their index in the environment and lambdas with a
 -- projection to construct closure environments at run-time. `layout` maps
 -- original de Bruijn indices to their slot index in the run-time `Env`.
-conv :: Map Index Int -> NTerm uni fun (Set Index) -> NTerm uni fun ClosureAnn
-conv layout (Var _ x@(NamedDeBruijn _ db)) =
-  case Map.lookup db layout of
-    Nothing -> error "conv: impossible: variable that is not in layout (free variables)"
-    Just ix -> Var (AnnIx ix) x
-conv layout (LamAbs fvs x t) = LamAbs ann x (conv bodyLayout t)
+
+annotateClosure :: NTerm uni fun (Set Index) -> NTerm uni fun ClosureAnn
+annotateClosure = go Map.empty
   where
-    ann = AnnProjection $ mkProjection closureLayout layout
-    closureLayout = fvsToLayout fvs
-    bodyLayout = Map.insert (Index 1) 0 (Map.mapKeysMonotonic shift closureLayout)
-conv layout (Apply _ s t) = Apply AnnNone (conv layout s) (conv layout t)
-conv layout (Force _ t) = Force AnnNone (conv layout t)
-conv layout (Delay fvs t) = Delay ann (conv closureLayout t)
-  where
-    ann = AnnProjection $ mkProjection closureLayout layout
-    closureLayout = fvsToLayout fvs
-conv _ (Constant _ c) = Constant AnnNone c
-conv _ (Builtin _ b) = Builtin AnnNone b
-conv layout (Case _ t ts) = Case AnnNone (conv layout t) (V.map (conv layout) ts)
-conv layout (Constr _ i ts) = Constr AnnNone i (map (conv layout) ts)
-conv _ (Error _) = Error AnnNone
+    go :: Map Index Int -> NTerm uni fun (Set Index) -> NTerm uni fun ClosureAnn
+    go layout (Var _ x@(NamedDeBruijn _ db)) =
+      case Map.lookup db layout of
+        Nothing -> error "go: impossible: variable that is not in layout (free variables)"
+        Just ix -> Var (AnnIx ix) x
+    go layout (LamAbs fvs x t) = LamAbs ann x (go bodyLayout t)
+      where
+        ann = AnnProjection $ mkProjection closureLayout layout
+        closureLayout = fvsToLayout fvs
+        bodyLayout = Map.insert (Index 1) 0 (Map.mapKeysMonotonic shift closureLayout)
+    go layout (Apply _ s t) = Apply AnnNone (go layout s) (go layout t)
+    go layout (Force _ t) = Force AnnNone (go layout t)
+    go layout (Delay fvs t) = Delay ann (go closureLayout t)
+      where
+        ann = AnnProjection $ mkProjection closureLayout layout
+        closureLayout = fvsToLayout fvs
+    go _ (Constant _ c) = Constant AnnNone c
+    go _ (Builtin _ b) = Builtin AnnNone b
+    go layout (Case _ t ts) = Case AnnNone (go layout t) (V.map (go layout) ts)
+    go layout (Constr _ i ts) = Constr AnnNone i (map (go layout) ts)
+    go _ (Error _) = Error AnnNone
+
+conv :: NTerm uni fun ann -> NTerm uni fun ClosureAnn
+conv t = annotateClosure (annotateFV t)
 
 -- Array-based environment
 
@@ -730,7 +736,7 @@ But in our case this is okay, because:
 {-| Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 'throwErrorWithCause' as the cause of the failure. -}
 throwErrorDischarged
-  :: ThrowableBuiltins uni fun
+  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
   => EvaluationError (MachineError fun) CekUserError
   -> CekValue uni fun ann
   -> CekM uni fun s x
@@ -831,47 +837,43 @@ dischargeResultToTerm (DischargeNonConstant term) = term
 
 {-| Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
 they're bound to (which themselves have to be obtained by recursively discharging values). -}
-dischargeCekValue :: forall uni fun ann. CekValue uni fun ann -> DischargeResult uni fun
+dischargeCekValue
+  :: forall uni fun ann. ann ~ ClosureAnn => CekValue uni fun ann -> DischargeResult uni fun
 dischargeCekValue (VCon val) = DischargeConstant val
 dischargeCekValue value0 = DischargeNonConstant $ goValue value0
   where
     goValue :: CekValue uni fun ann -> NTerm uni fun ()
     goValue = \case
       VCon val -> Constant () val
-      _ -> error "dischargeCekValue: Not implemented"
-    -- VDelay body env -> Delay () $ goValEnv env 0 body
-    -- VLamAbs (NamedDeBruijn n _ix) body env ->
-    --   -- The index on the binder is meaningless, we put @0@ by convention, see 'Binder'.
-    --   LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env 1 body
-    -- -- We only return a discharged builtin application when (a) it's being returned by the
-    -- -- machine, or (b) it's needed for an error message.
-    -- -- @term@ is fully discharged, so we can return it directly without any further discharging.
-    -- VBuiltin _ term _ -> term
-    -- VConstr ind args -> Constr () ind . map goValue $ argStackToList args
+      -- _ -> error "dischargeCekValue: Not implemented"
+      VDelay body env -> Delay () $ goValEnv env 0 body
+      VLamAbs (NamedDeBruijn n _ix) body env ->
+        -- The index on the binder is meaningless, we put @0@ by convention, see 'Binder'.
+        LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env 1 body
+      -- We only return a discharged builtin application when (a) it's being returned by the
+      -- machine, or (b) it's needed for an error message.
+      -- @term@ is fully discharged, so we can return it directly without any further discharging.
+      VBuiltin _ term _ -> term
+      VConstr ind args -> Constr () ind . map goValue $ argStackToList args
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
     -- Mutually recursive with @goValue@.
-    goValEnv :: CekValEnv uni fun ann -> Word64 -> NTerm uni fun ann -> NTerm uni fun ()
-    goValEnv env = go
+    goValEnv :: ValueArray uni fun ann -> Word64 -> NTerm uni fun ClosureAnn -> NTerm uni fun ()
+    goValEnv (ValueArray vs) = go
       where
         -- @shift@ is just a counter that measures how many lambda-abstractions we have descended
         -- into so far.
         go :: Word64 -> NTerm uni fun ann -> NTerm uni fun ()
         go !shift = \case
           LamAbs _ name body -> LamAbs () name $ go (shift + 1) body
-          Var _ named@(NamedDeBruijn _ (coerce -> idx)) ->
+          Var ann named@(NamedDeBruijn _ (coerce -> idx)) ->
             if shift >= idx
               -- the index n is less-than-or-equal than the number of lambdas we have descended
               -- this means that n points to a bound variable, so we don't discharge it.
               then Var () named
-              else
-                maybe
-                  -- var is free, leave it alone
-                  (Var () named)
-                  -- var is in the env, discharge its value
-                  goValue
-                  -- index relative to (as seen from the point of view of) the environment
-                  (Env.indexOne env $ idx - shift)
+              else case ann of
+                AnnIx i -> goValue (indexSmallArray vs (i - 1))
+                _ -> error "dischargeCekValue: wrong index in annotation"
           Apply _ fun arg -> Apply () (go shift fun) $ go shift arg
           Delay _ term -> Delay () $ go shift term
           Force _ term -> Force () $ go shift term
@@ -881,7 +883,7 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
           Constr _ ind args -> Constr () ind $ map (go shift) args
           Case _ scrut alts -> Case () (go shift scrut) $ fmap (go shift) alts
 
-instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
+instance (PrettyUni uni, Pretty fun, ann ~ ClosureAnn) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
   prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue
 
 type instance UniOf (CekValue uni fun ann) = uni

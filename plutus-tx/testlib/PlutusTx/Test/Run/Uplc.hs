@@ -38,7 +38,7 @@ runPlcCek val = do
   fromRightM (throwError . SomeException) $
     UPLC.evaluateCekNoEmit
       PLC.defaultCekParametersForTesting
-      (term ^. UPLC.progTerm)
+      (undefined $ term ^. UPLC.progTerm)
 
 runPlcCekTrace
   :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
@@ -57,7 +57,7 @@ runPlcCekTrace value = do
           PLC.defaultCekParametersForTesting
           UPLC.tallying
           UPLC.logEmitter
-          (term ^. UPLC.progTerm)
+          (undefined $ term ^. UPLC.progTerm)
   res <- fromRightM (throwError . SomeException) result
   pure (logOut, tally, res)
 
@@ -76,5 +76,5 @@ runPlcCekBudget val = do
         UPLC.runCekNoEmit
           PLC.defaultCekParametersForTesting
           UPLC.counting
-          (term ^. UPLC.progTerm)
+          (undefined $ term ^. UPLC.progTerm)
     (,budget) <$> evalRes

@@ -56,6 +56,8 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
   , readKnownCek
   , Hashable
   , ThrowableBuiltins
+  , conv
+  , ClosureAnn (..)
   )
 where
 
@@ -76,8 +78,8 @@ import Data.Text (Text)
 A wrapper around the internal runCek to debruijn input and undebruijn output.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 runCek
-  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
-  => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+  :: ThrowableBuiltins uni fun
+  => MachineParameters CekMachineCosts fun (CekValue uni fun ClosureAnn)
   -> ExBudgetMode cost uni fun
   -> EmitterMode uni fun
   -> Term Name uni fun ann
@@ -87,8 +89,8 @@ runCek = Common.runCek runCekDeBruijn
 {-| Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 runCekNoEmit
-  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
-  => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+  :: ThrowableBuiltins uni fun
+  => MachineParameters CekMachineCosts fun (CekValue uni fun ClosureAnn)
   -> ExBudgetMode cost uni fun
   -> Term Name uni fun ann
   -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost)
@@ -97,9 +99,9 @@ runCekNoEmit = Common.runCekNoEmit runCekDeBruijn
 {-| Evaluate a term using the CEK machine with logging enabled.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 evaluateCek
-  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
+  :: ThrowableBuiltins uni fun
   => EmitterMode uni fun
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun ClosureAnn)
   -> Term Name uni fun ann
   -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), [Text])
 evaluateCek = Common.evaluateCek runCekDeBruijn
@@ -107,8 +109,8 @@ evaluateCek = Common.evaluateCek runCekDeBruijn
 {-| Evaluate a term using the CEK machine with logging disabled.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 evaluateCekNoEmit
-  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
-  => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+  :: ThrowableBuiltins uni fun
+  => MachineParameters CekMachineCosts fun (CekValue uni fun ClosureAnn)
   -> Term Name uni fun ann
   -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
 evaluateCekNoEmit = Common.evaluateCekNoEmit runCekDeBruijn
@@ -116,8 +118,8 @@ evaluateCekNoEmit = Common.evaluateCekNoEmit runCekDeBruijn
 {-| Unlift a value using the CEK machine.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 readKnownCek
-  :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a, ann ~ ClosureAnn)
-  => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+  :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a)
+  => MachineParameters CekMachineCosts fun (CekValue uni fun ClosureAnn)
   -> Term Name uni fun ann
   -> Either (CekEvaluationException Name uni fun) a
 readKnownCek = Common.readKnownCek runCekDeBruijn

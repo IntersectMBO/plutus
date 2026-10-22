@@ -458,7 +458,7 @@ cekStepCost costs =
 {-| Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 'throwErrorWithCause' as the cause of the failure. -}
 throwErrorDischarged
-  :: ThrowableBuiltins uni fun
+  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
   => EvaluationError (MachineError fun) CekUserError
   -> CekValue uni fun ann
   -> CekM uni fun s x

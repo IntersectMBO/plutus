@@ -273,7 +273,7 @@ runUPlcFull values = do
   ps <- traverse toUPlc values
   let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
       UPLC.CekReport (UPLC.cekResultToEither -> res) (UPLC.CountingSt budget) logs =
-        UPLC.runCek TPLC.defaultCekParametersForTesting UPLC.counting UPLC.logEmitter t
+        UPLC.runCek TPLC.defaultCekParametersForTesting UPLC.counting UPLC.logEmitter (undefined t)
   case res of
     Left err -> throwError (SomeException $ EvaluationExceptionWithLogsAndBudget err budget logs)
     Right resT -> pure (resT, budget, logs)
@@ -324,7 +324,7 @@ runUPlcProfile values = do
   ps <- traverse toUPlc values
   let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
       UPLC.CekReport (UPLC.cekResultToEither -> res) (UPLC.CountingSt budget) logs =
-        UPLC.runCek TPLC.defaultCekParametersForTesting UPLC.counting UPLC.logWithTimeEmitter t
+        UPLC.runCek TPLC.defaultCekParametersForTesting UPLC.counting UPLC.logWithTimeEmitter (undefined t)
   case res of
     Left err -> throwError (SomeException $ EvaluationExceptionWithLogsAndBudget err budget logs)
     Right _ -> pure logs
@@ -342,7 +342,11 @@ runUPlcProfile' values = do
   ps <- traverse toUPlc values
   let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
       UPLC.CekReport (UPLC.cekResultToEither -> res) (UPLC.CountingSt _) logs =
-        UPLC.runCek TPLC.defaultCekParametersForTesting UPLC.counting UPLC.logWithBudgetEmitter t
+        UPLC.runCek
+          TPLC.defaultCekParametersForTesting
+          UPLC.counting
+          UPLC.logWithBudgetEmitter
+          (undefined t)
   case res of
     Left err -> throwError (SomeException err)
     Right _ -> pure logs

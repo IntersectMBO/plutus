@@ -52,6 +52,7 @@ import PlutusTx.Test.Util.Compiled
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (conv)
 
 import Control.DeepSeq (force)
 import Criterion.Main
@@ -87,7 +88,7 @@ getConfig limit = do
 -- | Evaluate a script and return the CPU and memory costs (according to the cost model)
 getCostsCek :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
 getCostsCek (UPLC.Program _ _ prog) =
-  case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter prog of
+  case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter (conv prog) of
     Cek.CekReport _res (Cek.TallyingSt _ budget) _logs ->
       let ExBudget (ExCPU cpu) (ExMemory mem) = budget
        in (fromSatInt cpu, fromSatInt mem)

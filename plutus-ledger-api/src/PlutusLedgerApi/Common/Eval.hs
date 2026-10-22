@@ -44,6 +44,7 @@ import PlutusLedgerApi.Common.Versions
 import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (conv)
 
 import Control.Lens
 import Control.Monad (unless)
@@ -236,11 +237,12 @@ evaluateTerm
   -> EvaluationContext
   -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
   -> UPLC.CekReport cost NamedDeBruijn DefaultUni DefaultFun
-evaluateTerm budgetMode pv plcVersion verbose ectx =
+evaluateTerm budgetMode pv plcVersion verbose ectx term =
   UPLC.runCekDeBruijn
     (toMachineParameters pv plcVersion ectx)
     budgetMode
     (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
+    (conv term)
 -- Just replicating the old behavior, probably doesn't matter.
 {-# INLINE evaluateTerm #-}
 

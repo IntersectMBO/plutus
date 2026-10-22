@@ -95,8 +95,8 @@ allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully e
 A wrapper around the internal runCek to debruijn input and undebruijn output.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 runCek
-  :: MachineRunner cost uni fun ann
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+  :: MachineRunner cost uni fun ClosureAnn
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun ClosureAnn)
   -> ExBudgetMode cost uni fun
   -> EmitterMode uni fun
   -> Term Name uni fun ann
@@ -107,7 +107,7 @@ runCek runner params mode emitMode term =
     Left fvError -> throw fvError
     Right dbt -> do
       -- Don't use 'let': https://github.com/IntersectMBO/plutus/issues/3876
-      case runner params mode emitMode dbt of
+      case runner params mode emitMode (conv dbt) of
         -- translating back the output
         CekReport res cost' logs ->
           CekReport (mapTermCekResult gracefulUnDeBruijn res) cost' logs
@@ -125,8 +125,8 @@ runCek runner params mode emitMode term =
 {-| Evaluate a term using a machine with logging disabled and keep track of costing.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 runCekNoEmit
-  :: MachineRunner cost uni fun ann
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+  :: MachineRunner cost uni fun ClosureAnn
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun ClosureAnn)
   -> ExBudgetMode cost uni fun
   -> Term Name uni fun ann
   -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost)
@@ -139,9 +139,9 @@ runCekNoEmit runner params mode =
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 evaluateCek
   :: ThrowableBuiltins uni fun
-  => MachineRunner RestrictingSt uni fun ann
+  => MachineRunner RestrictingSt uni fun ClosureAnn
   -> EmitterMode uni fun
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun ClosureAnn)
   -> Term Name uni fun ann
   -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), [Text])
 evaluateCek runner emitMode params =
@@ -153,8 +153,8 @@ evaluateCek runner emitMode params =
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 evaluateCekNoEmit
   :: ThrowableBuiltins uni fun
-  => MachineRunner RestrictingSt uni fun ann
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+  => MachineRunner RestrictingSt uni fun ClosureAnn
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun ClosureAnn)
   -> Term Name uni fun ann
   -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
 evaluateCekNoEmit runner params = fst . runCekNoEmit runner params restrictingEnormous
@@ -163,8 +163,8 @@ evaluateCekNoEmit runner params = fst . runCekNoEmit runner params restrictingEn
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 readKnownCek
   :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a)
-  => MachineRunner RestrictingSt uni fun ann
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+  => MachineRunner RestrictingSt uni fun ClosureAnn
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun ClosureAnn)
   -> Term Name uni fun ann
   -> Either (CekEvaluationException Name uni fun) a
 readKnownCek runner params = evaluateCekNoEmit runner params >=> readKnownSelf

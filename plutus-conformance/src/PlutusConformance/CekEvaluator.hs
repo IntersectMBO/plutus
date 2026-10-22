@@ -23,8 +23,10 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
   ( CekEvaluationException
   , CekMachineCosts
   , CekValue
+  , ClosureAnn (..)
   , CountingSt (..)
   , ExBudgetMode
+  , conv
   , counting
   )
 
@@ -36,7 +38,7 @@ this type (the latter's haddock says it "provides the same interface to the
 original CEK machine") so this is shared between the `haskell-conformance` and
 `haskell-steppable-conformance` test suites rather than being duplicated. -}
 mkCekEvaluator
-  :: ( UPLC.MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+  :: ( UPLC.MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ClosureAnn)
        -> ExBudgetMode CountingSt DefaultUni DefaultFun
        -> UPLC.Term Name DefaultUni DefaultFun ()
        -> ( Either (CekEvaluationException Name DefaultUni DefaultFun) (UPLC.Term Name DefaultUni DefaultFun ())

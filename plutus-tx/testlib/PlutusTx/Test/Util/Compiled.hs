@@ -26,6 +26,7 @@ import PlutusTx qualified as Tx
 import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (conv)
 
 type Term = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
 type Program = UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun ()
@@ -103,3 +104,4 @@ cekResultMatchesHaskellValue actual matches expected =
           PLC.defaultCekParametersForTesting
           Cek.restrictingEnormous
           Cek.noEmitter
+        . conv
