@@ -54,9 +54,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./scripts/deploy-gh-pages.sh _resources resources
 
-      - name: Publish Preview Papers 
-        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-        uses: rossjrw/pr-preview-action@v1.6.3
-        with:
-          source-dir: _resources
-          umbrella-dir: pr-preview/resources
+      - name: Publish Preview Papers
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          ./scripts/deploy-gh-pages.sh _resources "pr-preview/resources/pr-$PR_NUMBER"
+          echo "Preview: https://plutus.cardano.intersectmbo.org/pr-preview/resources/pr-$PR_NUMBER/" >> "$GITHUB_STEP_SUMMARY"

@@ -37,10 +37,20 @@ jobs:
         working-directory: doc/docusaurus
         run: nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
 
+      - name: Build Preview Site
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        working-directory: doc/docusaurus
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # These match the URL the Deploy Preview Site step deploys to:
+          export DOCUSAURUS_URL="https://plutus.cardano.intersectmbo.org"
+          export DOCUSAURUS_BASE_URL="/pr-preview/docs/pr-${PR_NUMBER}"
+          nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
+
       # The build runs third-party yarn packages, which could modify the working
       # tree, so check out a fresh copy of the deploy script after the build.
       - name: Checkout Deploy Script
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.sha }}
@@ -55,24 +65,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: .deploy-script/scripts/deploy-gh-pages.sh doc/docusaurus/build docs
 
-      - name: Build Preview Site
-        if: github.event_name == 'pull_request' && github.event.action != 'closed'
-        working-directory: doc/docusaurus
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          # These match the URL expected by rossjrw/pr-preview-action@v1.6.2:
-          export DOCUSAURUS_URL="https://plutus.cardano.intersectmbo.org"
-          export DOCUSAURUS_BASE_URL="/pr-preview/docs/pr-${PR_NUMBER}"
-          nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
-
-      - name: Deploy Preview Site 
+      - name: Deploy Preview Site
         if: github.event_name == 'pull_request'
-        uses: rossjrw/pr-preview-action@v1.6.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: .deploy-script/scripts/deploy-gh-pages.sh doc/docusaurus/build "pr-preview/docs/pr-$PR_NUMBER"
+
+      - name: Comment Preview Link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7.1.0
+        env:
+          PREVIEW_URL: https://plutus.cardano.intersectmbo.org/pr-preview/docs/pr-${{ github.event.pull_request.number }}/
         with:
-          source-dir: doc/docusaurus/build
-          umbrella-dir: pr-preview/docs
-
-
-      
-
+          script: |
+            const marker = '<!-- docusaurus-preview -->';
+            const body = `${marker}\n🦕 Docusaurus preview for this PR: ${process.env.PREVIEW_URL}`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number
+            });
+            const existing = comments.find(comment => comment.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

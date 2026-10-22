@@ -13,8 +13,11 @@
 #   BRANCH       branch to deploy to (default: gh-pages)
 #   PRUNE_DIR    optional: a folder whose subfolders are builds
 #   PRUNE_KEEP   keep at most this many version-numbered subfolders of
-#                PRUNE_DIR (those starting with a digit), deleting the oldest
-#                ones first. Other subfolders (master, latest) are never pruned.
+#                PRUNE_DIR (named like 1.72.0.0), deleting the oldest ones
+#                first. Other subfolders (master, latest, ...) are never pruned.
+#
+# Deploying an empty <source-dir> removes <target-folder>. As with the
+# github-pages-deploy-action this replaces, .git and .github are not deployed.
 set -euo pipefail
 
 if [[ $# -ne 2 ]]; then
@@ -51,17 +54,20 @@ trap 'rm -rf "$WORK"' EXIT
 
 # Exit status of an attempt that is worth retrying.
 RETRY=75
+MAX_ATTEMPTS=5
+VERSION_RE='^[0-9]+(\.[0-9]+)+$'
 
-# Runs a git command that talks to the remote. If it fails because of a race
-# with another deploy (the push lease) or a transient network/server error,
-# exit with $RETRY; any other failure (e.g. a 403) is permanent and exits 1.
+# Runs a git command that may talk to the remote, including commands that
+# lazily fetch blobs in this blobless clone. If it fails because of a race with
+# another deploy (the push lease) or a transient network/server error, exit
+# with $RETRY; any other failure (e.g. HTTP 403) is permanent and exits 1.
 remote_git() {
   local err
   if err=$(git "$@" 2>&1); then
     return 0
   fi
   printf '%s\n' "$err" >&2
-  if grep -Eqi 'stale info|incorrect old value|cannot lock ref|fetch first|unable to access|could not resolve|timed out|RPC failed|early EOF|remote end hung up|returned error: (429|5[0-9][0-9])' <<<"$err"; then
+  if grep -Eqi 'stale info|incorrect old value|cannot lock ref|fetch first|failed to connect|could not connect|could not resolve|timed out|connection reset|RPC failed|early EOF|remote end hung up|returned error: (429|5[0-9][0-9])' <<<"$err"; then
     exit "$RETRY"
   fi
   exit 1
@@ -77,7 +83,7 @@ deploy_once() {
 
   # Populate the index without writing (or downloading) any existing file.
   git sparse-checkout set --no-cone "/.deploy-gh-pages-nothing/"
-  git checkout --quiet "$BRANCH"
+  remote_git checkout --quiet "$BRANCH"
   OLD=$(git rev-parse HEAD)
 
   if [[ -n "${PRUNE_DIR:-}" && -n "${PRUNE_KEEP:-}" ]]; then
@@ -85,9 +91,9 @@ deploy_once() {
     # order; a version target counts as one build, so at most PRUNE_KEEP remain.
     TARGET_BUILD=${TARGET#"$PRUNE_DIR"/}
     BUILDS=$(git ls-tree -d --name-only "HEAD:$PRUNE_DIR" 2>/dev/null \
-      | grep -E '^[0-9]' | grep -vxF -- "$TARGET_BUILD" | LC_ALL=C sort -V || true)
+      | grep -E "$VERSION_RE" | grep -vxF -- "$TARGET_BUILD" | LC_ALL=C sort -V || true)
     COUNT=$(printf '%s' "$BUILDS" | grep -c . || true)
-    if [[ "$PRUNE_DIR/$TARGET_BUILD" == "$TARGET" && "$TARGET_BUILD" =~ ^[0-9][^/]*$ ]]; then
+    if [[ "$PRUNE_DIR/$TARGET_BUILD" == "$TARGET" && "$TARGET_BUILD" =~ $VERSION_RE ]]; then
       COUNT=$((COUNT + 1))
     fi
     EXCESS=$((COUNT - PRUNE_KEEP))
@@ -102,7 +108,9 @@ deploy_once() {
   git rm -r --quiet --cached --sparse --ignore-unmatch -- "$TARGET"
   mkdir -p "$TARGET"
   cp -R "$SRC"/. "$TARGET"/
-  git add --sparse -- "$TARGET"
+  find "$TARGET" \( -name .git -o -name .github \) -prune -exec rm -rf {} +
+  # git add may lazily fetch the branch's .gitignore files, which it honours.
+  remote_git add --sparse -- "$TARGET"
 
   TREE=$(git write-tree)
   NEW=$(git commit-tree "$TREE" -m "Deploy $TARGET from ${GITHUB_REPOSITORY:-local}@${GITHUB_SHA:-local}")
@@ -112,7 +120,7 @@ deploy_once() {
   remote_git push --quiet --force-with-lease="$BRANCH:$OLD" origin "$NEW:refs/heads/$BRANCH"
 }
 
-for attempt in 1 2 3 4 5; do
+for ((attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)); do
   set +e
   (set -e; deploy_once)
   status=$?
@@ -125,9 +133,12 @@ for attempt in 1 2 3 4 5; do
     echo "Failed to deploy $TARGET: permanent error, not retrying" >&2
     exit 1
   fi
+  if ((attempt == MAX_ATTEMPTS)); then
+    break
+  fi
   echo "Attempt $attempt failed with a transient error or a race, retrying" >&2
   sleep $((attempt * 10))
 done
 
-echo "Failed to deploy $TARGET after $attempt attempts" >&2
+echo "Failed to deploy $TARGET after $MAX_ATTEMPTS attempts" >&2
 exit 1
