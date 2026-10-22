@@ -5,6 +5,7 @@
 module FFI.AgdaUnparse where
 
 import Data.ByteString (ByteString)
+import Data.ByteString qualified as BS
 import Data.List.NonEmptySep
 import Data.Map.Strict qualified as Map (Map, toList)
 import Data.Proxy
@@ -124,7 +125,10 @@ instance AgdaUnparse Text where
   agdaUnparse = viaShow . T.unpack
 
 instance AgdaUnparse ByteString where
-  agdaUnparse bs = parens ("mkByteString" <+> viaShow bs)
+  agdaUnparse bs = parens ("mkByteString" <+> dquotes (pretty (concatMap toHex (BS.unpack bs))))
+    where
+      toHex w = [hexDigit (w `div` 16), hexDigit (w `mod` 16)]
+      hexDigit d = "0123456789abcdef" !! fromIntegral d
 
 instance AgdaUnparse () where
   agdaUnparse _ = "tt"
@@ -160,7 +164,7 @@ instance (AgdaUnparse k, AgdaUnparse v) => AgdaUnparse (Map.Map k v) where
   agdaUnparse = agdaUnparse . Map.toList
 
 instance AgdaUnparse Value where
-  agdaUnparse v = "valueFromList ( " <> agdaUnparse v' <> ")"
+  agdaUnparse v = parens ("valueFromList" <+> agdaUnparse v')
     where
       -- Value converted to nested assocation lists
       v' :: [(ByteString, [(ByteString, Integer)])]
