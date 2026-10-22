@@ -249,6 +249,7 @@ mkAgdaAstFile n pre mHints =
       , "open import RawU"
       , "open import Builtin"
       , "open import Utils"
+      , "open import Builtin.ByteString.Base using (mkByteString)"
       , ""
       , "open import Untyped using (_⊢)"
       , "open import VerifiedCompilation using (checkScope; checkScopeʰ)"
