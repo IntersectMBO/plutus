@@ -436,7 +436,10 @@ modelFun <- function(path) {
         product <- mutate (filtered, x_mem = x_mem * y_mem)
         working <- product[product$x_mem > 0, ]
         zero <- product[product$x_mem == 0, ]
-        m <- fit.fan (working)
+        ## Inputs with the same list length and map depth can take different times.
+        ## Fit until the predicted cost is above 99% of measured times, so the many
+        ## fast cases do not make the fit stop too early.
+        m <- fit.fan (working, threshold=0.99)
         v <- coefficients (m)
         if (nrow (zero) > 0) {
             v[["(Intercept)"]] <- max (v[["(Intercept)"]], max (zero$t))

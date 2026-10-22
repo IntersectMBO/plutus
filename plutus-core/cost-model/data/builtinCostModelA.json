@@ -1368,8 +1368,8 @@
   "keepPolicies": {
     "cpu": {
       "arguments": {
-        "intercept": 315357,
-        "slope": 45187
+        "intercept": 335279,
+        "slope": 57077
       },
       "type": "multiplied_sizes"
     },
@@ -1384,8 +1384,8 @@
   "dropPolicies": {
     "cpu": {
       "arguments": {
-        "intercept": 356925,
-        "slope": 39755
+        "intercept": 345402,
+        "slope": 57932
       },
       "type": "multiplied_sizes"
     },
