@@ -107,6 +107,22 @@ import Builtin.Integer.Base
 import Builtin.Integer.Properties
 ```
 
+Bytestrings and bytes are formalised as inductive types, and the bytestring
+builtins (except hashes, encoding and serialisation) are defined in Agda.
+
+```
+import Builtin.ByteString.Byte
+import Builtin.ByteString.Base
+import Builtin.ByteString.Denotation
+```
+
+The laws of the bitwise and conversion builtins (CIP-121, CIP-122 and
+CIP-123) are proved in the bytestring properties modules.
+
+```
+import Builtin.ByteString.Properties
+```
+
 The types of the built-in operations are defined by a signature.
 These types are abstract, and they can be made concrete to obtain the different
 notions of type used in the formalisation.
@@ -225,5 +241,14 @@ translation relations and their (semi-)decision procedures.
 
 ```
 import VerifiedCompilation
+```
+
+## Conformance tests
+
+Unit tests generated from the UPLC evaluation conformance test cases
+(see `Conformance.Eval`).
+
+```
+import Conformance
 ```
 
