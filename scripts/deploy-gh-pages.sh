@@ -11,6 +11,10 @@
 set -euo pipefail
 
 SRC=$(cd "$1" && pwd)
+# Build outputs copied from the Nix store are read-only. Make them writable, as
+# the github-pages-deploy-action did, so this copy and the workspace can be
+# deleted (otherwise the next job's checkout on this runner fails).
+chmod -R u+w "$SRC"
 TARGET=${2%/}
 VALID='^[A-Za-z0-9_][A-Za-z0-9._/-]*$'
 if [[ ! "$TARGET" =~ $VALID || "/$TARGET/" == */../* ]]; then
@@ -28,8 +32,8 @@ fi
 export GIT_AUTHOR_NAME="github-actions[bot]" GIT_AUTHOR_EMAIL="github-actions[bot]@users.noreply.github.com"
 export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
 
-WORK=$(mktemp -d)
-trap 'rm -rf "$WORK"' EXIT
+WORK=$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/deploy-gh-pages.XXXXXX")
+trap 'chmod -R u+w "$WORK"; rm -rf "$WORK"' EXIT
 
 deploy() {
   rm -rf "$WORK/repo"
