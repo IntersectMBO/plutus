@@ -13,7 +13,7 @@ module PlutusLedgerApi.V1
   , SerialisedScript.SerialisedScript
   , SerialisedScript.ScriptForEvaluation
   , SerialisedScript.ScriptDecodeError (..)
-  , SerialisedScript.ScriptNamedDeBruijn (..)
+  , SerialisedScript.ScriptDeBruijn (..)
   , SerialisedScript.serialisedScript
   , SerialisedScript.deserialisedScript
   , SerialisedScript.serialiseCompiledCode

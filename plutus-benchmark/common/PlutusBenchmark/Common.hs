@@ -87,7 +87,11 @@ getConfig limit = do
 -- | Evaluate a script and return the CPU and memory costs (according to the cost model)
 getCostsCek :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
 getCostsCek (UPLC.Program _ _ prog) =
-  case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter prog of
+  case Cek.runCekDeBruijn
+    PLC.defaultCekParametersForTesting
+    Cek.tallying
+    Cek.noEmitter
+    (toAnonDeBruijnTerm prog) of
     Cek.CekReport _res (Cek.TallyingSt _ budget) _logs ->
       let ExBudget (ExCPU cpu) (ExMemory mem) = budget
        in (fromSatInt cpu, fromSatInt mem)
@@ -124,10 +128,10 @@ mkMostRecentEvalCtx = mkEvalCtx maxBound maxBound
 -- | Evaluate a term as it would be evaluated using the on-chain evaluator.
 evaluateCekLikeInProd
   :: LedgerApi.EvaluationContext
-  -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  -> UPLC.Term PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
   -> Either
-       (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
-       (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
+       (UPLC.CekEvaluationException UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+       (UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
 evaluateCekLikeInProd evalCtx term =
   let
     -- The validation benchmarks were all created from PlutusV1 scripts
@@ -140,13 +144,13 @@ evaluateCekLikeInProd evalCtx term =
 Useful for benchmarking. -}
 evaluateCekForBench
   :: LedgerApi.EvaluationContext
-  -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  -> UPLC.Term PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
   -> ()
 evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
 
 benchTermCek :: LedgerApi.EvaluationContext -> Term -> Benchmarkable
 benchTermCek evalCtx term =
-  let !term' = force term
+  let !term' = force $ toAnonDeBruijnTerm term
    in whnf (evaluateCekForBench evalCtx) term'
 
 benchProgramCek :: LedgerApi.EvaluationContext -> Program -> Benchmarkable

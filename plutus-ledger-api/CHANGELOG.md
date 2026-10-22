@@ -20,6 +20,8 @@
 
 ## Changed
 
+- Ledger scripts decode directly to `DeBruijn`. `ScriptNamedDeBruijn` is renamed to `ScriptDeBruijn`; `mkTermToEvaluate`, `evaluateTerm`, and CEK errors use nameless indices.
+
 - Plutus Core 1.2.0 is available in Plutus V1–V4 from protocol version 12. Casing on
   `Data.Constr` requires both protocol version 12 and Plutus Core 1.2.0; casing
   on other constants is unchanged.

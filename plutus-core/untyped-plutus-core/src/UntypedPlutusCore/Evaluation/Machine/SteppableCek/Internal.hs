@@ -16,10 +16,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-{-| The CEK machine.
-The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
-string names. I.e. 'Unique's are used instead of string names. This is for efficiency reasons.
-The CEK machines handles name capture by design. -}
+-- | The CEK machine, using nameless de Bruijn indices to handle variable binding.
 module UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
   ( CekState (..)
   , Context (..)
@@ -132,9 +129,9 @@ computeCek !ctx !env (Var _ varName) = do
 computeCek !ctx !_ (Constant _ val) = do
   stepAndMaybeSpend BConst
   pure $ Returning ctx (VCon val)
-computeCek !ctx !env (LamAbs _ name body) = do
+computeCek !ctx !env (LamAbs _ _ body) = do
   stepAndMaybeSpend BLamAbs
-  pure $ Returning ctx (VLamAbs name body env)
+  pure $ Returning ctx (VLamAbs body env)
 computeCek !ctx !env (Delay _ body) = do
   stepAndMaybeSpend BDelay
   pure $ Returning ctx (VDelay body env)
@@ -276,7 +273,7 @@ applyEvaluate
   -> CekValue uni fun ann -- lhs of application
   -> CekValue uni fun ann -- rhs of application
   -> CekM uni fun s (CekState uni fun ann)
-applyEvaluate !ctx (VLamAbs _ body env) arg =
+applyEvaluate !ctx (VLamAbs body env) arg =
   pure $ Computing ctx (Env.cons arg env) body
 -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
 -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
@@ -301,7 +298,7 @@ runCekDeBruijn
   -> ExBudgetMode cost uni fun
   -> EmitterMode uni fun
   -> NTerm uni fun ann
-  -> CekReport cost NamedDeBruijn uni fun
+  -> CekReport cost DeBruijn uni fun
 runCekDeBruijn params mode emitMode term =
   runCekM params mode emitMode $ do
     spendBudget BStartup $ runIdentity $ cekStartupCost ?cekCosts
@@ -460,8 +457,8 @@ throwErrorDischarged err = throwErrorWithCause err . dischargeResultToTerm . dis
 lookupVarName
   :: forall uni fun ann s
    . ThrowableBuiltins uni fun
-  => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
-lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
+  => DeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+lookupVarName varName@(DeBruijn varIx) varEnv =
   Env.contIndexOne
     (throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName)
     pure
