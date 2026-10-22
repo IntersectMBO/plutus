@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792681896891,
+  "lastUpdate": 1792688676351,
   "repoUrl": "https://github.com/IntersectMBO/plutus",
   "entries": {
     "Plutus Benchmarks": [
@@ -2845254,6 +2845254,2030 @@ window.BENCHMARK_DATA = {
           {
             "name": "marlowe-role-payout/ff38b1ec89952d0247630f107a90cbbeb92ecbfcd19b284f60255718e4ec7548",
             "value": 142.2,
+            "unit": "μs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "45069775+ana-pantilie@users.noreply.github.com",
+            "name": "Ana Pantilie",
+            "username": "ana-pantilie"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c3a6a883f29ec15d8e73d95a78aba1c2fcfb7e67",
+          "message": "Add nix shell containing agda compiled with debug (#8012)\n\n* Add nix shell containing agda compiled with debug\n\n* Build metatheory-debug shell via devShells.default.overrideAttrs\n\nSet Agda's debug flag with agda-project.appendModule inside the shell\ninstead of threading a debug parameter through agda-tools.nix and\nmkShellWith.\n\n---------\n\nCo-authored-by: zeme <lorenzo.calegari@iohk.io>",
+          "timestamp": "2026-10-22T15:50:53+02:00",
+          "tree_id": "0ede9cbe7ca8ad20b3283699fa0bfc131f550e57",
+          "url": "https://github.com/IntersectMBO/plutus/commit/c3a6a883f29ec15d8e73d95a78aba1c2fcfb7e67"
+        },
+        "date": 1792688635982,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "validation-auction_1-1",
+            "value": 171.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-auction_1-2",
+            "value": 555,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-auction_1-3",
+            "value": 549.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-auction_1-4",
+            "value": 221.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-auction_2-1",
+            "value": 171.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-auction_2-2",
+            "value": 554.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-auction_2-3",
+            "value": 717.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-auction_2-4",
+            "value": 546.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-auction_2-5",
+            "value": 222.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-coop-1",
+            "value": 234.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-coop-2",
+            "value": 740.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-coop-3",
+            "value": 2021.9999999999998,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-coop-4",
+            "value": 916,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-coop-5",
+            "value": 396.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-coop-6",
+            "value": 688.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-coop-7",
+            "value": 333,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-crowdfunding-success-1",
+            "value": 202,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-crowdfunding-success-2",
+            "value": 202.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-crowdfunding-success-3",
+            "value": 202.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-currency-1",
+            "value": 221.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-escrow-redeem_1-1",
+            "value": 316.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-escrow-redeem_1-2",
+            "value": 316.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-escrow-redeem_2-1",
+            "value": 365.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-escrow-redeem_2-2",
+            "value": 366.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-escrow-redeem_2-3",
+            "value": 365.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-escrow-refund-1",
+            "value": 148.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-increase-margin-1",
+            "value": 221.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-increase-margin-2",
+            "value": 473.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-increase-margin-3",
+            "value": 474,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-increase-margin-4",
+            "value": 426.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-increase-margin-5",
+            "value": 714.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-pay-out-1",
+            "value": 221.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-pay-out-2",
+            "value": 475.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-pay-out-3",
+            "value": 473.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-pay-out-4",
+            "value": 715.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-settle-early-1",
+            "value": 222,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-settle-early-2",
+            "value": 473.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-settle-early-3",
+            "value": 475.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-future-settle-early-4",
+            "value": 543,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-game-sm-success_1-1",
+            "value": 345.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-game-sm-success_1-2",
+            "value": 191.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-game-sm-success_1-3",
+            "value": 551.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-game-sm-success_1-4",
+            "value": 222.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-game-sm-success_2-1",
+            "value": 346.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-game-sm-success_2-2",
+            "value": 192.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-game-sm-success_2-3",
+            "value": 554,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-game-sm-success_2-4",
+            "value": 222.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-game-sm-success_2-5",
+            "value": 555.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-game-sm-success_2-6",
+            "value": 222.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-guardrail-sorted-large",
+            "value": 437.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-guardrail-sorted-small",
+            "value": 70.97,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-guardrail-unsorted-large",
+            "value": 596.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-guardrail-unsorted-small",
+            "value": 68.79,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-multisig-sm-01",
+            "value": 352.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-multisig-sm-02",
+            "value": 343.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-multisig-sm-03",
+            "value": 344.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-multisig-sm-04",
+            "value": 346,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-multisig-sm-05",
+            "value": 480.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-multisig-sm-06",
+            "value": 352.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-multisig-sm-07",
+            "value": 344.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-multisig-sm-08",
+            "value": 346.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-multisig-sm-09",
+            "value": 344,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-multisig-sm-10",
+            "value": 477.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-ping-pong-1",
+            "value": 291.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-ping-pong-2",
+            "value": 291,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-ping-pong_2-1",
+            "value": 183.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-prism-1",
+            "value": 161.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-prism-2",
+            "value": 367.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-prism-3",
+            "value": 333.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-pubkey-1",
+            "value": 137.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-stablecoin_1-1",
+            "value": 840.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-stablecoin_1-2",
+            "value": 186.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-stablecoin_1-3",
+            "value": 966.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-stablecoin_1-4",
+            "value": 199.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-stablecoin_1-5",
+            "value": 1236,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-stablecoin_1-6",
+            "value": 245,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-stablecoin_2-1",
+            "value": 843.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-stablecoin_2-2",
+            "value": 186.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-stablecoin_2-3",
+            "value": 964.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-stablecoin_2-4",
+            "value": 198.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-token-account-1",
+            "value": 170.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-token-account-2",
+            "value": 300,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-uniswap-1",
+            "value": 349.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-uniswap-2",
+            "value": 201.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-uniswap-3",
+            "value": 1525,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-uniswap-4",
+            "value": 315,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-uniswap-5",
+            "value": 1031,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-uniswap-6",
+            "value": 299,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-vesting-1",
+            "value": 309.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-auction_1-1",
+            "value": 197.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-auction_1-2",
+            "value": 543.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-auction_1-3",
+            "value": 542.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-auction_1-4",
+            "value": 197.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-auction_2-1",
+            "value": 197.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-auction_2-2",
+            "value": 542.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-auction_2-3",
+            "value": 546.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-auction_2-4",
+            "value": 543.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-auction_2-5",
+            "value": 197.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-coop-1",
+            "value": 113.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-coop-2",
+            "value": 256.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-coop-3",
+            "value": 254.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-coop-4",
+            "value": 306.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-coop-5",
+            "value": 304.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-coop-6",
+            "value": 132.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-coop-7",
+            "value": 132.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-crowdfunding-success-1",
+            "value": 239.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-crowdfunding-success-2",
+            "value": 239.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-crowdfunding-success-3",
+            "value": 239.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-currency-1",
+            "value": 238.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-escrow-redeem_1-1",
+            "value": 320.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-escrow-redeem_1-2",
+            "value": 320,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-escrow-redeem_2-1",
+            "value": 319.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-escrow-redeem_2-2",
+            "value": 320.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-escrow-redeem_2-3",
+            "value": 320,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-escrow-refund-1",
+            "value": 319.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-increase-margin-1",
+            "value": 238.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-increase-margin-2",
+            "value": 323.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-increase-margin-3",
+            "value": 323.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-increase-margin-4",
+            "value": 685.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-increase-margin-5",
+            "value": 686.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-pay-out-1",
+            "value": 237.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-pay-out-2",
+            "value": 322.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-pay-out-3",
+            "value": 323.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-pay-out-4",
+            "value": 686.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-settle-early-1",
+            "value": 237,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-settle-early-2",
+            "value": 322.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-settle-early-3",
+            "value": 323.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-future-settle-early-4",
+            "value": 687.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-game-sm-success_1-1",
+            "value": 527.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-game-sm-success_1-2",
+            "value": 170,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-game-sm-success_1-3",
+            "value": 527.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-game-sm-success_1-4",
+            "value": 170.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-game-sm-success_2-1",
+            "value": 527.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-game-sm-success_2-2",
+            "value": 169.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-game-sm-success_2-3",
+            "value": 528.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-game-sm-success_2-4",
+            "value": 170.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-game-sm-success_2-5",
+            "value": 527.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-game-sm-success_2-6",
+            "value": 169.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-guardrail-sorted-large",
+            "value": 121.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-guardrail-sorted-small",
+            "value": 121.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-guardrail-unsorted-large",
+            "value": 120.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-guardrail-unsorted-small",
+            "value": 120.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-multisig-sm-01",
+            "value": 586.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-multisig-sm-02",
+            "value": 587.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-multisig-sm-03",
+            "value": 585.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-multisig-sm-04",
+            "value": 586.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-multisig-sm-05",
+            "value": 587.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-multisig-sm-06",
+            "value": 587.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-multisig-sm-07",
+            "value": 586.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-multisig-sm-08",
+            "value": 585.6,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-multisig-sm-09",
+            "value": 586.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-multisig-sm-10",
+            "value": 586.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-ping-pong-1",
+            "value": 501.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-ping-pong-2",
+            "value": 500.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-ping-pong_2-1",
+            "value": 500.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-prism-1",
+            "value": 165.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-prism-2",
+            "value": 515.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-prism-3",
+            "value": 239.7,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-pubkey-1",
+            "value": 170.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-stablecoin_1-1",
+            "value": 918.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-stablecoin_1-2",
+            "value": 170,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-stablecoin_1-3",
+            "value": 918,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-stablecoin_1-4",
+            "value": 170,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-stablecoin_1-5",
+            "value": 916.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-stablecoin_1-6",
+            "value": 170.2,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-stablecoin_2-1",
+            "value": 917.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-stablecoin_2-2",
+            "value": 170,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-stablecoin_2-3",
+            "value": 917.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-stablecoin_2-4",
+            "value": 169.8,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-token-account-1",
+            "value": 236.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-token-account-2",
+            "value": 217.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-uniswap-1",
+            "value": 239.9,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-uniswap-2",
+            "value": 236.1,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-uniswap-3",
+            "value": 731.5,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-uniswap-4",
+            "value": 182.4,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-uniswap-5",
+            "value": 732,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-uniswap-6",
+            "value": 182.3,
+            "unit": "μs"
+          },
+          {
+            "name": "validation-decode-vesting-1",
+            "value": 327.6,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-clausify/formula1",
+            "value": 1926,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-clausify/formula2",
+            "value": 2594,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-clausify/formula3",
+            "value": 7117,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-clausify/formula4",
+            "value": 14420,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-clausify/formula5",
+            "value": 34490,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-knights/4x4",
+            "value": 11620,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-knights/6x6",
+            "value": 28940,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-knights/8x8",
+            "value": 50500,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-primetest/05digits",
+            "value": 4963,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-primetest/10digits",
+            "value": 10050,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-primetest/30digits",
+            "value": 29540,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-primetest/50digits",
+            "value": 48130,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-queens4x4/bt",
+            "value": 3473,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-queens4x4/bm",
+            "value": 4541,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-queens4x4/bjbt1",
+            "value": 4218,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-queens4x4/bjbt2",
+            "value": 3956,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-queens4x4/fc",
+            "value": 8903,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-queens5x5/bt",
+            "value": 47550,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-queens5x5/bm",
+            "value": 52870,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-queens5x5/bjbt1",
+            "value": 56320,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-queens5x5/bjbt2",
+            "value": 54580,
+            "unit": "μs"
+          },
+          {
+            "name": "nofib-queens5x5/fc",
+            "value": 112800,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0000020002010200020101020201000100010001020101020201010000020102",
+            "value": 216.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0001000101000000010101000001000001010101010100000001000001010000",
+            "value": 302.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0003040402030103010203030303000200000104030002040304020400000102",
+            "value": 652.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/004025fd712d6c325ffa12c16d157064192992faf62e0b991d7310a2f91666b8",
+            "value": 530.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0101010001010101010101000100010100000001010000010001000001000101",
+            "value": 689.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0101020201010201010200010102000201000201010102000102010201010000",
+            "value": 199.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0101080808040600020306010000000302050807010208060100070207080202",
+            "value": 500.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0104010200020000040103020102020004040300030304040400010301040303",
+            "value": 515.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/04000f0b04051006000e060f09080d0b090d0104050a0b0f0506070f0a070008",
+            "value": 487.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0543a00ba1f63076c1db6bf94c6ff13ae7d266dd7544678743890b0e8e1add63",
+            "value": 705.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0705030002040601010206030604080208020207000101060706050502040301",
+            "value": 684.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/07070c070510030509010e050d00040907050e0a0d06030f1006030701020607",
+            "value": 670.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0bcfd9487614104ec48de2ea0b2c0979866a95115748c026f9ec129384c262c4",
+            "value": 741,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0be82588e4e4bf2ef428d2f44b7687bbb703031d8de696d90ec789e70d6bc1d8",
+            "value": 892.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/0f1d0110001b121d051e15140c0c05141d151c1f1d201c040f10091b020a0e1a",
+            "value": 316,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/119fbea4164e2bf21d2b53aa6c2c4e79414fe55e4096f5ce2e804735a7fbaf91",
+            "value": 496.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/12910f24d994d451ff379b12c9d1ecdb9239c9b87e5d7bea570087ec506935d5",
+            "value": 328.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/18cefc240debc0fcab14efdd451adfd02793093efe7bc76d6322aed6ddb582ad",
+            "value": 496.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/1a2f2540121f09321216090b2b1f211e3f020c2c133a1a3c3f3c232a26153a04",
+            "value": 203.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/1a573aed5c46d637919ccb5548dfc22a55c9fc38298d567d15ee9f2eea69d89e",
+            "value": 587.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/1d56060c3b271226064c672a282663643b1b0823471c67737f0b076870331260",
+            "value": 524.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/1d6e3c137149a440f35e0efc685b16bfb8052ebcf66ec4ad77e51c11501381c7",
+            "value": 204.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/1f0f02191604101e1f201016171604060d010d1d1c150e110a110e1006160a0d",
+            "value": 843,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/202d273721330b31193405101e0637202e2a0f1140211c3e3f171e26312b0220",
+            "value": 5530,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/21953bf8798b28df60cb459db24843fb46782b19ba72dc4951941fb4c20d2263",
+            "value": 232.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/238b21364ab5bdae3ddb514d7001c8feba128b4ddcf426852b441f9a9d02c882",
+            "value": 199.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/26e24ee631a6d927ea4fb4fac530cfd82ff7636986014de2d2aaa460ddde0bc3",
+            "value": 367.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/2797d7ac77c1b6aff8e42cf9a47fa86b1e60f22719a996871ad412cbe4de78b5",
+            "value": 1583,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/28fdce478e179db0e38fb5f3f4105e940ece450b9ce8a0f42a6e313b752e6f2c",
+            "value": 665.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/2cb21612178a2d9336b59d06cbf80488577463d209a453048a66c6eee624a695",
+            "value": 513.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/2f58c9d884813042bce9cf7c66048767dff166785e8b5183c8139db2aa7312d1",
+            "value": 512.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/30aa34dfbe89e0c43f569929a96c0d2b74c321d13fec0375606325eee9a34a6a",
+            "value": 726.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/322acde099bc34a929182d5b894214fc87ec88446e2d10625119a9d17fa3ec3d",
+            "value": 204.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/331e4a1bb30f28d7073c54f9a13c10ae19e2e396c299a0ce101ee6bf4b2020db",
+            "value": 307.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/33c3efd79d9234a78262b52bc6bbf8124cb321a467dedb278328215167eca455",
+            "value": 406.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/383683bfcecdab0f4df507f59631c702bd11a81ca3841f47f37633e8aacbb5de",
+            "value": 502.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/3bb75b2e53eb13f718eacd3263ab4535f9137fabffc9de499a0de7cabb335479",
+            "value": 199.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/3db496e6cd39a8b888a89d0de07dace4397878958cab3b9d9353978b08c36d8a",
+            "value": 550.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/44a9e339fa25948b48637fe7e10dcfc6d1256319a7b5ce4202cb54dfef8e37e7",
+            "value": 200,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/4c3efd13b6c69112a8a888372d56c86e60c232125976f29b1c3e21d9f537845c",
+            "value": 669.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/4d7adf91bfc93cebe95a7e054ec17cfbb912b32bd8aecb48a228b50e02b055c8",
+            "value": 461.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/4f9e8d361b85e62db2350dd3ae77463540e7af0d28e1eb68faeecc45f4655f57",
+            "value": 265.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/52df7c8dfaa5f801cd837faa65f2fd333665fff00a555ce8c55e36ddc003007a",
+            "value": 248.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/53ed4db7ab33d6f907eec91a861d1188269be5ae1892d07ee71161bfb55a7cb7",
+            "value": 252,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/55dfe42688ad683b638df1fa7700219f00f53b335a85a2825502ab1e0687197e",
+            "value": 199,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/56333d4e413dbf1a665463bf68067f63c118f38f7539b7ba7167d577c0c8b8ce",
+            "value": 486.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/57728d8b19b0e06412786f3dfed9e1894cd0ad1d2bc2bd497ec0ecb68f989d2b",
+            "value": 199.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/5abae75af26f45658beccbe48f7c88e74efdfc0b8409ba1e98f95fa5b6caf999",
+            "value": 322.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/5d0a88250f13c49c20e146819357a808911c878a0e0a7d6f7fe1d4a619e06112",
+            "value": 690,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/5e274e0f593511543d41570a4b03646c1d7539062b5728182e073e5760561a66",
+            "value": 684.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/5e2c68ac9f62580d626636679679b97109109df7ac1a8ce86d3e43dfb5e4f6bc",
+            "value": 346.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/5f130d19918807b60eab4c03119d67878fb6c6712c28c54f5a25792049294acc",
+            "value": 204.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/5f306b4b24ff2b39dab6cdc9ac6ca9bb442c1dc6f4e7e412eeb5a3ced42fb642",
+            "value": 487.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/5f3d46c57a56cef6764f96c9de9677ac6e494dd7a4e368d1c8dd9c1f7a4309a5",
+            "value": 326.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/64c3d5b43f005855ffc4d0950a02fd159aa1575294ea39061b81a194ebb9eaae",
+            "value": 431,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/65bc4b69b46d18fdff0fadbf00dd5ec2b3e03805fac9d5fb4ff2d3066e53fc7e",
+            "value": 2245,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/66af9e473d75e3f464971f6879cc0f2ef84bafcb38fbfa1dbc31ac2053628a38",
+            "value": 861.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/675d63836cad11b547d1b4cddd498f04c919d4342612accf40913f9ae9419fac",
+            "value": 678,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/67ba5a9a0245ee3aff4f34852b9889b8c810fccd3dce2a23910bddd35c503b71",
+            "value": 5646,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/6d88f7294dd2b5ce02c3dc609bc7715bd508009738401d264bf9b3eb7c6f49c1",
+            "value": 324,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/70f65b21b77ddb451f3df9d9fb403ced3d10e1e953867cc4900cc25e5b9dec47",
+            "value": 513.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/71965c9ccae31f1ffc1d85aa20a356d4ed97a420954018d8301ec4f9783be0d7",
+            "value": 312.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/74c67f2f182b9a0a66c62b95d6fac5ace3f7e71ea3abfc52ffbe3ecb93436ea2",
+            "value": 518.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/7529b206a78becb793da74b78c04d9d33a2540a1abd79718e681228f4057403a",
+            "value": 506,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/75a8bb183688bce447e00f435a144c835435e40a5defc6f3b9be68b70b4a3db6",
+            "value": 458.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/7a758e17486d1a30462c32a5d5309bd1e98322a9dcbe277c143ed3aede9d265f",
+            "value": 351.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/7cbc5644b745f4ea635aca42cce5e4a4b9d2e61afdb3ac18128e1688c07071ba",
+            "value": 312.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/82213dfdb6a812b40446438767c61a388d2c0cfd0cbf7fd4a372b0dc59fa17e1",
+            "value": 870.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/8c7fdc3da6822b5112074380003524f50fb3a1ce6db4e501df1086773c6c0201",
+            "value": 728.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/8d9ae67656a2911ab15a8e5301c960c69aa2517055197aff6b60a87ff718d66c",
+            "value": 233.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/96e1a2fa3ceb9a402f2a5841a0b645f87b4e8e75beb636692478ec39f74ee221",
+            "value": 204.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/9fabc4fc3440cdb776b28c9bb1dd49c9a5b1605fe1490aa3f4f64a3fa8881b25",
+            "value": 706.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/a85173a832db3ea944fafc406dfe3fa3235254897d6d1d0e21bc380147687bd5",
+            "value": 251.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/a9a853b6d083551f4ed2995551af287880ef42aee239a2d9bc5314d127cce592",
+            "value": 352.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/acb9c83c2b78dabef8674319ad69ba54912cd9997bdf2d8b2998c6bfeef3b122",
+            "value": 421.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/acce04815e8fd51be93322888250060da173eccf3df3a605bd6bc6a456cde871",
+            "value": 192.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/ad6db94ed69b7161c7604568f44358e1cc11e81fea90e41afebd669e51bb60c8",
+            "value": 380,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/b21a4df3b0266ad3481a26d3e3d848aad2fcde89510b29cccce81971e38e0835",
+            "value": 890.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/b50170cea48ee84b80558c02b15c6df52faf884e504d2c410ad63ba46d8ca35c",
+            "value": 491.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/bb5345bfbbc460af84e784b900ec270df1948bb1d1e29eacecd022eeb168b315",
+            "value": 632.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/c4bb185380df6e9b66fc1ee0564f09a8d1253a51a0c0c7890f2214df9ac19274",
+            "value": 485.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/c9efcb705ee057791f7c18a1de79c49f6e40ba143ce0579f1602fd780cabf153",
+            "value": 517.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/ccab11ce1a8774135d0e3c9e635631b68af9e276b5dabc66ff669d5650d0be1c",
+            "value": 839.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/cdb9d5c233b288a5a9dcfbd8d5c1831a0bb46eec7a26fa31b80ae69d44805efc",
+            "value": 558,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/ced1ea04649e093a501e43f8568ac3e6b37cd3eccec8cac9c70a4857b88a5eb8",
+            "value": 538.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/cf542b7df466b228ca2197c2aaa89238a8122f3330fe5b77b3222f570395d9f5",
+            "value": 330.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/d1ab832dfab25688f8845bec9387e46ee3f00ba5822197ade7dd540489ec5e95",
+            "value": 35770,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/d1c03759810747b7cab38c4296593b38567e11195d161b5bb0a2b58f89b2c65a",
+            "value": 662.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/d64607eb8a1448595081547ea8780886fcbd9e06036460eea3705c88ea867e33",
+            "value": 198.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/dc241ac6ad1e04fb056d555d6a4f2d08a45d054c6f7f34355fcfeefebef479f3",
+            "value": 312.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/dd11ae574eaeab0e9925319768989313a93913fdc347c704ddaa27042757d990",
+            "value": 489.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/e26c1cddba16e05fd10c34cbdb16ea6acdbac7c8323256c31c90c520ee6a1080",
+            "value": 247.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/e34b48f80d49360e88c612f4016f7d68cb5678dd8cd5ddb981375a028b3a40a5",
+            "value": 249.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/e3afd22d01ff12f381cf915fd32358634e6c413f979f2492cf3339319d8cc079",
+            "value": 204,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/e9234d2671760874f3f660aae5d3416d18ce6dfd7af4231bdd41b9ec268bc7e1",
+            "value": 712.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/eb4a605ed3a64961e9e66ad9631c2813dadf7131740212762ae4483ec749fe1d",
+            "value": 198.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/ecb5e8308b57724e0f8533921693f111eba942123cf8660aac2b5bac21ec28f0",
+            "value": 435,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/f2a8fd2014922f0d8e01541205d47e9bb2d4e54333bdd408cbe7c47c55e73ae4",
+            "value": 513.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/f339f59bdf92495ed2b14e2e4d3705972b4dda59aa929cffe0f1ff5355db8d79",
+            "value": 4194,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-semantics/ffdd68a33afd86f8844c9f5e45b2bda5b035aa02274161b23d57709c0f8b8de6",
+            "value": 619,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0004000402010401030101030100040000010104020201030001000204020401",
+            "value": 128.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0100000100010000000001000100010101000101000001000000010000010000",
+            "value": 174,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0101000100000101010000010101000100010101000001000001000000010101",
+            "value": 138,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/01dcc372ea619cb9f23c45b17b9a0a8a16b7ca0e04093ef8ecce291667a99a4c",
+            "value": 115.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0201020201020000020000010201020001020200000002010200000101010100",
+            "value": 125.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0202010002010100020102020102020001010101020102010001010101000100",
+            "value": 117.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0303020000020001010201060303040208070100050401080304020801030001",
+            "value": 118.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/031d56d71454e2c4216ffaa275c4a8b3eb631109559d0e56f44ea8489f57ba97",
+            "value": 141.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/03d730a62332c51c7b70c16c64da72dd1c3ea36c26b41cd1a1e00d39fda3d6cc",
+            "value": 134.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0403020000030204010000030001000202010101000304030001040404030100",
+            "value": 125.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0405010105020401010304080005050800040301010800080207080704020206",
+            "value": 136.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/041a2c3b111139201a3a2c173c392b170e16370d300f2d28342d0f2f0e182e01",
+            "value": 136.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/04f592afc6e57c633b9c55246e7c82e87258f04e2fb910c37d8e2417e9db46e5",
+            "value": 159.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/057ebc80922f16a5f4bf13e985bf586b8cff37a2f6fe0f3ce842178c16981027",
+            "value": 117,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/06317060a8e488b1219c9dae427f9ce27918a9e09ee8ac424afa33ca923f7954",
+            "value": 123.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/07658a6c898ad6d624c37df1e49e909c2e9349ba7f4c0a6be5f166fe239bfcae",
+            "value": 111.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0bdca1cb8fa7e38e09062557b82490714052e84e2054e913092cd84ac071b961",
+            "value": 135.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0c9d3634aeae7038f839a1262d1a8bc724dc77af9426459417a56ec73240f0e0",
+            "value": 123.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0d0f01050a0a0a0b0b050d0404090e0d0506000d0a041003040e0f100e0a0408",
+            "value": 123.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0dbb692d2bf22d25eeceac461cfebf616f54003077a8473abc0457f18e025960",
+            "value": 140.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0e00171d0f1e1f14070d0a00091f07101808021d081e1b120219081312081e15",
+            "value": 120.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0e72f62b0f922e31a2340baccc768104025400cf7fdd7dae62fbba5fc770936d",
+            "value": 130.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0e97c9d9417354d9460f2eb35018d3904b7b035af16ab299258adab93be0911a",
+            "value": 128.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/0f010d040810040b10020e040f0e030b0a0d100f0c080c0c05000d04100c100f",
+            "value": 134.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/1138a04a83edc0579053f9ffa9394b41df38230121fbecebee8c039776a88c0c",
+            "value": 118.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/121a0a1b12030616111f02121a0e070716090a0e031c071419121f141409031d",
+            "value": 116.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/159e5a1bf16fe984b5569be7011b61b5e98f5d2839ca7e1b34c7f2afc7ffb58e",
+            "value": 118,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/195f522b596360690d04586a2563470f2214163435331a6622311f7323433f1c",
+            "value": 116.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/1a20b465d48a585ffd622bd8dc26a498a3c12f930ab4feab3a5064cfb3bc536a",
+            "value": 128.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/211e1b6c10260c4620074d2e372c260d38643a3d605f63772524034f0a4a7632",
+            "value": 122.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/21a1426fb3fb3019d5dc93f210152e90b0a6e740ef509b1cdd423395f010e0ca",
+            "value": 130.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/224ce46046fab9a17be4197622825f45cc0c59a6bd1604405148e43768c487ef",
+            "value": 118.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/332c2b1c11383d1b373e1315201f1128010e0e1518332f273f141b23243f2a07",
+            "value": 113.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/3565ee025317e065e8555eef288080276716366769aad89e03389f5ec4ce26d7",
+            "value": 123.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/3569299fc986f5354d02e627a9eaa48ab46d5af52722307a0af72bae87e256dc",
+            "value": 116.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/36866914aa07cf62ef36cf2cd64c7f240e3371e27bb9fff5464301678e809c40",
+            "value": 116.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/371c10d2526fc0f09dbe9ed59e44dcd949270b27dc42035addd7ff9f7e0d05e7",
+            "value": 138.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/3897ef714bba3e6821495b706c75f8d64264c3fdaa58a3826c808b5a768c303d",
+            "value": 120.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/4121d88f14387d33ac5e1329618068e3848445cdd66b29e5ba382be2e02a174a",
+            "value": 138.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/4299c7fcf093a5dbfe114c188e32ca199b571a7c25cb7f766bf49f12dab308be",
+            "value": 128.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/452e17d16222a427707fa83f63ffb79f606cc25c755a18b1e3274c964ed5ec99",
+            "value": 139,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/46f8d00030436e4da490a86b331fa6c3251425fb8c19556080e124d75bad7bd6",
+            "value": 116.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/47364cfaf2c00f7d633283dce6cf84e4fd4e8228c0a0aa50e7c55f35c3ecaa1c",
+            "value": 117.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/49b8275d0cb817be40865694ab05e3cfe5fc35fb43b78e7de68c1f3519b536bd",
+            "value": 123.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/4dd7755b6ca1f0c9747c1fc0ee4da799f6f1c07108e980bd9f820911ad711ff2",
+            "value": 155,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/4fbcfdb577a56b842d6f6938187a783f71d9da7519353e3da3ef0c564e1eb344",
+            "value": 142.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/5a0725d49c733130eda8bc6ed5234f7f6ff8c9dd2d201e8806125e5fbcc081f9",
+            "value": 125.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/5a2aae344e569a2c644dd9fa8c7b1f129850937eb562b7748c275f9e40bed596",
+            "value": 117.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/5ade103e9530dd0d572fe1b053ea65ad925c6ebbe321e873ace8b804363fa82c",
+            "value": 160.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/5d4c62a0671c65a14f6a15093e3efc4f1816d95a5a58fd92486bedaae8d9526b",
+            "value": 137.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/5efe992e306e31cc857c64a62436ad2f9325acc5b4a74a8cebccdfd853ce63d2",
+            "value": 123.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/622a7f3bc611b5149253c9189da022a9ff296f60a5b7c172a6dc286faa7284fa",
+            "value": 140.3,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/6621a69217f09d91f42876a9c0cecf79de0e29bdd5b16c82c6c52cf959092ec4",
+            "value": 129,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/674b0577409957172ad85223c765d17e94c27714276c49c38dfae0a47a561a1e",
+            "value": 116,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/6b7bc2b9002a71b33cfd535d43f26334a283d0b9ad189b7cd74baac232c3b9fc",
+            "value": 111.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/6c364699767a84059ffd99cf718562a8c09d96e343f23dc481e8ffda13af424f",
+            "value": 116.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/6d66bddb4269bdf77392d3894da5341cf019d39787522af4f83f01285991e93c",
+            "value": 117.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/73f044f34a30f26639c58bafe952047f74c7bf1eafebab5aadf5b73cfb9024ed",
+            "value": 117,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/7b1dd76edc27f00eb382bf996378155baf74d6a7c6f3d5ec837c39d29784aade",
+            "value": 117.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/803eae94d62e2afc0e835c204af8362170301bc329e2d849d5f5a47dddf479ec",
+            "value": 133.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/87167fc5469adac97c1be749326fa79a6b7862ce68aa4abcb438e3c034bd0899",
+            "value": 136.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/8c0fa5d9d6724c5c72c67e055d4bfc36a385ded7c3c81c08cdbd8705829af6e6",
+            "value": 139.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/962c2c658b19904372984a56409707401e64e9b03c1986647134cfd329ec5139",
+            "value": 127.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/996804e90f2c75fe68886fc8511304b8ab9b36785f8858f5cb098e91c159dde9",
+            "value": 119.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/a004a989c005d59043f996500e110fa756ad1b85800b889d5815a0106388e1d7",
+            "value": 125.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/a0fba5740174b5cd24036c8b008cb1efde73f1edae097b9325c6117a0ff40d3b",
+            "value": 131.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/a1b25347409c3993feca1a60b6fcaf93d1d4bbaae19ab06fdf50cedc26cee68d",
+            "value": 115,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/a27524cfad019df45e4e8316f927346d4cc39da6bdd294fb2c33c3f58e6a8994",
+            "value": 116.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/a6664a2d2a82f370a34a36a45234f6b33120a39372331678a3b3690312560ce9",
+            "value": 142.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/a6f064b83b31032ea7f25921364727224707268e472a569f584cc6b1d8c017e8",
+            "value": 118.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/a7cb09f417c3f089619fe25b7624392026382b458486129efcff18f8912bf302",
+            "value": 117.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/a92b4072cb8601fa697e1150c08463b14ffced54eb963df08d322216e27373cb",
+            "value": 118,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/af2e072b5adfaa7211e0b341e1f7319c4f4e7364a4247c9247132a927e914753",
+            "value": 137.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/b43564af5f13cc5208b92b1ad6d45369446f378d3891e5cb3e353b30d4f3fb10",
+            "value": 118.1,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/b6243a5b4c353ce4852aa41705111d57867d2783eeef76f6d59beb2360da6e90",
+            "value": 156.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/b869f3928200061abb1c3060425b9354b0e08cbf4400b340b8707c14b34317cd",
+            "value": 168.6,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/bcdbc576d63b0454100ad06893812edafc2e7e4934fec1b44e2d06eb34f36eb8",
+            "value": 118,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/bd460b7549b70c52e37b312a4242041eac18fe4a266f018bcea0c78a9085a271",
+            "value": 133.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/bd79f4a84db23b7c4cd219d498bd581e085cbc3437957e74a8862281a700700b",
+            "value": 134,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/c11490431db3a92efdda70933ba411a0423935e73a75c856e326dbcf6672f3bf",
+            "value": 119.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/c4d4c88c5fe378a25a034025994a0d0b1642f10c8e6e513f872327fa895bfc7e",
+            "value": 125.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/c78eeba7681d2ab51b4758efa4c812cc041928837c6e7563d8283cce67ce2e02",
+            "value": 126.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/c99ecc2146ce2066ba6dffc734923264f8794815acbc2ec74c2c2c42ba272e4d",
+            "value": 144.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/caa409c40e39aed9b0f59214b4baa178c375526dea6026b4552b88d2cc729716",
+            "value": 111.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/cb2ab8e22d1f64e8d204dece092e90e9bf1fa8b2a6e9cba5012dbe4978065832",
+            "value": 117.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/cc1e82927f6c65b3e912200ae30588793d2066e1d4a6627c21955944ac9bd528",
+            "value": 132.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/d5cda74eb0947e025e02fb8ed365df39d0a43e4b42cd3573ac2d8fcb29115997",
+            "value": 130,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/d6bc8ac4155e22300085784148bbc9d9bbfea896e1009dd396610a90e3943032",
+            "value": 133.2,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/da353bf9219801fa1bf703fc161497570954e9af7e10ffe95c911a9ef97e77bd",
+            "value": 123,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/dc45c5f1b700b1334db99f50823321daaef0e6925b9b2fabbc9df7cde65af62e",
+            "value": 121.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/df487b2fd5c1583fa33644423849bc1ab5f02f37edc0c235f34ef01cb12604f6",
+            "value": 123.4,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/eabeeae18131af89fa57936c0e9eb8d2c7adba534f7e1a517d75410028fa0d6c",
+            "value": 117.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/ec4712ee820eb959a43ebedfab6735f2325fa52994747526ffd2a4f4f84dd58e",
+            "value": 132.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/ee3962fbd7373360f46decef3c9bda536a0b1daf6cda3b8a4bcfd6deeb5b4c53",
+            "value": 134.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/f1a1e6a487f91feca5606f72bbb1e948c71abf043c6a0ea83bfea9ec6a0f08d8",
+            "value": 116.9,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/f2932e4ca4bbb94b0a9ffbe95fcb7bd5639d9751d75d56d5e14efa5bbed981df",
+            "value": 116.5,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/f53e8cafe26647ccce51e4c31db13608aea1f39034c0f52dee2e5634ef66e747",
+            "value": 128.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/f7275afb60e33a550df13a132102e7e925dd28965a4efbe510a89b077ff9417f",
+            "value": 117.8,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/fc8c5f45ffcdb024c21e0f34b22c23de8045a94d5e1a5bda1555c45ddb059f82",
+            "value": 122.7,
+            "unit": "μs"
+          },
+          {
+            "name": "marlowe-role-payout/ff38b1ec89952d0247630f107a90cbbeb92ecbfcd19b284f60255718e4ec7548",
+            "value": 138.2,
             "unit": "μs"
           }
         ]
