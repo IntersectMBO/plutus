@@ -50,15 +50,16 @@ jobs:
 
       - name: Publish Papers
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        uses: JamesIves/github-pages-deploy-action@v4.9.0
-        with:
-          folder: _resources
-          target-folder: resources
-          single-commit: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/deploy-gh-pages.sh _resources resources
 
-      - name: Publish Preview Papers 
-        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-        uses: rossjrw/pr-preview-action@v1.6.3
-        with:
-          source-dir: _resources
-          umbrella-dir: pr-preview/resources
+      - name: Publish Preview Papers
+        # PRs from forks, and runs triggered by Dependabot, get a read-only token.
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          ./scripts/deploy-gh-pages.sh _resources "pr-preview/resources/pr-$PR_NUMBER"
+          echo "Preview: https://plutus.cardano.intersectmbo.org/pr-preview/resources/pr-$PR_NUMBER/" >> "$GITHUB_STEP_SUMMARY"
