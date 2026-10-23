@@ -210,6 +210,14 @@ failingEvaluationTests =
   [ printf "test-cases/uplc/evaluation/builtin/semantics/multiIndexArray/multiIndexArray-%02d" n
   | n <- [1 .. 26 :: Int]
   ]
+    -- CIP-0168 Agda support is tracked separately in
+    -- https://github.com/IntersectMBO/plutus-private/issues/2407.
+    -- Remove these exclusions once the four builtins are implemented.
+    <> [ printf "test-cases/uplc/evaluation/builtin/semantics/%s/%s-%02d" builtin builtin n
+       | (builtin, count) <-
+           [("policies", 7), ("assetCount", 8), ("keepPolicies", 27), ("dropPolicies", 32)]
+       , n <- [1 .. count :: Int]
+       ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
 main :: IO ()
