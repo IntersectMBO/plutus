@@ -20,6 +20,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UnliftedDatatypes #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -108,6 +109,7 @@ import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Vector qualified as V
+import GHC.Exts (UnliftedType)
 import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
@@ -716,37 +718,41 @@ instance HasConstant (CekValue uni fun ann) where
   fromConstant = VCon
   {-# INLINE fromConstant #-}
 
+-- The unlifted kind records that every context is already evaluated while keeping
+-- it represented by one pointer throughout the machine.
+-- With an unboxed Context sum, recursive evaluator calls passed the sum tag and
+-- frame fields as separate arguments instead of one context pointer. That version
+-- was slower in validator benchmarks.
+-- Unlifted argument stacks and unpacked/split VConstr stacks gave no consistent
+-- validator speedup.
 {-|
 The context in which the machine operates.
 
 Morally, this is a stack of frames, but we use the "intrusive list" representation so that
 we can match on context and the top frame in a single, strict pattern match. -}
+type Context :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> UnliftedType
 data Context uni fun ann
   = -- | @[V _]@
-    FrameAwaitArg !(CekValue uni fun ann) !(Context uni fun ann)
+    FrameAwaitArg !(CekValue uni fun ann) (Context uni fun ann)
   | -- | @[_ N]@
-    FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
+    FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) (Context uni fun ann)
   | -- | @[_ V]@
-    FrameAwaitFunConN !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
+    FrameAwaitFunConN !(Spine (Some (ValueOf uni))) (Context uni fun ann)
   | -- | @[_ V1 .. Vn]@
-    FrameAwaitFunValueN !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
+    FrameAwaitFunValueN !(ArgStackNonEmpty uni fun ann) (Context uni fun ann)
   | {-| @(force _)@
     See Note [Accumulators for terms] -}
-    FrameForce !(Context uni fun ann)
+    FrameForce (Context uni fun ann)
   | -- | @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     FrameConstr
       !(CekValEnv uni fun ann)
       {-# UNPACK #-} !Word64
       ![NTerm uni fun ann]
       !(ArgStack uni fun ann)
-      !(Context uni fun ann)
+      (Context uni fun ann)
   | -- | @(case _ C0 .. Cn)@
-    FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+    FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) (Context uni fun ann)
   | NoFrame
-
-deriving stock instance
-  (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-  => Show (Context uni fun ann)
 
 -- See Note [ExMemoryUsage instances for non-constants].
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun ann) where
