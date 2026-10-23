@@ -18,22 +18,28 @@ where
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
   ( CekMachineCosts
+  , CekMachineCostsBase (..)
   , cekMachineCostsPrefix
   )
 
 import Control.DeepSeq (NFData)
 import Control.Exception
+import Control.Monad (unless)
 import Control.Monad.Except
 import Data.Aeson
 import Data.Aeson.Flatten
 import Data.Data (Data)
+import Data.Functor.Identity (Identity (..))
 import Data.HashMap.Strict qualified as HM
 import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Map.Merge.Lazy qualified as Map
+import Data.SatInt (unSatInt)
 import Data.Text qualified as Text
 import GHC.Generics (Generic)
 import NoThunks.Class
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import Prettyprinter
 
 {- Note [Cost model parameters]
@@ -244,6 +250,8 @@ extractParams cm = case toJSON cm of
 data CostModelApplyError
   = -- | a costmodel parameter with the give name does not exist in the costmodel to be applied upon
     CMUnknownParamError !Text.Text
+  | -- | a CEK machine cost must be strictly positive
+    CMNonPositiveMachineCost !Text.Text !Int64
   | -- | internal error when we are transforming the applyParams' input to json (should not happen)
     CMInternalReadError
   | -- | internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
@@ -262,6 +270,11 @@ instance Pretty CostModelApplyError where
   pretty =
     (preamble <+>) . \case
       CMUnknownParamError k -> "No such parameter in target cost model:" <+> pretty k
+      CMNonPositiveMachineCost k value ->
+        "CEK machine cost must be strictly positive:"
+          <+> pretty k
+          <+> "is"
+          <+> pretty value
       CMInternalReadError -> "Internal problem occurred upon reading the given cost model parameters"
       CMInternalWriteError str ->
         "Internal problem occurred upon generating the applied cost model parameters with JSON error:"
@@ -370,13 +383,53 @@ applySplitCostModelParams prefix model params =
 Note that this is costly. See [here](https://github.com/IntersectMBO/plutus/issues/4962).
 Callers are recommended to call this once and cache the results. -}
 applyCostModelParams
-  :: ( FromJSON evaluatorcosts
-     , FromJSON builtincosts
-     , ToJSON evaluatorcosts
+  :: ( FromJSON builtincosts
      , ToJSON builtincosts
      , MonadError CostModelApplyError m
      )
-  => CostModel evaluatorcosts builtincosts
+  => CostModel CekMachineCosts builtincosts
   -> CostModelParams
-  -> m (CostModel evaluatorcosts builtincosts)
-applyCostModelParams = applySplitCostModelParams cekMachineCostsPrefix
+  -> m (CostModel CekMachineCosts builtincosts)
+applyCostModelParams model params = do
+  updatedModel <- applySplitCostModelParams cekMachineCostsPrefix model params
+  validateCekMachineCosts $ _machineCostModel updatedModel
+  pure updatedModel
+
+-- | Ensure that every realized CEK machine-step cost is strictly positive.
+validateCekMachineCosts :: MonadError CostModelApplyError m => CekMachineCosts -> m ()
+validateCekMachineCosts
+  ( CekMachineCostsBase
+      startupCost
+      varCost
+      constCost
+      lamCost
+      delayCost
+      forceCost
+      applyCost
+      builtinCost
+      constrCost
+      caseCost
+    ) =
+    mapM_
+      (uncurry validateCekMachineBudget)
+      [ ("cekStartupCost", startupCost)
+      , ("cekVarCost", varCost)
+      , ("cekConstCost", constCost)
+      , ("cekLamCost", lamCost)
+      , ("cekDelayCost", delayCost)
+      , ("cekForceCost", forceCost)
+      , ("cekApplyCost", applyCost)
+      , ("cekBuiltinCost", builtinCost)
+      , ("cekConstrCost", constrCost)
+      , ("cekCaseCost", caseCost)
+      ]
+
+validateCekMachineBudget
+  :: MonadError CostModelApplyError m => Text.Text -> Identity ExBudget -> m ()
+validateCekMachineBudget name (Identity (ExBudget (ExCPU cpu) (ExMemory memory))) = do
+  validateCost (name <> "-exBudgetCPU") $ unSatInt cpu
+  validateCost (name <> "-exBudgetMemory") $ unSatInt memory
+  where
+    validateCost :: MonadError CostModelApplyError m => Text.Text -> Int64 -> m ()
+    validateCost parameterName value =
+      unless (value > 0) $ throwError $ CMNonPositiveMachineCost parameterName value
