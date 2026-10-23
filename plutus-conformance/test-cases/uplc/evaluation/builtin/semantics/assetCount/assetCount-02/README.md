@@ -1,11 +1,18 @@
-# assetCount-02: Single asset
+# assetCount-02: Lovelace and native assets
 
-Count distinct assets, rather than summing quantities.
+Lovelace and two token names under one native policy count as three assets.
+Counting policies or omitting lovelace would give two; the quantities do not
+affect the count.
 
-Value argument: `(con value [(#aa, [(#01, 42)])])`.
+Value argument:
+
+```uplc
+(con value [(#, [(#, 1000000)]),
+            (#aa, [(#01, 42), (#02, 7)])])
+```
 
 Expected result:
 
 ```uplc
-(con integer 1)
+(con integer 3)
 ```
