@@ -2,6 +2,8 @@
 
 An empty Value contains zero assets.
 
+Value argument: `(con value [])`.
+
 Expected result:
 
 ```uplc

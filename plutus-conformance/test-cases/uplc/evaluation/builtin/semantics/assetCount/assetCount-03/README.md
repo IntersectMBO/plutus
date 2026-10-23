@@ -2,6 +2,8 @@
 
 Lovelace counts as one asset.
 
+Value argument: `(con value [(#, [(#, 1000000)])])`.
+
 Expected result:
 
 ```uplc
