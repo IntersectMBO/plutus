@@ -1,0 +1,7 @@
+-- 256 IDs on empty Value
+(program 1.1.0
+  [ (builtin keepPolicies)
+    (con (list bytestring) [#aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa, #aa])
+    (con value [])
+  ]
+)
