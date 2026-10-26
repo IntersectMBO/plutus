@@ -15,13 +15,15 @@ import Data.List.Extra (nubOrdOn, sortOn)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.SatInt (fromSatInt)
+import Data.Text (Text)
+import Data.Text qualified as Text
 import Safe.Foldable (maximumMay)
 import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 
-import PlutusCore.Builtin (BuiltinResult (..))
+import PlutusCore.Builtin (BuiltinError (..), BuiltinResult (..))
 import PlutusCore.Data (Data (..))
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
@@ -208,22 +210,23 @@ prop_policiesAfterDeletion v0 =
 Some are drawn from the `Value` itself, so that the properties test a filter that actually
 keeps or removes something. The rest are generated and almost never match, which is what
 exercises the absent-id path. Some are then repeated, because a repeated id finds what an earlier
-occurrence already recorded and neither builtin may count it twice. -}
+occurrence already recorded and neither builtin may count it twice. The list is cut to
+`V.policyFilterMaxIds`, the longest either builtin accepts. -}
 genPolicyIds :: Value -> Gen [ByteString]
 genPolicyIds v = do
   present <- sublistOf (V.policies v)
   absent <- listOf (V.unK <$> genShortHex (V.totalSize v))
   let ids = present <> absent
   repeats <- sublistOf ids
-  shuffle (ids <> repeats)
+  take V.policyFilterMaxIds <$> shuffle (ids <> repeats)
 
-{-| Run a policy filter on a `Value` the generators keep far below `policyFilterMaxSize`,
-so that a failure here is a bug and not the bound. -}
+{-| Run a policy filter on a list `genPolicyIds` keeps within `V.policyFilterMaxIds`, so that a
+failure here is a bug and not the bound. -}
 filtered :: BuiltinResult Value -> (Value -> Property) -> Property
 filtered r prop = case r of
   BuiltinSuccess v -> prop v
   BuiltinSuccessWithLogs _ v -> prop v
-  BuiltinFailure {} -> counterexample "policy filter failed below policyFilterMaxSize" False
+  BuiltinFailure {} -> counterexample "policy filter failed within policyFilterMaxIds" False
 
 prop_keepPoliciesBookkeeping :: Value -> Property
 prop_keepPoliciesBookkeeping v =
@@ -360,13 +363,13 @@ prop_oppositeScaleIsInverse :: Integer -> Value -> Property
 prop_oppositeScaleIsInverse c v =
   let
     scaledValue = do
-      vInv <- V.scaleValue (negate c) v
+      vInv <- V.scaleValue (-c) v
       v' <- V.scaleValue c v
       V.unionValue v' vInv
    in
     property $ case scaledValue of
       BuiltinSuccess r -> r == V.empty
-      _ -> scaleIncorrectlyBound c v
+      _ -> scaleIncorrectlyBound c v || scaleIncorrectlyBound (-c) v
 
 prop_dataRoundtrip :: Value -> Property
 prop_dataRoundtrip v =
@@ -456,10 +459,25 @@ manyPoliciesValue m = V.pack (Map.fromList [(policyId i, Map.singleton token one
     token = fromJust (V.k "t")
     one = fromJust (V.quantity 1)
 
--- | Whether a policy filter refused its `Value`.
+-- | @n@ distinct policy ids, none of them in a `manyPoliciesValue`.
+absentPolicyIds :: Int -> [ByteString]
+absentPolicyIds n = [policyId i | i <- [1 .. n]]
+  where
+    byteRadix = 256
+    policyId i = B.pack [fromIntegral (i `div` byteRadix), fromIntegral (i `mod` byteRadix), 0]
+
+-- | Whether a policy filter failed.
 refused :: BuiltinResult Value -> Bool
 refused r = case r of
   BuiltinFailure {} -> True
+  _ -> False
+
+-- | Whether the named policy filter failed on a policy list longer than `V.policyFilterMaxIds`.
+overflowed :: Text -> BuiltinResult Value -> Bool
+overflowed name r = case r of
+  BuiltinFailure logs BuiltinEvaluationFailure ->
+    let limit = Text.pack (show V.policyFilterMaxIds)
+     in F.toList logs == [name <> ": maximum number of policy ids (" <> limit <> ") exceeded"]
   _ -> False
 
 checkBookkeeping :: Value -> Property
@@ -705,14 +723,21 @@ tests =
     , testProperty
         "keepDropPartition"
         (withNumTests 20 prop_keepDropPartition)
-    , testCase "policyFiltersAcceptTheSizeBound" $ do
-        let v = manyPoliciesValue V.policyFilterMaxSize
-        refused (V.keepPolicies [] v) @?= False
-        refused (V.dropPolicies [] v) @?= False
-    , testCase "policyFiltersRefuseAboveTheSizeBound" $ do
-        let v = manyPoliciesValue (V.policyFilterMaxSize + 1)
-        refused (V.keepPolicies [] v) @?= True
-        refused (V.dropPolicies [] v) @?= True
+    , testCase "policyFiltersAcceptTheListBound" $ do
+        let ps = absentPolicyIds V.policyFilterMaxIds
+        refused (V.keepPolicies ps (manyPoliciesValue 10)) @?= False
+        refused (V.dropPolicies ps (manyPoliciesValue 10)) @?= False
+    , testCase "policyFiltersRefuseAboveTheListBound" $ do
+        let ps = absentPolicyIds (V.policyFilterMaxIds + 1)
+        overflowed "keepPolicies" (V.keepPolicies ps (manyPoliciesValue 10)) @?= True
+        overflowed "dropPolicies" (V.dropPolicies ps (manyPoliciesValue 10)) @?= True
+    , testCase "policyFiltersCountRepeatedAndOverlongIds" $ do
+        let repeated = replicate (V.policyFilterMaxIds + 1) (B.pack [0, 1])
+            overlong = replicate (V.policyFilterMaxIds + 1) (B.replicate (V.maxKeyLen + 1) 0)
+        overflowed "keepPolicies" (V.keepPolicies repeated (manyPoliciesValue 10)) @?= True
+        overflowed "dropPolicies" (V.dropPolicies repeated (manyPoliciesValue 10)) @?= True
+        overflowed "keepPolicies" (V.keepPolicies overlong (manyPoliciesValue 10)) @?= True
+        overflowed "dropPolicies" (V.dropPolicies overlong (manyPoliciesValue 10)) @?= True
     , testProperty
         "containsReflexive"
         prop_containsReflexive

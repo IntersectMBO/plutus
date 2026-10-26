@@ -7,8 +7,8 @@
 \label{sec:builtin-batches}
 
 The built-in types and functions are defined in batches corresponding to how
-they were added to ledger languages.  These batches are given in the following
-sections.
+they were added to ledger languages.  These batches are described in this section,
+after some preliminaries.
 
 \paragraph{Built-in semantics variants.}
 \label{sec:builtin-semantics-variants}
@@ -18,10 +18,26 @@ built-in function.  To handle this we define a series of built-in semantics
 variants, which indicate which behaviour should be used.  A fix will typically
 be deployed by defining a new semantics variant, and then using that variant for
 future ledger languages (but not existing ones, since this is usually a
-backwards-incompatible change).
+backwards-incompatible change).  Table~\ref{table:bs-introduction} shows which
+semantics variants are used for which ledger languages.
 
-Changes are listed alongside the original definition of the built-in function in
-its original batch, and are indexed in the following table.
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \thead{Ledger language} & \thead{Built-in semantics variant used} \\
+        \hline
+        \LL{PlutusV1}, \LL{PlutusV2} & Built-in semantics 1 \\
+        \LL{PlutusV3}, \LL{PlutusV4} & Built-in semantics 2 \\
+        \hline
+    \end{tabular}
+    \caption{Selection of built-in semantics variant}
+    \label{table:bs-introduction}
+\end{table}
+
+\noindent Table~\ref{table:bs-variants} shows the semantic changes for the
+different variants.  Changes are listed alongside the original definition of the
+built-in function in its original batch.
 
 \begin{table}[H]
   \centering
@@ -30,7 +46,7 @@ its original batch, and are indexed in the following table.
         \thead{Built-in semantics variant} & \thead{Changes from previous semantics} \\
         \hline
         Built-in semantics 1 & None \\
-        Built-in semantics 2 & \TT{consByteString} (See~\ref{note:consbytestring}) \\
+        Built-in semantics 2 & \TT{consByteString} (see Note~\ref{note:consbytestring} in Section~\ref{sec:built-in-functions-1}) \\
         \hline
     \end{tabular}
     \caption{Built-in semantics variants}
@@ -82,5 +98,6 @@ will not always spell out the details.%%
 \newpage %% Bad page break between table and caption otherwise.
 \input{cardano/builtins5.tex}
 \input{cardano/builtins6.tex}
+\input{cardano/builtins7.tex}
 
 

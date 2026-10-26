@@ -39,7 +39,7 @@ module PlutusCore.Value
   , unionValue
   , valueData
   , valueDataMaxSize
-  , policyFilterMaxSize
+  , policyFilterMaxIds
   , unValueData
   , buildValueWith
   ) where
@@ -463,24 +463,29 @@ policies :: Value -> [ByteString]
 policies = map unK . Map.keys . unpack
 {-# INLINEABLE policies #-}
 
-{-| The most policies `keepPolicies` and `dropPolicies` accept in their `Value`; both fail
-on more.  It is the largest outer size of depth 13. -}
-policyFilterMaxSize :: Int
-policyFilterMaxSize = 8191
+{-| The most policy ids `keepPolicies` and `dropPolicies` accept in their list; both fail on
+more.  Every element counts, repeated ids and ids longer than `maxKeyLen` included. -}
+policyFilterMaxIds :: Int
+policyFilterMaxIds = 256
 
--- | The failure both policy filters raise on a `Value` with too many policies.
+-- | Whether the list exceeds `policyFilterMaxIds`, in \(O(\min(p, 256))\) for a list of \(p\) ids.
+tooManyPolicyIds :: [a] -> Bool
+tooManyPolicyIds = not . null . drop policyFilterMaxIds
+{-# INLINE tooManyPolicyIds #-}
+
+-- | The failure both policy filters raise on a list with too many ids.
 policyFilterOverflow :: String -> BuiltinResult a
 policyFilterOverflow name =
-  fail $ name <> ": maximum number of policies (" <> show policyFilterMaxSize <> ") exceeded"
+  fail $ name <> ": maximum number of policy ids (" <> show policyFilterMaxIds <> ") exceeded"
 {-# INLINE policyFilterOverflow #-}
 
 {-| The `Value` restricted to the given currency symbols, in \(O(p \log m)\) for a list of
 \(p\) ids and an outer map of size \(m\).  Ids the `Value` does not have, including any
-longer than `maxKeyLen`, are ignored.  Fails if the `Value` holds more than
-`policyFilterMaxSize` policies. -}
+longer than `maxKeyLen`, are ignored.  Fails if the list has more than `policyFilterMaxIds`
+elements. -}
 keepPolicies :: [ByteString] -> Value -> BuiltinResult Value
 keepPolicies ps (Value outer _ _ _ negs)
-  | Map.size outer > policyFilterMaxSize = policyFilterOverflow "keepPolicies"
+  | tooManyPolicyIds ps = policyFilterOverflow "keepPolicies"
   | otherwise =
       let outer' = List.foldl' keep Map.empty (mapMaybe k ps)
           keep acc currency = case Map.lookup currency outer of
@@ -494,11 +499,11 @@ keepPolicies ps (Value outer _ _ _ negs)
 
 {-| The `Value` with the given currency symbols removed, in \(O(p \log m)\) for a list of
 \(p\) ids and an outer map of size \(m\).  Ids the `Value` does not have, including any
-longer than `maxKeyLen`, are ignored.  Fails if the `Value` holds more than
-`policyFilterMaxSize` policies. -}
+longer than `maxKeyLen`, are ignored.  Fails if the list has more than `policyFilterMaxIds`
+elements. -}
 dropPolicies :: [ByteString] -> Value -> BuiltinResult Value
-dropPolicies ps v@(Value outer _ _ _ _)
-  | Map.size outer > policyFilterMaxSize = policyFilterOverflow "dropPolicies"
+dropPolicies ps v
+  | tooManyPolicyIds ps = policyFilterOverflow "dropPolicies"
   | otherwise = pure $ List.foldl' dropPolicy v (mapMaybe k ps)
 {-# INLINEABLE dropPolicies #-}
 

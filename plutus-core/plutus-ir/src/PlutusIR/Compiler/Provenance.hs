@@ -11,6 +11,7 @@ import PlutusIR
 
 import PlutusCore.Annotation
 import PlutusCore.Pretty qualified as PLC
+import PlutusPrelude (NFData)
 
 import Data.Hashable
 import Data.Set qualified as S
@@ -35,7 +36,7 @@ data Provenance a
   | -- | Added for accumulating difference provenances when floating lets
     MultipleSources (S.Set (Provenance a))
   deriving stock (Show, Eq, Ord, Foldable, Generic)
-  deriving anyclass (Hashable)
+  deriving anyclass (Hashable, NFData)
 
 instance Ord a => Semigroup (Provenance a) where
   x <> y = MultipleSources (toSet x `S.union` toSet y)
@@ -71,7 +72,7 @@ data DatatypeComponent
   | DatatypeType
   | PatternFunctor
   deriving stock (Show, Eq, Ord, Generic)
-  deriving anyclass (Hashable)
+  deriving anyclass (Hashable, NFData)
 
 instance PP.Pretty DatatypeComponent where
   pretty = \case

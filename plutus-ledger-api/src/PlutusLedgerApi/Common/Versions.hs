@@ -32,8 +32,8 @@ module PlutusLedgerApi.Common.Versions
   , batch5
   , batch6
   , batch7
-  , MaxBounds (..)
-  , maxBoundsByPV
+  , maxHeaderSize
+  , maxConstrFields
   ) where
 
 import PlutusCore
@@ -247,11 +247,11 @@ batch4a =
   ]
 
 {- batch4b: IntegerToByteString and ByteStringToInteger.  These were enabled in
- PlutusV3 at PV9, along with batch4a, They were enabled in PlutusV2 at PV10 in
+ PlutusV3 at PV9, along with batch4a. They were enabled in PlutusV2 at PV10 in
  #6056 and #6065.  They are available on the chain, but they're prohibitively
  expensive because the proposal to update the relevant protocol parameters has
- not (yet) been enacted.  This has left a "gap" in the cost model paramters: for
- PlutusV3, the parameters for Batch 3 are followed those for 4a, then 4b, but
+ not (yet) been enacted.  This has left a "gap" in the cost model parameters: for
+ PlutusV3, the parameters for Batch 3 are followed by those for 4a, then 4b, but
  for PlutusV2 those for Batch3 are followed by those for Batch 4a, and those for
  4b aren't in use yet.  Since you can't actually use the 4b builtins in PlutusV2
  at the moment, it's tempting to insert the 4a parameter before the 4b
@@ -285,9 +285,8 @@ batch5 =
   , Ripemd_160
   ]
 
--- Add new builtins for release in the van Rossem HF here (PV10 -> PV11).
--- Once the van Rossem HF has happened, mark this as not to be
--- changed and open a new batch.
+-- Batches 1-6 were enabled for all ledger languages at PV11
+-- DO NOT CHANGE THIS.
 batch6 :: [DefaultFun]
 batch6 =
   [ ExpModInteger
@@ -324,7 +323,7 @@ builtinsIntroducedIn =
       Map.fromList
         [ (alonzoPV, Set.fromList batch1)
         , (vanRossemPV, Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
-        , (futurePV, Set.fromList batch7)
+        , (dijkstraPV, Set.fromList batch7)
         ]
     PlutusV2 ->
       Map.fromList
@@ -332,22 +331,21 @@ builtinsIntroducedIn =
         , (valentinePV, Set.fromList batch3)
         , (plominPV, Set.fromList batch4b)
         , (vanRossemPV, Set.fromList (batch4a ++ batch5 ++ batch6))
-        , (futurePV, Set.fromList batch7)
+        , (dijkstraPV, Set.fromList batch7)
         ]
     PlutusV3 ->
       Map.fromList
         [ (changPV, Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
         , (plominPV, Set.fromList batch5)
         , (vanRossemPV, Set.fromList batch6)
-        , (futurePV, Set.fromList batch7)
+        , (dijkstraPV, Set.fromList batch7)
         ]
     PlutusV4 ->
       Map.fromList
         [
           ( dijkstraPV
-          , Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6)
+          , Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6 ++ batch7)
           )
-        , (futurePV, Set.fromList batch7)
         ]
 
 {-| Return a set containing the builtins which are available in a given LL in a
@@ -389,14 +387,8 @@ and 'MajorProtocolVersion'? -}
 plcVersionsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set Version
 plcVersionsAvailableIn = collectUpTo . plcVersionsIntroducedIn
 
-data MaxBounds = MaxBounds
-  { mbHeader :: Int
-  , mbConstr :: Int
-  }
+maxHeaderSize :: Int
+maxHeaderSize = 32
 
-maxBoundsByPV :: MajorProtocolVersion -> MaxBounds
-maxBoundsByPV pv =
-  if pv >= vanRossemPV
-    then MaxBounds {mbHeader = 32, mbConstr = 1024}
-    else MaxBounds {mbHeader = maxBound, mbConstr = maxBound}
-{-# INLINE maxBoundsByPV #-}
+maxConstrFields :: Int
+maxConstrFields = 1024
