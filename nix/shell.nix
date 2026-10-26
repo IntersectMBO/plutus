@@ -76,9 +76,9 @@ let
         stages = [ "pre-push" ];
         pass_filenames = false;
       };
-      generate-agda-conformance = {
+      generate-agda-typecheck-conformance = {
         enable = true;
-        entry = "${metatheory.generate-agda-conformance}/bin/generate-agda-conformance";
+        entry = "${metatheory.generate-agda-typecheck-conformance}/bin/generate-agda-typecheck-conformance";
         files = "^(plutus-conformance/(test-cases/uplc/evaluation|agda-gen)|plutus-metatheory/src/(Conformance|FFI))";
         stages = [ "pre-push" ];
         pass_filenames = false;
@@ -99,7 +99,7 @@ let
     agda-tools.agda-mode
 
     metatheory.generate-malonzo-code
-    metatheory.generate-agda-conformance
+    metatheory.generate-agda-typecheck-conformance
     metatheory.agda-with-stdlib-and-metatheory
 
     r-with-packages

@@ -8,7 +8,7 @@ Support for the generated conformance unit tests under `Conformance.*`.
 The modules under `Conformance` are generated from the UPLC evaluation
 conformance test cases in `plutus-conformance/test-cases/uplc/evaluation` by
 
-    cabal run plutus-conformance:generate-agda-conformance
+    cabal run plutus-conformance:generate-agda-typecheck-conformance
 
 (run from the repository root) and must not be edited by hand. Each test case
 becomes a `refl` proof that evaluating the program with the untyped CEK

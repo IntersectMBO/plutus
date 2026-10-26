@@ -506,7 +506,7 @@ Note that the conformance unit tests under `Conformance` (see
 `Conformance.Eval`) are only proved for builtins whose semantics are fully
 defined in Agda. If you replace one of these postulates with a definition,
 mark it as supported in `builtinSupported` in `plutus-conformance/agda-gen/Main.hs`
-and regenerate the tests with `generate-agda-conformance`.
+and regenerate the tests with `generate-agda-typecheck-conformance`.
 
 ```
 postulate

@@ -117,7 +117,7 @@ test-suite agda-conformance
     , plutus-metatheory   ^>=1.72
     , transformers
 
-executable generate-agda-conformance
+executable generate-agda-typecheck-conformance
   import:         lang, os-support, ghc-version-support
   main-is:        Main.hs
   hs-source-dirs: agda-gen
@@ -128,8 +128,8 @@ executable generate-agda-conformance
     , directory
     , filepath
     , plutus-conformance
-    , plutus-core         ^>=1.71
-    , plutus-metatheory   ^>=1.71
+    , plutus-core         ^>=1.72
+    , plutus-metatheory   ^>=1.72
     , text
     , transformers
 
