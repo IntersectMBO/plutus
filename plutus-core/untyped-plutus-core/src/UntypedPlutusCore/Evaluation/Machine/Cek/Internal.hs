@@ -397,11 +397,15 @@ delay t = Delay () t
 -- Which elements to project out of the CEK environment into the closure's
 -- environment
 newtype Projection = Projection (PrimArray Int)
+  deriving stock (Generic)
+  deriving anyclass (NFData)
 
 data ClosureAnn
   = AnnNone
   | AnnProjection !Projection
   | AnnIx {-# UNPACK #-} !Int
+  deriving stock (Generic)
+  deriving anyclass (NFData)
 
 -- TODO: could all of this be faster when using named Uniques in variables?
 -- Would require no shifting

@@ -44,7 +44,7 @@ import PlutusLedgerApi.Common.Versions
 import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (conv)
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (ClosureAnn, conv)
 
 import Control.Lens
 import Control.Monad (unless)
@@ -116,7 +116,7 @@ mkTermToEvaluate
   -- ^ the script to evaluate
   -> [Plutus.Data]
   -- ^ the arguments that the script's underlying term will be applied to
-  -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+  -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ClosureAnn)
 mkTermToEvaluate ll pv script args = do
   let ScriptNamedDeBruijn (UPLC.Program _ v t) = deserialisedScript script
       termArgs = fmap (UPLC.mkConstant ()) args
@@ -132,7 +132,7 @@ mkTermToEvaluate ll pv script args = do
   let mode
         | pv < dijkstraPV = UPLC.NoCaseConstr
         | otherwise = UPLC.Full
-  through (liftEither . first DeBruijnError . UPLC.checkScope mode) appliedT
+  through (liftEither . first DeBruijnError . UPLC.checkScope mode) (conv appliedT)
 
 toMachineParameters
   :: MajorProtocolVersion -> Version -> EvaluationContext -> DefaultMachineParameters
@@ -235,14 +235,14 @@ evaluateTerm
   -> Version
   -> VerboseMode
   -> EvaluationContext
-  -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+  -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ClosureAnn
   -> UPLC.CekReport cost NamedDeBruijn DefaultUni DefaultFun
 evaluateTerm budgetMode pv plcVersion verbose ectx term =
   UPLC.runCekDeBruijn
     (toMachineParameters pv plcVersion ectx)
     budgetMode
     (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
-    (conv term)
+    term
 -- Just replicating the old behavior, probably doesn't matter.
 {-# INLINE evaluateTerm #-}
 
