@@ -9,7 +9,7 @@ module Utils where
 ```
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂;subst)
 open import Function using (const;_∘_)
-open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_;_<_;_<?_)
+open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_;_∸_;_<_;_<?_)
 open import Data.Fin using (Fin;suc;zero;toℕ;fromℕ<)
 open _≤_
 open _≤‴_
@@ -22,13 +22,17 @@ import Data.Bool.ListAction as ListAction
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Nullary using (Dec;yes;no;¬_)
 open import Data.Empty using (⊥;⊥-elim)
-open import Data.Integer using (ℤ; +_)
+open import Data.Integer using (ℤ; +_; -[1+_])
 open import Data.String using (String)
 open import Data.Bool using (Bool; true; false)
 open import Data.Maybe using (Maybe; just; nothing; maybe)
                            renaming (_>>=_ to mbind) public
 open import Data.Unit using (⊤)
 open import Level using (_⊔_)
+
+open import Data.Bool using (_∧_; _∨_; _xor_; not)
+
+open import Builtin.ByteString.Base using (ByteString; eqByteString)
 
 {-# FOREIGN GHC import Raw #-}
 
@@ -194,7 +198,7 @@ module WriterMonad {M : Set}(e : M)(_∙_ : M → M → M) where
   tell w = _ , w
 
 ```
-## Errors and ByteStrings
+## Errors
 
 ```
 data RuntimeError : Set where
@@ -203,20 +207,6 @@ data RuntimeError : Set where
   runtimeTypeError : RuntimeError
 
 {-# COMPILE GHC RuntimeError = data RuntimeError (GasError | UserError | RuntimeTypeError) #-}
-
-postulate ByteString : Set
-{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
-
-postulate
-  mkByteString : String → ByteString
-
--- Agda implementation should only be used as part of deciding builtin equality.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
-eqByteString : ByteString → ByteString → Bool
-eqByteString _ _ = Bool.true
-{-# COMPILE GHC eqByteString = (==) #-}
-
 ```
 ## Record Types
 ```
@@ -326,8 +316,13 @@ data DATA : Set where
   iDATA : I.ℤ → DATA
   bDATA : ByteString → DATA
 
-{-# FOREIGN GHC import PlutusCore.Data as D #-}
-{-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
+-- `bDATA` converts between the Haskell and the Agda bytestring; see `FFI.ByteString`.
+{-# FOREIGN GHC import FFI.ByteString (pattern BData) #-}
+{-# COMPILE GHC DATA = data Data (Constr | Map | List | I | BData) #-}
+
+{-# FOREIGN GHC import PlutusCore.Data as Haskell #-}
+
+
 
 -- Agda implementation should only be used as part of deciding builtin equality.
 -- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
@@ -366,10 +361,7 @@ eqDATA (bDATA x) (ConstrDATA x₁ x₂) = Bool.false
 eqDATA (bDATA x) (MapDATA x₁) = Bool.false
 eqDATA (bDATA x) (ListDATA x₁) = Bool.false
 eqDATA (bDATA x) (iDATA x₁) = Bool.false
--- Warning: eqByteString is always trivially true at the Agda level.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
 eqDATA (bDATA b₁) (bDATA b₂) = eqByteString b₁ b₂
-{-# COMPILE GHC eqDATA = (==) #-}
 
 postulate Bls12-381-G1-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G1 as G1 #-}

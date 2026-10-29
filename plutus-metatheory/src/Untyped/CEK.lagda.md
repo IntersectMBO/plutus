@@ -327,12 +327,9 @@ BUILTIN lengthOfByteString = λ
   }
 BUILTIN indexByteString = λ
   { (app (app base (V-con bytestring b)) (V-con integer i)) ->
-      case Data.Integer.ℤ.pos 0 ≤? i of λ
-        { (no  _) -> inj₁ userError
-        ; (yes _) -> case i <? lengthBS b of λ
-          { (no _)  -> inj₁ userError
-          ; (yes _) -> inj₂ (V-con integer (index b i))
-          }
+      case index b i of λ
+        { nothing  -> inj₁ userError
+        ; (just res) -> inj₂ (V-con integer res)
         }
   ; _ -> inj₁ userError
   }

@@ -21,7 +21,8 @@ open import Agda.Builtin.Int using (pos)
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 
-open import Utils using (_,_;_∷_;[];DATA;List;ByteString)
+open import Utils using (_,_;_∷_;[];DATA;List)
+open import Builtin.ByteString.Base using (ByteString)
 open import Builtin.Signature using (_⊢♯)
 open _⊢♯
 open import Builtin.Constant.AtomicType using (AtomicTyCon)
@@ -54,9 +55,10 @@ postulate valueMaxDepth : Utils.Value → CostingNat
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExMemoryUsage #-}
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.CostStream #-}
 {-# FOREIGN GHC import Data.SatInt #-}
+{-# FOREIGN GHC import FFI.ByteString (toHS) #-}
 {-# FOREIGN GHC size = fromSatInt . sumCostStream . flattenCostRose . memoryUsage #-}
 {-# COMPILE GHC integerSize = size  #-}
-{-# COMPILE GHC byteStringSize = size  #-}
+{-# COMPILE GHC byteStringSize = size . toHS #-}
 {-# COMPILE GHC g1ElementSize = size #-}
 {-# COMPILE GHC g2ElementSize = size #-}
 {-# COMPILE GHC mlResultElementSize = size #-}
