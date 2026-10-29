@@ -24,7 +24,7 @@ checks all three properties afresh, executes a concrete hash vector, and records
 the inputs and tool versions. See that repository's
 `Tests/BlueprintVerify/README.md` for the complete commands and trust boundary.
 The checked-in JSON files are a generated snapshot with no verification evidence.
-Their environment manifest pins a particular local Lean/module/solver build;
-regenerate it for a different checking environment. The fresh runner produces a
+Their small environment file is an illustrative placeholder. Capture the actual
+Lean/module/solver environment before generating an executable bundle. The fresh runner produces a
 separate evidence-bearing document with `checkingContextHash` after successful
 checks. The old UAL 0.5 fixture remains in PlutusCoreBlaster's regression suite.

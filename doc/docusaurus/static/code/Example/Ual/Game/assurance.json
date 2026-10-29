@@ -11,21 +11,21 @@
         "correct_guess": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ac4647bfa626f975ea69ba035422946055549d0290e2e39b6e813e1e66e8b83c"
+                "digest": "8199eab0f421801690a4937ae0ef39c333c67b21244778ca070a7d551785e756"
             },
             "uri": "checking-correct_guess.json"
         },
         "malformed_datum": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ac4647bfa626f975ea69ba035422946055549d0290e2e39b6e813e1e66e8b83c"
+                "digest": "8199eab0f421801690a4937ae0ef39c333c67b21244778ca070a7d551785e756"
             },
             "uri": "checking-malformed_datum.json"
         },
         "wrong_guess": {
             "hash": {
                 "alg": "sha256",
-                "digest": "ac4647bfa626f975ea69ba035422946055549d0290e2e39b6e813e1e66e8b83c"
+                "digest": "8199eab0f421801690a4937ae0ef39c333c67b21244778ca070a7d551785e756"
             },
             "uri": "checking-wrong_guess.json"
         }
