@@ -18,8 +18,11 @@ import PlutusIR.Core
 import Control.Lens (transformOf, (^.))
 import Data.Functor (void)
 import PlutusCore qualified as PLC
+import PlutusCore.Name.Unique (HasUnique, TermUnique, TypeUnique)
 import PlutusIR.Analysis.Builtins
+import PlutusIR.Analysis.VarInfo (VarsInfo, termVarInfo)
 import PlutusIR.Pass
+import PlutusIR.Purity (isPure)
 import PlutusIR.TypeCheck qualified as TC
 
 evaluateBuiltinsPass
@@ -42,6 +45,8 @@ evaluateBuiltins
    . ( ToBuiltinMeaning uni fun
      , Typeable tyname
      , Typeable name
+     , HasUnique name TermUnique
+     , HasUnique tyname TypeUnique
      )
   => Bool
   -- ^ Whether to be conservative and try to retain logging behaviour.
@@ -49,8 +54,11 @@ evaluateBuiltins
   -> CostingPart uni fun
   -> Term tyname name uni fun a
   -> Term tyname name uni fun a
-evaluateBuiltins preserveLogging binfo costModel = transformOf termSubterms processTerm
+evaluateBuiltins preserveLogging binfo costModel term = transformOf termSubterms processTerm term
   where
+    vinfo :: VarsInfo tyname name uni a
+    vinfo = termVarInfo term
+
     -- Nothing means "leave the original term as it was"
     eval
       :: BuiltinRuntime (Term tyname name uni fun ())
@@ -70,10 +78,12 @@ evaluateBuiltins preserveLogging binfo costModel = transformOf termSubterms proc
         -- distinguish these, we have to assume it's the latter case and just leave
         -- things alone.
         BuiltinFailure {} -> Nothing
-    eval (BuiltinExpectArgument toRuntime) (TermAppContext arg _ ctx) =
-      -- Builtin evaluation does not work with annotations, so we have to throw
-      -- the argument annotation away here
-      eval (toRuntime $ void arg) ctx
+    -- See Note [Evaluating builtins with impure arguments]
+    eval (BuiltinExpectArgument toRuntime) (TermAppContext arg _ ctx)
+      | isPure binfo vinfo arg =
+          -- Builtin evaluation does not work with annotations, so we have to throw
+          -- the argument annotation away here
+          eval (toRuntime $ void arg) ctx
     eval (BuiltinExpectForce runtime) (TypeAppContext _ _ ctx) =
       eval runtime ctx
     -- arg mismatch, including under-application, just leave it alone
@@ -93,3 +103,14 @@ evaluateBuiltins preserveLogging binfo costModel = transformOf termSubterms proc
             Just t' | termIsSerializable binfo t' -> x <$ t'
             _ -> t
     processTerm t = t
+
+{- Note [Evaluating builtins with impure arguments]
+
+The pass is bottom-up, but an argument is only replaced if folding it succeeds,
+so it may still be an unevaluated, possibly failing term, e.g. `divideInteger 1 x`.
+Polymorphic builtin arguments accept any term, so without care
+`ifThenElse True 7 (divideInteger 1 x)` would fold to `7`, although the language is
+strict and the original fails when `x` is 0. Hence we only fold when all term
+arguments are pure. Nested foldable applications and delayed terms are pure, so
+they still fold.
+-}

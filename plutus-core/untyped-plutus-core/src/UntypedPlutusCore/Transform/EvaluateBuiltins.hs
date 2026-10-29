@@ -11,6 +11,7 @@ import PlutusCore.Builtin
 import UntypedPlutusCore.Analysis.Builtins
 import UntypedPlutusCore.Contexts
 import UntypedPlutusCore.Core
+import UntypedPlutusCore.Purity (isPure)
 import UntypedPlutusCore.Transform.Certify.Trace
 import UntypedPlutusCore.Transform.Optimizer
 
@@ -54,8 +55,10 @@ evaluateBuiltins preserveLogging binfo costModel =
         BuiltinSuccess y -> Just y
         BuiltinSuccessWithLogs _ y -> if preserveLogging then Nothing else Just y
         BuiltinFailure {} -> Nothing
-    eval (BuiltinExpectArgument toRuntime) (AppCtxTerm _ arg ctx) =
-      eval (toRuntime $ void arg) ctx
+    -- See Note [Evaluating builtins with impure arguments] in PlutusIR.Transform.EvaluateBuiltins
+    eval (BuiltinExpectArgument toRuntime) (AppCtxTerm _ arg ctx)
+      | isPure (binfo ^. biSemanticsVariant) arg =
+          eval (toRuntime $ void arg) ctx
     eval (BuiltinExpectForce runtime) (AppCtxType _ ctx) =
       eval runtime ctx
     eval _ _ = Nothing
