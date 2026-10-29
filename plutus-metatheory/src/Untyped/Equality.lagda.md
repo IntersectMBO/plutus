@@ -42,6 +42,7 @@ open import Relation.Nullary.Decidable.Core using (isYes)
 open import Data.Product using (_,_)
 open import Relation.Nullary using (_×-dec_)
 open import Utils as U using (Either; _×_; _,_)
+open import Builtin.ByteString.Base as BS using (ByteString)
 import Data.List.Properties as LP using (≡-dec)
 open import Builtin.Constant.AtomicType using (decAtomicTyCon)
 open import Agda.Builtin.TrustMe using (primTrustMe)
@@ -236,8 +237,8 @@ fromDec : {A : Set} → {{DE : DecEq A}} → HsEq A
 fromDec = record { hsEq = λ x₁ x₂ → isYes (x₁ ≟ x₂) }
 
 instance
-  HsEqBytestring : HsEq U.ByteString
-  HsEqBytestring = record { hsEq = U.eqByteString }
+  HsEqBytestring : HsEq BS.ByteString
+  HsEqBytestring = record { hsEq = BS.eqByteString }
   HsEqArray : {A : Set} {{HE : HasEq A}} → HsEq (U.Array A)
   HsEqArray {{HE = HE}} = record { hsEq = eqArray {{HE}}}
   HsEqList : {A : Set} {{DE : DecEq A}} → HsEq (U.List A)
@@ -292,7 +293,9 @@ At type-checking time, if the two bytestrings are definitionally equal unificati
 and the function will return `yes refl`.
 
 ```
-_ : isYes (builtinEq (U.mkByteString "") (U.mkByteString "")) ≡ true
+open ByteString
+
+_ : isYes (builtinEq [] []) ≡ true
 _ = refl
 ```
 
@@ -303,7 +306,7 @@ gets stuck while trying to normalize `primTrustMe`:
 
 ```
 -- The following does not type check because reduction gets stuck
--- _ : isNo (builtinEq (U.mkByteString "foo") (U.mkByteString "bar")) ≡ false
+-- _ : isNo (builtinEq (BS.mkByteString "foo") (BS.mkByteString "bar")) ≡ false
 -- _ = refl
 ```
 
