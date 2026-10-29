@@ -16,7 +16,6 @@ import Evaluation.Regressions (schnorrVerifyRegressions)
 import Flat.Spec (test_flat)
 import Generators.Spec (test_parsing)
 import Scoping.Spec (test_names)
-import Transform.CaseOfCase.Spec (test_caseOfCase)
 import Transform.EvaluateBuiltins.Spec (test_evaluateBuiltins)
 import Transform.Inline.Spec (test_inline)
 import Transform.Simplify.Spec (test_simplify)
@@ -32,7 +31,6 @@ main = do
       [ test_machines
       , test_builtins
       , test_budget
-      , test_caseOfCase
       , test_evaluateBuiltins
       , test_inline
       , test_golden

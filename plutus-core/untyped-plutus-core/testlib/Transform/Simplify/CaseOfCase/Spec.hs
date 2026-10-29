@@ -1,7 +1,7 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Transform.CaseOfCase.Spec where
+module Transform.Simplify.CaseOfCase.Spec where
 
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text.Encoding (encodeUtf8)
@@ -23,7 +23,7 @@ import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
 import Test.Tasty.HUnit (testCase, (@?=))
-import Transform.Lib (builtinTrue, case_, con, constr, err, ite, sopFalse, sopTrue, var)
+import Transform.Lib (builtinTrue, case_, con, constr, err, ite, lam, lams, sopFalse, sopTrue, var)
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
@@ -38,36 +38,43 @@ import UntypedPlutusCore.Transform.Optimizer (evalOptimizer)
 
 test_caseOfCase :: TestTree
 test_caseOfCase =
-  testGroup
-    "CaseOfCase"
-    [ goldenVsSimplified "1" caseOfCase1
-    , goldenVsSimplified "2" caseOfCase2
-    , goldenVsSimplified "3" caseOfCase3
-    , goldenVsSimplified "withError" caseOfCaseWithError
-    , testCaseOfCaseWithError
-    ]
+  testGroup "CaseOfCase" $
+    [goldenVsSimplified name term | (name, term) <- inputs]
+      ++ [testCaseOfCaseWithError]
+
+inputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
+inputs =
+  [ ("1", caseOfCase1)
+  , ("2", caseOfCase2)
+  , ("3", caseOfCase3)
+  , ("withError", caseOfCaseWithError)
+  ]
 
 caseOfCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 caseOfCase1 =
-  case_
-    (ite (var "b") sopTrue sopFalse)
-    [ con 1 -- True branch
-    , con 2 -- False branch
-    ]
+  lam "b" $
+    case_
+      (ite (var "b") sopTrue sopFalse)
+      [ con 1 -- True branch
+      , con 2 -- False branch
+      ]
 
 {-| This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
 Unless both branches are known constructors, the case-of-case transformation
 may increase the program size. -}
 caseOfCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-caseOfCase2 = case_ (ite (var "b") (var "t") sopFalse) [con 1, con 2]
+caseOfCase2 =
+  lams ["b", "t"] $
+    case_ (ite (var "b") (var "t") sopFalse) [con 1, con 2]
 
 {-| Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
 @[Integer]@ rather than Bool (note that @constr 0@ has two parameters, @x@ and @xs@). -}
 caseOfCase3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 caseOfCase3 =
-  case_
-    (ite (var "b") (constr 0 [var "x", var "xs"]) sopFalse)
-    [var "f", con 2]
+  lams ["b", "x", "xs", "f"] $
+    case_
+      (ite (var "b") (constr 0 [var "x", var "xs"]) sopFalse)
+      [var "f", con 2]
 
 {-|
 

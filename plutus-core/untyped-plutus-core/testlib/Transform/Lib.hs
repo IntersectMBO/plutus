@@ -9,6 +9,7 @@ module Transform.Lib
   ( T
   , var
   , lam
+  , lams
   , app
   , force
   , delay
@@ -74,6 +75,9 @@ var = Var () . name
 See Note [Names from strings] -}
 lam :: String -> T -> T
 lam = LamAbs () . name
+
+lams :: [String] -> T -> T
+lams ns t = foldr lam t ns
 
 app :: T -> T -> T
 app = Apply ()

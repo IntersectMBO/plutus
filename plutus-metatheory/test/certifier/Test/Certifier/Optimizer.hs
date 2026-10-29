@@ -5,6 +5,7 @@ import MAlonzo.Code.Certifier (runCertifierMain)
 import PlutusCore qualified as PLC
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase)
+import Transform.Simplify.CaseOfCase.Spec qualified as COC
 import Transform.Simplify.Lib (testCse, testOptimize)
 import Transform.Simplify.Spec (testCseInputs, testSimplifyInputs)
 import UntypedPlutusCore
@@ -56,11 +57,18 @@ optimizerTests :: TestTree
 optimizerTests =
   testGroup
     "uplc optimizer tests"
-    $ [ testGroup "cse tests" $
+    $ [
+        -- Reuse the simplifier test inputs from plutus-core `Transform.Simplify.Spec`
+        -- and make sure they pass the certifier
+        testGroup "certify simplifier tests" $
+          fmap (uncurry mkUPLCSimplifierTest) testSimplifyInputs
+      , -- Also reuse CSE test inputs, in both subterm modes
+        testGroup "cse tests" $
           [ testGroup (show whichSubterms) $
               fmap (uncurry (mkUPLCCseTest whichSubterms)) testCseInputs
           | whichSubterms <- [AllSubterms, ExcludeWorkFree]
           ]
-      , testGroup "simplification tests" $
-          fmap (uncurry mkUPLCSimplifierTest) testSimplifyInputs
+      , -- Also the case-of-case inputs
+        testGroup "case-of-case" $
+          fmap (uncurry mkUPLCSimplifierTest) COC.inputs
       ]

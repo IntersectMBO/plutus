@@ -21,6 +21,7 @@ import Transform.Lib
   , text
   , var
   )
+import Transform.Simplify.CaseOfCase.Spec (test_caseOfCase)
 import Transform.Simplify.Lib (goldenVsCse, goldenVsOptimized)
 import UntypedPlutusCore
   ( CseWhichSubterms (..)
@@ -43,22 +44,6 @@ extraDelays = force $ delay $ delay $ con 1
 
 interveningLambda :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 interveningLambda = force (lam "a" (delay (var "a" `app` var "a")) `app` con 1)
-
-caseOfCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-caseOfCase1 = case_ (ite (var "b") sopTrue sopFalse) [con 1, con 2]
-
-{-| This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
-Unless both branches are known constructors, the case-of-case transformation
-may increase the program size. -}
-caseOfCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-caseOfCase2 = case_ (ite (var "b") (var "t") sopFalse) [con 1, con 2]
-
-{-| Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
-@[Integer]@ rather than Bool (note that @Constr 0@ has two parameters, @x@ and @xs@). -}
-caseOfCase3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-caseOfCase3 = case_ (ite (var "b") trueBranch sopFalse) [var "f", con 2]
-  where
-    trueBranch = constr 0 [var "x", var "xs"]
 
 -- | The `Delay` should be floated into the lambda.
 floatDelay1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -508,6 +493,7 @@ test_simplify =
     $ fmap (uncurry goldenVsOptimized) testSimplifyInputs
       <> fmap (uncurry (goldenVsCse ExcludeWorkFree)) testCseInputs
       <> fmap (uncurry (goldenVsCse AllSubterms)) testCseInputsWorkFree
+      <> [test_caseOfCase]
 
 --------------------------------------------------------------------------------
 -- Local helpers ---------------------------------------------------------------
