@@ -62,7 +62,7 @@
         "ual": {
             "name": "Universal Annotation Language",
             "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage",
-            "version": "0.6-draft"
+            "version": "1.0"
         }
     },
     "preamble": {

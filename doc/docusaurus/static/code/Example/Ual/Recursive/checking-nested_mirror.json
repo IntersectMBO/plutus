@@ -21,7 +21,7 @@
             "function": "mirrorData",
             "functionHash": {
                 "alg": "sha256",
-                "digest": "984d7b5789786764a6ebb1ef1403fff1ebe768fdb37541d55082c4ea08ca6d07"
+                "digest": "d5e66163d9d603559a7292dab7ef36ad05666d69129619a5cf7860a353ac69a2"
             },
             "functionInterface": {
                 "arguments": [

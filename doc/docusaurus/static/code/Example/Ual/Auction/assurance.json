@@ -3,7 +3,7 @@
     "blueprint": {
         "hash": {
             "alg": "sha256",
-            "digest": "22bd6d80f1c08c348394654ea13e2b757ecc15c310446bcad32d1146ef6e32e4"
+            "digest": "076c0a12aae7792e35e828975a2bd992e7cfc908fa3af9f8425ba6a420a712b8"
         },
         "uri": "plutus.json"
     },
@@ -233,7 +233,7 @@
         {
             "id": "Example.Ual.Auction.FormalSpec",
             "language": "ual",
-            "source": "def typedAuction (validator : Data → State) (ctx : CardanoLedgerApi.V3.Contexts.ScriptContext) :=\n    validator (CardanoLedgerApi.IsData.Class.IsData.toData ctx)\n\n  def bidScenario (validator : Data → State) (old proposed locked refund tokens hi : Integer) :=\n    typedAuction validator (CardanoLedgerApi.Examples.Auction.newBidContext old proposed locked refund tokens hi)\n\n  def payoutScenario (validator : Data → State) (bid paid tokens lo : Integer) :=\n    typedAuction validator (CardanoLedgerApi.Examples.Auction.payoutContext bid paid tokens lo)\n\ndef auditBid (validator : Data → State) (old proposed locked refund tokens hi : Integer) : Prop :=\n    isSuccessful (bidScenario validator old proposed locked refund tokens hi)\n  def auditPayout (validator : Data → State) (bid paid tokens lo : Integer) : Prop :=\n    isSuccessful (payoutScenario validator bid paid tokens lo)\n  def auditAttack (validator : Data → State) (old proposed locked refund tokens hi junk minted : Integer) : Prop :=\n    isSuccessful (typedAuction validator (CardanoLedgerApi.Examples.Auction.newBidAttackContext old proposed locked refund tokens hi junk minted))\n  def auditDouble (validator : Data → State) (bid paid tokens lo : Integer) : Prop :=\n    isSuccessful (typedAuction validator (CardanoLedgerApi.Examples.Auction.payoutDoubleSatContext bid paid tokens lo))\n  def auditAccepts (validator : Data → State) (ctx : CardanoLedgerApi.V3.Contexts.ScriptContext) : Prop :=\n    isSuccessful (typedAuction validator ctx)"
+            "source": "def bakedMinBid : Integer := 100\n  def bakedEndTime : Integer := 1725227091000\n  def policyId : CurrencySymbol := ⟨String.mk (List.replicate 28 (Char.ofNat 0))⟩\n  def nftName : TokenName := \"MY_TOKEN\"\n  def sellerPKH : PubKeyHash := ⟨String.mk (List.replicate 40 (Char.ofNat 0))⟩\n  def scriptAddr : Address := ⟨.ScriptCredential \"aa\", none⟩\n  def ownRef : TxOutRef := ⟨\"bb\", 0⟩\n  def ownRef2 : TxOutRef := ⟨\"bb\", 1⟩\n  def oldBidAddr : ByteString := \"oldAddr\"\n  def oldBidPubKeyHash : PubKeyHash := \"oldPKH\"\n  def junkPolicy : CurrencySymbol := \"junkcs\"\n  def junkName : TokenName := \"JUNK\"\n\n  def bidData (addr pkh : ByteString) (amount : Integer) : Data :=\n    Data.Constr 0 [Data.B addr, Data.B pkh, Data.I amount]\n  def datumData (old : Integer) : Data :=\n    if old ≤ 0 then Data.Constr 1 []\n    else Data.Constr 0 [bidData oldBidAddr oldBidPubKeyHash old]\n  def newBidRed (amount : Integer) : Data :=\n    Data.Constr 0 [bidData \"cc\" \"dd\" amount]\n  def payoutRed : Data := Data.Constr 1 []\n  def adaE (n : Integer) : Data × Data :=\n    (Data.B \"\", Data.Map [(Data.B \"\", Data.I n)])\n  def tokE (pol : CurrencySymbol) (tn : TokenName) (n : Integer) : Data × Data :=\n    (Data.B pol, Data.Map [(Data.B tn, Data.I n)])\n  def scriptInput : TxInInfo :=\n    ⟨ownRef, ⟨scriptAddr, [], .NoOutputDatum, none⟩⟩\n  def contOut (value : Value) (datum : OutputDatum) : TxOut :=\n    ⟨scriptAddr, value, datum, none⟩\n  def upperRange (hi : Integer) : Data :=\n    Data.Constr 0 [Data.Constr 0 [Data.Constr 0 [], Data.Constr 1 []],\n                   Data.Constr 0 [Data.Constr 1 [Data.I hi], Data.Constr 1 []]]\n  def lowerRange (lo : Integer) : Data :=\n    Data.Constr 0 [Data.Constr 0 [Data.Constr 1 [Data.I lo], Data.Constr 1 []],\n                   Data.Constr 0 [Data.Constr 2 [], Data.Constr 1 []]]\n\n  def scenarioCtx (inputs : List TxInInfo) (outputs : List TxOut)\n      (mint : Value) (red range datum : Data) : ScriptContext :=\n    ⟨{ txInfoInputs := inputs, txInfoReferenceInputs := [], txInfoOutputs := outputs,\n       txInfoFee := 0, txInfoMint := mint, txInfoTxCerts := [], txInfoWdrl := [],\n       txInfoValidRange := range, txInfoSignatories := [], txInfoRedeemers := [],\n       txInfoData := [], txInfoId := \"\", txInfoVotes := [],\n       txInfoProposalProcedures := [],\n       txInfoCurrentTreasuryAmount := Data.Constr 1 [],\n       txInfoTreasuryDonation := Data.Constr 1 [] },\n     red, ScriptInfo.SpendingScript ownRef (some datum)⟩\n\n  def newBidContext (old proposed locked refund tokens hi : Integer) : ScriptContext :=\n    let continuing := contOut [adaE locked, tokE policyId nftName tokens]\n      (.OutputDatum (Data.Constr 0 [bidData \"cc\" \"dd\" proposed]))\n    let refundOutput : TxOut :=\n      ⟨⟨.PubKeyCredential oldBidPubKeyHash, none⟩, [adaE refund], .NoOutputDatum, none⟩\n    let outputs := if refund > 0 then [refundOutput, continuing] else [continuing]\n    scenarioCtx [scriptInput] outputs [] (newBidRed proposed) (upperRange hi) (datumData old)\n\n  def payoutContext (bid paid tokens lo : Integer) : ScriptContext :=\n    let winner : PubKeyHash := if 0 < bid then oldBidPubKeyHash else sellerPKH\n    let sellerOutput : TxOut :=\n      ⟨⟨.PubKeyCredential sellerPKH, none⟩, [adaE paid], .NoOutputDatum, none⟩\n    let assetOutput : TxOut :=\n      ⟨⟨.PubKeyCredential winner, none⟩, [tokE policyId nftName tokens], .NoOutputDatum, none⟩\n    let outputs := if 0 < bid then [sellerOutput, assetOutput] else [assetOutput]\n    scenarioCtx [scriptInput] outputs [] payoutRed (lowerRange lo) (datumData bid)\n\n  def newBidAttackContext (old proposed locked refund tokens hi junk minted : Integer) : ScriptContext :=\n    let continuing := contOut [adaE locked, tokE policyId nftName tokens,\n                               tokE junkPolicy junkName junk]\n      (.OutputDatum (Data.Constr 0 [bidData \"cc\" \"dd\" proposed]))\n    let refundOutput : TxOut :=\n      ⟨⟨.PubKeyCredential oldBidPubKeyHash, none⟩, [adaE refund], .NoOutputDatum, none⟩\n    let outputs := if refund > 0 then [refundOutput, continuing] else [continuing]\n    scenarioCtx [scriptInput] outputs [tokE junkPolicy junkName minted]\n      (newBidRed proposed) (upperRange hi) (datumData old)\n\n  def payoutDoubleSatContext (bid paid tokens lo : Integer) : ScriptContext :=\n    let winner : PubKeyHash := if 0 < bid then oldBidPubKeyHash else sellerPKH\n    let sellerOutput : TxOut :=\n      ⟨⟨.PubKeyCredential sellerPKH, none⟩, [adaE paid], .NoOutputDatum, none⟩\n    let assetOutput : TxOut :=\n      ⟨⟨.PubKeyCredential winner, none⟩, [tokE policyId nftName tokens], .NoOutputDatum, none⟩\n    let outputs := if 0 < bid then [sellerOutput, assetOutput] else [assetOutput]\n    scenarioCtx [scriptInput, ⟨ownRef2, ⟨scriptAddr, [], .NoOutputDatum, none⟩⟩]\n      outputs [] payoutRed (lowerRange lo) (datumData bid)\n\n  def demoCtx (outputs : List TxOut) (red : Data) (datum : Data) : ScriptContext :=\n    scenarioCtx [scriptInput] outputs [] red (upperRange 1000) datum\n  def demoBid : Data := bidData \"cc\" \"dd\" 200\n  def demoDatum : OutputDatum := .OutputDatum (Data.Constr 0 [demoBid])\n  def demoOutput : TxOut := contOut [adaE 200, tokE policyId nftName 1] demoDatum\n  def demoValidCtx : ScriptContext :=\n    demoCtx [demoOutput] (newBidRed 200) (datumData 0)\n  def demoWrongTnCtx : ScriptContext :=\n    demoCtx [contOut [adaE 200, tokE policyId junkName 1] demoDatum]\n      (newBidRed 200) (datumData 0)\n  def demoWrongPolicyCtx : ScriptContext :=\n    demoCtx [contOut [adaE 200, tokE junkPolicy nftName 1] demoDatum]\n      (newBidRed 200) (datumData 0)\n  def demoDatumHashCtx : ScriptContext :=\n    demoCtx [contOut [adaE 200, tokE policyId nftName 1] (.OutputDatumHash \"h\")]\n      (newBidRed 200) (datumData 0)\n  def demoNoDatumCtx : ScriptContext :=\n    demoCtx [contOut [adaE 200, tokE policyId nftName 1] .NoOutputDatum]\n      (newBidRed 200) (datumData 0)\n  def demoWrongDatumCtx : ScriptContext :=\n    demoCtx [contOut [adaE 200, tokE policyId nftName 1]\n      (.OutputDatum (Data.Constr 0 [bidData \"cc\" \"dd\" 201]))]\n      (newBidRed 200) (datumData 0)\n  def demoOtherRedeemerCtx : ScriptContext :=\n    demoCtx [demoOutput] (Data.Constr 2 []) (datumData 0)\n  def demoPayoutStakedCtx : ScriptContext :=\n    let stake : Option StakingCredential := some (.StakingHash (.PubKeyCredential \"st\"))\n    let sellerOutput : TxOut :=\n      ⟨⟨.PubKeyCredential sellerPKH, stake⟩, [adaE 200], .NoOutputDatum, none⟩\n    let assetOutput : TxOut :=\n      ⟨⟨.PubKeyCredential oldBidPubKeyHash, stake⟩,\n       [tokE policyId nftName 1], .NoOutputDatum, none⟩\n    scenarioCtx [scriptInput] [sellerOutput, assetOutput] [] payoutRed\n      (lowerRange bakedEndTime) (datumData 200)\n\ndef typedAuction (validator : Data → State) (ctx : CardanoLedgerApi.V3.Contexts.ScriptContext) :=\n    validator (CardanoLedgerApi.IsData.Class.IsData.toData ctx)\n\n  def bidScenario (validator : Data → State) (old proposed locked refund tokens hi : Integer) :=\n    typedAuction validator (newBidContext old proposed locked refund tokens hi)\n\n  def payoutScenario (validator : Data → State) (bid paid tokens lo : Integer) :=\n    typedAuction validator (payoutContext bid paid tokens lo)\n\ndef auditBid (validator : Data → State) (old proposed locked refund tokens hi : Integer) : Prop :=\n    isSuccessful (bidScenario validator old proposed locked refund tokens hi)\n  def auditPayout (validator : Data → State) (bid paid tokens lo : Integer) : Prop :=\n    isSuccessful (payoutScenario validator bid paid tokens lo)\n  def auditAttack (validator : Data → State) (old proposed locked refund tokens hi junk minted : Integer) : Prop :=\n    isSuccessful (typedAuction validator (newBidAttackContext old proposed locked refund tokens hi junk minted))\n  def auditDouble (validator : Data → State) (bid paid tokens lo : Integer) : Prop :=\n    isSuccessful (typedAuction validator (payoutDoubleSatContext bid paid tokens lo))\n  def auditAccepts (validator : Data → State) (ctx : CardanoLedgerApi.V3.Contexts.ScriptContext) : Prop :=\n    isSuccessful (typedAuction validator ctx)"
         }
     ],
     "functions": {
@@ -262,7 +262,7 @@
         "ual": {
             "name": "Universal Annotation Language",
             "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage",
-            "version": "0.6-draft"
+            "version": "1.0"
         }
     },
     "preamble": {
@@ -380,7 +380,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "∀ (newBidAmt outAda outTok hi : Integer),\n    auditBid auction 0 newBidAmt outAda 0 outTok hi\n    → CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt",
+                    "source": "∀ (newBidAmt outAda outTok hi : Integer),\n    auditBid auction 0 newBidAmt outAda 0 outTok hi\n    → bakedMinBid ≤ newBidAmt",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -418,7 +418,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → hi ≤ bakedEndTime",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -475,7 +475,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -494,7 +494,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "∀ (oldBidAmt outAda refundAda outTok hi : Integer),\n    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ oldBidAmt + 1 →\n    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime          →\n    outAda = oldBidAmt + 1     →\n    refundAda = oldBidAmt      →\n    outTok = 1\n    → auditBid auction oldBidAmt (oldBidAmt + 1) outAda refundAda outTok hi",
+                    "source": "∀ (oldBidAmt outAda refundAda outTok hi : Integer),\n    bakedMinBid ≤ oldBidAmt + 1 →\n    hi ≤ bakedEndTime          →\n    outAda = oldBidAmt + 1     →\n    refundAda = oldBidAmt      →\n    outTok = 1\n    → auditBid auction oldBidAmt (oldBidAmt + 1) outAda refundAda outTok hi",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -513,7 +513,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo\n    → CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo\n    → bakedEndTime ≤ lo",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -570,7 +570,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    0 < bidAmt         →\n    CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo  →\n    sellerAda = bidAmt →\n    assetTok = 1\n    → auditPayout auction bidAmt sellerAda assetTok lo",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    0 < bidAmt         →\n    bakedEndTime ≤ lo  →\n    sellerAda = bidAmt →\n    assetTok = 1\n    → auditPayout auction bidAmt sellerAda assetTok lo",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -589,7 +589,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "∀ (sellerAda assetTok lo : Integer),\n    CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo →\n    assetTok = 1\n    → auditPayout auction 0 sellerAda assetTok lo",
+                    "source": "∀ (sellerAda assetTok lo : Integer),\n    bakedEndTime ≤ lo →\n    assetTok = 1\n    → auditPayout auction 0 sellerAda assetTok lo",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -608,7 +608,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi junkTok : Integer),\n    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditAttack auction oldBidAmt newBidAmt outAda refundAda outTok hi junkTok 0",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi junkTok : Integer),\n    bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditAttack auction oldBidAmt newBidAmt outAda refundAda outTok hi junkTok 0",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -627,7 +627,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi mintTok : Integer),\n    CardanoLedgerApi.Examples.Auction.bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ CardanoLedgerApi.Examples.Auction.bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditAttack auction oldBidAmt newBidAmt outAda refundAda outTok hi 0 mintTok",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi mintTok : Integer),\n    bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditAttack auction oldBidAmt newBidAmt outAda refundAda outTok hi 0 mintTok",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -646,7 +646,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    0 < bidAmt         →\n    CardanoLedgerApi.Examples.Auction.bakedEndTime ≤ lo  →\n    sellerAda = bidAmt →\n    assetTok = 1\n    → auditDouble auction bidAmt sellerAda assetTok lo",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    0 < bidAmt         →\n    bakedEndTime ≤ lo  →\n    sellerAda = bidAmt →\n    assetTok = 1\n    → auditDouble auction bidAmt sellerAda assetTok lo",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -722,7 +722,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "auditAccepts auction CardanoLedgerApi.Examples.Auction.demoValidCtx",
+                    "source": "auditAccepts auction demoValidCtx",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -741,7 +741,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoWrongTnCtx",
+                    "source": "¬ auditAccepts auction demoWrongTnCtx",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -760,7 +760,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoWrongPolicyCtx",
+                    "source": "¬ auditAccepts auction demoWrongPolicyCtx",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -779,7 +779,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoDatumHashCtx",
+                    "source": "¬ auditAccepts auction demoDatumHashCtx",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -798,7 +798,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoNoDatumCtx",
+                    "source": "¬ auditAccepts auction demoNoDatumCtx",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -817,7 +817,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoWrongDatumCtx",
+                    "source": "¬ auditAccepts auction demoWrongDatumCtx",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -836,7 +836,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "¬ auditAccepts auction CardanoLedgerApi.Examples.Auction.demoOtherRedeemerCtx",
+                    "source": "¬ auditAccepts auction demoOtherRedeemerCtx",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]
@@ -855,7 +855,7 @@
             "statement": {
                 "formal": {
                     "language": "ual",
-                    "source": "auditAccepts auction CardanoLedgerApi.Examples.Auction.demoPayoutStakedCtx",
+                    "source": "auditAccepts auction demoPayoutStakedCtx",
                     "uses": [
                         "Example.Ual.Auction.FormalSpec"
                     ]

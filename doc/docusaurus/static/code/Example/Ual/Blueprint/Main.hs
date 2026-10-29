@@ -226,7 +226,7 @@ context they quantify over decodes by construction. @own_input_required@ is a
 different claim — a well-formed context whose purpose does not resolve to one of
 the transaction's inputs.
 
-UAL 0.6-draft specifies that a validator's stable id denotes its applied wrapper.
+UAL 1.0 specifies that a validator's stable id denotes its applied wrapper.
 The explicit semantics variant and step bound are part of each claim's meaning.
 
 The @PREDICATE@ and @PROPERTY@ bodies are Lean source. Nothing in this repository
@@ -237,6 +237,7 @@ module Main where
 import Data.ByteString.Short qualified as SBS
 import Data.Set qualified as Set
 import GHC.Generics (Generic)
+import PlutusLedgerApi.Common (Version (..))
 import PlutusLedgerApi.V1.Interval (contains)
 import PlutusLedgerApi.V1.Value qualified as Value
 import PlutusLedgerApi.V3
@@ -484,7 +485,8 @@ handles it, rather than discard an @Either@. -}
 vestingInstance
   :: Haskell.Either Haskell.String (PlutusTx.CompiledCode (BuiltinData -> BuiltinUnit))
 vestingInstance =
-  vestingValidatorCode `PlutusTx.applyCode` PlutusTx.liftCodeDef (toBuiltinData exampleParams)
+  vestingValidatorCode
+    `PlutusTx.applyCode` PlutusTx.liftCode (Version 1 1 0) (toBuiltinData exampleParams)
 
 myContractBlueprint :: ContractBlueprint
 myContractBlueprint =

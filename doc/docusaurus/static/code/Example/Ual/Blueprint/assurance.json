@@ -3,7 +3,7 @@
     "blueprint": {
         "hash": {
             "alg": "sha256",
-            "digest": "54fc300e88030e44c2d6763f0f634b2e99d5b5a8420845f96c3154969d72870c"
+            "digest": "2d2652d415d1abeebf63d5350ffcf74c610e3e753825c65633d0fd816ae97354"
         },
         "uri": "plutus.json"
     },
@@ -44,6 +44,76 @@
             "uri": "checking-unvested_value_stays_locked.json"
         }
     },
+    "definitions": {
+        "BuiltinData": {},
+        "CurrencySymbol": {
+            "dataType": "bytes",
+            "title": "CurrencySymbol"
+        },
+        "Integer": {
+            "dataType": "integer"
+        },
+        "POSIXTime": {
+            "dataType": "integer",
+            "title": "POSIXTime"
+        },
+        "PubKeyHash": {
+            "dataType": "bytes",
+            "title": "PubKeyHash"
+        },
+        "TokenName": {
+            "dataType": "bytes",
+            "title": "TokenName"
+        },
+        "Tranche": {
+            "dataType": "constructor",
+            "fields": [
+                {
+                    "$ref": "#/definitions/POSIXTime",
+                    "title": "trancheDeadline"
+                },
+                {
+                    "$ref": "#/definitions/Value",
+                    "title": "trancheAmount"
+                }
+            ],
+            "index": 0
+        },
+        "Value": {
+            "dataType": "map",
+            "keys": {
+                "$ref": "#/definitions/CurrencySymbol"
+            },
+            "title": "Value",
+            "values": {
+                "dataType": "map",
+                "keys": {
+                    "$ref": "#/definitions/TokenName"
+                },
+                "values": {
+                    "$ref": "#/definitions/Integer"
+                }
+            }
+        },
+        "VestingParams": {
+            "dataType": "constructor",
+            "fields": [
+                {
+                    "$ref": "#/definitions/PubKeyHash",
+                    "title": "vpOwner"
+                },
+                {
+                    "$ref": "#/definitions/Tranche",
+                    "title": "vpTranche1"
+                },
+                {
+                    "$ref": "#/definitions/Tranche",
+                    "title": "vpTranche2"
+                }
+            ],
+            "index": 0
+        }
+    },
     "formalFragments": [
         {
             "id": "Main",
@@ -51,11 +121,12 @@
             "source": "-- What one tranche still requires to stay locked, at a time. `Value`,\n-- `POSIXTime`, `null`, `merge` and `ofTypedValue` are CardanoLedgerApi.V3's;\n-- `Tranche` and its field names come from this blueprint's `definitions`.\n--\n-- `ofTypedValue` is the crossing between the two. A blueprint describes a\n-- Value as a map of currency symbol to token map, so the generated\n-- `trancheAmount` has that type; the ledger's Value keeps its keys as Data.\ndef trancheUnvested (t : Tranche) (now : POSIXTime) : Value :=\n  if now >= t.trancheDeadline then null else ofTypedValue t.trancheAmount\n\n-- What the whole schedule requires to stay locked.\ndef unvested (p : VestingParams) (now : POSIXTime) : Value :=\n  merge (trancheUnvested p.vpTranche1 now) (trancheUnvested p.vpTranche2 now)"
         }
     ],
+    "functions": {},
     "languages": {
         "ual": {
             "name": "Universal Annotation Language",
             "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage",
-            "version": "0.6-draft"
+            "version": "1.0"
         }
     },
     "preamble": {

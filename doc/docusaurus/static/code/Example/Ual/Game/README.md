@@ -13,7 +13,7 @@ digest-bound checking contexts. The blueprint contains invocation roles and sche
 references; the contexts contain execution bounds and semantics. Compilation emits claims, not
 verification evidence.
 
-The UAL 0.6-draft properties use the stable `gameValidator` binding; the display title
+The UAL 1.0 properties use the stable `gameValidator` binding; the display title
 is `Guess the secret`. SHA-256 is opaque to the solver, so the quantified claims
 state that matching hashes succeed and different hashes fail. They do not assert
 that distinct guesses always have different hashes. An integer datum must fail

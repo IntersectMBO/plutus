@@ -10,8 +10,10 @@ actual UPLC, its SHA-256 digest, native integer arguments and boolean result,
 and all properties. `[kind: script]` is the default; `[kind: function]` routes
 an ONCHAIN target to assurance. There is no helper validator in the blueprint.
 
-The formal specification uses typed V3 `ScriptContext` constructors from
-`CardanoLedgerApi.Examples.Auction` and encodes them at the raw Data boundary.
+The detached `FormalSpec.hs` defines the Auction scenarios using typed V3
+`ScriptContext` constructors from `CardanoLedgerApi.V3`, and encodes them at
+the raw Data boundary. Those definitions are exported into assurance fragments;
+verification does not import a separately hand-written Auction model.
 The malformed-context property exercises that raw boundary directly. The helper
 property checks its exact native return value, not merely successful termination.
 
@@ -37,7 +39,7 @@ Build `docusaurus-examples:exe:example-ual-auction`. In CardanoLedgerApiBlaster,
 build and run:
 
 ```sh
-lake build Blaster:shared CardanoLedgerApi.Examples.Auction PlutusCore.UPLC.BlueprintEncoding.Assurance
+lake build Blaster:shared CardanoLedgerApi.V3 PlutusCore.UPLC.BlueprintEncoding.Assurance
 lake env python3 Tests/BlueprintVerify/run_auction.py /absolute/path/to/example-ual-auction /absolute/path/to/output
 ```
 

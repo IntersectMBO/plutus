@@ -459,7 +459,7 @@ writeInterfaceBundleWithBindings environment preamble defaultId modules bp artif
           [ "ual"
               .= object
                 [ "name" .= ("Universal Annotation Language" :: Text)
-                , "version" .= ("0.6-draft" :: Text)
+                , "version" .= ("1.0" :: Text)
                 , "uri" .= ("https://github.com/input-output-hk/UniversalAnnotationLanguage" :: Text)
                 ]
           ]
