@@ -142,6 +142,15 @@ module Rules where
           (case (con (tmCon (pair A B) (x ,, y ))) (N ∷ []))
           (N · con (tmCon A x) · con (tmCon B y))
 
+  data CaseData (@++ R : Relation) : Relation where
+    case-data :
+      ∀ {n} {i} {xs} {N : n ⊢} {Ns}
+      → lookup? i Ns ≡ just N
+      ----------------------------------------------------
+      → CaseData R
+          (case (con (tmCon pdata (Utils.ConstrDATA (+ i) xs))) Ns)
+          (N · con (tmCon (list pdata) xs))
+
 open Rules
 ```
 
@@ -161,6 +170,7 @@ Reduction
   ⊕ CaseCons₂
   ⊕ CaseNil
   ⊕ CasePair
+  ⊕ CaseData
 ```
 
 The equivalence is closed under the reduction rules and compatibility
@@ -304,6 +314,18 @@ red-pair M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon-pair! (match! (x ,, y)))) (match! N ∷! []!)) =
   just (N · con (tmCon _ x) · con (tmCon _ y) , case-pair)
+
+red-data : (M : n ⊢) → Maybe (∃ λ M' → CaseData R M M')
+red-data M
+  with (case? (con? (tmCon? pdata (DATA-constr? pos? ⋯))) ⋯) M
+... | no _ = nothing
+... | yes (case!
+             (con! (tmCon! (DATA-constr! (pos! n) (match! xs))))
+             (match! Ns)
+          )
+  with lookup? n Ns in eq
+... | nothing = nothing
+... | just N = just ( N · con (tmCon (list pdata) xs) , case-data eq)
 ```
 
 Combining all reduction rules gives a sound-by-construction reduction function:
@@ -320,6 +342,7 @@ reduce =
   <|> red-cons₂
   <|> red-nil
   <|> red-pair
+  <|> red-data
 ```
 
 ### Alternative for sound-by-construction
@@ -374,6 +397,8 @@ decide M M' with case-reduce M ≟ M'
 ## Soundness
 
 The `case-reduce` function refines the `_~_` relation:
+
+<!--
 
 ```
 case-reduce-refines : ∀ {M : n ⊢} → M ~ case-reduce M
@@ -478,3 +503,4 @@ module Decide
   ... | yes P = proof (sound-both P)
   ... | no ¬P = ce (λ P → ¬P (complete-both P)) CaseReduceT M M'
 ```
+-->

@@ -11,7 +11,8 @@ open import Untyped
 open import Relation.Unary using (Decidable)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Relation.Nullary.Negation
-open import Utils as U using (Maybe; nothing; just; Either) renaming (_∷_ to cons; [] to nil)
+open import Utils as U using (Maybe; nothing; just; Either; DATA) renaming (_∷_ to cons; [] to nil)
+open U.DATA
 open import Relation.Nullary using (_×-dec_)
 open import Data.Product using (_,_; _×_;Σ)
 open import RawU using (TmCon)
@@ -294,6 +295,9 @@ data tmCon-listᵖ (P : ∀ t → Pr (⟦ list t ⟧tag)) : TmCon → Set where
 data tmCon-pairᵖ (P : ∀ A B → Pr (⟦ pair A B ⟧tag)) : TmCon → Set where
   tmCon-pair! : ∀ {A B x} → P A B x → tmCon-pairᵖ P (tmCon (pair A B) x)
 
+data DATA-constrᵖ (P : Pr ℤ) (Q : Pr (⟦ list pdata ⟧tag)) : Pr U.DATA where
+  DATA-constr! : ∀ {i xs} → P i → Q xs → DATA-constrᵖ P Q (U.ConstrDATA i xs)
+
 data Letᵖ_Inᵖ_ (P : Pr (n ⊢)) (Q : Pr (suc n ⊢)) : Pr (n ⊢) where
   Let!_In!_ : ∀ {M N} → P M → Q N → (Letᵖ P Inᵖ Q) (Let M In N)
 
@@ -485,6 +489,17 @@ pair? (pair x y) = yes (_ , refl)
 pair? (atomic _) = no λ ()
 pair? (array _) = no λ ()
 pair? (list _) = no λ ()
+
+DATA-constr? : ∀ {P Q} → Decidable P → Decidable Q → (d : DATA) → Dec (DATA-constrᵖ P Q d)
+DATA-constr? P? Q? (ConstrDATA i xs)
+  with P? i | Q? xs
+... | yes Pi | yes Qi = yes (DATA-constr! Pi Qi)
+... | no ¬Pi | _ = no λ {(DATA-constr! Pi _) → ¬Pi Pi}
+... | yes _  | no ¬Qi = no λ {(DATA-constr! _ Qi) → ¬Qi Qi}
+DATA-constr? P? Q? (MapDATA x) = no λ ()
+DATA-constr? P? Q? (ListDATA x) = no λ ()
+DATA-constr? P? Q? (iDATA x) = no λ ()
+DATA-constr? P? Q? (bDATA x) = no λ ()
 
 tmCon-list? : {P : ∀ t → Pr (⟦ list t ⟧tag)} → (∀ t → Decidable (P t)) → Decidable (tmCon-listᵖ P)
 tmCon-list? P? (tmCon t x)

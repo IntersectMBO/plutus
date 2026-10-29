@@ -99,8 +99,8 @@ du_sat_36 v0
       MAlonzo.Code.Untyped.C_case_40 v1 v2 -> coe C_no'45'builtin_6
       MAlonzo.Code.Untyped.C_builtin_44 v1
         -> coe
-             C_want_8 (coe MAlonzo.Code.Builtin.d_arity'8320'_314 (coe v1))
-             (coe MAlonzo.Code.Builtin.d_arity_318 (coe v1))
+             C_want_8 (coe MAlonzo.Code.Builtin.d_arity'8320'_324 (coe v1))
+             (coe MAlonzo.Code.Builtin.d_arity_328 (coe v1))
       MAlonzo.Code.Untyped.C_error_46 -> coe C_no'45'builtin_6
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.Reduction.sat-app-step
@@ -354,7 +354,7 @@ d_progress_640 v0
                                                              (coe
                                                                 MAlonzo.Code.Builtin.Signature.d_args_88
                                                                 (coe
-                                                                   MAlonzo.Code.Builtin.d_signature_312
+                                                                   MAlonzo.Code.Builtin.d_signature_322
                                                                    (coe v10))))) in
                                              coe
                                                (let v12
@@ -362,12 +362,12 @@ d_progress_640 v0
                                                           (coe
                                                              MAlonzo.Code.Builtin.Signature.d_fv'9839'_86
                                                              (coe
-                                                                MAlonzo.Code.Builtin.d_signature_312
+                                                                MAlonzo.Code.Builtin.d_signature_322
                                                                 (coe v10)))
                                                           (coe
                                                              MAlonzo.Code.Builtin.Signature.d_fv'8902'_84
                                                              (coe
-                                                                MAlonzo.Code.Builtin.d_signature_312
+                                                                MAlonzo.Code.Builtin.d_signature_322
                                                                 (coe v10))) in
                                                 coe
                                                   (case coe v12 of
@@ -1113,7 +1113,7 @@ d_progress_640 v0
                                                                     (coe
                                                                        MAlonzo.Code.Builtin.Signature.d_args_88
                                                                        (coe
-                                                                          MAlonzo.Code.Builtin.d_signature_312
+                                                                          MAlonzo.Code.Builtin.d_signature_322
                                                                           (coe v12))))) in
                                                     coe
                                                       (let v14
@@ -1121,12 +1121,12 @@ d_progress_640 v0
                                                                  (coe
                                                                     MAlonzo.Code.Builtin.Signature.d_fv'9839'_86
                                                                     (coe
-                                                                       MAlonzo.Code.Builtin.d_signature_312
+                                                                       MAlonzo.Code.Builtin.d_signature_322
                                                                        (coe v12)))
                                                                  (coe
                                                                     MAlonzo.Code.Builtin.Signature.d_fv'8902'_84
                                                                     (coe
-                                                                       MAlonzo.Code.Builtin.d_signature_312
+                                                                       MAlonzo.Code.Builtin.d_signature_322
                                                                        (coe v12))) in
                                                        coe
                                                          (case coe v14 of
@@ -2266,7 +2266,7 @@ d_progress_640 v0
              MAlonzo.Code.Untyped.C_constr_34 v3 v4
                -> let v5
                         = coe
-                            MAlonzo.Code.Untyped.CEK.du_lookup'63'_1180 (coe v3) (coe v2) in
+                            MAlonzo.Code.Untyped.CEK.du_lookup'63'_1220 (coe v3) (coe v2) in
                   coe
                     (case coe v5 of
                        MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v6
