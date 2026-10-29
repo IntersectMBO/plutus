@@ -422,20 +422,20 @@ BUILTIN nullList = λ
   ; _ -> inj₁ userError
   }
 BUILTIN lengthOfArray = λ
-  { (app (app⋆ base) (V-con (array _) as)) → inj₂ (V-con integer (Utils.HSlengthOfArray as))
+  { (app (app⋆ base) (V-con (array _) as)) → inj₂ (V-con integer (HSlengthOfArray as))
     ; _ -> inj₁ userError
   }
 BUILTIN listToArray = λ
-  { (app (app⋆ base) (V-con (list t) ls)) → inj₂ (V-con (array t) (Utils.HSlistToArray ls))
+  { (app (app⋆ base) (V-con (list t) ls)) → inj₂ (V-con (array t) (HSlistToArray (toList ls)))
     ; _ -> inj₁ userError
   }
 BUILTIN indexArray = λ
   { (app (app (app⋆ base) (V-con (array t) as)) (V-con integer i)) →
       case Data.Integer.ℤ.pos 0 ≤? i of λ
         { (no  _) -> inj₁ userError
-        ; (yes _) -> case i <? Utils.HSlengthOfArray as of λ
+        ; (yes _) -> case i <? HSlengthOfArray as of λ
           { (no _)  -> inj₁ userError
-          ; (yes _) -> inj₂ (V-con t (Utils.HSindexArray as i))
+          ; (yes _) -> inj₂ (V-con t (HSindexArray as i))
           }
         }
     ; _ -> inj₁ userError
@@ -679,6 +679,38 @@ BUILTIN bls12-381-G2-multiScalarMul = λ
      ; nothing  -> inj₁ userError
      }
   ;  _ -> inj₁ userError
+  }
+BUILTIN multiIndexArray = λ
+  { (app (app (app⋆ base) (V-con (array A) as)) (V-con (list integer) is))
+      → case HSmultiIndexArray as (toList is) of λ
+        { (just r) → inj₂ (V-con (list A) (fromList r))
+        ; nothing  → inj₁ userError
+        }
+  ; _ → inj₁ userError
+  }
+BUILTIN policies = λ
+  { (app base (V-con value v)) → inj₂ (V-con (list bytestring) (fromList (POLICIES v)))
+  ; _ → inj₁ userError
+  }
+BUILTIN assetCount = λ
+  { (app base (V-con value v)) → inj₂ (V-con integer (assetCOUNT v))
+  ; _ → inj₁ userError
+  }
+BUILTIN keepPolicies = λ
+  { (app (app base (V-con (list bytestring) bs)) (V-con value v)) →
+      case keepPOLICIES (toList bs) v of λ
+      { (just r) → inj₂ (V-con value r)
+      ; nothing → inj₁ userError
+      }
+  ; _ → inj₁ userError
+  }
+BUILTIN dropPolicies = λ
+  { (app (app base (V-con (list bytestring) bs)) (V-con value v)) →
+      case dropPOLICIES (toList bs) v of λ
+      { (just r) → inj₂ (V-con value r)
+      ; nothing → inj₁ userError
+      }
+  ; _ → inj₁ userError
   }
 
 -- Take an apparently more general index and show that it is a fully applied builtin.

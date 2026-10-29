@@ -378,7 +378,7 @@ du_compatVar'63'_380 ::
 du_compatVar'63'_380 v0 v1
   = let v2
           = \ v2 ->
-              coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404 in
+              coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504 in
     coe
       (case coe v0 of
          MAlonzo.Code.Untyped.C_'96'_18 v3
@@ -781,18 +781,18 @@ du_compatApply'63'_434 v0 v1 v2 v3
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'183''63'__1260
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'183''63'__1276
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (coe v2))
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'183''63'__1260
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'183''63'__1276
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (coe v3)) in
     coe
       (case coe v4 of
@@ -902,14 +902,14 @@ du_compatLam'63'_514 v0 v1 v2 v3
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_ƛ'63'_1158
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_ƛ'63'_1174
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (coe v2))
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_ƛ'63'_1158
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_ƛ'63'_1174
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (coe v3)) in
     coe
       (case coe v4 of
@@ -1007,14 +1007,14 @@ du_compatForce'63'_578 v0 v1 v2 v3
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_force'63'_1374
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_force'63'_1390
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (coe v2))
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_force'63'_1374
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_force'63'_1390
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (coe v3)) in
     coe
       (case coe v4 of
@@ -1105,14 +1105,14 @@ du_compatDelay'63'_642 v0 v1 v2 v3
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_delay'63'_1452
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_delay'63'_1468
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (coe v2))
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_delay'63'_1452
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_delay'63'_1468
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (coe v3)) in
     coe
       (case coe v4 of
@@ -1201,11 +1201,11 @@ du_compatConstr'63'_706 ::
 du_compatConstr'63'_706 v0 v1 v2 v3
   = let v4
           = \ v4 ->
-              coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404 in
+              coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504 in
     coe
       (let v5
              = \ v5 ->
-                 coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404 in
+                 coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504 in
        coe
          (case coe v2 of
             MAlonzo.Code.Untyped.C_'96'_18 v6
@@ -1336,7 +1336,7 @@ du_compatConstr'63'_706 v0 v1 v2 v3
                                                                           MAlonzo.Code.Data.Nat.Properties.d__'8799'__2796
                                                                           (coe v6) (coe v14))
                                                                        (coe
-                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404) in
+                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504) in
                                                              coe
                                                                (case coe v16 of
                                                                   MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v17 v18
@@ -1570,7 +1570,7 @@ du_compatConstr'63'_706 v0 v1 v2 v3
                                                                                             (coe
                                                                                                v19))
                                                                                          (coe
-                                                                                            MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404) in
+                                                                                            MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504) in
                                                                                coe
                                                                                  (case coe v21 of
                                                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v22 v23
@@ -1790,18 +1790,18 @@ du_compatCase'63'_804 v0 v1 v2 v3
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_case'63'_1532
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_case'63'_1548
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (coe v2))
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_case'63'_1532
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_case'63'_1548
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504)
                  (coe v3)) in
     coe
       (case coe v4 of
@@ -1907,7 +1907,7 @@ du_compatCon'63'_884 ::
 du_compatCon'63'_884 v0 v1
   = let v2
           = \ v2 ->
-              coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404 in
+              coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504 in
     coe
       (case coe v0 of
          MAlonzo.Code.Untyped.C_'96'_18 v3
@@ -2301,7 +2301,7 @@ du_compatBuiltin'63'_938 ::
 du_compatBuiltin'63'_938 v0 v1
   = let v2
           = \ v2 ->
-              coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404 in
+              coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2504 in
     coe
       (case coe v0 of
          MAlonzo.Code.Untyped.C_'96'_18 v3
@@ -2453,7 +2453,7 @@ du_compatBuiltin'63'_938 v0 v1
                                                         MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
                                            MAlonzo.Code.Untyped.C_builtin_44 v8
                                              -> let v9
-                                                      = MAlonzo.Code.Builtin.d_decBuiltin_456
+                                                      = MAlonzo.Code.Builtin.d_decBuiltin_492
                                                           (coe v3) (coe v8) in
                                                 coe
                                                   (case coe v9 of
@@ -2584,7 +2584,7 @@ du_compatBuiltin'63'_938 v0 v1
                                                                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
                                                                     MAlonzo.Code.Untyped.C_builtin_44 v14
                                                                       -> let v15
-                                                                               = MAlonzo.Code.Builtin.d_decBuiltin_456
+                                                                               = MAlonzo.Code.Builtin.d_decBuiltin_492
                                                                                    (coe v3)
                                                                                    (coe v14) in
                                                                          coe
@@ -2697,10 +2697,10 @@ du_compatError'63'_992 v0 v1
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_error'63'_1916
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_error'63'_1932
                  (coe v0))
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_error'63'_1916
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_error'63'_1932
                  (coe v1)) in
     coe
       (case coe v2 of

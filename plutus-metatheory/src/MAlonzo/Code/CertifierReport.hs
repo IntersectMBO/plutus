@@ -608,10 +608,10 @@ d_numSites_190 v0 v1 v2 v3
         -> coe du_numSites'8242'_26 v0 v1 v3
       MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_26
         -> coe
-             MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_numSitesCaseReduce_578
+             MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_numSitesCaseReduce_642
              (coe (0 :: Integer)) (coe v0) (coe v1)
              (coe
-                MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_sound_568
+                MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_sound_632
                 (coe (0 :: Integer)) (coe v0))
       MAlonzo.Code.VerifiedCompilation.Trace.C_letFloatOutT_28
         -> coe
