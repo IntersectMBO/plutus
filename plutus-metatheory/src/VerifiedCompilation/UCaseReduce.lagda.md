@@ -163,12 +163,16 @@ Reduction
   ⊕ CasePair
 ```
 
-The equivalence is closed under the reduction rules and compatibility
-rules
+We close the relation under term-compatibility, transitivity, symmetry and reflexivity.
 
 ```
 _~_ : Relation
-_~_ = Fix (Reduction ⊕ CompatTerm ⊕ Transitivity ⊕ Symmetry ⊕ Reflexivity)
+_~_ = Fix ( Reduction
+          ⊕ CompatTerm
+          ⊕ Transitivity
+          ⊕ Symmetry
+          ⊕ Reflexivity
+          )
 ```
 
 Pattern synonyms for constructors:
@@ -230,9 +234,10 @@ private module Test where
 ## CaseReduce translation relation
 
 For each of the inductive reduction rules, we give a corresponding partial
-function, which by construction is sound w.r.t `_~_`: it also produces proof of
-the reduction rule when it succeeds (this comes in handy when proving soundness
-w.r.t the inductive translation relation later on)
+function. I.e. for a rule `R`, we construct `(M : n ⊢) → Maybe (∃ λ M' → R M
+M')`. So not only does it compute the reduction step, it also constructs
+evidence of `R` (this comes in handy when proving soundness w.r.t the inductive
+translation relation later on).
 
 ```
 private variable
@@ -309,7 +314,7 @@ red-pair M
 Combining all reduction rules gives a sound-by-construction reduction function:
 
 ```
-reduce : (M : n ⊢) → Maybe (∃ λ M' → Reduction _~_ M M')
+reduce : (M : n ⊢) → Maybe (∃ λ M' → Reduction R M M')
 reduce =
   red-constr
   <|> red-unit
@@ -324,7 +329,7 @@ reduce =
 
 ### Alternative for sound-by-construction
 
-We could alternatively set it up in a more extrinsic way:
+We could have set it up in a more extrinsic way:
 
 ```text
 red-unit : n ⊢ → Maybe (n ⊢)
@@ -343,7 +348,7 @@ rules:
 
 ```
 reduceM : n ⊢ → Maybe (n ⊢)
-reduceM = refine? reduce
+reduceM = refine? (reduce {R = _~_})
 
 case-reduce : n ⊢ → n ⊢
 case-reduce M = reduceM ↑? M

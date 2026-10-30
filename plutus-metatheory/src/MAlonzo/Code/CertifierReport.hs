@@ -618,7 +618,7 @@ d_numSites_190 v0 v1 v2 v3
              MAlonzo.Code.VerifiedCompilation.FloatOut.d_numSites_330
              (coe (0 :: Integer)) (coe v0) (coe v1) (coe v3)
       MAlonzo.Code.VerifiedCompilation.Trace.C_caseOfCaseT_28
-        -> coe du_numSites'8242'_26 v0 v1 v3
+        -> coe (0 :: Integer)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- CertifierReport.showSites
 d_showSites_218 ::

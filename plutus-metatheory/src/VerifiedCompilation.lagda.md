@@ -110,7 +110,7 @@ certifyPass (inj₂ cseT) _ = decider UCSE.isUntypedCSE?
 certifyPass (inj₂ applyToCaseT) _ = decider UA2C.a2c?ᶜᶜ
 certifyPass (inj₂ caseReduceT) _ = decider UCR.decide
 certifyPass (inj₂ letFloatOutT) _ = decider FO.decide
-certifyPass (inj₂ caseOfCaseT) _ = decider COC.isCaseOfCase?
+certifyPass (inj₂ caseOfCaseT) _ = decider COC.decide
 ```
 
 A `Certificate t` states the main theorem of a trace `t`: a sequence (product)

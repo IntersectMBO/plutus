@@ -21,10 +21,14 @@ open import Relation.Binary.PropositionalEquality
 
 ## Bottom-up traversals
 
-Bottom-up traversal with a rewriting rule `f`. For later proofs, it turns out to be
-useful to split out the definition in mutually recursive functions. One for the
-part that recurses in the sub-terms, which we name `subterms`, and one for
-recursing in lists of terms, which happens for `constr` and `case`.
+Bottom-up traversal with a rewriting rule `f`. Applies `f` to each sub-term.
+
+For example: ``f ↑ (ƛ (` 0)) · (` 1)   =   f (f (ƛ f (` 0)) · f (` 1) ``
+
+For later proofs, it turns out to be useful to split out the definition in
+mutually recursive functions. One for the part that recurses in the sub-terms,
+which we name `subterms`, and one for recursing in lists of terms, which happens
+for `constr` and `case`.
 
 `↑` is similar to `transformOf subterms` in Haskell
 

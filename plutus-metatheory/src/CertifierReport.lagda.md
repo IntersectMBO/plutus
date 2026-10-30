@@ -132,7 +132,7 @@ numSites forceCaseDelayT p = numSites′ p
 numSites applyToCaseT p = numSites′ p
 numSites {M = M} caseReduceT p = numSitesCaseReduce (CR.sound {M = M} p)
 numSites letFloatOutT p = FloatOut.numSites p
-numSites caseOfCaseT p = numSites′ p
+numSites caseOfCaseT p = 0
 
 showSites : {M N : 0 ⊢} → (tag : OptTag) → RelationOf tag M N → String
 showSites (inj₁ _) _ = ""
