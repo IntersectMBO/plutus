@@ -106,11 +106,21 @@ evaluateBuiltins preserveLogging binfo costModel term = transformOf termSubterms
 
 {- Note [Evaluating builtins with impure arguments]
 
-The pass is bottom-up, but an argument is only replaced if folding it succeeds,
-so it may still be an unevaluated, possibly failing term, e.g. `divideInteger 1 x`.
-Polymorphic builtin arguments accept any term, so without care
-`ifThenElse True 7 (divideInteger 1 x)` would fold to `7`, although the language is
-strict and the original fails when `x` is 0. Hence we only fold when all term
-arguments are pure. Nested foldable applications and delayed terms are pure, so
-they still fold.
+Some builtins take opaque arguments (for documentation on what "opaque" means,
+see Note [How to add a built-in function: complicated cases]). By definition,
+the values of these arguments are not inspected when evaluating the builtin,
+therefore applying the denotation of the builtin will succeed regardless of the
+actual values of the arguments. Evaluation order is handled externally, in the
+CEK machine, and not in the builtin machinery. Since UPLC is strict, the CEK
+machine takes care of evaluating arguments first.
+
+For example, when evaluating `ifThenElse True 7 (divideInteger 1 x)`, the CEK
+machine will attempt to evaluate `divideInteger 1 x` before applying `ifThenElse`.
+Of course, when `x` is `0` evaluation fails and the program reduces to `error`.
+
+However, when constant folding at compile time, there may not be a concrete
+value for `x` yet. Since a builtin taking opaque arguments does not inspect them,
+applying its denotation will succeed regardless of their actual values.
+This is not sound in a strict language, and we can preserve the correct order of
+side effects by only folding a builtin when its arguments are pure.
 -}
