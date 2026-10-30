@@ -47,6 +47,7 @@ inputs =
   [ ("1", caseOfCase1)
   , ("2", caseOfCase2)
   , ("3", caseOfCase3)
+  , ("4", caseOfCase4)
   , ("withError", caseOfCaseWithError)
   ]
 
@@ -75,6 +76,13 @@ caseOfCase3 =
     case_
       (ite (var "b") (constr 0 [var "x", var "xs"]) sopFalse)
       [var "f", con 2]
+
+caseOfCase4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+caseOfCase4 =
+  lams ["b", "x", "xs", "f"] $
+    case_
+      (case_ (var "b") [sopTrue, sopFalse])
+      [con 1, con 2]
 
 {-|
 
