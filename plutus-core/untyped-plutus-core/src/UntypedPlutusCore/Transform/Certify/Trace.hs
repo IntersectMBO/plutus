@@ -28,6 +28,7 @@ data CertifiedOptStage
   | ApplyToCase
   | CaseReduce
   | LetFloatOut
+  | CaseOfCase
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -42,8 +43,7 @@ also modifying the certifier in the same PR, you must add/move its
 corresponding constructor to this type. Please also open an issue
 at https://github.com/IntersectMBO/plutus/issues. -}
 data UncertifiedOptStage
-  = CaseOfCase
-  | ConstantFolding
+  = ConstantFolding
   | PolyBuiltin
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
@@ -72,7 +72,7 @@ pattern ApplyToCaseStage :: OptStage
 pattern ApplyToCaseStage = Right ApplyToCase
 
 pattern CaseOfCaseStage :: OptStage
-pattern CaseOfCaseStage = Left CaseOfCase
+pattern CaseOfCaseStage = Right CaseOfCase
 
 pattern LetFloatOutStage :: OptStage
 pattern LetFloatOutStage = Right LetFloatOut

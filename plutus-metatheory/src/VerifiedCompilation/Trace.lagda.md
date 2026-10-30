@@ -30,7 +30,6 @@ pragmas MUST be the same as the order of their counterparts in
 ```
 
 data UncertifiedOptTag : Set where
-  caseOfCaseT : UncertifiedOptTag
   constantFoldingT : UncertifiedOptTag
   polyBuiltinT : UncertifiedOptTag
 
@@ -43,6 +42,7 @@ data CertifiedOptTag : Set where
   applyToCaseT : CertifiedOptTag
   caseReduceT : CertifiedOptTag
   letFloatOutT : CertifiedOptTag
+  caseOfCaseT : CertifiedOptTag
 
 OptTag = Utils.Either UncertifiedOptTag CertifiedOptTag
 
@@ -64,7 +64,7 @@ CaseReduceT : OptTag
 CaseReduceT = Utils.inj₂ caseReduceT
 
 CaseOfCaseT : OptTag
-CaseOfCaseT = Utils.inj₁ caseOfCaseT
+CaseOfCaseT = Utils.inj₂ caseOfCaseT
 ConstantFoldingT : OptTag
 ConstantFoldingT = Utils.inj₁ constantFoldingT
 PolyBuiltinT : OptTag
@@ -81,13 +81,13 @@ PolyBuiltinT = Utils.inj₁ polyBuiltinT
       | ApplyToCase
       | CaseReduce
       | LetFloatOut
+      | CaseOfCase
       )
 #-}
 {-# COMPILE GHC
   UncertifiedOptTag
     = data UncertifiedOptStage
-      ( CaseOfCase
-      | ConstantFolding
+      ( ConstantFolding
       | PolyBuiltin
       )
 #-}

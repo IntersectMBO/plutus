@@ -43,7 +43,7 @@ open import Untyped
 open import Utils
 open import RawU using (Untyped)
 import VerifiedCompilation.UApplyToCase as UA2C
-import VerifiedCompilation.UCaseOfCase as UCC
+import VerifiedCompilation.UCaseOfCase as COC
 import VerifiedCompilation.UForceDelay as UFD
 import VerifiedCompilation.UFloatDelay as UFlD
 import VerifiedCompilation.UForceCaseDelay as UFCD
@@ -82,6 +82,7 @@ tagToRelation cseT = UCSE.UntypedCSE
 tagToRelation applyToCaseT = UA2C.UApplyToCase
 tagToRelation caseReduceT = UCR.CaseReduce
 tagToRelation letFloatOutT = FO.FloatOut
+tagToRelation caseOfCaseT = COC.CaseOfCase
 ```
 
 We default to the `NotImplemented` relation to give each `OptTag` a relation:
@@ -109,6 +110,7 @@ certifyPass (inj₂ cseT) _ = decider UCSE.isUntypedCSE?
 certifyPass (inj₂ applyToCaseT) _ = decider UA2C.a2c?ᶜᶜ
 certifyPass (inj₂ caseReduceT) _ = decider UCR.decide
 certifyPass (inj₂ letFloatOutT) _ = decider FO.decide
+certifyPass (inj₂ caseOfCaseT) _ = decider COC.isCaseOfCase?
 ```
 
 A `Certificate t` states the main theorem of a trace `t`: a sequence (product)

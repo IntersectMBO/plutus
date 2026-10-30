@@ -14,11 +14,14 @@ module VerifiedCompilation.UCaseOfCase where
 open import Untyped.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; CaseOfCaseT)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; CaseOfCaseT; isProof?)
+
+
+open import Data.Bool using (Bool; true; false)
 
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
-open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
+open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; con-integer)
 open import Untyped.CEK using (BApp; fullyAppliedBuiltin; BUILTIN; stepper; State; Stack)
 open import Evaluator.Base using (maxsteps)
 open import Builtin using (Builtin; ifThenElse)
@@ -51,6 +54,31 @@ data CoC : Relation where
 
 CaseOfCase : {n : ℕ} (ast : n ⊢) → (ast' : n ⊢) → Set
 CaseOfCase = Translation CoC
+
+sopTrue : ∀ {m} → m ⊢
+sopFalse : ∀ {m} → m ⊢
+sopTrue = constr 0 []
+sopFalse = constr 1 []
+
+ex1_pre : 0 ⊢
+ex1_pre =
+  ƛ
+    (case
+      (force (builtin ifThenElse) · sopTrue · sopFalse)
+      (
+        con-integer 1
+        ∷ con-integer 2
+        ∷ []
+      )
+    )
+
+ex1_post : 0 ⊢
+ex1_post =
+  ƛ
+    (force (builtin ifThenElse)
+      · con-integer 1
+      · con-integer 2
+    )
 
 ```
 ## Decision Procedure
@@ -116,6 +144,10 @@ isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ...        | proof alts=alts' = proof (isCoC b tn fn tt tt' ft ft' alts alts' alts=alts' tt=tt' ft=ft')
 
 isCaseOfCase? {n} = translation? {n} CaseOfCaseT isCoC?
+
+
+test : isProof? (isCaseOfCase? ex1_pre ex1_post) ≡ true
+test = ?
 ```
 
 ## Semantic Equivalence

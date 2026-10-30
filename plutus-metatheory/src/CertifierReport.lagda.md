@@ -48,9 +48,9 @@ showCertifiedOptTag cseT = "Common Subexpression Elimination"
 showCertifiedOptTag applyToCaseT = "Transform multi-argument applications into case-constr form"
 showCertifiedOptTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
 showCertifiedOptTag letFloatOutT = "Float bindings outwards"
+showCertifiedOptTag caseOfCaseT = "Case-of-Case"
 
 showUncertifiedOptTag : UncertifiedOptTag → String
-showUncertifiedOptTag caseOfCaseT = "Case-of-Case"
 showUncertifiedOptTag constantFoldingT = "Constant Folding"
 showUncertifiedOptTag polyBuiltinT = "Hoist Polymorphic Builtins"
 
@@ -132,6 +132,7 @@ numSites forceCaseDelayT p = numSites′ p
 numSites applyToCaseT p = numSites′ p
 numSites {M = M} caseReduceT p = numSitesCaseReduce (CR.sound {M = M} p)
 numSites letFloatOutT p = FloatOut.numSites p
+numSites caseOfCaseT p = numSites′ p
 
 showSites : {M N : 0 ⊢} → (tag : OptTag) → RelationOf tag M N → String
 showSites (inj₁ _) _ = ""

@@ -74,9 +74,9 @@ instance AgdaUnparse CertifiedOptStage where
   agdaUnparse ApplyToCase = "applyToCaseT"
   agdaUnparse CaseReduce = "caseReduceT"
   agdaUnparse LetFloatOut = "letFloatOutT"
+  agdaUnparse CaseOfCase = "caseOfCaseT"
 
 instance AgdaUnparse UncertifiedOptStage where
-  agdaUnparse CaseOfCase = "caseOfCaseT"
   agdaUnparse ConstantFolding = "constantFoldingT"
   agdaUnparse PolyBuiltin = "polyBuiltinT"
 
