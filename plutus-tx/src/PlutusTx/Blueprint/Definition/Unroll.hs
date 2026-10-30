@@ -219,3 +219,49 @@ type family GUnroll (t :: Type -> Type) :: [Type] where
   GUnroll (f :+: g) = GUnroll f ++ GUnroll g
   GUnroll (K1 _ c) = Unrolled c
   GUnroll U1 = '[]
+
+{-| A cycle-aware alternative to 'UnrollAll'. It traverses immediate generic
+fields with a visited set, so self and mutual recursion have finite closures.
+Existing custom 'Unroll' instances retain their old semantics; callers opt in
+through 'deriveRecursiveDefinitions'. Opaque custom types can use
+'definitionsFor' with an explicit finite list instead. -}
+type RecursiveDefinitions ts = Reverse (VisitDefinitions '[] ts)
+
+type family SeenDefinition (t :: Type) (seen :: [Type]) :: Bool where
+  SeenDefinition t '[] = 'False
+  SeenDefinition t (t ': ts) = 'True
+  SeenDefinition t (x ': ts) = SeenDefinition t ts
+
+type family VisitDefinitions (seen :: [Type]) (pending :: [Type]) :: [Type] where
+  VisitDefinitions seen '[] = seen
+  VisitDefinitions seen (t ': ts) = VisitDefinition (SeenDefinition t seen) seen t ts
+
+type family VisitDefinition (known :: Bool) (seen :: [Type]) (t :: Type) (pending :: [Type]) :: [Type] where
+  VisitDefinition 'True seen t pending = VisitDefinitions seen pending
+  VisitDefinition 'False seen t pending =
+    VisitDefinitions (t ': seen) (DefinitionChildren t ++ pending)
+
+type family DefinitionChildren (t :: Type) :: [Type] where
+  DefinitionChildren Void = '[]
+  DefinitionChildren () = '[]
+  DefinitionChildren Bool = '[]
+  DefinitionChildren Int = '[]
+  DefinitionChildren Integer = '[]
+  DefinitionChildren BuiltinData = '[]
+  DefinitionChildren BuiltinUnit = '[]
+  DefinitionChildren BuiltinString = '[]
+  DefinitionChildren BuiltinByteString = '[]
+  DefinitionChildren (BuiltinList a) = '[a]
+  DefinitionChildren (BuiltinPair a b) = '[a, b]
+  DefinitionChildren [a] = '[a]
+  DefinitionChildren (Maybe a) = '[a]
+  DefinitionChildren (a, b) = '[a, b]
+  DefinitionChildren (a, b, c) = '[a, b, c]
+  DefinitionChildren t = GDefinitionChildren (IfStuckRep (RepIsStuckError t) (Rep t))
+
+type family GDefinitionChildren (rep :: Type -> Type) :: [Type] where
+  GDefinitionChildren (M1 i m f) = GDefinitionChildren f
+  GDefinitionChildren (f :*: g) = GDefinitionChildren f ++ GDefinitionChildren g
+  GDefinitionChildren (f :+: g) = GDefinitionChildren f ++ GDefinitionChildren g
+  GDefinitionChildren (K1 i c) = '[c]
+  GDefinitionChildren U1 = '[]

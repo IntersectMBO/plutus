@@ -6,7 +6,7 @@
 module PlutusLedgerApi.V4.Internal (ListEncoded (..)) where
 
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
-import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..))
+import PlutusTx.Blueprint.Schema (ConstructorSchema (..), FieldSchema (fieldSchema), Schema (..))
 import PlutusTx.Builtins qualified as Builtins (matchData')
 import PlutusTx.Builtins.Internal qualified as Builtins
 import PlutusTx.IsData.Class (FromData (..), ToData (..), UnsafeFromData (..))
@@ -40,5 +40,5 @@ instance
   => HasBlueprintSchema (ListEncoded wrapped) referencedTypes
   where
   schema = case schema @wrapped @referencedTypes of
-    SchemaConstructor info (MkConstructorSchema 0 fields) -> SchemaListTuple info fields
+    SchemaConstructor info (MkConstructorSchema 0 fields) -> SchemaListTuple info (map fieldSchema fields)
     _ -> error "ListEncoded requires a product schema with constructor index zero"
