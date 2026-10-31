@@ -1,0 +1,198 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>module PlutusCore.Examples.Data.InterList
+<span class="lineno">    5 </span>  ( interListData
+<span class="lineno">    6 </span>  , interNil
+<span class="lineno">    7 </span>  , interCons
+<span class="lineno">    8 </span>  , foldrInterList
+<span class="lineno">    9 </span>  ) where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import PlutusCore.Core
+<span class="lineno">   12 </span>import PlutusCore.MkPlc
+<span class="lineno">   13 </span>import PlutusCore.Name.Unique
+<span class="lineno">   14 </span>import PlutusCore.Quote
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import PlutusCore.StdLib.Data.Function
+<span class="lineno">   17 </span>import PlutusCore.StdLib.Data.Unit
+<span class="lineno">   18 </span>import PlutusCore.StdLib.Type
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>{- Note [Example: InterList]
+<span class="lineno">   21 </span>We encode the following in this module:
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>    open import Function
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>    data InterList (A B : Set) : Set where
+<span class="lineno">   26 </span>      InterNil  : InterList A B
+<span class="lineno">   27 </span>      InterCons : A -&gt; B -&gt; InterList B A -&gt; InterList A B
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>    foldrInterList : (A B R : Set) -&gt; (A -&gt; B -&gt; R -&gt; R) -&gt; R -&gt; InterList A B -&gt; R
+<span class="lineno">   30 </span>    foldrInterList A0 B0 R f0 z = go A0 B0 f0 where
+<span class="lineno">   31 </span>      go : ∀ A B -&gt; (A -&gt; B -&gt; R -&gt; R) -&gt; InterList A B -&gt; R
+<span class="lineno">   32 </span>      go A B f  InterNil          = z
+<span class="lineno">   33 </span>      go A B f (InterCons x y xs) = f x y $ go B A (flip f) xs
+<span class="lineno">   34 </span>-}
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>-- This definition is used as an example in Note [Spiney API] in &quot;PlutusCore.StdLib.Type&quot;,
+<span class="lineno">   37 </span>-- so if you change it here, then also change it there.
+<span class="lineno">   38 </span>{-| @InterList@ as a PLC type.
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>&gt; fix \(interlist :: * -&gt; * -&gt; *) (a :: *) (b :: *) -&gt;
+<span class="lineno">   41 </span>&gt;     all (r :: *). r -&gt; (a -&gt; b -&gt; interlist b a -&gt; r) -&gt; r -}
+<span class="lineno">   42 </span>interListData :: RecursiveType uni fun ()
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">interListData = runQuote $ do</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">b &lt;- freshTyName &quot;b&quot;</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">interlist &lt;- freshTyName &quot;interlist&quot;</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">let interlistBA = mkIterTyAppNoAnn (TyVar <span class="nottickedoff">()</span> interlist) [TyVar <span class="nottickedoff">()</span> b, TyVar <span class="nottickedoff">()</span> a]</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">makeRecursiveType <span class="nottickedoff">()</span> interlist [TyVarDecl <span class="nottickedoff">()</span> a $ Type <span class="nottickedoff">()</span>, TyVarDecl <span class="nottickedoff">()</span> b $ Type <span class="nottickedoff">()</span>]</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">. TyForall <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   52 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (mkIterTyFun <span class="nottickedoff">()</span> [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> b, interlistBA] $ TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> r</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>interNil :: Term TyName Name uni fun ()
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">interNil = runQuote $ do</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff">let RecursiveType interlist wrapInterList = interListData</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">b &lt;- freshTyName &quot;b&quot;</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff">let interlistBA = mkIterTyAppNoAnn interlist [TyVar <span class="nottickedoff">()</span> b, TyVar <span class="nottickedoff">()</span> a]</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> b (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff">. wrapInterList [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> b]</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> z (TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f (mkIterTyFun <span class="nottickedoff">()</span> [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> b, interlistBA] $ TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   71 </span><span class="spaces">    </span><span class="istickedoff">$ Var <span class="nottickedoff">()</span> z</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>interCons :: Term TyName Name uni fun ()
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">interCons = runQuote $ do</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="istickedoff">let RecursiveType interlist wrapInterList = interListData</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="istickedoff">b &lt;- freshTyName &quot;b&quot;</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="istickedoff">y &lt;- freshName &quot;y&quot;</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="istickedoff">xs &lt;- freshName &quot;xs&quot;</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="istickedoff">let interlistBA = mkIterTyAppNoAnn interlist [TyVar <span class="nottickedoff">()</span> b, TyVar <span class="nottickedoff">()</span> a]</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> b (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> x (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> y (TyVar <span class="nottickedoff">()</span> b)</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> xs interlistBA</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="istickedoff">. wrapInterList [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> b]</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> z (TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f (mkIterTyFun <span class="nottickedoff">()</span> [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> b, interlistBA] $ TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">   95 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">   96 </span><span class="spaces">      </span><span class="istickedoff">(Var <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">   97 </span><span class="spaces">      </span><span class="istickedoff">[ Var <span class="nottickedoff">()</span> x</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="istickedoff">, Var <span class="nottickedoff">()</span> y</span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="istickedoff">, Var <span class="nottickedoff">()</span> xs</span>
+<span class="lineno">  100 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>foldrInterList :: uni `HasTypeAndTermLevel` () =&gt; Term TyName Name uni fun ()
+<span class="lineno">  103 </span><span class="decl"><span class="istickedoff">foldrInterList = runQuote $ do</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="istickedoff">let interlist = _recursiveType interListData</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="istickedoff">a0 &lt;- freshTyName &quot;a0&quot;</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="istickedoff">b0 &lt;- freshTyName &quot;b0&quot;</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="istickedoff">rec &lt;- freshName &quot;rec&quot;</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="istickedoff">u &lt;- freshName &quot;u&quot;</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="istickedoff">b &lt;- freshTyName &quot;b&quot;</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">f' &lt;- freshName &quot;f'&quot;</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="istickedoff">xs &lt;- freshName &quot;xs&quot;</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">  117 </span><span class="spaces">  </span><span class="istickedoff">y &lt;- freshName &quot;y&quot;</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="istickedoff">xs' &lt;- freshName &quot;xs'&quot;</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="istickedoff">x' &lt;- freshName &quot;x'&quot;</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="istickedoff">y' &lt;- freshName &quot;y'&quot;</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="istickedoff">let interlistOf a' b' = mkIterTyAppNoAnn interlist [TyVar <span class="nottickedoff">()</span> a', TyVar <span class="nottickedoff">()</span> b']</span>
+<span class="lineno">  122 </span><span class="spaces">      </span><span class="istickedoff">fTy a' b' = mkIterTyFun <span class="nottickedoff">()</span> [TyVar <span class="nottickedoff">()</span> a', TyVar <span class="nottickedoff">()</span> b', TyVar <span class="nottickedoff">()</span> r] $ TyVar <span class="nottickedoff">()</span> r</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="istickedoff">fixTyArg2 =</span>
+<span class="lineno">  124 </span><span class="spaces">        </span><span class="istickedoff">TyForall <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  125 </span><span class="spaces">          </span><span class="istickedoff">. TyForall <span class="nottickedoff">()</span> b (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  126 </span><span class="spaces">          </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (fTy a b)</span>
+<span class="lineno">  127 </span><span class="spaces">          </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (interlistOf a b)</span>
+<span class="lineno">  128 </span><span class="spaces">          </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> r</span>
+<span class="lineno">  129 </span><span class="spaces">      </span><span class="istickedoff">instedFix = mkIterInstNoAnn fix [unit, fixTyArg2]</span>
+<span class="lineno">  130 </span><span class="spaces">      </span><span class="istickedoff">unwrappedXs = TyInst <span class="nottickedoff">()</span> (Unwrap <span class="nottickedoff">()</span> (Var <span class="nottickedoff">()</span> xs)) $ TyVar <span class="nottickedoff">()</span> r</span>
+<span class="lineno">  131 </span><span class="spaces">      </span><span class="istickedoff">instedRec = mkIterInstNoAnn (Apply <span class="nottickedoff">()</span> (Var <span class="nottickedoff">()</span> rec) unitval) [TyVar <span class="nottickedoff">()</span> b, TyVar <span class="nottickedoff">()</span> a]</span>
+<span class="lineno">  132 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  133 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a0 (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  134 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> b0 (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  135 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  136 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f (fTy a0 b0)</span>
+<span class="lineno">  137 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> z (TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">  138 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterInstNoAnn</span>
+<span class="lineno">  139 </span><span class="spaces">      </span><span class="istickedoff">( mkIterAppNoAnn</span>
+<span class="lineno">  140 </span><span class="spaces">          </span><span class="istickedoff">instedFix</span>
+<span class="lineno">  141 </span><span class="spaces">          </span><span class="istickedoff">[ LamAbs <span class="nottickedoff">()</span> rec (TyFun <span class="nottickedoff">()</span> unit fixTyArg2)</span>
+<span class="lineno">  142 </span><span class="spaces">              </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> u unit</span>
+<span class="lineno">  143 </span><span class="spaces">              </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  144 </span><span class="spaces">              </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> b (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  145 </span><span class="spaces">              </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f' (fTy a b)</span>
+<span class="lineno">  146 </span><span class="spaces">              </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> xs (interlistOf a b)</span>
+<span class="lineno">  147 </span><span class="spaces">              </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  148 </span><span class="spaces">                </span><span class="istickedoff">unwrappedXs</span>
+<span class="lineno">  149 </span><span class="spaces">                </span><span class="istickedoff">[ Var <span class="nottickedoff">()</span> z</span>
+<span class="lineno">  150 </span><span class="spaces">                </span><span class="istickedoff">, LamAbs <span class="nottickedoff">()</span> x (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">  151 </span><span class="spaces">                    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> y (TyVar <span class="nottickedoff">()</span> b)</span>
+<span class="lineno">  152 </span><span class="spaces">                    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> xs' (interlistOf b a)</span>
+<span class="lineno">  153 </span><span class="spaces">                    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  154 </span><span class="spaces">                      </span><span class="istickedoff">(Var <span class="nottickedoff">()</span> f')</span>
+<span class="lineno">  155 </span><span class="spaces">                      </span><span class="istickedoff">[ Var <span class="nottickedoff">()</span> x</span>
+<span class="lineno">  156 </span><span class="spaces">                      </span><span class="istickedoff">, Var <span class="nottickedoff">()</span> y</span>
+<span class="lineno">  157 </span><span class="spaces">                      </span><span class="istickedoff">, mkIterAppNoAnn</span>
+<span class="lineno">  158 </span><span class="spaces">                          </span><span class="istickedoff">instedRec</span>
+<span class="lineno">  159 </span><span class="spaces">                          </span><span class="istickedoff">[ LamAbs <span class="nottickedoff">()</span> y' (TyVar <span class="nottickedoff">()</span> b)</span>
+<span class="lineno">  160 </span><span class="spaces">                              </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> x' (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">  161 </span><span class="spaces">                              </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  162 </span><span class="spaces">                                </span><span class="istickedoff">(Var <span class="nottickedoff">()</span> f')</span>
+<span class="lineno">  163 </span><span class="spaces">                                </span><span class="istickedoff">[ Var <span class="nottickedoff">()</span> x'</span>
+<span class="lineno">  164 </span><span class="spaces">                                </span><span class="istickedoff">, Var <span class="nottickedoff">()</span> y'</span>
+<span class="lineno">  165 </span><span class="spaces">                                </span><span class="istickedoff">]</span>
+<span class="lineno">  166 </span><span class="spaces">                          </span><span class="istickedoff">, Var <span class="nottickedoff">()</span> xs'</span>
+<span class="lineno">  167 </span><span class="spaces">                          </span><span class="istickedoff">]</span>
+<span class="lineno">  168 </span><span class="spaces">                      </span><span class="istickedoff">]</span>
+<span class="lineno">  169 </span><span class="spaces">                </span><span class="istickedoff">]</span>
+<span class="lineno">  170 </span><span class="spaces">          </span><span class="istickedoff">, unitval</span>
+<span class="lineno">  171 </span><span class="spaces">          </span><span class="istickedoff">]</span>
+<span class="lineno">  172 </span><span class="spaces">      </span><span class="istickedoff">)</span>
+<span class="lineno">  173 </span><span class="spaces">      </span><span class="istickedoff">[ TyVar <span class="nottickedoff">()</span> a0</span>
+<span class="lineno">  174 </span><span class="spaces">      </span><span class="istickedoff">, TyVar <span class="nottickedoff">()</span> b0</span>
+<span class="lineno">  175 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    4 </span>{-# LANGUAGE FunctionalDependencies #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    8 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    9 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">   10 </span>-- editorconfig-checker-disable-file
+<span class="lineno">   11 </span>-- appears in the generated instances
+<span class="lineno">   12 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>-- | The exceptions that an abstract machine can throw.
+<span class="lineno">   15 </span>module PlutusCore.Evaluation.Error
+<span class="lineno">   16 </span>  ( EvaluationError (..)
+<span class="lineno">   17 </span>  ) where
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import PlutusPrelude
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Control.Lens
+<span class="lineno">   22 </span>import Data.Bifoldable
+<span class="lineno">   23 </span>import Data.Bitraversable
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>{-| The type of errors that can occur during evaluation. There are two kinds of errors:
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>1. Structural ones -- these are errors that are indicative of the _structure_ of the program being
+<span class="lineno">   28 </span>   wrong. For example, a free variable was encountered during evaluation, a non-function was
+<span class="lineno">   29 </span>   applied to an argument or 'tailList' was applied to a non-list.
+<span class="lineno">   30 </span>2. Operational ones -- these are errors that are indicative of the _logic_ of the program being
+<span class="lineno">   31 </span>   wrong. For example, 'error' was executed, 'tailList' was applied to an empty list or evaluation
+<span class="lineno">   32 </span>   ran out of gas.
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>On the chain both of these are just regular failures and we don't distinguish between them there:
+<span class="lineno">   35 </span>if a script fails, it fails, it doesn't matter what the reason was. However in the tests it does
+<span class="lineno">   36 </span>matter why the failure occurred: a structural error may indicate that the test was written
+<span class="lineno">   37 </span>incorrectly while an operational error may be entirely expected.
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>In other words, structural errors are \&quot;runtime type errors\&quot; and operational errors are regular
+<span class="lineno">   40 </span>runtime errors. Which means that evaluating an (erased) well-typed program should never produce a
+<span class="lineno">   41 </span>structural error, only an operational one. This creates a sort of \&quot;runtime type system\&quot; for UPLC
+<span class="lineno">   42 </span>and it would be great to stick to it and enforce in tests etc, but we currently don't. -}
+<span class="lineno">   43 </span>data EvaluationError structural operational
+<span class="lineno">   44 </span>  = StructuralError !structural
+<span class="lineno">   45 </span>  | OperationalError !operational
+<span class="lineno">   46 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">   47 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Bifunctor EvaluationError</span></span></span></span> where
+<span class="lineno">   50 </span>  <span class="decl"><span class="istickedoff">bimap f _ (StructuralError err) = StructuralError $ f err</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">bimap _ g (OperationalError err) = OperationalError $ g <span class="nottickedoff">err</span></span></span>
+<span class="lineno">   52 </span>  {-# INLINE bimap #-}
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Bifoldable EvaluationError</span></span></span></span></span></span> where
+<span class="lineno">   55 </span>  <span class="decl"><span class="nottickedoff">bifoldMap f _ (StructuralError err) = f err</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">bifoldMap _ g (OperationalError err) = g err</span></span>
+<span class="lineno">   57 </span>  {-# INLINE bifoldMap #-}
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>instance Bitraversable EvaluationError where
+<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">bitraverse f _ (StructuralError err) = StructuralError &lt;$&gt; f err</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">bitraverse _ g (OperationalError err) = OperationalError &lt;$&gt; g err</span></span>
+<span class="lineno">   62 </span>  {-# INLINE bitraverse #-}
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>instance
+<span class="lineno">   65 </span>  <span class="decl"><span class="nottickedoff">( HasPrettyDefaults config ~ 'True</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">, PrettyBy config structural</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">, Pretty operational</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">)</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; PrettyBy config (EvaluationError structural operational)</span></span>
+<span class="lineno">   70 </span>  where
+<span class="lineno">   71 </span>  <span class="decl"><span class="istickedoff">prettyBy config (StructuralError structural) = prettyBy <span class="nottickedoff">config</span> structural</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">prettyBy _ (OperationalError operational) = pretty operational</span></span>
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>instance
+<span class="lineno">   75 </span>  <span class="decl"><span class="nottickedoff">(Pretty structural, Pretty operational)</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Pretty (EvaluationError structural operational)</span></span>
+<span class="lineno">   77 </span>  where
+<span class="lineno">   78 </span>  <span class="decl"><span class="nottickedoff">pretty (StructuralError structural) = pretty structural</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="nottickedoff">pretty (OperationalError operational) = pretty operational</span></span>
+
+</pre>
+</body>
+</html>

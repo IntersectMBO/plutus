@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MultiIndexArray - Plutus Cost Model Visualization</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+  <nav></nav>
+
+  <div class="container">
+    <h1>MultiIndexArray Cost Model Visualization</h1>
+    <p>
+      Interactive visualization of benchmark data and fitted cost model for the <code>MultiIndexArray</code> builtin function.
+      This function looks up a list of indices in a Plutus array; the cost depends on the
+      number of indices and not on the array size. Points are coloured by array size, so that independence
+      is visible directly: every colour lies on the same curve. The number of indices is limited, because
+      beyond that limit the execution time is not predictable from the index count alone; the panels below
+      show the per-index cost across the range and its distribution.
+    </p>
+
+    <div class="controls" id="data-source-controls">
+      <h3 id="data-source-toggle">Data Source Configuration</h3>
+      <div class="controls-content">
+        <div class="control-group-vertical">
+          <label for="branch-name">Branch name:</label>
+          <div class="branch-input-row">
+            <input type="text" id="branch-name" placeholder="master">
+            <button id="copy-link" title="Copy shareable link">Copy Link</button>
+          </div>
+        </div>
+        <div class="control-group-vertical">
+          <label for="csv-url">CSV file URL:</label>
+          <input type="text" id="csv-url" style="width: 100%; font-family: monospace;">
+        </div>
+        <div class="control-group-vertical">
+          <label for="json-url">JSON file URL:</label>
+          <input type="text" id="json-url" style="width: 100%; font-family: monospace;">
+        </div>
+        <div class="control-group">
+          <button id="reload-data">Load Data</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls" id="plot-controls">
+      <h3 id="plot-controls-toggle">Plot Controls</h3>
+      <div class="controls-content">
+        <div class="control-group">
+          <input type="checkbox" id="show-model" checked>
+          <label for="show-model">Show model predictions</label>
+        </div>
+        <div class="control-group">
+          <label for="y-axis-mode">Y-axis range:</label>
+          <select id="y-axis-mode">
+            <option value="zero">Start from 0</option>
+            <option value="auto">Auto-scale from min</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="hist-threshold">Histogram: min index count:</label>
+          <select id="hist-threshold">
+            <option value="250">250</option>
+            <option value="500" selected>500</option>
+            <option value="750">750</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="plot-wrapper">
+      <div id="plot-container">
+        <div class="loading">Loading data and generating plot...</div>
+      </div>
+
+      <div class="info-panel">
+        <h3>Plot Information</h3>
+
+        <div class="info-section">
+          <dl>
+            <dt>X-axis:</dt>
+            <dd id="info-x-axis">Index count (length of the index list)</dd>
+
+            <dt>Y-axis:</dt>
+            <dd id="info-y-axis">Time (nanoseconds)</dd>
+
+            <dt>Description:</dt>
+            <dd id="info-description">Each point is one benchmark, coloured by array size. The model
+              depends on the index count alone, so points of every colour follow the same line.</dd>
+          </dl>
+        </div>
+
+        <div class="info-section">
+          <dt>Cost Model Type:</dt>
+          <dd id="info-model-type">Loading...</dd>
+
+          <dt>Model Formula (net):</dt>
+          <dd class="formula" id="info-model-formula">Loading...</dd>
+
+          <dt>Overhead:</dt>
+          <dd id="info-overhead">Loading...</dd>
+        </div>
+
+        <div class="info-section">
+          <dl>
+            <dt>Data points:</dt>
+            <dd id="info-data-points">-</dd>
+
+            <dt>Index count range:</dt>
+            <dd id="info-x-range">-</dd>
+
+            <dt>Array size range:</dt>
+            <dd id="info-array-range">-</dd>
+
+            <dt>Time range:</dt>
+            <dd id="info-time-range">-</dd>
+          </dl>
+        </div>
+
+        <div class="info-section">
+          <dl id="info-data-sources"></dl>
+        </div>
+      </div>
+    </div>
+
+    <h2>Per-index cost across the range</h2>
+    <p>
+      Net time per index with the model's per-call constant subtracted,
+      <code>(t &minus; overhead &minus; c0) / indexCount</code>. In the total time the constant swamps the
+      per-index cost, so its rise across the range is only visible here; the model's charge per index is
+      <code>c1 + c2 &middot; indexCount</code>, a straight line. Small index counts are omitted: there the
+      constant dominates the total, and dividing the small remainder by the count amplifies noise.
+    </p>
+    <div id="perindex-container">
+      <div class="loading">Loading...</div>
+    </div>
+
+    <h2>Per-index time distribution</h2>
+    <p>
+      The same per-index times, <code>(t &minus; overhead &minus; c0) / indexCount</code>, as a histogram
+      for benchmarks with at least the selected number of indices. The dashed line marks the fitted
+      model's net time per index at that number of indices.
+    </p>
+    <div id="hist-container">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+
+  <footer></footer>
+
+  <script src="../shared/utils.js"></script>
+  <script src="plot.js"></script>
+</body>
+</html>
