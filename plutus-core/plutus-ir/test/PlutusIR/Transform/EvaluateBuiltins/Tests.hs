@@ -33,6 +33,11 @@ test_evaluateBuiltins =
         , "overApplication"
         , "underApplication"
         , "uncompressBlsConservative"
+        , "ifThenElseErrorArg"
+        , "ifThenElseImpureArg"
+        , "ifThenElseNonStrictVarArg"
+        , "ifThenElseStrictVarArg"
+        , "ifThenElseNestedFoldableArg"
         ]
     nonConservative =
       map
