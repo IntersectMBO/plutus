@@ -19,7 +19,7 @@ import PlutusCore.Rename.Monad
 import Universe
 
 import Data.Hashable
-import Data.Vector qualified as V
+import Data.Primitive.Array (Array)
 
 instance
   (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann)
@@ -36,9 +36,8 @@ type HashableTermConstraints uni fun ann =
   , Hashable fun
   )
 
--- This instance is the only logical one, and exists also in the package `vector-instances`.
--- Since this is the same implementation as that one, there isn't even much risk of incoherence.
-instance Hashable a => Hashable (V.Vector a) where
+-- Branches retain the list hash used by the previous vector representation.
+instance Hashable a => Hashable (Array a) where
   hashWithSalt s = hashWithSalt s . toList
 
 instance HashableTermConstraints uni fun ann => Hashable (Term Name uni fun ann)
