@@ -1,6 +1,8 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -39,6 +41,8 @@ import Data.Text.Internal qualified as TI
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import Data.Word
+import GHC.Exts (Int64#)
+import GHC.Int (Int64 (I64#))
 import GHC.Natural
 import GHC.Num.Integer (integerLog2)
 import Universe
@@ -121,42 +125,30 @@ singletonRose cost = CostRose cost []
 {-# INLINE singletonRose #-}
 
 -- See Note [Global local functions].
--- This is one way to define the worker. There are many more, see
--- https://github.com/IntersectMBO/plutus/pull/5239#discussion_r1151197471
--- We chose this one, because it's the simplest (no CPS shenanigans) among the safest (retrieving
--- the next element takes O(1) time in the worst case).
---
--- The algorithm is a variation of the defunctionalization technique (see this post in particular:
--- https://www.joachim-breitner.de/blog/778-Don%e2%80%99t_think,_just_defunctionalize), except we
--- don't want a tail-recursive loop and instead emit costs lazily to the outside (as it's the whole
--- point of the lazy costing approach)
-flattenCostRoseGo :: CostRose -> [CostRose] -> CostStream
-flattenCostRoseGo (CostRose cost1 forest1) forest2 =
-  case forest1 of
-    -- The current subtree doesn't have its own subtrees.
-    [] -> case forest2 of
-      -- No more elements in the entire tree, emit the last cost.
-      [] -> CostLast cost1
-      -- There's at least one unhandled subtree encountered earlier, emit the current cost
-      -- and collapse the unhandled subtree.
-      rose2' : forest2' -> CostCons cost1 $ flattenCostRoseGo rose2' forest2'
-    -- The current subtree has at least one its own subtree.
-    rose1' : forest1' ->
-      -- Emit the current cost and handle the list of subtrees of the current subtree.
-      CostCons cost1 $ case forest1' of
-        -- Same as the case below, except this one avoids creating a chain of
-        -- @[] ++ ([] ++ ([] ++ <...>))@, which would make retrieving the next element an
-        -- O(depth_of_the_tree) operation in the worst case.
-        [] -> flattenCostRoseGo rose1' forest2
-        -- Add the remaining subtrees of the current subtree (@forest1'@) to the stack of
-        -- all other subtrees (@forest2@) and handle the new current subtree (@rose1'@).
-        _ -> flattenCostRoseGo rose1' $ forest1' ++ forest2
+-- Each step emits the pending cost before inspecting the next rose. Saved continuations
+-- emit a cost immediately, so finishing a subtree never traverses exhausted continuations.
+flattenCostRoseGo :: Int64# -> CostRose -> [CostRose] -> (Int64# -> CostStream) -> CostStream
+flattenCostRoseGo i0 rose1 forest2 k =
+  CostCons (unsafeToSatInt $ I64# i0) $
+    let !(CostRose cost1 forest1) = rose1
+        !(I64# i1) = unSatInt cost1
+     in case forest1 of
+          [] -> case forest2 of
+            [] -> k i1
+            rose2' : forest2' -> flattenCostRoseGo i1 rose2' forest2' k
+          rose1' : forest1' -> case forest2 of
+            [] -> flattenCostRoseGo i1 rose1' forest1' k
+            rose2' : forest2' ->
+              flattenCostRoseGo i1 rose1' forest1' $ \i2 ->
+                flattenCostRoseGo i2 rose2' forest2' k
 
 {-| Collapse a 'CostRose' to a lazy linear stream of costs. Retrieving the next element takes O(1)
 time in the worst case regardless of the recursion pattern of the given 'CostRose'. -}
 flattenCostRose :: CostRose -> CostStream
 flattenCostRose (CostRose cost []) = CostLast cost
-flattenCostRose (CostRose cost (rose : forest)) = CostCons cost $ flattenCostRoseGo rose forest
+flattenCostRose (CostRose cost (rose : forest)) =
+  case unSatInt cost of
+    I64# i -> flattenCostRoseGo i rose forest $ \iz -> CostLast $ unsafeToSatInt $ I64# iz
 {-# INLINE flattenCostRose #-}
 
 class ExMemoryUsage a where
