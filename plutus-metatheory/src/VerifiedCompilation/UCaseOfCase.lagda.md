@@ -27,7 +27,7 @@ open import Builtin using (Builtin; ifThenElse)
 open import Untyped.Equality
 open import Untyped.Transform
 open import Untyped.Relation.Binary hiding (Pointwise)
-open import Untyped.Relation.Binary.Modular hiding (_<|>_)
+open import Untyped.Relation.Binary.Modular
 open import VerifiedCompilation.UntypedViews
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; CaseOfCaseT; Proof?; abort)
 import VerifiedCompilation.UCaseReduce as CaseReduce
@@ -122,11 +122,10 @@ transformed to a case that scrutinizes `N` and then uses the original branches
 The `CaseCase` rule captures these two conditions:
 
 ```
-
 data CaseCase (@++ R : Relation) : Relation where
   caseCase :
     ∀ {n} {M : n ⊢} {inner outer Ls' : List (n ⊢)}
-    → All Scrutinizable inner
+    → All Scrutinizable inner -- TODO, this is probably implied by the next premise
     → Pointwise (λ N L' → TryReduceStep (case N outer) L') inner Ls'
     -------------------------------------------------------------
     → CaseCase R
@@ -134,6 +133,36 @@ data CaseCase (@++ R : Relation) : Relation where
         (case M Ls')
 ```
 
+The `CaseIf` rule is similar, but has an application of the built-in `ifThenElse` function.
+
+```
+data CaseIf (@++ R : Relation) : Relation where
+  caseIf :
+    ∀ {n} {M N L caseN' caseL' : n ⊢} {Ts : List (n ⊢)}
+    → Scrutinizable N
+    → Scrutinizable L
+    → TryReduceStep (case N Ts) caseN'
+    → TryReduceStep (case L Ts) caseL'
+    ----------------------------------------
+    → CaseIf R
+        (case
+           (
+             force (builtin ifThenElse)
+             · M
+             · N
+             · L
+           )
+           Ts
+        )
+        (force
+          (
+             force (builtin ifThenElse)
+             · M
+             · delay caseN'
+             · delay caseL'
+          )
+        )
+```
 
 ```
 scrutinizable? : (M : X ⊢) → Dec (Scrutinizable M)
@@ -145,10 +174,9 @@ scrutinizable? M
 ... | yes (inj₁ (constr! (match! i) (match! args))) = yes scrut-constr
 ... | yes (inj₂ (con! K)) = yes scrut-con
 ```
-```
-private variable
-  R : Relation
 
+```
+-- TODO, this must exist already
 map-out : ∀ {A B : Set} {P : A → B → Set}
         → ((x : A) → ∃ λ y → P x y)
         → ((xs : List A) → ∃ λ ys → Pointwise P xs ys)
@@ -156,6 +184,11 @@ map-out f [] = [] , []
 map-out f (x ∷ xs)
   with map-out f xs | f x
 ... | ys , xs-ys | y , x-y = y ∷ ys , x-y ∷ xs-ys
+```
+
+```
+private variable
+  R : Relation
 
 step-CaseCase : (M : X ⊢) → Maybe (∃ λ M' → CaseCase _≡_ M M')
 step-CaseCase M
@@ -172,16 +205,95 @@ step-CaseCase M
     , caseCase P cases⟶Ls'
     )
 
-caseOfCase : n ⊢ → n ⊢
-caseOfCase = (refine? step-CaseCase) ↑?_
+step-CaseIf : (M : X ⊢) → Maybe (∃ λ M' → CaseIf _≡_ M M')
+step-CaseIf M
+  with
+    (case?
+      (force? (builtin? (_≟_ ifThenElse)) ·? ⋯ ·? ⋯ ·? ⋯)
+      ⋯
+    ) M
+... | no _ = nothing
+... | yes (case!
+             (force! (builtin! refl) ·! match! M ·! match! N ·! match! L)
+             (match! Ts)
+          )
+  with scrutinizable? N
+       ×-dec scrutinizable? L
+... | no _ = nothing
+... | yes (sN , sL)
+  with
+    tryReduceStep (case N Ts)
+    | tryReduceStep (case L Ts)
+... | N' , caseN⟶N' | L' , caseL⟶L' = just (_ , caseIf sN sL caseN⟶N' caseL⟶L')
+```
+
+The complete pass
+
+```
+reduce : (M : X ⊢) → Maybe (∃ λ M' → (CaseCase ⊕ CaseIf) _≡_ M M')
+reduce = step-CaseCase <|> step-CaseIf
+
+pass : n ⊢ → n ⊢
+pass = refine? reduce ↑?_
+
 
 CaseOfCase : Relation
-CaseOfCase M M' = caseOfCase M ≡ M'
+CaseOfCase M M' = pass M ≡ M'
 
 decide : (M M' : n ⊢) → ProofOrCE (CaseOfCase M M')
-decide M M' with caseOfCase M ≟ M'
+decide M M' with pass M ≟ M'
 ... | yes P = proof P
 ... | no ¬P  = ce ¬P CaseOfCaseT M M'
+```
+
+```
+-- caseIf? : DecidableT CaseIf
+-- caseIf? R? M N
+--   with
+--    (case?
+--      (
+--        (force? (builtin? (_≟_ ifThenElse)))
+--        ·? ⋯
+--        ·? (constr? ⋯ ⋯)
+--        ·? (constr? ⋯ ⋯)
+--      )
+--      ⋯) M
+-- ... | no ¬PM = no λ {(caseIf _ _) → ¬PM inhabitant}
+-- ... | yes (case!
+--             (force! (builtin! refl)
+--               ·! match! M
+--               ·! constr! (match! i) (match! Ms)
+--               ·! constr! (match! j) (match! Ns)
+--             )
+--             (match! Ts)
+--           )
+--   with
+--     (force?
+--       (
+--         force? (builtin? (_≟_ ifThenElse))
+--         ·? (_≟_ M)
+--         ·? delay? ⋯
+--         ·? delay? ⋯
+--       )
+--     ) N
+-- ... | no ¬PN = no λ {(caseIf _ _) → ¬PN inhabitant}
+-- ... | yes (force!
+--             (force! (builtin! refl)
+--             ·! refl
+--             ·! delay! match!
+--             ·! delay! match!
+--             )
+--           )
+--   with
+--     tryReduceStep (case N outer) |
+--     -- (case? (constr? (_≟_ i) (_≟_ Ms)) (_≟_ Ts))
+--     -- (case! (constr! refl refl) refl)
+--     -- (case? (constr? (_≟_ j) (_≟_ Ns)) ⋯)
+--     -- (case! (constr! refl refl) (match! Ts'))
+--     Ts ≟ Ts'
+-- ... | no ¬post = no λ {caseIf → ¬post inhabitant}
+-- ... | yes refl = yes caseIf
+
 ```
 
 
@@ -194,28 +306,6 @@ inside-out. However, since `ifThenElse` is strict in its branches, they have to
 be delayed, requiring also an additional force outside the overall expression.
 
 ```
-data CaseIf (@++ R : Relation) : Relation where
-  caseIf :
-    ∀ {X} {i j} {M : X ⊢} {Ms Ns Ts}
-    ----------------------------------------
-    → CaseIf R
-        (case
-           (
-             force (builtin ifThenElse)
-             · M
-             · constr i Ms
-             · constr j Ns
-           )
-           Ts
-        )
-        (force
-          (
-             force (builtin ifThenElse)
-             · M
-             · delay (case (constr i Ms) Ts)
-             · delay (case (constr j Ns) Ts)
-          )
-        )
 ```
 
 Computing the rule:
@@ -432,48 +522,6 @@ open import Utils using (_<|>_)
 Deciding the rule:
 
 ```
-caseIf? : DecidableT CaseIf
-caseIf? R? M N
-  with
-   (case?
-     (
-       (force? (builtin? (_≟_ ifThenElse)))
-       ·? ⋯
-       ·? (constr? ⋯ ⋯)
-       ·? (constr? ⋯ ⋯)
-     )
-     ⋯) M
-... | no ¬PM = no λ {caseIf → ¬PM inhabitant}
-... | yes (case!
-            (force! (builtin! refl)
-              ·! match! M
-              ·! constr! (match! i) (match! Ms)
-              ·! constr! (match! j) (match! Ns)
-            )
-            (match! Ts)
-          )
-  with
-    (force?
-      (
-        force? (builtin? (_≟_ ifThenElse))
-        ·? (_≟_ M)
-        ·? delay? (case? (constr? (_≟_ i) (_≟_ Ms)) (_≟_ Ts))
-        ·? delay? (case? (constr? (_≟_ j) (_≟_ Ns)) ⋯)
-      )
-    ) N
-... | no ¬pre = no λ {caseIf → ¬pre inhabitant}
-... | yes (force!
-            (force! (builtin! refl)
-            ·! refl
-            ·! delay! (case! (constr! refl refl) refl)
-            ·! delay! (case! (constr! refl refl) (match! Ts'))
-            )
-          )
-  with
-    Ts ≟ Ts'
-... | no ¬post = no λ {caseIf → ¬post inhabitant}
-... | yes refl = yes caseIf
-
 -- open CR-Dec
 -- 
 -- caseIf? : ∀ {R : ∀ {X} → X ⊢ → X ⊢ → Set} → (∀ {X} (N N' : X ⊢) → Dec (R N N')) → (M M' : X ⊢) → Dec (CaseIf R M M')
