@@ -42,20 +42,20 @@ import qualified MAlonzo.Code.VerifiedCompilation.UCaseReduce
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedViews
 
 -- VerifiedCompilation.UCaseOfCase.Scrutinizable
-d_Scrutinizable_52 a0 a1 = ()
-data T_Scrutinizable_52 = C_scrut'45'constr_54 | C_scrut'45'con_56
+d_Scrutinizable_32 a0 a1 = ()
+data T_Scrutinizable_32 = C_scrut'45'constr_38 | C_scrut'45'con_42
 -- VerifiedCompilation.UCaseOfCase.TryReduceStep
-d_TryReduceStep_58 ::
+d_TryReduceStep_44 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> ()
-d_TryReduceStep_58 = erased
+d_TryReduceStep_44 = erased
 -- VerifiedCompilation.UCaseOfCase.tryReduceStep
-d_tryReduceStep_64 ::
+d_tryReduceStep_50 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_tryReduceStep_64 v0 v1
+d_tryReduceStep_50 v0 v1
   = coe
       MAlonzo.Code.Data.Maybe.Base.du_maybe'8242'_44
       (\ v2 ->
@@ -73,35 +73,35 @@ d_tryReduceStep_64 v0 v1
       (coe
          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_reduce_504 v0 v1)
 -- VerifiedCompilation.UCaseOfCase.tryReduceStep'
-d_tryReduceStep''_74 ::
+d_tryReduceStep''_60 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14
-d_tryReduceStep''_74 v0 v1
+d_tryReduceStep''_60 v0 v1
   = coe
       MAlonzo.Code.Agda.Builtin.Sigma.d_fst_28
-      (coe d_tryReduceStep_64 (coe v0) (coe v1))
+      (coe d_tryReduceStep_50 (coe v0) (coe v1))
 -- VerifiedCompilation.UCaseOfCase.CaseCase
-d_CaseCase_80 a0 a1 a2 a3 = ()
-data T_CaseCase_80
-  = C_caseCase_98 MAlonzo.Code.Data.List.Relation.Unary.All.T_All_44
+d_CaseCase_66 a0 a1 a2 a3 = ()
+data T_CaseCase_66
+  = C_caseCase_84 MAlonzo.Code.Data.List.Relation.Unary.All.T_All_44
                   MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48
 -- VerifiedCompilation.UCaseOfCase.CaseIf
-d_CaseIf_102 a0 a1 a2 a3 = ()
-data T_CaseIf_102
-  = C_caseIf_120 T_Scrutinizable_52 T_Scrutinizable_52
+d_CaseIf_88 a0 a1 a2 a3 = ()
+data T_CaseIf_88
+  = C_caseIf_106 T_Scrutinizable_32 T_Scrutinizable_32
                  MAlonzo.Code.Untyped.Relation.Binary.Modular.T__'8853'__16
                  MAlonzo.Code.Untyped.Relation.Binary.Modular.T__'8853'__16
 -- VerifiedCompilation.UCaseOfCase.scrutinizable?
-d_scrutinizable'63'_124 ::
+d_scrutinizable'63'_110 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_scrutinizable'63'_124 ~v0 v1 = du_scrutinizable'63'_124 v1
-du_scrutinizable'63'_124 ::
+d_scrutinizable'63'_110 ~v0 v1 = du_scrutinizable'63'_110 v1
+du_scrutinizable'63'_110 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_scrutinizable'63'_124 v0
+du_scrutinizable'63'_110 v0
   = let v1
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'8846''45'dec__96
@@ -136,7 +136,7 @@ du_scrutinizable'63'_124 v0
                                                   (coe v2)
                                                   (coe
                                                      MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
-                                                     (coe C_scrut'45'constr_54))))
+                                                     (coe C_scrut'45'constr_38))))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 v5
                                 -> coe
@@ -146,7 +146,7 @@ du_scrutinizable'63'_124 v0
                                         (coe v2)
                                         (coe
                                            MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
-                                           (coe C_scrut'45'con_56)))
+                                           (coe C_scrut'45'con_42)))
                               _ -> MAlonzo.RTE.mazUnreachableError
                        _ -> MAlonzo.RTE.mazUnreachableError
                 else coe
@@ -156,18 +156,18 @@ du_scrutinizable'63'_124 v0
                           (coe v2)
                           (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
          _ -> MAlonzo.RTE.mazUnreachableError)
--- VerifiedCompilation.UCaseOfCase.map-out
-d_map'45'out_162 ::
+-- VerifiedCompilation.UCaseOfCase.map-∃
+d_map'45''8707'_148 ::
   () ->
   () ->
   (AgdaAny -> AgdaAny -> ()) ->
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) ->
   [AgdaAny] -> MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_map'45'out_162 ~v0 ~v1 ~v2 v3 v4 = du_map'45'out_162 v3 v4
-du_map'45'out_162 ::
+d_map'45''8707'_148 ~v0 ~v1 ~v2 v3 v4 = du_map'45''8707'_148 v3 v4
+du_map'45''8707'_148 ::
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) ->
   [AgdaAny] -> MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-du_map'45'out_162 v0 v1
+du_map'45''8707'_148 v0 v1
   = case coe v1 of
       []
         -> coe
@@ -175,7 +175,7 @@ du_map'45'out_162 v0 v1
              (coe
                 MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.C_'91''93'_56)
       (:) v2 v3
-        -> let v4 = coe du_map'45'out_162 (coe v0) (coe v3) in
+        -> let v4 = coe du_map'45''8707'_148 (coe v0) (coe v3) in
            coe
              (let v5 = coe v0 v2 in
               coe
@@ -194,11 +194,11 @@ du_map'45'out_162 v0 v1
                    _ -> MAlonzo.RTE.mazUnreachableError))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.UCaseOfCase.step-CaseCase
-d_step'45'CaseCase_196 ::
+d_step'45'CaseCase_182 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_step'45'CaseCase_196 v0 v1
+d_step'45'CaseCase_182 v0 v1
   = let v2
           = coe
               MAlonzo.Code.VerifiedCompilation.UntypedViews.du_case'63'_1532
@@ -254,7 +254,7 @@ d_step'45'CaseCase_196 v0 v1
                                                                              = coe
                                                                                  MAlonzo.Code.Data.List.Relation.Unary.All.du_all'63'_510
                                                                                  (coe
-                                                                                    du_scrutinizable'63'_124)
+                                                                                    du_scrutinizable'63'_110)
                                                                                  (coe v17) in
                                                                        coe
                                                                          (case coe v18 of
@@ -265,10 +265,10 @@ d_step'45'CaseCase_196 v0 v1
                                                                                           MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v21
                                                                                             -> let v22
                                                                                                      = coe
-                                                                                                         du_map'45'out_162
+                                                                                                         du_map'45''8707'_148
                                                                                                          (coe
                                                                                                             (\ v22 ->
-                                                                                                               d_tryReduceStep_64
+                                                                                                               d_tryReduceStep_50
                                                                                                                  (coe
                                                                                                                     v0)
                                                                                                                  (coe
@@ -294,7 +294,7 @@ d_step'45'CaseCase_196 v0 v1
                                                                                                                  (coe
                                                                                                                     v23))
                                                                                                               (coe
-                                                                                                                 C_caseCase_98
+                                                                                                                 C_caseCase_84
                                                                                                                  v21
                                                                                                                  v24))
                                                                                                     _ -> MAlonzo.RTE.mazUnreachableError)
@@ -340,7 +340,7 @@ d_step'45'CaseCase_196 v0 v1
                                                                                                = coe
                                                                                                    MAlonzo.Code.Data.List.Relation.Unary.All.du_all'63'_510
                                                                                                    (coe
-                                                                                                      du_scrutinizable'63'_124)
+                                                                                                      du_scrutinizable'63'_110)
                                                                                                    (coe
                                                                                                       v22) in
                                                                                          coe
@@ -354,10 +354,10 @@ d_step'45'CaseCase_196 v0 v1
                                                                                                             MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v26
                                                                                                               -> let v27
                                                                                                                        = coe
-                                                                                                                           du_map'45'out_162
+                                                                                                                           du_map'45''8707'_148
                                                                                                                            (coe
                                                                                                                               (\ v27 ->
-                                                                                                                                 d_tryReduceStep_64
+                                                                                                                                 d_tryReduceStep_50
                                                                                                                                    (coe
                                                                                                                                       v0)
                                                                                                                                    (coe
@@ -383,7 +383,7 @@ d_step'45'CaseCase_196 v0 v1
                                                                                                                                    (coe
                                                                                                                                       v28))
                                                                                                                                 (coe
-                                                                                                                                   C_caseCase_98
+                                                                                                                                   C_caseCase_84
                                                                                                                                    v26
                                                                                                                                    v29))
                                                                                                                       _ -> MAlonzo.RTE.mazUnreachableError)
@@ -411,11 +411,11 @@ d_step'45'CaseCase_196 v0 v1
               -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
             _ -> MAlonzo.RTE.mazUnreachableError))
 -- VerifiedCompilation.UCaseOfCase.step-CaseIf
-d_step'45'CaseIf_260 ::
+d_step'45'CaseIf_246 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_step'45'CaseIf_260 v0 v1
+d_step'45'CaseIf_246 v0 v1
   = let v2
           = coe
               MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'183''63'__1260
@@ -509,11 +509,11 @@ d_step'45'CaseIf_260 v0 v1
                                                                                                                       = coe
                                                                                                                           MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                                           (coe
-                                                                                                                             du_scrutinizable'63'_124
+                                                                                                                             du_scrutinizable'63'_110
                                                                                                                              (coe
                                                                                                                                 v23))
                                                                                                                           (coe
-                                                                                                                             du_scrutinizable'63'_124
+                                                                                                                             du_scrutinizable'63'_110
                                                                                                                              (coe
                                                                                                                                 v17)) in
                                                                                                                 coe
@@ -1539,7 +1539,7 @@ d_step'45'CaseIf_260 v0 v1
                                                                                                                                                                                  (coe
                                                                                                                                                                                     v42))))
                                                                                                                                                                         (coe
-                                                                                                                                                                           C_caseIf_120
+                                                                                                                                                                           C_caseIf_106
                                                                                                                                                                            v36
                                                                                                                                                                            v37
                                                                                                                                                                            v41
@@ -1622,11 +1622,11 @@ d_step'45'CaseIf_260 v0 v1
                                                                                                                                         = coe
                                                                                                                                             MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                                                             (coe
-                                                                                                                                               du_scrutinizable'63'_124
+                                                                                                                                               du_scrutinizable'63'_110
                                                                                                                                                (coe
                                                                                                                                                   v28))
                                                                                                                                             (coe
-                                                                                                                                               du_scrutinizable'63'_124
+                                                                                                                                               du_scrutinizable'63'_110
                                                                                                                                                (coe
                                                                                                                                                   v22)) in
                                                                                                                                   coe
@@ -2652,7 +2652,7 @@ d_step'45'CaseIf_260 v0 v1
                                                                                                                                                                                                    (coe
                                                                                                                                                                                                       v47))))
                                                                                                                                                                                           (coe
-                                                                                                                                                                                             C_caseIf_120
+                                                                                                                                                                                             C_caseIf_106
                                                                                                                                                                                              v41
                                                                                                                                                                                              v42
                                                                                                                                                                                              v46
@@ -2689,41 +2689,41 @@ d_step'45'CaseIf_260 v0 v1
               -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
             _ -> MAlonzo.RTE.mazUnreachableError))
 -- VerifiedCompilation.UCaseOfCase.reduce
-d_reduce_338 ::
+d_reduce_324 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_reduce_338 v0
+d_reduce_324 v0
   = coe
       MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1028
-      (coe d_step'45'CaseCase_196) (coe d_step'45'CaseIf_260) (coe v0)
+      (coe d_step'45'CaseCase_182) (coe d_step'45'CaseIf_246) (coe v0)
 -- VerifiedCompilation.UCaseOfCase.pass
-d_pass_340 ::
+d_pass_326 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14
-d_pass_340 v0
+d_pass_326 v0
   = coe
       MAlonzo.Code.Untyped.Transform.d__'8593''63'__68
       (coe
          (\ v1 ->
             coe
               MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-              (coe v1) (coe d_reduce_338)))
+              (coe v1) (coe d_reduce_324)))
       (coe v0)
 -- VerifiedCompilation.UCaseOfCase.CaseOfCase
-d_CaseOfCase_344 ::
+d_CaseOfCase_330 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> ()
-d_CaseOfCase_344 = erased
+d_CaseOfCase_330 = erased
 -- VerifiedCompilation.UCaseOfCase.decide
-d_decide_354 ::
+d_decide_340 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50
-d_decide_354 v0 v1 v2
+d_decide_340 v0 v1 v2
   = let v3
           = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
               (coe v0)
@@ -2735,7 +2735,7 @@ d_decide_354 v0 v1 v2
                        (\ v3 ->
                           coe
                             MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                            (coe v3) (coe d_reduce_338)))
+                            (coe v3) (coe d_reduce_324)))
                     (coe v0) (coe v1))
                  (let v3
                         = coe
@@ -2744,7 +2744,7 @@ d_decide_354 v0 v1 v2
                                (\ v3 ->
                                   coe
                                     MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                                    (coe v3) (coe d_reduce_338)))
+                                    (coe v3) (coe d_reduce_324)))
                             (coe v0) (coe v1) in
                   coe
                     (let v4
@@ -2754,7 +2754,7 @@ d_decide_354 v0 v1 v2
                                   (\ v4 ->
                                      coe
                                        MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                                       (coe v4) (coe d_reduce_338)))
+                                       (coe v4) (coe d_reduce_324)))
                                (coe v0) (coe v1) in
                      coe
                        (let v5
@@ -2764,7 +2764,7 @@ d_decide_354 v0 v1 v2
                                      (\ v5 ->
                                         coe
                                           MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                                          (coe v5) (coe d_reduce_338)))
+                                          (coe v5) (coe d_reduce_324)))
                                   (coe v0) (coe v1) in
                         coe
                           (let v6
@@ -2784,7 +2784,7 @@ d_decide_354 v0 v1 v2
                               coe
                                 (case coe v5 of
                                    MAlonzo.Code.Untyped.C_'96'_18 v8
-                                     -> let v9 = d_step'45'CaseIf_260 (coe v0) (coe v3) in
+                                     -> let v9 = d_step'45'CaseIf_246 (coe v0) (coe v3) in
                                         coe
                                           (case coe v9 of
                                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v10
@@ -2808,7 +2808,7 @@ d_decide_354 v0 v1 v2
                                                     _ -> MAlonzo.RTE.mazUnreachableError
                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                    MAlonzo.Code.Untyped.C_ƛ_20 v8
-                                     -> let v9 = d_step'45'CaseIf_260 (coe v0) (coe v3) in
+                                     -> let v9 = d_step'45'CaseIf_246 (coe v0) (coe v3) in
                                         coe
                                           (case coe v9 of
                                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v10
@@ -2832,7 +2832,7 @@ d_decide_354 v0 v1 v2
                                                     _ -> MAlonzo.RTE.mazUnreachableError
                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                    MAlonzo.Code.Untyped.C__'183'__22 v8 v9
-                                     -> let v10 = d_step'45'CaseIf_260 (coe v0) (coe v3) in
+                                     -> let v10 = d_step'45'CaseIf_246 (coe v0) (coe v3) in
                                         coe
                                           (case coe v10 of
                                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v11
@@ -2856,7 +2856,7 @@ d_decide_354 v0 v1 v2
                                                     _ -> MAlonzo.RTE.mazUnreachableError
                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                    MAlonzo.Code.Untyped.C_force_24 v8
-                                     -> let v9 = d_step'45'CaseIf_260 (coe v0) (coe v3) in
+                                     -> let v9 = d_step'45'CaseIf_246 (coe v0) (coe v3) in
                                         coe
                                           (case coe v9 of
                                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v10
@@ -2880,7 +2880,7 @@ d_decide_354 v0 v1 v2
                                                     _ -> MAlonzo.RTE.mazUnreachableError
                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                    MAlonzo.Code.Untyped.C_delay_26 v8
-                                     -> let v9 = d_step'45'CaseIf_260 (coe v0) (coe v3) in
+                                     -> let v9 = d_step'45'CaseIf_246 (coe v0) (coe v3) in
                                         coe
                                           (case coe v9 of
                                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v10
@@ -2904,7 +2904,7 @@ d_decide_354 v0 v1 v2
                                                     _ -> MAlonzo.RTE.mazUnreachableError
                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                    MAlonzo.Code.Untyped.C_con_28 v8
-                                     -> let v9 = d_step'45'CaseIf_260 (coe v0) (coe v3) in
+                                     -> let v9 = d_step'45'CaseIf_246 (coe v0) (coe v3) in
                                         coe
                                           (case coe v9 of
                                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v10
@@ -2928,7 +2928,7 @@ d_decide_354 v0 v1 v2
                                                     _ -> MAlonzo.RTE.mazUnreachableError
                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                    MAlonzo.Code.Untyped.C_constr_34 v8 v9
-                                     -> let v10 = d_step'45'CaseIf_260 (coe v0) (coe v3) in
+                                     -> let v10 = d_step'45'CaseIf_246 (coe v0) (coe v3) in
                                         coe
                                           (case coe v10 of
                                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v11
@@ -2986,7 +2986,7 @@ d_decide_354 v0 v1 v2
                                                                                                                    = coe
                                                                                                                        MAlonzo.Code.Data.List.Relation.Unary.All.du_all'63'_510
                                                                                                                        (coe
-                                                                                                                          du_scrutinizable'63'_124)
+                                                                                                                          du_scrutinizable'63'_110)
                                                                                                                        (coe
                                                                                                                           v23) in
                                                                                                              coe
@@ -3000,10 +3000,10 @@ d_decide_354 v0 v1 v2
                                                                                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v27
                                                                                                                                   -> let v28
                                                                                                                                            = coe
-                                                                                                                                               du_map'45'out_162
+                                                                                                                                               du_map'45''8707'_148
                                                                                                                                                (coe
                                                                                                                                                   (\ v28 ->
-                                                                                                                                                     d_tryReduceStep_64
+                                                                                                                                                     d_tryReduceStep_50
                                                                                                                                                        (coe
                                                                                                                                                           v0)
                                                                                                                                                        (coe
@@ -3029,7 +3029,7 @@ d_decide_354 v0 v1 v2
                                                                                                                                                        (coe
                                                                                                                                                           v29))
                                                                                                                                                     (coe
-                                                                                                                                                       C_caseCase_98
+                                                                                                                                                       C_caseCase_84
                                                                                                                                                        v27
                                                                                                                                                        v30))
                                                                                                                                           _ -> MAlonzo.RTE.mazUnreachableError)
@@ -3055,7 +3055,7 @@ d_decide_354 v0 v1 v2
                                                                                                         _ -> MAlonzo.RTE.mazUnreachableError
                                                                                                  MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
                                                                                                    -> let v25
-                                                                                                            = d_step'45'CaseIf_260
+                                                                                                            = d_step'45'CaseIf_246
                                                                                                                 (coe
                                                                                                                    v0)
                                                                                                                 (coe
@@ -3136,7 +3136,7 @@ d_decide_354 v0 v1 v2
                                                                                                                                      = coe
                                                                                                                                          MAlonzo.Code.Data.List.Relation.Unary.All.du_all'63'_510
                                                                                                                                          (coe
-                                                                                                                                            du_scrutinizable'63'_124)
+                                                                                                                                            du_scrutinizable'63'_110)
                                                                                                                                          (coe
                                                                                                                                             v28) in
                                                                                                                                coe
@@ -3150,10 +3150,10 @@ d_decide_354 v0 v1 v2
                                                                                                                                                   MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v32
                                                                                                                                                     -> let v33
                                                                                                                                                              = coe
-                                                                                                                                                                 du_map'45'out_162
+                                                                                                                                                                 du_map'45''8707'_148
                                                                                                                                                                  (coe
                                                                                                                                                                     (\ v33 ->
-                                                                                                                                                                       d_tryReduceStep_64
+                                                                                                                                                                       d_tryReduceStep_50
                                                                                                                                                                          (coe
                                                                                                                                                                             v0)
                                                                                                                                                                          (coe
@@ -3179,7 +3179,7 @@ d_decide_354 v0 v1 v2
                                                                                                                                                                          (coe
                                                                                                                                                                             v34))
                                                                                                                                                                       (coe
-                                                                                                                                                                         C_caseCase_98
+                                                                                                                                                                         C_caseCase_84
                                                                                                                                                                          v32
                                                                                                                                                                          v35))
                                                                                                                                                             _ -> MAlonzo.RTE.mazUnreachableError)
@@ -3205,7 +3205,7 @@ d_decide_354 v0 v1 v2
                                                                                                                           _ -> MAlonzo.RTE.mazUnreachableError
                                                                                                                    MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
                                                                                                                      -> let v30
-                                                                                                                              = d_step'45'CaseIf_260
+                                                                                                                              = d_step'45'CaseIf_246
                                                                                                                                   (coe
                                                                                                                                      v0)
                                                                                                                                   (coe
@@ -3263,7 +3263,7 @@ d_decide_354 v0 v1 v2
                                                                                         _ -> MAlonzo.RTE.mazUnreachableError
                                                                                  MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
                                                                                    -> let v17
-                                                                                            = d_step'45'CaseIf_260
+                                                                                            = d_step'45'CaseIf_246
                                                                                                 (coe
                                                                                                    v0)
                                                                                                 (coe
@@ -3301,7 +3301,7 @@ d_decide_354 v0 v1 v2
                                                                _ -> MAlonzo.RTE.mazUnreachableError))
                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                    MAlonzo.Code.Untyped.C_builtin_44 v8
-                                     -> let v9 = d_step'45'CaseIf_260 (coe v0) (coe v3) in
+                                     -> let v9 = d_step'45'CaseIf_246 (coe v0) (coe v3) in
                                         coe
                                           (case coe v9 of
                                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v10
@@ -3325,7 +3325,7 @@ d_decide_354 v0 v1 v2
                                                     _ -> MAlonzo.RTE.mazUnreachableError
                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                    MAlonzo.Code.Untyped.C_error_46
-                                     -> let v8 = d_step'45'CaseIf_260 (coe v0) (coe v3) in
+                                     -> let v8 = d_step'45'CaseIf_246 (coe v0) (coe v3) in
                                         coe
                                           (case coe v8 of
                                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v9
@@ -3365,15 +3365,3 @@ d_decide_354 v0 v1 v2
                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                           MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_48 v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
--- VerifiedCompilation.UCaseOfCase._~_
-d__'126'__376 ::
-  Integer ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 -> ()
-d__'126'__376 = erased
--- VerifiedCompilation.UCaseOfCase.CaseIfPre
-d_CaseIfPre_406 a0 a1 = ()
-data T_CaseIfPre_406 = C_isCaseIfPre_422
--- VerifiedCompilation.UCaseOfCase.CaseIfPost
-d_CaseIfPost_426 a0 a1 = ()
-data T_CaseIfPost_426 = C_isCaseIfPost_442
