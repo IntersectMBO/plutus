@@ -387,6 +387,41 @@ We keep the counters for each step in the first indices, so we can index them si
 the 'Enum' instance of 'StepKind', and the total counter in the last index.
 -}
 
+{- Note [Spending accumulated budgets]
+'spendAccumulatedBudget' flushes the step counters using 'iforCounter_', whose traversal is
+statically unrolled by 'upwardsM'. The inlining order determines whether GHC can specialize
+'spend' for each counter without allocating a callback on every flush.
+
+With an ordinary INLINE pragma on 'spend', GHC expands it into the traversal's callback before
+unrolling. The callback becomes too large to inline, so GHC keeps it as a shared function
+inside the flush. It captures the frozen counter array, the budget spender, and all the step
+costs. With GHC 9.6.7 on a 64-bit platform, allocating this callback costs 168 bytes per flush.
+Freezing the array does not copy it; the allocation is for the callback itself.
+
+NOINLINE on 'spend' keeps the callback small enough to disappear, but leaves the step kind
+and cost selection inside a general function. INLINE [0] does better: the traversal unrolls
+first, then 'spend' inlines in the final simplifier phase at calls with known counter indices.
+GHC can resolve each step kind and its cost fields, use static 'BStep' values, and eliminate
+the call for the total counter. Each unevaluated budget calculation captures only its two
+cost coefficients and the counter value, rather than all the coefficients and a dynamic
+step kind. The normal spending calls, including those for zero counters, retain their order.
+
+Inlining 'stimes' at all those calls would duplicate its saturating multiplication and
+overflow checks. The NOINLINE 'scaleBudget' helper shares that arithmetic while leaving
+the step kind and cost selection visible to the inliner. Its concrete 'Word8' type lets GHC
+specialize the conversion in 'stimes'. Explicit strict arguments allow worker/wrapper to
+unbox both the count and the cost coefficients, and return the scaled costs in an unboxed pair:
+
+    Word8# -> Int64# -> Int64# -> (# Int64#, Int64# #)
+
+An eta-reduced definition, @scaleBudget = stimes@, instead left a boxed 'Word8' argument in
+the generated code. The explicit definition avoids that boxing while retaining the original
+saturating arithmetic. The boxed 'ExBudget' required by the budget spender is still produced.
+
+Finally, 'spendAccumulatedBudget' stays OPAQUE so the unrolled traversal remains in one place.
+Inlining the flush duplicates it across the CEK workers and has caused performance regressions.
+-}
+
 -- So that we don't need to update 'NumberOfStepCounters' manually, which would be extremely
 -- error-prone and has caused a bug in the past.
 type CountConstructorsEnum :: (GHC.Type -> GHC.Type) -> Nat
@@ -1008,6 +1043,7 @@ enterComputeCek = computeCek
       throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
 
     -- \| Spend the budget that has been accumulated for a number of machine steps.
+    -- See Note [Spending accumulated budgets].
     spendAccumulatedBudget :: CekM uni fun s ()
     spendAccumulatedBudget = do
       let ctr = ?cekStepCounter
@@ -1017,14 +1053,19 @@ enterComputeCek = computeCek
     -- degrade by 16+%: https://github.com/IntersectMBO/plutus/pull/5931
     {-# OPAQUE spendAccumulatedBudget #-}
 
-    -- Making this a definition of its own causes it to inline better than actually writing it inline, for
-    -- some reason.
-    -- Skip index 7, that's the total counter!
+    -- The total counter is not charged separately.
     -- See Note [Structure of the step counter]
+    -- See Note [Spending accumulated budgets].
     spend !i !w =
       unless (i == (fromIntegral $ natVal $ Proxy @TotalCountIndex)) $
-        let kind = toEnum i in spendBudget (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
-    {-# INLINE spend #-}
+        let kind = toEnum i
+         in spendBudget (BStep kind) (scaleBudget w (cekStepCost ?cekCosts kind))
+    {-# INLINE [0] spend #-}
+
+    -- See Note [Spending accumulated budgets].
+    scaleBudget :: Word8 -> ExBudget -> ExBudget
+    scaleBudget !w !budget = stimes w budget
+    {-# NOINLINE scaleBudget #-}
 
     -- \| Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
     stepAndMaybeSpend :: StepKind -> CekM uni fun s ()
