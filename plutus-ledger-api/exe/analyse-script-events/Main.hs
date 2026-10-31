@@ -333,7 +333,7 @@ analyseDatum _ctx _params ev = do
         l -> printf "* Unexpected number of %s script arguments: %d" (show ledgerLanguage) (length l)
 
 -- Print statistics about Data objects in a Term
-analyseTermDataObjects :: Term NamedDeBruijn DefaultUni DefaultFun () -> IO ()
+analyseTermDataObjects :: Term DeBruijn DefaultUni DefaultFun () -> IO ()
 analyseTermDataObjects = go
   where
     go =
@@ -356,7 +356,7 @@ analyseTermDataObjects = go
 
 type BuiltinCounts = P.MutablePrimArray (PrimState IO) Int
 
-countBuiltinsInTerm :: BuiltinCounts -> Term NamedDeBruijn DefaultUni DefaultFun () -> IO ()
+countBuiltinsInTerm :: BuiltinCounts -> Term DeBruijn DefaultUni DefaultFun () -> IO ()
 countBuiltinsInTerm counts = go
   where
     go = \case
@@ -492,7 +492,7 @@ analyseCosts ctx _ ev =
       (fromSatInt cpu, fromSatInt mem)
 
 -- Extract the script from an evaluation event and apply some analysis function
-analyseUnappliedScript :: (Term NamedDeBruijn DefaultUni DefaultFun () -> IO ()) -> EventAnalyser
+analyseUnappliedScript :: (Term DeBruijn DefaultUni DefaultFun () -> IO ()) -> EventAnalyser
 analyseUnappliedScript
   analyse
   _ctx
@@ -500,7 +500,7 @@ analyseUnappliedScript
   (PlutusEvent plutusLedgerLanguage ScriptEvaluationData {..} _expected) =
     case deserialiseScript plutusLedgerLanguage dataProtocolVersion dataScript of
       Left err -> print err
-      Right (deserialisedScript -> ScriptNamedDeBruijn (Program _ _ t)) -> analyse t
+      Right (deserialisedScript -> ScriptDeBruijn (Program _ _ t)) -> analyse t
 
 -- | Run some analysis function over the events from a single event dump file
 analyseOneFile

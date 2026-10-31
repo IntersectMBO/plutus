@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
@@ -35,6 +36,8 @@ import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
 import Data.Proxy (Proxy (..))
+import Data.Text (Text)
+import Data.Vector qualified as V
 import GHC.Exts (fromString)
 import GHC.Ix
 import GHC.TypeNats (natVal)
@@ -42,6 +45,7 @@ import Hedgehog hiding (Size, Var, eval)
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.Golden
+import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
 
 testMachine
@@ -68,7 +72,60 @@ test_machines =
     "machines"
     [ testMachine "CEK" $ Cek.evaluateCekNoEmit Plc.defaultCekParametersForTesting
     , testMachine "SteppableCEK" $ SCek.evaluateCekNoEmit Plc.defaultCekParametersForTesting
+    , testGroup
+        "DeBruijn"
+        [ testNamelessMachine "CEK" $
+            Cek.runCekDeBruijn Plc.defaultCekParametersForTesting Cek.tallying Cek.logEmitter
+        , testNamelessMachine "SteppableCEK" $
+            SCek.runCekDeBruijn Plc.defaultCekParametersForTesting Cek.tallying Cek.logEmitter
+        ]
     ]
+
+-- Exercise the direct machine API, including discharging captured environments.
+testNamelessMachine
+  :: TestName
+  -> ( Term DeBruijn DefaultUni DefaultFun ()
+       -> CekReport (TallyingSt DefaultFun) DeBruijn DefaultUni DefaultFun
+     )
+  -> TestTree
+testNamelessMachine name run =
+  testGroup name $
+    [ testCase testName $ do
+        let CekReport result _ logs = run term
+        cekResultToEither result @?= Right expected
+        logs @?= []
+    | (testName, term, expected) <-
+        [ ("identity closure", identity, identity)
+        , ("binder index ignored", LamAbs () (DeBruijn 42) (dbVar 1), identity)
+        , ("captured lambda", Apply () (lam $ lam $ dbVar 2) unit, lam unit)
+        , ("captured delay", Apply () (lam $ Delay () $ dbVar 1) unit, Delay () unit)
+        ,
+          ( "nested captured environment"
+          , Apply () (lam $ lam $ lam $ Apply () (dbVar 1) (dbVar 3)) unit
+          , lam $ lam $ Apply () (dbVar 1) unit
+          )
+        , ("case payload", Case () (Constr () 0 [identity]) (V.singleton identity), identity)
+        , ("partial builtin", Force () (Builtin () IfThenElse), Force () (Builtin () IfThenElse))
+        ]
+    ]
+      ++ [ testCase "free variable cause" $ do
+             let CekReport result _ _ = run $ dbVar 1
+             cekResultToEither result
+               @?= Left (ErrorWithCause (StructuralError OpenTermEvaluatedMachineError) (Just $ dbVar 1))
+         , testCase "traces and budget" $ do
+             let term = mkIterAppNoAnn (Force () $ Builtin () Trace) [mkConstant () ("message" :: Text), identity]
+                 CekReport result cost logs = run term
+                 CekReport _ referenceCost _ =
+                   Cek.runCekDeBruijn Plc.defaultCekParametersForTesting Cek.tallying Cek.logEmitter term
+             cekResultToEither result @?= Right identity
+             logs @?= ["message"]
+             cost @?= referenceCost
+         ]
+  where
+    lam = LamAbs () $ DeBruijn deBruijnInitIndex
+    dbVar = Var () . DeBruijn
+    identity = lam $ dbVar 1
+    unit = mkConstant () ()
 
 testBudget
   :: (Ix fun, Show fun, Hashable fun, Pretty fun, Typeable fun)

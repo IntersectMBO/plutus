@@ -32,7 +32,7 @@ runRun = \case
       >>> runPlc
   SUplc sN sA ->
     withA @Typeable sA $
-      uplcToOutName sN SNamedDeBruijn
+      uplcToOutName sN SDeBruijn
         -- TODO: use proper errors, not unsafeFromRight
         >>> unsafeFromRight @FreeVariableError
         >>> runUplc
@@ -62,7 +62,7 @@ runPlc (PLC.Program _ _ t)
 -- TODO: add a semantic variant here to get the right machine parameters
 runUplc
   :: (?opts :: Opts, Typeable a)
-  => UPLC.UnrestrictedProgram NamedDeBruijn DefaultUni DefaultFun a -> IO ()
+  => UPLC.UnrestrictedProgram DeBruijn DefaultUni DefaultFun a -> IO ()
 runUplc (UPLC.UnrestrictedProgram (UPLC.Program _ _ t)) =
   case (\(UPLC.CekReport res cost logs) -> (UPLC.cekResultToEither res, cost, logs)) $
     UPLC.runCekDeBruijn defaultCekParametersForTesting exBudgetMode logEmitter t of

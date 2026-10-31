@@ -92,7 +92,7 @@ mkCertifier
   -- ^ The name of the certificate to be produced
   -> CertifierOutput
   -> [ ( Maybe
-           (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+           (CekEvaluationException UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun)
        , ExBudget
        )
      ]
