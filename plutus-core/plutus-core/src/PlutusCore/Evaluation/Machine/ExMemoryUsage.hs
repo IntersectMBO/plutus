@@ -149,7 +149,12 @@ flattenCostRose (CostRose cost []) = CostLast cost
 flattenCostRose (CostRose cost (rose : forest)) =
   case unSatInt cost of
     I64# i -> flattenCostRoseGo i rose forest $ \iz -> CostLast $ unsafeToSatInt $ I64# iz
-{-# INLINE flattenCostRose #-}
+-- INLINE preserves the unspecialized source unfolding, hiding the worker that GHC
+-- specializes for the final continuation. Exposing the optimized unfolding lets callers
+-- reach that worker and omit the final-continuation pointer from its closures.
+-- NOINLINE [2] permits ordinary inlining from phase 2 onward, retaining singleton-rose
+-- simplification without delaying the wrapper until phase 0.
+{-# NOINLINE [2] flattenCostRose #-}
 
 class ExMemoryUsage a where
   -- Inlining the implementations of this method gave us a 1-2% speedup.
