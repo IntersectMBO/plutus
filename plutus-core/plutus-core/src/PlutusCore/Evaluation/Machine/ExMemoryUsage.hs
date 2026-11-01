@@ -149,15 +149,17 @@ flattenCostRose (CostRose cost []) = CostLast cost
 flattenCostRose (CostRose cost (rose : forest)) =
   case unSatInt cost of
     I64# i -> flattenCostRoseGo i rose forest $ \iz -> CostLast $ unsafeToSatInt $ I64# iz
--- GHC generates a version of flattenCostRoseGo specialized for the final continuation
--- above. Its thunks no longer need to store a pointer to that continuation.
+-- The last argument to @flattenCostRoseGo@ above is a function that returns @CostLast@
+-- when the traversal ends. GHC creates a copy of the worker that returns @CostLast@
+-- directly at that point, without taking this function as an argument, and changes this
+-- call to use the copy. The copy's thunks no longer need to store a pointer to the function.
 --
--- INLINE would give callers the original body of flattenCostRose, which still calls the
--- general worker. NOINLINE [2] lets callers inline the optimized body and use the
--- specialized worker instead.
+-- @INLINE@ would give callers the original body of @flattenCostRose@, so they would
+-- still call the general worker and pass the function explicitly. @NOINLINE [2]@
+-- lets callers inline the optimized body, which calls the specialized copy.
 --
--- The [2] allows normal inlining from phase 2 onwards. We still want inlining: for example,
--- flattenCostRose (CostRose cost []) should simplify directly to CostLast cost.
+-- @[2]@ allows normal inlining from phase 2 onwards. Inlining is still useful:
+-- @flattenCostRose (CostRose cost [])@ can simplify directly to @CostLast cost@.
 {-# NOINLINE [2] flattenCostRose #-}
 
 class ExMemoryUsage a where
