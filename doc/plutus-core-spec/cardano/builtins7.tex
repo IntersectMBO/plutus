@@ -7,6 +7,103 @@
 \newpage
 \subsection{Batch 7}
 \label{sec:default-builtins-7}
-A seventh batch of built-in functions is expected to be enabled at Protocol
-Version 12.  They will be added here when their implementations and costing are
-finalised.
+A seventh batch of built-in functions is expected to be enabled at Protocol Version 12.
+It contains an operation for looking up several array elements (CIP-0156~\cite{CIP-0156}) and four operations on the built-in \texttt{value} type (CIP-0168~\cite{CIP-0168}).
+The \texttt{array} and \texttt{value} types are described in Sections~\ref{sec:built-in-array-type} and
+\ref{sec:built-in-value-type}, respectively.
+
+\subsubsection{Built-in functions}
+\label{sec:built-in-functions-7}
+The functions in Batch 7 are defined in Table~\ref{table:built-in-functions-7}.
+
+\setlength{\LTleft}{-10mm}
+\renewcommand*{\arraystretch}{1.25}
+\begin{longtable}[H]{|l|p{50mm}|p{58mm}|c|c|}
+  \hline
+  \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
+  & & & fail? & \\
+  \hline
+  \endfirsthead
+  \hline
+  \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
+  & & & fail? & \\
+  \hline
+  \endhead
+  \hline
+  \caption{Built-in functions, Batch 7}
+  \endfoot
+  \caption[]{Built-in functions, Batch 7}
+  \label{table:built-in-functions-7}
+  \endlastfoot
+  \TT{multiIndexArray}
+    & $[\forall a_\#, \arrayOf{a_\#},$
+      \smallskip\newline
+      $\listOf{\ty{integer}}] \to \listOf{a_\#}$
+    & $\mathsf{multiIndexArray}$
+    & Yes & \ref{note:multiIndexArray-semantics} \\[2mm]
+  \TT{policies}
+    & $[\ty{value}] \to \listOf{\ty{bytestring}}$
+    & $v \mapsto [c_1,\ldots,c_n]$, where
+      $C_v=\{c_1<\cdots<c_n\}$
+    & No & \ref{note:policies-semantics} \\[2mm]
+  \TT{assetCount}
+    & $[\ty{value}] \to \ty{integer}$
+    & $v \mapsto |\{(c,t):v(c,t)\ne 0\}|$
+    & No & \ref{note:assetCount-semantics} \\[2mm]
+  \TT{keepPolicies}
+    & $[\listOf{\ty{bytestring}}, \ty{value}] \to \ty{value}$
+    & $\mathsf{keepPolicies}$
+    & Yes & \ref{note:policy-filter-semantics} \\[2mm]
+  \TT{dropPolicies}
+    & $[\listOf{\ty{bytestring}}, \ty{value}] \to \ty{value}$
+    & $\mathsf{dropPolicies}$
+    & Yes & \ref{note:policy-filter-semantics} \\[2mm]
+\hline
+\end{longtable}
+
+\note{Semantics of \texttt{multiIndexArray}.}
+\label{note:multiIndexArray-semantics}
+For an array $[x_0,\ldots,x_{n-1}]$ and a list of integer indices $[i_1,\ldots,i_k]$, the denotation is
+
+\[
+\begin{aligned}
+&\mathsf{multiIndexArray}([x_0,\ldots,x_{n-1}],[i_1,\ldots,i_k])\\
+&\quad=\begin{cases}
+  [x_{i_1},\ldots,x_{i_k}]
+    & \text{if $k\leq 1024$ and $0\leq i_j<n$ for all $1\leq j\leq k$,}\\
+  \errorX & \text{otherwise.}
+\end{cases}
+\end{aligned}
+\]
+
+The indices are zero-based; their order and repetitions are preserved in the result.
+An empty index list returns the empty list, including when the array is empty.
+
+\note{Semantics of \texttt{policies}.}
+\label{note:policies-semantics}
+The function returns the currency identifiers $C_v$ defined in Section~\ref{sec:built-in-value-type}, once each in strictly ascending lexicographic order.
+
+\note{Semantics of \texttt{assetCount}.}
+\label{note:assetCount-semantics}
+The function returns the number of pairs $(c,t)$ with $v(c,t)\ne 0$.
+Each distinct pair is counted once, regardless of the sign of its quantity.
+
+\note{Semantics of \texttt{keepPolicies} and \texttt{dropPolicies}.}
+\label{note:policy-filter-semantics}
+Let $P=[c_1,\ldots,c_k]$ be the input list of currency identifiers.
+The results are the values defined by
+
+\[
+\begin{aligned}
+  \mathsf{keepPolicies}(P,v)(c,t)
+    &= \begin{cases}v(c,t)&\text{if }c\in P,\\0&\text{otherwise,}\end{cases}\\
+  \mathsf{dropPolicies}(P,v)(c,t)
+    &= \begin{cases}0&\text{if }c\in P,\\v(c,t)&\text{otherwise.}\end{cases}
+\end{aligned}
+\]
+
+Both functions fail when $k>256$, even if $v$ is empty.
+Every list entry counts towards the limit, including duplicates, and identifiers longer than 32 bytes.
+The list need not be sorted.
+Duplicate identifiers have the same effect as a single occurrence; identifiers longer than 32 bytes have no effect.
+Quantities under retained currencies are unchanged.

@@ -23,7 +23,7 @@ The sixth batch of built-in types and functions provides
 \end{itemize}
 
 \subsubsection{The \texttt{array} type operator}
-\label{sec:built-in-type-operators-6}
+\label{sec:built-in-array-type}
 The \texttt{array} type operator is described in Table~\ref{table:array-type-operator}.
 
 \begin{table}[H]
@@ -330,7 +330,7 @@ each currency must be in strictly ascending order.
 
 \medskip
 \noindent
-The denotation of the associated \texttt{value} is 
+The denotation of the associated \texttt{value} is
 \begin{align*}
  \unflatten{[
   & (\denote{C_1}, [(\denote{T_{11}}, \denote{Q_{11}}), (\denote{T_{12}}, \denote{Q_{12}}),
@@ -350,9 +350,9 @@ occurring in the constant to $Q_{ij}$ and everything else to 0.
 \noindent
 Some examples of valid \texttt{value} constants are
 \begin{verbatim}
-  (con value []) 
+  (con value [])
   (con value [(#1234AB, [(#, 2), (#01, 44), (#05, -3)])])
-  (con value [(#11, [(#, 2), (#01, 1), (#05, 3)]), 
+  (con value [(#11, [(#, 2), (#01, 1), (#05, 3)]),
               (#3333, [(#0f,  4), (#1000, -1)])])
 \end{verbatim}
 
@@ -577,7 +577,7 @@ Formally, if $d$ is a data object then if $d$ is of the form
  &(\BB c_n, \mathtt{Map}\,[(\BB t_{n1}, \II q_{n1}), (\BB t_{n2}, \II q_{n2}), \ldots, (\BB t_{nk_n}, \II q_{nk_n})])],
 \end{align*}
 
-\noindent then let 
+\noindent then let
 \begin{align*}
   l = [
   &(c_1, [(t_{11}, q_{11}), (t_{12}, q_{12}), \ldots, (t_{1k_1}, q_{1k_1})]),\\
@@ -585,7 +585,7 @@ Formally, if $d$ is a data object then if $d$ is of the form
   &\ldots,\\
   &(c_n, [(t_{n1}, q_{n1}), (t_{n2}, q_{n2}), \ldots, (t_{nk_n}, q_{nk_n})])]
 \end{align*}
-\noindent and define 
+\noindent and define
 
 $$
 \mathsf{unValueData}(d) = \unflatten{l},
@@ -598,4 +598,3 @@ nested \texttt{Map}s) then also we let $\mathsf{unValueData}(d) = \errorX$.
 a \texttt{Value} field containing a \texttt{value} object.  This will enable us
 to introduce much simpler and faster versions of \texttt{valueData}
 and \texttt{unValueData}.
-
