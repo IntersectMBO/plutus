@@ -560,6 +560,7 @@ library untyped-plutus-core-testlib
     , cardano-base:testlib             >=0.1.5
     , cardano-crypto-class
     , data-default-class
+    , directory
     , dlist
     , extra
     , filepath

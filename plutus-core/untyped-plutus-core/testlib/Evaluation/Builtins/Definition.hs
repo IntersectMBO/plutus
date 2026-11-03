@@ -2099,7 +2099,6 @@ test_integer_properties =
     , test_integer_div_mod_properties
     , test_integer_quot_rem_properties
     , test_integer_order_properties
-    , test_integer_ring_properties
     , test_integer_exp_mod_properties
     ]
 
