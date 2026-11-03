@@ -43,7 +43,7 @@ let
     pkgs.writeShellScriptBin "generate-agda-typecheck-conformance" ''
       set -e
       cd "$(git rev-parse --show-toplevel)"
-      cabal run plutus-conformance:generate-agda-typecheck-conformance -- "$@"
+      cabal run plutus-conformance:generate-agda-conformance -- "$@"
       echo "Type-checking the generated tests..."
       cd plutus-metatheory
       agda-with-stdlib src/Conformance.lagda.md

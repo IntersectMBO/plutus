@@ -17,7 +17,7 @@ builtins that are still postulated on the Agda side. See `Conformance.Eval`.
 Test cases:
 
 - stated with a `refl` proof: 228
-- pending (postulated constants or builtins, or known failures): 711
+- pending (postulated constants or builtins, or known failures): 802
 - skipped, constant not expressible in Agda: 6
 - skipped, program does not parse or has free variables: 66
 
@@ -42,6 +42,7 @@ import Conformance.Builtin.Semantics
 import Conformance.Builtin.Semantics.AddInteger
 import Conformance.Builtin.Semantics.AndByteString
 import Conformance.Builtin.Semantics.AppendByteString
+import Conformance.Builtin.Semantics.AssetCount
 import Conformance.Builtin.Semantics.Blake2b224
 import Conformance.Builtin.Semantics.Blake2b256
 import Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G1.Arith
@@ -78,6 +79,7 @@ import Conformance.Builtin.Semantics.CountSetBits
 import Conformance.Builtin.Semantics.DecodeUtf8
 import Conformance.Builtin.Semantics.DivideInteger
 import Conformance.Builtin.Semantics.DropList
+import Conformance.Builtin.Semantics.DropPolicies
 import Conformance.Builtin.Semantics.EqualsByteString
 import Conformance.Builtin.Semantics.EqualsData
 import Conformance.Builtin.Semantics.EqualsInteger
@@ -95,6 +97,7 @@ import Conformance.Builtin.Semantics.IntegerToByteString.BigEndian.Unbounded
 import Conformance.Builtin.Semantics.IntegerToByteString.LittleEndian.Bounded
 import Conformance.Builtin.Semantics.IntegerToByteString.LittleEndian.Unbounded
 import Conformance.Builtin.Semantics.Keccak256
+import Conformance.Builtin.Semantics.KeepPolicies
 import Conformance.Builtin.Semantics.LengthOfArray
 import Conformance.Builtin.Semantics.LessThanByteString
 import Conformance.Builtin.Semantics.LessThanEqualsByteString
@@ -104,9 +107,11 @@ import Conformance.Builtin.Semantics.ListToArray
 import Conformance.Builtin.Semantics.LookupCoin
 import Conformance.Builtin.Semantics.MkCons
 import Conformance.Builtin.Semantics.ModInteger
+import Conformance.Builtin.Semantics.MultiIndexArray
 import Conformance.Builtin.Semantics.MultiplyInteger
 import Conformance.Builtin.Semantics.NullList
 import Conformance.Builtin.Semantics.OrByteString
+import Conformance.Builtin.Semantics.Policies
 import Conformance.Builtin.Semantics.QuotientInteger
 import Conformance.Builtin.Semantics.ReadBit
 import Conformance.Builtin.Semantics.RemainderInteger
