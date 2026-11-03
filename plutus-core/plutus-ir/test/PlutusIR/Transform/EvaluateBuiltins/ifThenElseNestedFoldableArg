@@ -1,0 +1,6 @@
+-- The inner application is folded first, so this should reduce
+[ { (builtin ifThenElse) (con integer) }
+  (con bool True)
+  (con integer 7)
+  [ (builtin addInteger) (con integer 1) (con integer 2) ]
+]

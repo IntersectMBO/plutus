@@ -8,10 +8,13 @@ module Spec.V4.Encoding (tests) where
 import Plinth.Plugin (plinthc)
 import PlutusLedgerApi.Data.V4 qualified as DataV4
 import PlutusLedgerApi.V4 qualified as V4
+import PlutusTx qualified
+import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test (assertResult)
+import PlutusTx.Test (assertEvaluatesSuccessfully, assertResult)
 import Test.Tasty (TestTree)
 import Test.Tasty.Extras
+import Test.Tasty.HUnit (testCase)
 
 tests :: TestTree
 tests =
@@ -66,4 +69,40 @@ tests =
                       && PlutusTx.toBuiltinData decoded PlutusTx.== PlutusTx.toBuiltinData value
                   _ -> False
           )
+    , assertResult "V4.Committee encoding roundtrip" $
+        plinthc
+          ( \d ->
+              PlutusTx.toBuiltinData (PlutusTx.unsafeFromBuiltinData @V4.Committee d)
+                PlutusTx.== d
+          )
+          `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef (PlutusTx.toBuiltinData committee)
+    , assertResult "V4.AccountBalanceIntervals encoding roundtrip" $
+        plinthc
+          ( \d ->
+              PlutusTx.toBuiltinData (PlutusTx.unsafeFromBuiltinData @V4.AccountBalanceIntervals d)
+                PlutusTx.== d
+          )
+          `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef (PlutusTx.toBuiltinData accountBalanceIntervals)
+    , embed . testCase "TxInfo ToData compiles" $
+        assertEvaluatesSuccessfully (plinthc (PlutusTx.toBuiltinData @V4.TxInfo))
+    , embed . testCase "TopTxInfo ToData compiles" $
+        assertEvaluatesSuccessfully (plinthc (PlutusTx.toBuiltinData @V4.TopTxInfo))
+    , embed . testCase "ScriptContext ToData compiles" $
+        assertEvaluatesSuccessfully (plinthc (PlutusTx.toBuiltinData @V4.ScriptContext))
     ]
+  where
+    committee =
+      V4.Committee
+        (AssocMap.singleton (V4.ColdCommitteeCredential (V4.PubKeyCredential (V4.PubKeyHash "key"))) 10)
+        (V4.unsafeRatio 2 3)
+
+    accountBalanceIntervals =
+      V4.AccountBalanceIntervals $
+        AssocMap.unsafeFromList
+          [ (account "lower", V4.AccountBalanceLowerBound (V4.Lovelace 10))
+          , (account "upper", V4.AccountBalanceUpperBound (V4.Lovelace 20))
+          , (account "both", V4.AccountBalanceBothBounds (V4.Lovelace 10) (V4.Lovelace 20))
+          , (account "exact", V4.AccountBalanceExact (V4.Lovelace 15))
+          ]
+
+    account = V4.AccountId . V4.PubKeyCredential . V4.PubKeyHash

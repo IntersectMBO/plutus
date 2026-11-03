@@ -368,7 +368,7 @@ d_measures_96 v0
   = let v1
           = coe
               MAlonzo.Code.Data.Vec.Base.du_replicate_444
-              (coe MAlonzo.Code.Builtin.d_arity_318 (coe v0))
+              (coe MAlonzo.Code.Builtin.d_arity_328 (coe v0))
               (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_86) in
     coe
       (case coe v0 of
@@ -424,12 +424,12 @@ d_builtinCost_100 v0 v1 v2
       C_mkExBudget_62
       (coe
          MAlonzo.Code.Cost.Model.d_runModel_104
-         (coe MAlonzo.Code.Builtin.d_arity_318 (coe v0))
+         (coe MAlonzo.Code.Builtin.d_arity_328 (coe v0))
          (coe MAlonzo.Code.Cost.Model.d_costingCPU_76 (coe v1))
          (coe du_argSizes_112 (coe v0) (coe v2)))
       (coe
          MAlonzo.Code.Cost.Model.d_runModel_104
-         (coe MAlonzo.Code.Builtin.d_arity_318 (coe v0))
+         (coe MAlonzo.Code.Builtin.d_arity_328 (coe v0))
          (coe MAlonzo.Code.Cost.Model.d_costingMem_78 (coe v1))
          (coe du_argSizes_112 (coe v0) (coe v2)))
 -- Cost._.argSizes
@@ -558,7 +558,7 @@ d_mkKeyFromExBudgetCategory_160 v0
         -> coe
              MAlonzo.Code.Data.String.Base.d__'43''43'__20
              ("1" :: Data.Text.Text)
-             (MAlonzo.Code.Builtin.d_showBuiltin_480 (coe v1))
+             (MAlonzo.Code.Builtin.d_showBuiltin_516 (coe v1))
       MAlonzo.Code.Cost.Base.C_BStartup_42 -> coe ("2" :: Data.Text.Text)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.TallyingBudget
@@ -838,14 +838,14 @@ du_totalBuiltinCosts_246 v0
                     MAlonzo.Code.Cost.Base.C_BBuiltinApp_40 (coe v1)
                     (coe
                        MAlonzo.Code.Data.Vec.Base.du_replicate_444
-                       (coe MAlonzo.Code.Builtin.d_arity_318 (coe v1))
+                       (coe MAlonzo.Code.Builtin.d_arity_328 (coe v1))
                        (coe
                           MAlonzo.Code.Untyped.CEK.C_V'45'con_50
                           (coe
                              MAlonzo.Code.Builtin.Signature.C_atomic_12
                              (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aUnit_14))
                           (coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8))))))
-         (coe MAlonzo.Code.Builtin.d_builtinList_482))
+         (coe MAlonzo.Code.Builtin.d_builtinList_518))
 -- Cost._.getCPU
 d_getCPU_254 ::
   MAlonzo.Code.Data.Tree.AVL.T_Tree_266 ->
@@ -949,7 +949,7 @@ du_printBuiltinCost_278 v0 v1
                      MAlonzo.Code.Data.String.Base.d__'43''43'__20
                      (MAlonzo.Code.Data.String.Base.d_padRight_70
                         (coe ' ') (coe (22 :: Integer))
-                        (coe MAlonzo.Code.Builtin.d_showBuiltin_480 (coe v0)))
+                        (coe MAlonzo.Code.Builtin.d_showBuiltin_516 (coe v0)))
                      (coe
                         MAlonzo.Code.Data.String.Base.d__'43''43'__20
                         (" " :: Data.Text.Text)
@@ -988,7 +988,7 @@ du_printBuiltinReport_286 v0
                        MAlonzo.Code.Cost.Base.C_BBuiltinApp_40 (coe v1)
                        (coe
                           MAlonzo.Code.Data.Vec.Base.du_replicate_444
-                          (coe MAlonzo.Code.Builtin.d_arity_318 (coe v1))
+                          (coe MAlonzo.Code.Builtin.d_arity_328 (coe v1))
                           (coe
                              MAlonzo.Code.Untyped.CEK.C_V'45'con_50
                              (coe
@@ -996,7 +996,7 @@ du_printBuiltinReport_286 v0
                                 (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aUnit_14))
                              (coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8))))))))
       (coe ("" :: Data.Text.Text))
-      (coe MAlonzo.Code.Builtin.d_builtinList_482)
+      (coe MAlonzo.Code.Builtin.d_builtinList_518)
 -- Cost._.formatTimePicoseconds
 d_formatTimePicoseconds_294 ::
   MAlonzo.Code.Data.Tree.AVL.T_Tree_266 ->

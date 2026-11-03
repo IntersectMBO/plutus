@@ -294,27 +294,15 @@ mapM f = sequence ∘ map f
 ## Arrays
 
 ```
-
 postulate Array : Set → Set
 {-# FOREIGN GHC import qualified Data.Vector.Strict as Strict #-}
 {-# COMPILE GHC Array = type Strict.Vector #-}
 
-variable A : Set
-
-postulate
-  HSlengthOfArray : Array A → ℤ
-  HSlistToArray : (ls : List A) → Array A
-  HSindexArray : Array A → ℤ → A
--- These have to consume the hidden {A : Set} param in the Agda.
-{-# COMPILE GHC HSlengthOfArray = \() -> \as -> toInteger (Strict.length as) #-}
-{-# COMPILE GHC HSlistToArray = \() -> Strict.fromList #-}
-{-# COMPILE GHC HSindexArray = \() -> \as -> \i -> as Strict.! (fromInteger i) #-}
 
 -- This only exists for literal arrays in certificates,
 -- much like mkBytestring above.
 postulate
   mkArray : {A : Set} → List A → Array A
-
 ```
 ## DATA
 ```

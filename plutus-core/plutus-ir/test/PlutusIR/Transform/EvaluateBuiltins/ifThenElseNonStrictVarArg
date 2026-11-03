@@ -1,0 +1,6 @@
+-- x is non-strict, so evaluating it may fail, so should be left
+(let
+  (nonrec)
+  (termbind (nonstrict) (vardecl x (con integer)) (error (con integer)))
+  [ { (builtin ifThenElse) (con integer) } (con bool True) (con integer 7) x ]
+)

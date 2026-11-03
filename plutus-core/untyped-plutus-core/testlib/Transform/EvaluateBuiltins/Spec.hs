@@ -6,10 +6,11 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BS8
 import PlutusCore qualified as PLC
+import PlutusCore.Data (Data (I))
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree, testGroup)
-import Transform.Lib (app, builtin, builtinTrue, con, force, ite, lam, text, var)
+import Transform.Lib (app, builtin, builtinTrue, con, delay, err, force, ite, lam, text, var)
 import Transform.Simplify.Lib (goldenVsPretty)
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Transform.EvaluateBuiltins (evaluateBuiltinsPass)
@@ -28,6 +29,13 @@ test_evaluateBuiltins =
       , ("overApplication", overApplicationTerm)
       , ("underApplication", underApplicationTerm)
       , ("uncompressBlsConservative", uncompressBlsG2Term)
+      , ("ifThenElseErrorArg", ifThenElseErrorArgTerm)
+      , ("ifThenElseImpureArg", ifThenElseImpureArgTerm)
+      , ("chooseListImpureArg", chooseListImpureArgTerm)
+      , ("chooseDataImpureArg", chooseDataImpureArgTerm)
+      , ("ifThenElseVarArg", ifThenElseVarArgTerm)
+      , ("ifThenElseDelayedErrorArg", ifThenElseDelayedErrorArgTerm)
+      , ("ifThenElseNestedFoldableArg", ifThenElseNestedFoldableArgTerm)
       ]
       ++ map
         (uncurry $ goldenVsEvaluated False)
@@ -98,7 +106,51 @@ uncompressAndEqualBlsTerm =
         decodeHex
           "97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb"
 
+-- Fails when x is 0, so must not be discarded. See Note [Evaluating builtins with
+-- impure arguments] in PlutusIR.Transform.EvaluateBuiltins
+impureTerm :: Term Name DefaultUni DefaultFun ()
+impureTerm = builtin PLC.DivideInteger `app` con 1 `app` var "x"
+
+-- The unselected branch is an error, so should be left in place
+ifThenElseErrorArgTerm :: Term Name DefaultUni DefaultFun ()
+ifThenElseErrorArgTerm = ite builtinTrue (con 7) err
+
+-- The unselected branch may fail, so should be left in place
+ifThenElseImpureArgTerm :: Term Name DefaultUni DefaultFun ()
+ifThenElseImpureArgTerm = ite builtinTrue (con 7) impureTerm
+
+-- The unselected branch may fail, so should be left in place
+chooseListImpureArgTerm :: Term Name DefaultUni DefaultFun ()
+chooseListImpureArgTerm =
+  force (force (builtin PLC.ChooseList))
+    `app` mkConstant @[Integer] () []
+    `app` con 7
+    `app` impureTerm
+
+-- The unselected branches may fail, so should be left in place
+chooseDataImpureArgTerm :: Term Name DefaultUni DefaultFun ()
+chooseDataImpureArgTerm =
+  force (builtin PLC.ChooseData)
+    `app` mkConstant @Data () (I 0)
+    `app` impureTerm
+    `app` impureTerm
+    `app` impureTerm
+    `app` con 7
+    `app` impureTerm
+
+-- Variables are bound to values, so this reduces to 7
+ifThenElseVarArgTerm :: Term Name DefaultUni DefaultFun ()
+ifThenElseVarArgTerm = ite builtinTrue (con 7) (var "x")
+
+-- Delayed terms are values, so this reduces to 7
+ifThenElseDelayedErrorArgTerm :: Term Name DefaultUni DefaultFun ()
+ifThenElseDelayedErrorArgTerm = ite builtinTrue (con 7) (delay err)
+
+-- The inner application is folded first, after which this reduces to 7
+ifThenElseNestedFoldableArgTerm :: Term Name DefaultUni DefaultFun ()
+ifThenElseNestedFoldableArgTerm = ite builtinTrue (con 7) (builtin PLC.AddInteger `app` con 1 `app` con 2)
+
 decodeHex :: String -> BS.ByteString
 decodeHex hex = case Base16.decode (BS8.pack hex) of
   Right bs -> bs
-  Left err -> error $ "Transform.EvaluateBuiltins.Spec: invalid hex: " <> err
+  Left e -> error $ "Transform.EvaluateBuiltins.Spec: invalid hex: " <> e

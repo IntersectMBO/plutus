@@ -53,7 +53,7 @@ import Builtin.CInteger as CInt
 open CInt using (CInteger; cInt)
 ```
 
-````
+```
 data Env : Ctx ∅ → Set
 
 data BApp (b : Builtin) :
@@ -335,13 +335,13 @@ BUILTIN tailList (Λ̂ A $ V-con []) = inj₁ (con (ne ((^ list) · A)))
 BUILTIN tailList (Λ̂ A $ V-con (_ ∷ xs)) = inj₂ (V-con xs)
 BUILTIN nullList (Λ̂ B $ V-con []) = inj₂ (V-con true)
 BUILTIN nullList (Λ̂ B $ V-con (_ ∷ _)) = inj₂ (V-con false)
-BUILTIN lengthOfArray (Λ̂ A $ V-con as) = inj₂ (V-con (Utils.HSlengthOfArray as))
-BUILTIN listToArray (Λ̂ A $ V-con ls) = inj₂ (V-con (Utils.HSlistToArray ls))
+BUILTIN lengthOfArray (Λ̂ A $ V-con as) = inj₂ (V-con (HSlengthOfArray as))
+BUILTIN listToArray (Λ̂ A $ V-con ls) = inj₂ (V-con (HSlistToArray (toList ls)))
 BUILTIN indexArray {A = A'} (Λ̂ A $ V-con as $ V-con i) with Data.Integer.ℤ.pos 0 ≤? i
 ... | no  _ = inj₁ (con A)
-... | yes _ with i <? Utils.HSlengthOfArray as
+... | yes _ with i <? HSlengthOfArray as
 ... | no _  = inj₁ (con A)
-... | yes _ = inj₂ (V-con (Utils.HSindexArray as i))
+... | yes _ = inj₂ (V-con (HSindexArray as i))
 BUILTIN chooseData (Λ̂ A $ V-con (ConstrDATA _ _) $ c $ _ $ _ $ _ $ _) = inj₂ c
 BUILTIN chooseData (Λ̂ A $ V-con (MapDATA _)      $ _ $ m $ _ $ _ $ _) = inj₂ m
 BUILTIN chooseData (Λ̂ A $ V-con (ListDATA _)     $ _ $ _ $ l $ _ $ _) = inj₂ l
@@ -407,6 +407,21 @@ BUILTIN bls12-381-G1-multiScalarMul (base $ V-con is $ V-con es) with BLS12-381-
 BUILTIN bls12-381-G2-multiScalarMul (base $ V-con is $ V-con es) with BLS12-381-G2-multiScalarMul (toList is) (toList es)
 ... | just r = inj₂ (V-con r)
 ... | nothing = inj₁ (con-atomic aBls12-381-g2-element)
+BUILTIN multiIndexArray (Λ̂ A $ V-con as $ V-con is)
+  with HSmultiIndexArray as (toList is)
+... | just r = inj₂ (V-con (fromList r))
+... | nothing = inj₁ (con (ne (^ list · A)))
+BUILTIN policies (base $ V-con v) = inj₂ (V-con (fromList (POLICIES v)))
+BUILTIN assetCount (base $ V-con v) = inj₂ (V-con (assetCOUNT v))
+BUILTIN keepPolicies (base $ V-con bs $ V-con v)
+  with keepPOLICIES (toList bs) v
+... | just r = inj₂ (V-con r)
+... | nothing = inj₁ (con-atomic aValue)
+BUILTIN dropPolicies (base $ V-con bs $ V-con v)
+  with dropPOLICIES (toList bs) v
+... | just r = inj₂ (V-con r)
+... | nothing = inj₁ (con-atomic aValue)
+
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
   → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}

@@ -1,0 +1,4 @@
+let
+  ~x : integer = error {integer}
+in
+ifThenElse {integer} True 7 x
