@@ -418,8 +418,12 @@ An eta-reduced definition, @scaleBudget = stimes@, instead left a boxed 'Word8' 
 the generated code. The explicit definition avoids that boxing while retaining the original
 saturating arithmetic. The boxed 'ExBudget' required by the budget spender is still produced.
 
-Finally, 'spendAccumulatedBudget' stays OPAQUE so the unrolled traversal remains in one place.
+Finally, 'spendAccumulatedBudget' is NOINLINE so the unrolled traversal remains shared.
 Inlining the flush duplicates it across the CEK workers and has caused performance regressions.
+Unlike OPAQUE, NOINLINE allows worker/wrapper to discard the unused unit result: the worker
+returns just the state token instead of an unboxed pair containing the state token and unit.
+This removes unnecessary return handling and improves the generated caller code. The unboxed
+pair and static unit value allocate no heap memory, so this does not reduce allocation.
 -}
 
 -- So that we don't need to update 'NumberOfStepCounters' manually, which would be extremely
@@ -1051,7 +1055,7 @@ enterComputeCek = computeCek
       resetCounter ctr
     -- It's very important for this definition not to get inlined. Inlining it caused performance to
     -- degrade by 16+%: https://github.com/IntersectMBO/plutus/pull/5931
-    {-# OPAQUE spendAccumulatedBudget #-}
+    {-# NOINLINE spendAccumulatedBudget #-}
 
     -- The total counter is not charged separately.
     -- See Note [Structure of the step counter]

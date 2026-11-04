@@ -1,3 +1,3 @@
 ### Changed
 
-- Reduced allocations in integer memory accounting and CEK machine budget spending.
+- Reduced allocations and instruction counts in integer memory accounting and CEK budget spending.
