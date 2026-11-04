@@ -107,6 +107,13 @@ import Builtin.Integer.Base
 import Builtin.Integer.Properties
 ```
 
+Arrays are implemented simply as lists.
+
+```
+import Builtin.Array.Base
+import Builtin.Array.Properties
+```
+
 The types of the built-in operations are defined by a signature.
 These types are abstract, and they can be made concrete to obtain the different
 notions of type used in the formalisation.
