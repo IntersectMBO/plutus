@@ -10,7 +10,8 @@ open import Builtin.Array.Base
 open import Data.List
 open import Data.Empty using (⊥)
 open import Data.Unit using (⊤; tt)
-open import Data.Nat using (ℕ; _<?_; zero; suc; _<_; z≤n; s≤s)
+open import Data.Nat using (ℕ; _<?_; zero; suc; _<_; z≤n; s≤s; _≥_)
+open import Data.Nat.Properties using (<-asym; <⇒≱)
 open import Data.Integer using (ℤ; -[1+_]; +_)
 open import Data.Maybe using (Maybe; nothing; just)
 open import Data.Fin using (fromℕ<; Fin; toℕ ; zero; suc)
@@ -18,24 +19,54 @@ open import Data.Fin.Properties using (toℕ<n; toℕ-fromℕ<; fromℕ<-toℕ)
 open import Relation.Nullary using (Dec;yes;no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst)
 open import Data.Product using (∃; _,_)
+
+absurd : ∀ {A : Set} → ⊥ → A
+absurd ()
 ```
 
-## Basic properties
+## Properties of `length`
+
 ```
 private variable
   A : Set
   xs : Array A
-
-length[] : length {A = A} [] ≡ 0
-length[] = refl
-
-indexArrayNeg : (n : ℕ) → indexArray xs (-[1+ n ]) ≡ nothing
-indexArrayNeg _ = refl
+  i : ℕ
 ```
 
-## Advanced properties
+## Properties of `length`
 
-The following are lemmas for the property below.
+```
+length-[] : length {A = A} [] ≡ 0
+length-[] = refl
+
+lengthOfArray-length : lengthOfArray (listToArray xs) ≡ + (length xs)
+lengthOfArray-length = refl
+```
+
+## Properties of `indexArray`
+
+Indexing outside the bounds of the array should fail.
+
+```
+indexArray-neg : indexArray xs (-[1+ i ]) ≡ nothing
+indexArray-neg = refl
+
+indexArray-≥ : i ≥ length xs → indexArray xs (+ i) ≡ nothing
+indexArray-≥ {i = i} {xs = xs} i≥len
+  with i <? length xs
+... | yes i<len = absurd (<⇒≱ i<len i≥len)
+... | no ¬le = refl
+```
+
+## Properties of `multiIndexArray`
+
+### The `range` function
+
+Ranges are needed for stating the `multiIndexArray-all` property below.
+
+The list `range i n` constructs a list of length `n`, starting at `i` and
+incrementing each subsequent element.
+
 ```
 range : ℕ → ℕ → List ℕ
 range n 0 = []
@@ -46,10 +77,25 @@ _ = refl
 
 _ : range 123 0 ≡ []
 _ = refl
+```
 
+The version that generates elements in `ℤ`, which is the type of indices in arrays.
+
+```
 rangeℤ : ℕ → ℕ → List ℤ
 rangeℤ n len = map (+_) (range n len)
 ```
+
+### Indexing all valid indices is the identity
+
+Given an array `xs`, if we lookup all indices `0 .. length xs - 1`, we obtain a
+list which is identical to xs (after converting back to an array). I.e. we prove the following lemma.
+
+```text
+multiIndexArray-all : multiIndexArray xs (rangeℤ 0 (length xs)) ≡ just (listToArray xs)
+```
+
+But first, we first we need to prove some lemmas.
 
 `Drop` is used as an invariant for the `multiIndexArray-all` proof: `Drop i xs ys` states that dropping `i` elements from xs results in `ys`.
 
@@ -69,16 +115,13 @@ data Drop {A : Set} : ℕ → Array A → Array A → Set where
 ```
 
 ```
-absurd : ∀ {A : Set} → ⊥ → A
-absurd ()
-
 open import Relation.Binary.PropositionalEquality using (cong; sym)
 open import Relation.Binary.PropositionalEquality.Properties
 open ≡-Reasoning
 open import Data.List.Properties using (drop-[])
 ```
 
-Given `Drop i xs ys`, `i` is a valid index in `xs`, which we use the `Fin` type for.
+Given `Drop i xs ys`, `i` is a valid index in `xs`, which we express using the `Fin` type.
 
 ```
 Drop-index :
@@ -123,22 +166,21 @@ also possible to drop `suc i` elements, resulting in `ys`.
 ```
 Drop-suc :
   ∀ {i} {xs : List A} {y ys}
-  → Drop i       xs (y ∷ ys)
+  → Drop i xs (y ∷ ys)
   → Drop (suc i) xs ys
 Drop-suc drop-zero = drop-suc drop-zero
 Drop-suc (drop-suc drop) = drop-suc (Drop-suc drop)
 ```
 
-### multiIndexArray
+### multiIndexArray all indices
 
-Given an array `xs`, if we lookup all indices `0 .. length xs - 1`, we obtain a
-list which when converted to an array equals xs.
+The property is proven by generalizing over the start index of the range and the
+resulting tail `ys` of `xs`, the invariant `Drop` captures the relation between
+them.
 
 ```
-multiIndexArray-all
-  : (xs : Array A)
-  → multiIndexArray xs (rangeℤ 0 (length xs)) ≡ just (listToArray xs)
-multiIndexArray-all xs = go 0 xs xs drop-zero
+multiIndexArray-all : multiIndexArray xs (rangeℤ 0 (length xs)) ≡ just (listToArray xs)
+multiIndexArray-all {xs = xs} = go 0 xs xs drop-zero
   where
     go
       : (i : ℕ)
