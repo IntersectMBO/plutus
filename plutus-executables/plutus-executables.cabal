@@ -6,7 +6,8 @@ description:
   Command-line tools for working with Plutus Core programs: @uplc@ (evaluate,
   optimise, certify and convert Untyped Plutus Core, including CIP-57
   blueprints), @plc@ (typed Plutus Core) and @pir@ (Plutus IR), plus the
-  @plutus@ multi-tool.
+  @plutus@ multi-tool. @generate-conformance@ exports generated UPLC programs
+  with expected evaluation results and execution budgets.
 
 homepage:        https://github.com/IntersectMBO/plutus
 license:         Apache-2.0
@@ -196,6 +197,23 @@ executable plutus
   default-extensions:
     GADTs
     TypeApplications
+
+executable generate-conformance
+  import:         lang, os-support
+  main-is:        generate-conformance/Main.hs
+  hs-source-dirs: executables
+  ghc-options:    -threaded -rtsopts
+
+  if arch(wasm32)
+    buildable: False
+
+  build-depends:
+    , base                                     >=4.9   && <5
+    , optparse-applicative
+    , plutus-core:untyped-plutus-core-testlib  ^>=1.72
+    , QuickCheck
+    , tasty
+    , tasty-quickcheck                         >=0.11
 
 test-suite test-simple
   import:             lang, os-support, ghc-version-support
