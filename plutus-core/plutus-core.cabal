@@ -522,14 +522,17 @@ library untyped-plutus-core-testlib
     Evaluation.Builtins
     Evaluation.Builtins.Bitwise.CIP0122
     Evaluation.Builtins.Bitwise.CIP0123
+    Evaluation.Builtins.Bitwise.Conformance
     Evaluation.Builtins.BLS12_381
     Evaluation.Builtins.BLS12_381.TestClasses
     Evaluation.Builtins.BLS12_381.Utils
     Evaluation.Builtins.Common
+    Evaluation.Builtins.Conformance
     Evaluation.Builtins.Conversion
     Evaluation.Builtins.Costing
     Evaluation.Builtins.Definition
     Evaluation.Builtins.Integer.Common
+    Evaluation.Builtins.Integer.Conformance
     Evaluation.Builtins.Integer.DivModProperties
     Evaluation.Builtins.Integer.ExpModIntegerProperties
     Evaluation.Builtins.Integer.OrderProperties

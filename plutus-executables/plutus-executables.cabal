@@ -212,8 +212,6 @@ executable generate-conformance
     , optparse-applicative
     , plutus-core:untyped-plutus-core-testlib  ^>=1.72
     , QuickCheck
-    , tasty
-    , tasty-quickcheck                         >=0.11
 
 test-suite test-simple
   import:             lang, os-support, ghc-version-support

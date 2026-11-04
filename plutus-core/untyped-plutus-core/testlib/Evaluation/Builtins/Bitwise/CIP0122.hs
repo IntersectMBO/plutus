@@ -20,6 +20,7 @@ module Evaluation.Builtins.Bitwise.CIP0122
   , writeBitsHomomorphismLaws
   , replicateHomomorphismLaws
   , replicateIndex
+  , generate_bitwise_cip0122_properties
   ) where
 
 import PlutusCore qualified as PLC
@@ -27,119 +28,48 @@ import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusCore.Test (mapTestLimitAtLeast)
 import UntypedPlutusCore qualified as UPLC
 
+import Data.Bits qualified as Bits
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
-import Evaluation.Helpers
-  ( evaluateTheSame
-  , evaluateToHaskell
-  , evaluatesToConstant
-  , forAllByteString
-  )
+import Evaluation.Builtins.Bitwise.Conformance
+import Evaluation.Builtins.Conformance (OutputFormat)
 import GHC.Exts (fromString)
-import Hedgehog (Gen, Property, PropertyT, forAll, forAllWith, property)
+import Hedgehog (Gen, Property)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+
+import System.FilePath ((</>))
+import Test.QuickCheck.Random (QCGen)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
 {-| Any call to 'replicateByteString' must produce the same byte at
 every valid index, namely the byte specified. -}
 replicateIndex :: TestTree
-replicateIndex = testPropertyNamed "every byte is the same" "replicate_all_match" $
-  mapTestLimitAtLeast 99 (`div` 20) . property $ do
-    n <- forAll . Gen.integral . Range.linear 1 $ 512
-    b <- forAll . Gen.integral . Range.constant 0 $ 255
-    i <- forAll . Gen.integral . Range.linear 0 $ n - 1
-    let lhsInner =
-          mkIterAppNoAnn
-            (builtin () PLC.ReplicateByte)
-            [ mkConstant @Integer () n
-            , mkConstant @Integer () b
-            ]
-    let lhs =
-          mkIterAppNoAnn
-            (builtin () PLC.IndexByteString)
-            [ lhsInner
-            , mkConstant @Integer () i
-            ]
-    evaluatesToConstant @Integer b lhs
+replicateIndex =
+  testPropertyNamed "every byte is the same" "replicate_all_match" $
+    mapTestLimitAtLeast 99 (`div` 20) $
+      checkProperty replicateIndexCases
 
 {-| If you retrieve a bit value at an index, then write that same value to
 the same index, nothing should happen. -}
 getSet :: TestTree
 getSet =
-  testPropertyNamed "get-set" "get_set" . mapTestLimitAtLeast 50 (`div` 20) . property $ do
-    bs <- forAllByteString 1 512
-    i <- forAllIndexOf bs
-    let lookupExp =
-          mkIterAppNoAnn
-            (builtin () PLC.ReadBit)
-            [ mkConstant @ByteString () bs
-            , mkConstant @Integer () i
-            ]
-    b <- evaluateToHaskell lookupExp
-    let lhs =
-          mkIterAppNoAnn
-            (builtin () PLC.WriteBits)
-            [ mkConstant @ByteString () bs
-            , mkConstant @[Integer] () [i]
-            , mkConstant @Bool () b
-            ]
-    evaluatesToConstant bs lhs
+  testPropertyNamed "get-set" "get_set" . mapTestLimitAtLeast 50 (`div` 20) $
+    checkProperty getSetCases
 
 {-| If you write a bit value to an index, then retrieve the bit value at the
 same index, you should get back what you wrote. -}
 setGet :: TestTree
 setGet =
-  testPropertyNamed "set-get" "set_get" . mapTestLimitAtLeast 99 (`div` 10) . property $ do
-    bs <- forAllByteString 1 512
-    i <- forAllIndexOf bs
-    b <- forAll Gen.bool
-    let lhsInner =
-          mkIterAppNoAnn
-            (builtin () PLC.WriteBits)
-            [ mkConstant @ByteString () bs
-            , mkConstant @[Integer] () [i]
-            , mkConstant @Bool () b
-            ]
-    let lhs =
-          mkIterAppNoAnn
-            (builtin () PLC.ReadBit)
-            [ lhsInner
-            , mkConstant @Integer () i
-            ]
-    evaluatesToConstant b lhs
+  testPropertyNamed "set-get" "set_get" . mapTestLimitAtLeast 99 (`div` 10) $
+    checkProperty setGetCases
 
 -- | If you write twice to the same bit index, the second write should win.
 setSet :: TestTree
 setSet =
-  testPropertyNamed "set-set" "set_set" . mapTestLimitAtLeast 50 (`div` 20) . property $ do
-    bs <- forAllByteString 1 512
-    i <- forAllIndexOf bs
-    b1 <- forAll Gen.bool
-    b2 <- forAll Gen.bool
-    let lhsInner =
-          mkIterAppNoAnn
-            (builtin () PLC.WriteBits)
-            [ mkConstant @ByteString () bs
-            , mkConstant @[Integer] () [i, i]
-            , mkConstant @Bool () b1
-            ]
-    let lhs =
-          mkIterAppNoAnn
-            (builtin () PLC.WriteBits)
-            [ lhsInner
-            , mkConstant @[Integer] () [i, i]
-            , mkConstant @Bool () b2
-            ]
-    let rhs =
-          mkIterAppNoAnn
-            (builtin () PLC.WriteBits)
-            [ mkConstant @ByteString () bs
-            , mkConstant @[Integer] () [i]
-            , mkConstant @Bool () b2
-            ]
-    evaluateTheSame lhs rhs
+  testPropertyNamed "set-set" "set_set" . mapTestLimitAtLeast 50 (`div` 20) $
+    checkProperty setSetCases
 
 {-| Checks that:
 
@@ -161,43 +91,9 @@ writeBitsHomomorphismLaws =
     ]
   where
     identityProp :: Bool -> Property
-    identityProp b = property $ do
-      bs <- forAllByteString 1 512
-      let lhs =
-            mkIterAppNoAnn
-              (builtin () PLC.WriteBits)
-              [ mkConstant @ByteString () bs
-              , mkConstant @[Integer] () []
-              , mkConstant @Bool () b
-              ]
-      evaluatesToConstant bs lhs
+    identityProp b = checkProperty (writeBitsIdentityCases b)
     compositionProp :: Bool -> Property
-    compositionProp b = property $ do
-      bs <- forAllByteString 1 512
-      ixes1 <- forAllListsOfIndices bs
-      ixes2 <- forAllListsOfIndices bs
-      let lhsInner =
-            mkIterAppNoAnn
-              (builtin () PLC.WriteBits)
-              [ mkConstant @ByteString () bs
-              , mkConstant @[Integer] () ixes1
-              , mkConstant @Bool () b
-              ]
-      let lhs =
-            mkIterAppNoAnn
-              (builtin () PLC.WriteBits)
-              [ lhsInner
-              , mkConstant @[Integer] () ixes2
-              , mkConstant @Bool () b
-              ]
-      let rhs =
-            mkIterAppNoAnn
-              (builtin () PLC.WriteBits)
-              [ mkConstant @ByteString () bs
-              , mkConstant @[Integer] () (ixes1 <> ixes2)
-              , mkConstant @Bool () b
-              ]
-      evaluateTheSame lhs rhs
+    compositionProp b = checkProperty (writeBitsCompositionCases b)
 
 {-| Checks that:
 
@@ -216,63 +112,16 @@ replicateHomomorphismLaws =
     ]
   where
     identityProp :: Property
-    identityProp = property $ do
-      b <- forAll . Gen.integral . Range.constant 0 $ 255
-      let lhs =
-            mkIterAppNoAnn
-              (builtin () PLC.ReplicateByte)
-              [ mkConstant @Integer () 0
-              , mkConstant @Integer () b
-              ]
-      evaluatesToConstant @ByteString "" lhs
+    identityProp = checkProperty replicateIdentityCases
     compositionProp :: Property
-    compositionProp = property $ do
-      b <- forAll . Gen.integral . Range.constant 0 $ 255
-      n1 <- forAll . Gen.integral . Range.linear 0 $ 512
-      n2 <- forAll . Gen.integral . Range.linear 0 $ 512
-      let lhsInner1 =
-            mkIterAppNoAnn
-              (builtin () PLC.ReplicateByte)
-              [ mkConstant @Integer () n1
-              , mkConstant @Integer () b
-              ]
-      let lhsInner2 =
-            mkIterAppNoAnn
-              (builtin () PLC.ReplicateByte)
-              [ mkConstant @Integer () n2
-              , mkConstant @Integer () b
-              ]
-      let lhs =
-            mkIterAppNoAnn
-              (builtin () PLC.AppendByteString)
-              [ lhsInner1
-              , lhsInner2
-              ]
-      let rhs =
-            mkIterAppNoAnn
-              (builtin () PLC.ReplicateByte)
-              [ mkConstant @Integer () (n1 + n2)
-              , mkConstant @Integer () b
-              ]
-      evaluateTheSame lhs rhs
+    compositionProp = checkProperty replicateCompositionCases
 
 -- | If you complement a 'ByteString' twice, nothing should change.
 complementSelfInverse :: TestTree
 complementSelfInverse =
   testPropertyNamed "self-inverse" "self_inverse" $
-    mapTestLimitAtLeast 99 (`div` 20) . property $ do
-      bs <- forAllByteString 0 512
-      let lhsInner =
-            mkIterAppNoAnn
-              (builtin () PLC.ComplementByteString)
-              [ mkConstant @ByteString () bs
-              ]
-      let lhs =
-            mkIterAppNoAnn
-              (builtin () PLC.ComplementByteString)
-              [ lhsInner
-              ]
-      evaluatesToConstant bs lhs
+    mapTestLimitAtLeast 99 (`div` 20) $
+      checkProperty complementSelfInverseCases
 
 {-| Checks that:
 
@@ -287,62 +136,14 @@ deMorgan =
     ]
   where
     go :: UPLC.DefaultFun -> UPLC.DefaultFun -> Property
-    go f g = mapTestLimitAtLeast 50 (`div` 10) . property $ do
-      semantics <- forAllWith showSemantics Gen.bool
-      bs1 <- forAllByteString 0 512
-      bs2 <- forAllByteString 0 512
-      let lhsInner =
-            mkIterAppNoAnn
-              (builtin () f)
-              [ mkConstant @Bool () semantics
-              , mkConstant @ByteString () bs1
-              , mkConstant @ByteString () bs2
-              ]
-      let lhs =
-            mkIterAppNoAnn
-              (builtin () PLC.ComplementByteString)
-              [ lhsInner
-              ]
-      let rhsInner1 =
-            mkIterAppNoAnn
-              (builtin () PLC.ComplementByteString)
-              [ mkConstant @ByteString () bs1
-              ]
-      let rhsInner2 =
-            mkIterAppNoAnn
-              (builtin () PLC.ComplementByteString)
-              [ mkConstant @ByteString () bs2
-              ]
-      let rhs =
-            mkIterAppNoAnn
-              (builtin () g)
-              [ mkConstant @Bool () semantics
-              , rhsInner1
-              , rhsInner2
-              ]
-      evaluateTheSame lhs rhs
+    go f g = mapTestLimitAtLeast 50 (`div` 10) $ checkProperty (deMorganCases f g)
 
 -- | If you XOR any 'ByteString' with itself twice, nothing should change.
 xorInvoluteLaw :: TestTree
-xorInvoluteLaw = testPropertyNamed "involute (both)" "involute_both" $
-  mapTestLimitAtLeast 99 (`div` 20) . property $ do
-    bs <- forAllByteString 0 512
-    semantics <- forAllWith showSemantics Gen.bool
-    let lhsInner =
-          mkIterAppNoAnn
-            (builtin () PLC.XorByteString)
-            [ mkConstant @Bool () semantics
-            , mkConstant @ByteString () bs
-            , mkConstant @ByteString () bs
-            ]
-    let lhs =
-          mkIterAppNoAnn
-            (builtin () PLC.XorByteString)
-            [ mkConstant @Bool () semantics
-            , mkConstant @ByteString () bs
-            , lhsInner
-            ]
-    evaluatesToConstant bs lhs
+xorInvoluteLaw =
+  testPropertyNamed "involute (both)" "involute_both" $
+    mapTestLimitAtLeast 99 (`div` 20) $
+      checkProperty xorInvoluteLawCases
 
 {-| Checks that the first 'DefaultFun' distributes over the second from the
 left, given the specified semantics (as a 'Bool'). More precisely, for
@@ -408,16 +209,7 @@ idempotenceLaw name f isPadding =
     (mapTestLimitAtLeast 75 (`div` 15) idempProp)
   where
     idempProp :: Property
-    idempProp = property $ do
-      bs <- forAllByteString 0 512
-      let lhs =
-            mkIterAppNoAnn
-              (builtin () f)
-              [ mkConstant @Bool () isPadding
-              , mkConstant @ByteString () bs
-              , mkConstant @ByteString () bs
-              ]
-      evaluatesToConstant bs lhs
+    idempProp = checkProperty (idempotenceCases f isPadding)
 
 {-| Checks that the provided 'ByteString' is an absorbing element for the
 given 'DefaultFun', under the given semantics. Specifically, given @f@
@@ -431,30 +223,313 @@ absorbtionLaw name f isPadding absorber =
     (mapTestLimitAtLeast 75 (`div` 15) absorbProp)
   where
     absorbProp :: Property
-    absorbProp = property $ do
-      bs <- forAllByteString 0 512
-      let lhs =
-            mkIterAppNoAnn
-              (builtin () f)
-              [ mkConstant @Bool () isPadding
-              , mkConstant @ByteString () bs
-              , mkConstant @ByteString () absorber
-              ]
-      evaluatesToConstant absorber lhs
+    absorbProp = checkProperty (absorbtionCases f isPadding absorber)
 
 -- Helpers
 
-showSemantics :: Bool -> String
-showSemantics b =
-  if b
-    then "padding semantics"
-    else "truncation semantics"
-
 leftDistProp :: UPLC.DefaultFun -> UPLC.DefaultFun -> Bool -> Property
-leftDistProp f distOp isPadding = property $ do
-  x <- forAllByteString 0 512
-  y <- forAllByteString 0 512
-  z <- forAllByteString 0 512
+leftDistProp f distOp isPadding = checkProperty (leftDistCases f distOp isPadding)
+
+rightDistProp :: UPLC.DefaultFun -> Bool -> Property
+rightDistProp f isPadding = checkProperty (rightDistCases f isPadding)
+
+commProp :: UPLC.DefaultFun -> Bool -> Property
+commProp f isPadding = checkProperty (commCases f isPadding)
+
+assocProp :: UPLC.DefaultFun -> Bool -> Property
+assocProp f isPadding = checkProperty (assocCases f isPadding)
+
+unitProp :: UPLC.DefaultFun -> Bool -> ByteString -> Property
+unitProp f isPadding unit = checkProperty (unitCases f isPadding unit)
+
+genIndexOf :: ByteString -> Gen Integer
+genIndexOf bs = Gen.integral . Range.linear 0 . fromIntegral $ BS.length bs * 8 - 1
+
+genListsOfIndices :: ByteString -> Gen [Integer]
+genListsOfIndices bs = do
+  ourLen :: Int <- Gen.integral . Range.linear 0 $ 8 * len - 1
+  ixes <- Gen.list (Range.singleton ourLen) $ genIndex
+  pure ixes
+  where
+    len :: Int
+    len = BS.length bs
+    genIndex :: Gen Integer
+    genIndex = Gen.integral . Range.linear 0 . fromIntegral $ len * 8 - 1
+
+-- Shared case generators: normal tests assert the checks; export only consumes their terms.
+
+replicateIndexCases :: Gen Check
+replicateIndexCases = do
+  n <- Gen.integral . Range.linear 1 $ 512
+  b <- Gen.integral . Range.constant 0 $ 255
+  i <- Gen.integral . Range.linear 0 $ n - 1
+  let lhsInner =
+        mkIterAppNoAnn
+          (builtin () PLC.ReplicateByte)
+          [ mkConstant @Integer () n
+          , mkConstant @Integer () b
+          ]
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () PLC.IndexByteString)
+          [ lhsInner
+          , mkConstant @Integer () i
+          ]
+  checkConstant @Integer b lhs
+
+getSetCases :: Gen Check
+getSetCases = do
+  bs <- genByteString 1 512
+  i <- genIndexOf bs
+  let lookupExp =
+        mkIterAppNoAnn
+          (builtin () PLC.ReadBit)
+          [ mkConstant @ByteString () bs
+          , mkConstant @Integer () i
+          ]
+  -- Compute the next input without evaluating a builtin during generation.
+  -- The normal test also checks that ReadBit agrees with this reference.
+  let b = Bits.testBit (BS.index bs (BS.length bs - 1 - fromInteger (i `div` 8))) (fromInteger (i `mod` 8))
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () PLC.WriteBits)
+          [ mkConstant @ByteString () bs
+          , mkConstant @[Integer] () [i]
+          , mkConstant @Bool () b
+          ]
+  CheckBoth <$> checkConstant b lookupExp <*> checkConstant bs lhs
+
+setGetCases :: Gen Check
+setGetCases = do
+  bs <- genByteString 1 512
+  i <- genIndexOf bs
+  b <- Gen.bool
+  let lhsInner =
+        mkIterAppNoAnn
+          (builtin () PLC.WriteBits)
+          [ mkConstant @ByteString () bs
+          , mkConstant @[Integer] () [i]
+          , mkConstant @Bool () b
+          ]
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () PLC.ReadBit)
+          [ lhsInner
+          , mkConstant @Integer () i
+          ]
+  checkConstant b lhs
+
+setSetCases :: Gen Check
+setSetCases = do
+  bs <- genByteString 1 512
+  i <- genIndexOf bs
+  b1 <- Gen.bool
+  b2 <- Gen.bool
+  let lhsInner =
+        mkIterAppNoAnn
+          (builtin () PLC.WriteBits)
+          [ mkConstant @ByteString () bs
+          , mkConstant @[Integer] () [i, i]
+          , mkConstant @Bool () b1
+          ]
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () PLC.WriteBits)
+          [ lhsInner
+          , mkConstant @[Integer] () [i, i]
+          , mkConstant @Bool () b2
+          ]
+  let rhs =
+        mkIterAppNoAnn
+          (builtin () PLC.WriteBits)
+          [ mkConstant @ByteString () bs
+          , mkConstant @[Integer] () [i]
+          , mkConstant @Bool () b2
+          ]
+  checkSame lhs rhs
+
+writeBitsIdentityCases :: Bool -> Gen Check
+writeBitsIdentityCases b = do
+  bs <- genByteString 1 512
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () PLC.WriteBits)
+          [ mkConstant @ByteString () bs
+          , mkConstant @[Integer] () []
+          , mkConstant @Bool () b
+          ]
+  checkConstant bs lhs
+
+writeBitsCompositionCases :: Bool -> Gen Check
+writeBitsCompositionCases b = do
+  bs <- genByteString 1 512
+  ixes1 <- genListsOfIndices bs
+  ixes2 <- genListsOfIndices bs
+  let lhsInner =
+        mkIterAppNoAnn
+          (builtin () PLC.WriteBits)
+          [ mkConstant @ByteString () bs
+          , mkConstant @[Integer] () ixes1
+          , mkConstant @Bool () b
+          ]
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () PLC.WriteBits)
+          [ lhsInner
+          , mkConstant @[Integer] () ixes2
+          , mkConstant @Bool () b
+          ]
+  let rhs =
+        mkIterAppNoAnn
+          (builtin () PLC.WriteBits)
+          [ mkConstant @ByteString () bs
+          , mkConstant @[Integer] () (ixes1 <> ixes2)
+          , mkConstant @Bool () b
+          ]
+  checkSame lhs rhs
+
+replicateIdentityCases :: Gen Check
+replicateIdentityCases = do
+  b <- Gen.integral . Range.constant 0 $ 255
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () PLC.ReplicateByte)
+          [ mkConstant @Integer () 0
+          , mkConstant @Integer () b
+          ]
+  checkConstant @ByteString "" lhs
+
+replicateCompositionCases :: Gen Check
+replicateCompositionCases = do
+  b <- Gen.integral . Range.constant 0 $ 255
+  n1 <- Gen.integral . Range.linear 0 $ 512
+  n2 <- Gen.integral . Range.linear 0 $ 512
+  let lhsInner1 =
+        mkIterAppNoAnn
+          (builtin () PLC.ReplicateByte)
+          [ mkConstant @Integer () n1
+          , mkConstant @Integer () b
+          ]
+  let lhsInner2 =
+        mkIterAppNoAnn
+          (builtin () PLC.ReplicateByte)
+          [ mkConstant @Integer () n2
+          , mkConstant @Integer () b
+          ]
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () PLC.AppendByteString)
+          [ lhsInner1
+          , lhsInner2
+          ]
+  let rhs =
+        mkIterAppNoAnn
+          (builtin () PLC.ReplicateByte)
+          [ mkConstant @Integer () (n1 + n2)
+          , mkConstant @Integer () b
+          ]
+  checkSame lhs rhs
+
+complementSelfInverseCases :: Gen Check
+complementSelfInverseCases = do
+  bs <- genByteString 0 512
+  let lhsInner =
+        mkIterAppNoAnn
+          (builtin () PLC.ComplementByteString)
+          [ mkConstant @ByteString () bs
+          ]
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () PLC.ComplementByteString)
+          [ lhsInner
+          ]
+  checkConstant bs lhs
+
+deMorganCases :: UPLC.DefaultFun -> UPLC.DefaultFun -> Gen Check
+deMorganCases f g = do
+  semantics <- Gen.bool
+  bs1 <- genByteString 0 512
+  bs2 <- genByteString 0 512
+  let lhsInner =
+        mkIterAppNoAnn
+          (builtin () f)
+          [ mkConstant @Bool () semantics
+          , mkConstant @ByteString () bs1
+          , mkConstant @ByteString () bs2
+          ]
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () PLC.ComplementByteString)
+          [ lhsInner
+          ]
+  let rhsInner1 =
+        mkIterAppNoAnn
+          (builtin () PLC.ComplementByteString)
+          [ mkConstant @ByteString () bs1
+          ]
+  let rhsInner2 =
+        mkIterAppNoAnn
+          (builtin () PLC.ComplementByteString)
+          [ mkConstant @ByteString () bs2
+          ]
+  let rhs =
+        mkIterAppNoAnn
+          (builtin () g)
+          [ mkConstant @Bool () semantics
+          , rhsInner1
+          , rhsInner2
+          ]
+  checkSame lhs rhs
+
+xorInvoluteLawCases :: Gen Check
+xorInvoluteLawCases = do
+  bs <- genByteString 0 512
+  semantics <- Gen.bool
+  let lhsInner =
+        mkIterAppNoAnn
+          (builtin () PLC.XorByteString)
+          [ mkConstant @Bool () semantics
+          , mkConstant @ByteString () bs
+          , mkConstant @ByteString () bs
+          ]
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () PLC.XorByteString)
+          [ mkConstant @Bool () semantics
+          , mkConstant @ByteString () bs
+          , lhsInner
+          ]
+  checkConstant bs lhs
+
+idempotenceCases :: UPLC.DefaultFun -> Bool -> Gen Check
+idempotenceCases f isPadding = do
+  bs <- genByteString 0 512
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () f)
+          [ mkConstant @Bool () isPadding
+          , mkConstant @ByteString () bs
+          , mkConstant @ByteString () bs
+          ]
+  checkConstant bs lhs
+
+absorbtionCases :: UPLC.DefaultFun -> Bool -> ByteString -> Gen Check
+absorbtionCases f isPadding absorber = do
+  bs <- genByteString 0 512
+  let lhs =
+        mkIterAppNoAnn
+          (builtin () f)
+          [ mkConstant @Bool () isPadding
+          , mkConstant @ByteString () bs
+          , mkConstant @ByteString () absorber
+          ]
+  checkConstant absorber lhs
+
+leftDistCases :: UPLC.DefaultFun -> UPLC.DefaultFun -> Bool -> Gen Check
+leftDistCases f distOp isPadding = do
+  x <- genByteString 0 512
+  y <- genByteString 0 512
+  z <- genByteString 0 512
   let distLhs =
         mkIterAppNoAnn
           (builtin () distOp)
@@ -490,13 +565,13 @@ leftDistProp f distOp isPadding = property $ do
           , distRhs1
           , distRhs2
           ]
-  evaluateTheSame lhs rhs
+  checkSame lhs rhs
 
-rightDistProp :: UPLC.DefaultFun -> Bool -> Property
-rightDistProp f isPadding = property $ do
-  x <- forAllByteString 0 512
-  y <- forAllByteString 0 512
-  z <- forAllByteString 0 512
+rightDistCases :: UPLC.DefaultFun -> Bool -> Gen Check
+rightDistCases f isPadding = do
+  x <- genByteString 0 512
+  y <- genByteString 0 512
+  z <- genByteString 0 512
   let lhsInner =
         mkIterAppNoAnn
           (builtin () f)
@@ -532,12 +607,12 @@ rightDistProp f isPadding = property $ do
           , rhsInner1
           , rhsInner2
           ]
-  evaluateTheSame lhs rhs
+  checkSame lhs rhs
 
-commProp :: UPLC.DefaultFun -> Bool -> Property
-commProp f isPadding = property $ do
-  data1 <- forAllByteString 0 512
-  data2 <- forAllByteString 0 512
+commCases :: UPLC.DefaultFun -> Bool -> Gen Check
+commCases f isPadding = do
+  data1 <- genByteString 0 512
+  data2 <- genByteString 0 512
   let lhs =
         mkIterAppNoAnn
           (builtin () f)
@@ -552,13 +627,13 @@ commProp f isPadding = property $ do
           , mkConstant @ByteString () data2
           , mkConstant @ByteString () data1
           ]
-  evaluateTheSame lhs rhs
+  checkSame lhs rhs
 
-assocProp :: UPLC.DefaultFun -> Bool -> Property
-assocProp f isPadding = property $ do
-  data1 <- forAllByteString 0 512
-  data2 <- forAllByteString 0 512
-  data3 <- forAllByteString 0 512
+assocCases :: UPLC.DefaultFun -> Bool -> Gen Check
+assocCases f isPadding = do
+  data1 <- genByteString 0 512
+  data2 <- genByteString 0 512
+  data3 <- genByteString 0 512
   let data12 =
         mkIterAppNoAnn
           (builtin () f)
@@ -587,11 +662,11 @@ assocProp f isPadding = property $ do
           , mkConstant @ByteString () data1
           , data23
           ]
-  evaluateTheSame lhs rhs
+  checkSame lhs rhs
 
-unitProp :: UPLC.DefaultFun -> Bool -> ByteString -> Property
-unitProp f isPadding unit = property $ do
-  bs <- forAllByteString 0 512
+unitCases :: UPLC.DefaultFun -> Bool -> ByteString -> Gen Check
+unitCases f isPadding unit = do
+  bs <- genByteString 0 512
   let lhs =
         mkIterAppNoAnn
           (builtin () f)
@@ -599,18 +674,72 @@ unitProp f isPadding unit = property $ do
           , mkConstant @ByteString () bs
           , mkConstant @ByteString () unit
           ]
-  evaluatesToConstant bs lhs
+  checkConstant bs lhs
 
-forAllIndexOf :: ByteString -> PropertyT IO Integer
-forAllIndexOf bs = forAll . Gen.integral . Range.linear 0 . fromIntegral $ BS.length bs * 8 - 1
-
-forAllListsOfIndices :: ByteString -> PropertyT IO [Integer]
-forAllListsOfIndices bs = do
-  ourLen :: Int <- forAll . Gen.integral . Range.linear 0 $ 8 * len - 1
-  ixes <- forAll . Gen.list (Range.singleton ourLen) $ genIndex
-  pure ixes
+-- | Emit cases for each law and builtin/semantics combination in the normal suite.
+generate_bitwise_cip0122_properties :: OutputFormat -> FilePath -> Int -> QCGen -> IO ()
+generate_bitwise_cip0122_properties format outputDir numFiles seed =
+  mapM_
+    (\(name, gen) -> generateBitwisePropertyFiles format suiteDir numFiles seed name gen)
+    conformanceProperties
   where
-    len :: Int
-    len = BS.length bs
-    genIndex :: Gen Integer
-    genIndex = Gen.integral . Range.linear 0 . fromIntegral $ len * 8 - 1
+    suiteDir = outputDir </> "bitwise" </> "CIP0122"
+
+-- Names identify the Haskell property, plus its parameters where needed to
+-- distinguish instantiations. Keep the combinations aligned with test_Bitwise_CIP0122.
+conformanceProperties :: [(String, Gen Check)]
+conformanceProperties =
+  concat
+    [ [ ("commProp_" <> name <> "_" <> semantics, commCases fun padding)
+      , ("assocProp_" <> name <> "_" <> semantics, assocCases fun padding)
+      ]
+    | (name, fun) <- logicalBuiltins
+    , (semantics, padding) <- [("truncation", False), ("padding", True)]
+    ]
+    <> [ ("unitProp_" <> name <> "_padding", unitCases fun True "")
+       | (name, fun) <- logicalBuiltins
+       ]
+    <> [ ("absorbtionLaw_" <> name <> "_truncation", absorbtionCases fun False "")
+       | (name, fun) <- logicalBuiltins
+       ]
+    <> concat
+      [ [ ("idempotenceLaw_" <> name <> "_truncation", idempotenceCases fun False)
+        , ("leftDistProp_" <> name <> "_itself_truncation", leftDistCases fun fun False)
+        , ("leftDistProp_" <> name <> "_itself_padding", leftDistCases fun fun True)
+        , ("rightDistProp_" <> name <> "_padding", rightDistCases fun True)
+        ]
+      | (name, fun) <- [("andByteString", PLC.AndByteString), ("orByteString", PLC.OrByteString)]
+      ]
+    <> [
+         ( "leftDistProp_andByteString_orByteString_truncation"
+         , leftDistCases PLC.AndByteString PLC.OrByteString False
+         )
+       ,
+         ( "leftDistProp_andByteString_xorByteString_truncation"
+         , leftDistCases PLC.AndByteString PLC.XorByteString False
+         )
+       ,
+         ( "leftDistProp_orByteString_andByteString_truncation"
+         , leftDistCases PLC.OrByteString PLC.AndByteString False
+         )
+       , ("xorInvoluteLaw", xorInvoluteLawCases)
+       , ("complementSelfInverse", complementSelfInverseCases)
+       , ("deMorgan_andByteString", deMorganCases PLC.AndByteString PLC.OrByteString)
+       , ("deMorgan_orByteString", deMorganCases PLC.OrByteString PLC.AndByteString)
+       , ("getSet", getSetCases)
+       , ("setGet", setGetCases)
+       , ("setSet", setSetCases)
+       , ("writeBitsHomomorphismLaws_identityProp_false", writeBitsIdentityCases False)
+       , ("writeBitsHomomorphismLaws_identityProp_true", writeBitsIdentityCases True)
+       , ("writeBitsHomomorphismLaws_compositionProp_false", writeBitsCompositionCases False)
+       , ("writeBitsHomomorphismLaws_compositionProp_true", writeBitsCompositionCases True)
+       , ("replicateHomomorphismLaws_identityProp", replicateIdentityCases)
+       , ("replicateHomomorphismLaws_compositionProp", replicateCompositionCases)
+       , ("replicateIndex", replicateIndexCases)
+       ]
+  where
+    logicalBuiltins =
+      [ ("andByteString", PLC.AndByteString)
+      , ("orByteString", PLC.OrByteString)
+      , ("xorByteString", PLC.XorByteString)
+      ]
