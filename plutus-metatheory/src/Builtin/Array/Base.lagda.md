@@ -1,3 +1,8 @@
+---
+title: Builtin.Array.Base
+layout: page
+---
+
 ```
 module Builtin.Array.Base where
 

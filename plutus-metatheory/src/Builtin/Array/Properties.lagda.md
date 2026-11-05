@@ -1,4 +1,7 @@
-## Properties
+---
+title: Builtin.Array.Properties
+layout: page
+---
 
 Some properties about arrays
 
