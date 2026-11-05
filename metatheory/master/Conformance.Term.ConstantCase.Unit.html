@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Term.ConstantCase.Unit</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Term.ConstantCase.Unit</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/term/constant-case/unit</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="450" class="Keyword">module</a> <a id="457" href="Conformance.Term.ConstantCase.Unit.html" class="Module">Conformance.Term.ConstantCase.Unit</a> <a id="492" class="Keyword">where</a>
+
+<a id="499" class="Keyword">open</a> <a id="504" class="Keyword">import</a> <a id="511" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="unit-01">unit-01</h2>
+
+<pre class="Agda"><a id="549" class="Comment">-- term/constant-case/unit/unit-01</a>
+<a id="test-unit-01"></a><a id="584" href="Conformance.Term.ConstantCase.Unit.html#584" class="Function">test-unit-01</a> <a id="597" class="Symbol">:</a> <a id="599" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="607" href="Conformance.Term.ConstantCase.Unit.html#584" class="Function">test-unit-01</a> <a id="620" class="Symbol">=</a> <a id="622" class="Symbol">(</a><a id="623" href="RawU.html#8547" class="InductiveConstructor">UCase</a> <a id="629" class="Symbol">(</a><a id="630" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="635" class="Symbol">(</a><a id="636" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="643" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="648" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="650" class="Symbol">))</a> <a id="653" class="Symbol">((</a><a id="655" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="660" class="Symbol">(</a><a id="661" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="668" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="676" class="Symbol">(</a><a id="677" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="683" class="Number">42</a><a id="685" class="Symbol">)))</a> <a id="689" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="691" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="693" class="Symbol">))</a>
+
+<a id="expected-unit-01"></a><a id="697" href="Conformance.Term.ConstantCase.Unit.html#697" class="Function">expected-unit-01</a> <a id="714" class="Symbol">:</a> <a id="716" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="723" href="Conformance.Term.ConstantCase.Unit.html#697" class="Function">expected-unit-01</a> <a id="740" class="Symbol">=</a> <a id="742" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="750" class="Symbol">(</a><a id="751" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="756" class="Symbol">(</a><a id="757" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="764" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="772" class="Symbol">(</a><a id="773" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="779" class="Number">42</a><a id="781" class="Symbol">)))</a>
+
+<a id="786" href="Conformance.Term.ConstantCase.Unit.html#786" class="Function">_</a> <a id="788" class="Symbol">:</a> <a id="790" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="798" href="Conformance.Term.ConstantCase.Unit.html#584" class="Function">test-unit-01</a> <a id="811" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="813" href="Conformance.Term.ConstantCase.Unit.html#697" class="Function">expected-unit-01</a>
+<a id="830" class="Symbol">_</a> <a id="832" class="Symbol">=</a> <a id="834" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="unit-02">unit-02</h2>
+
+<pre class="Agda"><a id="860" class="Comment">-- term/constant-case/unit/unit-02</a>
+<a id="895" class="Comment">-- casing constant only expects one branch</a>
+<a id="test-unit-02"></a><a id="938" href="Conformance.Term.ConstantCase.Unit.html#938" class="Function">test-unit-02</a> <a id="951" class="Symbol">:</a> <a id="953" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="961" href="Conformance.Term.ConstantCase.Unit.html#938" class="Function">test-unit-02</a> <a id="974" class="Symbol">=</a> <a id="976" class="Symbol">(</a><a id="977" href="RawU.html#8547" class="InductiveConstructor">UCase</a> <a id="983" class="Symbol">(</a><a id="984" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="989" class="Symbol">(</a><a id="990" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="997" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="1002" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="1004" class="Symbol">))</a> <a id="1007" class="Symbol">(</a><a id="1008" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1010" class="Symbol">))</a>
+
+<a id="expected-unit-02"></a><a id="1014" href="Conformance.Term.ConstantCase.Unit.html#1014" class="Function">expected-unit-02</a> <a id="1031" class="Symbol">:</a> <a id="1033" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1040" href="Conformance.Term.ConstantCase.Unit.html#1014" class="Function">expected-unit-02</a> <a id="1057" class="Symbol">=</a> <a id="1059" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1068" href="Conformance.Term.ConstantCase.Unit.html#1068" class="Function">_</a> <a id="1070" class="Symbol">:</a> <a id="1072" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1080" href="Conformance.Term.ConstantCase.Unit.html#938" class="Function">test-unit-02</a> <a id="1093" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1095" href="Conformance.Term.ConstantCase.Unit.html#1014" class="Function">expected-unit-02</a>
+<a id="1112" class="Symbol">_</a> <a id="1114" class="Symbol">=</a> <a id="1116" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="unit-03">unit-03</h2>
+
+<pre class="Agda"><a id="1142" class="Comment">-- term/constant-case/unit/unit-03</a>
+<a id="1177" class="Comment">-- casing constant only expects one branch</a>
+<a id="test-unit-03"></a><a id="1220" href="Conformance.Term.ConstantCase.Unit.html#1220" class="Function">test-unit-03</a> <a id="1233" class="Symbol">:</a> <a id="1235" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1243" href="Conformance.Term.ConstantCase.Unit.html#1220" class="Function">test-unit-03</a> <a id="1256" class="Symbol">=</a> <a id="1258" class="Symbol">(</a><a id="1259" href="RawU.html#8547" class="InductiveConstructor">UCase</a> <a id="1265" class="Symbol">(</a><a id="1266" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1271" class="Symbol">(</a><a id="1272" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1279" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="1284" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="1286" class="Symbol">))</a> <a id="1289" class="Symbol">((</a><a id="1291" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1296" class="Symbol">(</a><a id="1297" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1304" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1312" class="Symbol">(</a><a id="1313" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1319" class="Number">42</a><a id="1321" class="Symbol">)))</a> <a id="1325" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1327" class="Symbol">(</a><a id="1328" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1333" class="Symbol">(</a><a id="1334" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1341" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1349" class="Symbol">(</a><a id="1350" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1356" class="Number">43</a><a id="1358" class="Symbol">)))</a> <a id="1362" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1364" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1366" class="Symbol">))</a>
+
+<a id="expected-unit-03"></a><a id="1370" href="Conformance.Term.ConstantCase.Unit.html#1370" class="Function">expected-unit-03</a> <a id="1387" class="Symbol">:</a> <a id="1389" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1396" href="Conformance.Term.ConstantCase.Unit.html#1370" class="Function">expected-unit-03</a> <a id="1413" class="Symbol">=</a> <a id="1415" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1424" href="Conformance.Term.ConstantCase.Unit.html#1424" class="Function">_</a> <a id="1426" class="Symbol">:</a> <a id="1428" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1436" href="Conformance.Term.ConstantCase.Unit.html#1220" class="Function">test-unit-03</a> <a id="1449" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1451" href="Conformance.Term.ConstantCase.Unit.html#1370" class="Function">expected-unit-03</a>
+<a id="1468" class="Symbol">_</a> <a id="1470" class="Symbol">=</a> <a id="1472" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+
+    </section>
+  </body>
+</html>

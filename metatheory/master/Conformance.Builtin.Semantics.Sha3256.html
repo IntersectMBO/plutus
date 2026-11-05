@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.Sha3256</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.Sha3256</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha3_256</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="456" class="Keyword">module</a> <a id="463" href="Conformance.Builtin.Semantics.Sha3256.html" class="Module">Conformance.Builtin.Semantics.Sha3256</a> <a id="501" class="Keyword">where</a>
+
+<a id="508" class="Keyword">open</a> <a id="513" class="Keyword">import</a> <a id="520" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="sha3_256-empty">sha3_256-empty</h2>
+
+<pre class="Agda"><a id="565" class="Comment">-- builtin/semantics/sha3_256/sha3_256-empty</a>
+<a id="610" class="Comment">-- Test vector (0-bit input) from SHA3_256ShortMessage.rsp in</a>
+<a id="672" class="Comment">-- https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Algorithm-Validation-Program/documents/sha3/sha-3bytetestvectors.zip</a>
+<a id="test-sha3-256-empty"></a><a id="800" href="Conformance.Builtin.Semantics.Sha3256.html#800" class="Function">test-sha3-256-empty</a> <a id="820" class="Symbol">:</a> <a id="822" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="830" href="Conformance.Builtin.Semantics.Sha3256.html#800" class="Function">test-sha3-256-empty</a> <a id="850" class="Symbol">=</a> <a id="852" class="Symbol">(</a><a id="853" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="858" class="Symbol">(</a><a id="859" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="864" class="Symbol">(</a><a id="865" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="874" href="Builtin.html#2313" class="InductiveConstructor">equalsByteString</a><a id="890" class="Symbol">)</a> <a id="892" class="Symbol">(</a><a id="893" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="898" class="Symbol">(</a><a id="899" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="908" href="Builtin.html#2518" class="InductiveConstructor">sha3-256</a><a id="916" class="Symbol">)</a> <a id="918" class="Symbol">(</a><a id="919" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="924" class="Symbol">(</a><a id="925" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="932" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="943" class="Symbol">(</a><a id="944" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="957" class="String">&quot;&quot;</a><a id="959" class="Symbol">)))))</a> <a id="965" class="Symbol">(</a><a id="966" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="971" class="Symbol">(</a><a id="972" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="979" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="990" class="Symbol">(</a><a id="991" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1004" class="String">&quot;\167\255\198\248\191\RS\215fQ\193GV\160a\214b\245\128\255M\228;I\250\130\216\nK\128\248CJ&quot;</a><a id="1095" class="Symbol">))))</a>
+
+<a id="expected-sha3-256-empty"></a><a id="1101" href="Conformance.Builtin.Semantics.Sha3256.html#1101" class="Function">expected-sha3-256-empty</a> <a id="1125" class="Symbol">:</a> <a id="1127" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1134" href="Conformance.Builtin.Semantics.Sha3256.html#1101" class="Function">expected-sha3-256-empty</a> <a id="1158" class="Symbol">=</a> <a id="1160" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1168" class="Symbol">(</a><a id="1169" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1174" class="Symbol">(</a><a id="1175" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1182" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="1187" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="1191" class="Symbol">))</a>
+
+<a id="1195" class="Comment">-- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `sha3-256`.</a>
+<a id="pending-sha3-256-empty"></a><a id="1298" href="Conformance.Builtin.Semantics.Sha3256.html#1298" class="Function">pending-sha3-256-empty</a> <a id="1321" class="Symbol">:</a> <a id="1323" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1327" href="Conformance.Builtin.Semantics.Sha3256.html#1298" class="Function">pending-sha3-256-empty</a> <a id="1350" class="Symbol">=</a> <a id="1352" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1360" class="Symbol">(</a><a id="1361" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1369" href="Conformance.Builtin.Semantics.Sha3256.html#800" class="Function">test-sha3-256-empty</a> <a id="1389" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1391" href="Conformance.Builtin.Semantics.Sha3256.html#1101" class="Function">expected-sha3-256-empty</a><a id="1414" class="Symbol">)</a>
+</pre>
+<h2 id="sha3_256-length-200">sha3_256-length-200</h2>
+
+<pre class="Agda"><a id="1449" class="Comment">-- builtin/semantics/sha3_256/sha3_256-length-200</a>
+<a id="1499" class="Comment">-- Test vector (200-bit input) from SHA3_256ShortMessage.rsp in</a>
+<a id="1563" class="Comment">-- https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Algorithm-Validation-Program/documents/sha3/sha-3bytetestvectors.zip</a>
+<a id="test-sha3-256-length-200"></a><a id="1691" href="Conformance.Builtin.Semantics.Sha3256.html#1691" class="Function">test-sha3-256-length-200</a> <a id="1716" class="Symbol">:</a> <a id="1718" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1726" href="Conformance.Builtin.Semantics.Sha3256.html#1691" class="Function">test-sha3-256-length-200</a> <a id="1751" class="Symbol">=</a> <a id="1753" class="Symbol">(</a><a id="1754" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1759" class="Symbol">(</a><a id="1760" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1765" class="Symbol">(</a><a id="1766" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1775" href="Builtin.html#2313" class="InductiveConstructor">equalsByteString</a><a id="1791" class="Symbol">)</a> <a id="1793" class="Symbol">(</a><a id="1794" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1799" class="Symbol">(</a><a id="1800" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1809" href="Builtin.html#2518" class="InductiveConstructor">sha3-256</a><a id="1817" class="Symbol">)</a> <a id="1819" class="Symbol">(</a><a id="1820" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1825" class="Symbol">(</a><a id="1826" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1833" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1844" class="Symbol">(</a><a id="1845" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1858" class="String">&quot;\155?\223\141D\134\128\132\rb\132\242\153}:\245_\253\133\246\244\179=\DEL\141&quot;</a><a id="1937" class="Symbol">)))))</a> <a id="1943" class="Symbol">(</a><a id="1944" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1949" class="Symbol">(</a><a id="1950" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1957" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1968" class="Symbol">(</a><a id="1969" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1982" class="String">&quot;%\NUL]\DLE\232O\249|t\165\137\SOH;\228/\179\DELh\219d\189\252v&amp;\239\192\221b\128wI:&quot;</a><a id="2067" class="Symbol">))))</a>
+
+<a id="expected-sha3-256-length-200"></a><a id="2073" href="Conformance.Builtin.Semantics.Sha3256.html#2073" class="Function">expected-sha3-256-length-200</a> <a id="2102" class="Symbol">:</a> <a id="2104" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="2111" href="Conformance.Builtin.Semantics.Sha3256.html#2073" class="Function">expected-sha3-256-length-200</a> <a id="2140" class="Symbol">=</a> <a id="2142" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="2150" class="Symbol">(</a><a id="2151" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2156" class="Symbol">(</a><a id="2157" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2164" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="2169" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="2173" class="Symbol">))</a>
+
+<a id="2177" class="Comment">-- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `sha3-256`.</a>
+<a id="pending-sha3-256-length-200"></a><a id="2280" href="Conformance.Builtin.Semantics.Sha3256.html#2280" class="Function">pending-sha3-256-length-200</a> <a id="2308" class="Symbol">:</a> <a id="2310" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="2314" href="Conformance.Builtin.Semantics.Sha3256.html#2280" class="Function">pending-sha3-256-length-200</a> <a id="2342" class="Symbol">=</a> <a id="2344" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="2352" class="Symbol">(</a><a id="2353" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2361" href="Conformance.Builtin.Semantics.Sha3256.html#1691" class="Function">test-sha3-256-length-200</a> <a id="2386" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2388" href="Conformance.Builtin.Semantics.Sha3256.html#2073" class="Function">expected-sha3-256-length-200</a><a id="2416" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

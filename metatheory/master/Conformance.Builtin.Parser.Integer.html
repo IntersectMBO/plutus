@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Parser.Integer</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Parser.Integer</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/parser/integer</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="449" class="Keyword">module</a> <a id="456" href="Conformance.Builtin.Parser.Integer.html" class="Module">Conformance.Builtin.Parser.Integer</a> <a id="491" class="Keyword">where</a>
+
+<a id="498" class="Keyword">open</a> <a id="503" class="Keyword">import</a> <a id="510" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="integer-01">integer-01</h2>
+
+<pre class="Agda"><a id="551" class="Comment">-- builtin/parser/integer/integer-01</a>
+<a id="test-integer-01"></a><a id="588" href="Conformance.Builtin.Parser.Integer.html#588" class="Function">test-integer-01</a> <a id="604" class="Symbol">:</a> <a id="606" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="614" href="Conformance.Builtin.Parser.Integer.html#588" class="Function">test-integer-01</a> <a id="630" class="Symbol">=</a> <a id="632" class="Symbol">(</a><a id="633" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="638" class="Symbol">(</a><a id="639" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="646" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="654" class="Symbol">(</a><a id="655" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="661" class="Number">0</a><a id="662" class="Symbol">)))</a>
+
+<a id="expected-integer-01"></a><a id="667" href="Conformance.Builtin.Parser.Integer.html#667" class="Function">expected-integer-01</a> <a id="687" class="Symbol">:</a> <a id="689" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="696" href="Conformance.Builtin.Parser.Integer.html#667" class="Function">expected-integer-01</a> <a id="716" class="Symbol">=</a> <a id="718" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="726" class="Symbol">(</a><a id="727" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="732" class="Symbol">(</a><a id="733" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="740" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="748" class="Symbol">(</a><a id="749" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="755" class="Number">0</a><a id="756" class="Symbol">)))</a>
+
+<a id="761" href="Conformance.Builtin.Parser.Integer.html#761" class="Function">_</a> <a id="763" class="Symbol">:</a> <a id="765" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="773" href="Conformance.Builtin.Parser.Integer.html#588" class="Function">test-integer-01</a> <a id="789" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="791" href="Conformance.Builtin.Parser.Integer.html#667" class="Function">expected-integer-01</a>
+<a id="811" class="Symbol">_</a> <a id="813" class="Symbol">=</a> <a id="815" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="integer-02">integer-02</h2>
+
+<pre class="Agda"><a id="844" class="Comment">-- builtin/parser/integer/integer-02</a>
+<a id="test-integer-02"></a><a id="881" href="Conformance.Builtin.Parser.Integer.html#881" class="Function">test-integer-02</a> <a id="897" class="Symbol">:</a> <a id="899" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="907" href="Conformance.Builtin.Parser.Integer.html#881" class="Function">test-integer-02</a> <a id="923" class="Symbol">=</a> <a id="925" class="Symbol">(</a><a id="926" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="931" class="Symbol">(</a><a id="932" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="939" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="947" class="Symbol">(</a><a id="948" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="954" class="Number">1</a><a id="955" class="Symbol">)))</a>
+
+<a id="expected-integer-02"></a><a id="960" href="Conformance.Builtin.Parser.Integer.html#960" class="Function">expected-integer-02</a> <a id="980" class="Symbol">:</a> <a id="982" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="989" href="Conformance.Builtin.Parser.Integer.html#960" class="Function">expected-integer-02</a> <a id="1009" class="Symbol">=</a> <a id="1011" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1019" class="Symbol">(</a><a id="1020" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1025" class="Symbol">(</a><a id="1026" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1033" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1041" class="Symbol">(</a><a id="1042" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1048" class="Number">1</a><a id="1049" class="Symbol">)))</a>
+
+<a id="1054" href="Conformance.Builtin.Parser.Integer.html#1054" class="Function">_</a> <a id="1056" class="Symbol">:</a> <a id="1058" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1066" href="Conformance.Builtin.Parser.Integer.html#881" class="Function">test-integer-02</a> <a id="1082" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1084" href="Conformance.Builtin.Parser.Integer.html#960" class="Function">expected-integer-02</a>
+<a id="1104" class="Symbol">_</a> <a id="1106" class="Symbol">=</a> <a id="1108" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="integer-03">integer-03</h2>
+
+<pre class="Agda"><a id="1137" class="Comment">-- builtin/parser/integer/integer-03</a>
+<a id="test-integer-03"></a><a id="1174" href="Conformance.Builtin.Parser.Integer.html#1174" class="Function">test-integer-03</a> <a id="1190" class="Symbol">:</a> <a id="1192" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1200" href="Conformance.Builtin.Parser.Integer.html#1174" class="Function">test-integer-03</a> <a id="1216" class="Symbol">=</a> <a id="1218" class="Symbol">(</a><a id="1219" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1224" class="Symbol">(</a><a id="1225" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1232" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1240" class="Symbol">(</a><a id="1241" href="Agda.Builtin.Int.html#290" class="InductiveConstructor">ℤ.negsuc</a> <a id="1250" class="Number">0</a><a id="1251" class="Symbol">)))</a>
+
+<a id="expected-integer-03"></a><a id="1256" href="Conformance.Builtin.Parser.Integer.html#1256" class="Function">expected-integer-03</a> <a id="1276" class="Symbol">:</a> <a id="1278" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1285" href="Conformance.Builtin.Parser.Integer.html#1256" class="Function">expected-integer-03</a> <a id="1305" class="Symbol">=</a> <a id="1307" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1315" class="Symbol">(</a><a id="1316" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1321" class="Symbol">(</a><a id="1322" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1329" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1337" class="Symbol">(</a><a id="1338" href="Agda.Builtin.Int.html#290" class="InductiveConstructor">ℤ.negsuc</a> <a id="1347" class="Number">0</a><a id="1348" class="Symbol">)))</a>
+
+<a id="1353" href="Conformance.Builtin.Parser.Integer.html#1353" class="Function">_</a> <a id="1355" class="Symbol">:</a> <a id="1357" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1365" href="Conformance.Builtin.Parser.Integer.html#1174" class="Function">test-integer-03</a> <a id="1381" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1383" href="Conformance.Builtin.Parser.Integer.html#1256" class="Function">expected-integer-03</a>
+<a id="1403" class="Symbol">_</a> <a id="1405" class="Symbol">=</a> <a id="1407" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="integer-04">integer-04</h2>
+
+<pre class="Agda"><a id="1436" class="Comment">-- builtin/parser/integer/integer-04</a>
+<a id="test-integer-04"></a><a id="1473" href="Conformance.Builtin.Parser.Integer.html#1473" class="Function">test-integer-04</a> <a id="1489" class="Symbol">:</a> <a id="1491" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1499" href="Conformance.Builtin.Parser.Integer.html#1473" class="Function">test-integer-04</a> <a id="1515" class="Symbol">=</a> <a id="1517" class="Symbol">(</a><a id="1518" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1523" class="Symbol">(</a><a id="1524" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1531" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1539" class="Symbol">(</a><a id="1540" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1546" class="Number">12345</a><a id="1551" class="Symbol">)))</a>
+
+<a id="expected-integer-04"></a><a id="1556" href="Conformance.Builtin.Parser.Integer.html#1556" class="Function">expected-integer-04</a> <a id="1576" class="Symbol">:</a> <a id="1578" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1585" href="Conformance.Builtin.Parser.Integer.html#1556" class="Function">expected-integer-04</a> <a id="1605" class="Symbol">=</a> <a id="1607" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1615" class="Symbol">(</a><a id="1616" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1621" class="Symbol">(</a><a id="1622" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1629" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1637" class="Symbol">(</a><a id="1638" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1644" class="Number">12345</a><a id="1649" class="Symbol">)))</a>
+
+<a id="1654" href="Conformance.Builtin.Parser.Integer.html#1654" class="Function">_</a> <a id="1656" class="Symbol">:</a> <a id="1658" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1666" href="Conformance.Builtin.Parser.Integer.html#1473" class="Function">test-integer-04</a> <a id="1682" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1684" href="Conformance.Builtin.Parser.Integer.html#1556" class="Function">expected-integer-04</a>
+<a id="1704" class="Symbol">_</a> <a id="1706" class="Symbol">=</a> <a id="1708" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="integer-05">integer-05</h2>
+
+<pre class="Agda"><a id="1737" class="Comment">-- builtin/parser/integer/integer-05</a>
+<a id="test-integer-05"></a><a id="1774" href="Conformance.Builtin.Parser.Integer.html#1774" class="Function">test-integer-05</a> <a id="1790" class="Symbol">:</a> <a id="1792" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1800" href="Conformance.Builtin.Parser.Integer.html#1774" class="Function">test-integer-05</a> <a id="1816" class="Symbol">=</a> <a id="1818" class="Symbol">(</a><a id="1819" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1824" class="Symbol">(</a><a id="1825" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1832" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1840" class="Symbol">(</a><a id="1841" href="Agda.Builtin.Int.html#290" class="InductiveConstructor">ℤ.negsuc</a> <a id="1850" class="Number">12344</a><a id="1855" class="Symbol">)))</a>
+
+<a id="expected-integer-05"></a><a id="1860" href="Conformance.Builtin.Parser.Integer.html#1860" class="Function">expected-integer-05</a> <a id="1880" class="Symbol">:</a> <a id="1882" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1889" href="Conformance.Builtin.Parser.Integer.html#1860" class="Function">expected-integer-05</a> <a id="1909" class="Symbol">=</a> <a id="1911" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1919" class="Symbol">(</a><a id="1920" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1925" class="Symbol">(</a><a id="1926" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1933" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1941" class="Symbol">(</a><a id="1942" href="Agda.Builtin.Int.html#290" class="InductiveConstructor">ℤ.negsuc</a> <a id="1951" class="Number">12344</a><a id="1956" class="Symbol">)))</a>
+
+<a id="1961" href="Conformance.Builtin.Parser.Integer.html#1961" class="Function">_</a> <a id="1963" class="Symbol">:</a> <a id="1965" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1973" href="Conformance.Builtin.Parser.Integer.html#1774" class="Function">test-integer-05</a> <a id="1989" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1991" href="Conformance.Builtin.Parser.Integer.html#1860" class="Function">expected-integer-05</a>
+<a id="2011" class="Symbol">_</a> <a id="2013" class="Symbol">=</a> <a id="2015" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="integer-06">integer-06</h2>
+
+<pre class="Agda"><a id="2044" class="Comment">-- builtin/parser/integer/integer-06</a>
+<a id="test-integer-06"></a><a id="2081" href="Conformance.Builtin.Parser.Integer.html#2081" class="Function">test-integer-06</a> <a id="2097" class="Symbol">:</a> <a id="2099" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="2107" href="Conformance.Builtin.Parser.Integer.html#2081" class="Function">test-integer-06</a> <a id="2123" class="Symbol">=</a> <a id="2125" class="Symbol">(</a><a id="2126" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2131" class="Symbol">(</a><a id="2132" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2139" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="2147" class="Symbol">(</a><a id="2148" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="2154" class="Number">7934472584735297345829374203940389857324250374130461237461374324689198237413246172439813568362847918324132461234689173469172364972574327894626348923469234728574196241238723984567805163407561370166661807515263473485635726</a><a id="2374" class="Symbol">)))</a>
+
+<a id="expected-integer-06"></a><a id="2379" href="Conformance.Builtin.Parser.Integer.html#2379" class="Function">expected-integer-06</a> <a id="2399" class="Symbol">:</a> <a id="2401" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="2408" href="Conformance.Builtin.Parser.Integer.html#2379" class="Function">expected-integer-06</a> <a id="2428" class="Symbol">=</a> <a id="2430" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="2438" class="Symbol">(</a><a id="2439" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2444" class="Symbol">(</a><a id="2445" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2452" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="2460" class="Symbol">(</a><a id="2461" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="2467" class="Number">7934472584735297345829374203940389857324250374130461237461374324689198237413246172439813568362847918324132461234689173469172364972574327894626348923469234728574196241238723984567805163407561370166661807515263473485635726</a><a id="2687" class="Symbol">)))</a>
+
+<a id="2692" href="Conformance.Builtin.Parser.Integer.html#2692" class="Function">_</a> <a id="2694" class="Symbol">:</a> <a id="2696" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2704" href="Conformance.Builtin.Parser.Integer.html#2081" class="Function">test-integer-06</a> <a id="2720" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2722" href="Conformance.Builtin.Parser.Integer.html#2379" class="Function">expected-integer-06</a>
+<a id="2742" class="Symbol">_</a> <a id="2744" class="Symbol">=</a> <a id="2746" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="integer-07">integer-07</h2>
+
+<pre class="Agda"><a id="2775" class="Comment">-- builtin/parser/integer/integer-07</a>
+<a id="test-integer-07"></a><a id="2812" href="Conformance.Builtin.Parser.Integer.html#2812" class="Function">test-integer-07</a> <a id="2828" class="Symbol">:</a> <a id="2830" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="2838" href="Conformance.Builtin.Parser.Integer.html#2812" class="Function">test-integer-07</a> <a id="2854" class="Symbol">=</a> <a id="2856" class="Symbol">(</a><a id="2857" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2862" class="Symbol">(</a><a id="2863" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2870" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="2878" class="Symbol">(</a><a id="2879" href="Agda.Builtin.Int.html#290" class="InductiveConstructor">ℤ.negsuc</a> <a id="2888" class="Number">7934472584735297345829374203940389857324250374130461237461374324689198237413246172439813568362847918324132461234689173469172364972574327894626348923469234728574196241238723984567805163407561370166661807515263473485635725</a><a id="3108" class="Symbol">)))</a>
+
+<a id="expected-integer-07"></a><a id="3113" href="Conformance.Builtin.Parser.Integer.html#3113" class="Function">expected-integer-07</a> <a id="3133" class="Symbol">:</a> <a id="3135" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="3142" href="Conformance.Builtin.Parser.Integer.html#3113" class="Function">expected-integer-07</a> <a id="3162" class="Symbol">=</a> <a id="3164" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="3172" class="Symbol">(</a><a id="3173" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="3178" class="Symbol">(</a><a id="3179" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="3186" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="3194" class="Symbol">(</a><a id="3195" href="Agda.Builtin.Int.html#290" class="InductiveConstructor">ℤ.negsuc</a> <a id="3204" class="Number">7934472584735297345829374203940389857324250374130461237461374324689198237413246172439813568362847918324132461234689173469172364972574327894626348923469234728574196241238723984567805163407561370166661807515263473485635725</a><a id="3424" class="Symbol">)))</a>
+
+<a id="3429" href="Conformance.Builtin.Parser.Integer.html#3429" class="Function">_</a> <a id="3431" class="Symbol">:</a> <a id="3433" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="3441" href="Conformance.Builtin.Parser.Integer.html#2812" class="Function">test-integer-07</a> <a id="3457" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="3459" href="Conformance.Builtin.Parser.Integer.html#3113" class="Function">expected-integer-07</a>
+<a id="3479" class="Symbol">_</a> <a id="3481" class="Symbol">=</a> <a id="3483" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="integer-08">integer-08</h2>
+
+<pre class="Agda"><a id="3512" class="Comment">-- builtin/parser/integer/integer-08</a>
+<a id="test-integer-08"></a><a id="3549" href="Conformance.Builtin.Parser.Integer.html#3549" class="Function">test-integer-08</a> <a id="3565" class="Symbol">:</a> <a id="3567" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="3575" href="Conformance.Builtin.Parser.Integer.html#3549" class="Function">test-integer-08</a> <a id="3591" class="Symbol">=</a> <a id="3593" class="Symbol">(</a><a id="3594" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="3599" class="Symbol">(</a><a id="3600" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="3607" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="3615" class="Symbol">(</a><a id="3616" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="3622" class="Number">7934472584735297345829374203940389857324250374130461237461374324689198237413246172439813568362847918324132461234689173469172364972574327894626348923469234728574196241238723984567805163407561370166661807515263473485635726</a><a id="3842" class="Symbol">)))</a>
+
+<a id="expected-integer-08"></a><a id="3847" href="Conformance.Builtin.Parser.Integer.html#3847" class="Function">expected-integer-08</a> <a id="3867" class="Symbol">:</a> <a id="3869" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="3876" href="Conformance.Builtin.Parser.Integer.html#3847" class="Function">expected-integer-08</a> <a id="3896" class="Symbol">=</a> <a id="3898" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="3906" class="Symbol">(</a><a id="3907" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="3912" class="Symbol">(</a><a id="3913" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="3920" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="3928" class="Symbol">(</a><a id="3929" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="3935" class="Number">7934472584735297345829374203940389857324250374130461237461374324689198237413246172439813568362847918324132461234689173469172364972574327894626348923469234728574196241238723984567805163407561370166661807515263473485635726</a><a id="4155" class="Symbol">)))</a>
+
+<a id="4160" href="Conformance.Builtin.Parser.Integer.html#4160" class="Function">_</a> <a id="4162" class="Symbol">:</a> <a id="4164" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="4172" href="Conformance.Builtin.Parser.Integer.html#3549" class="Function">test-integer-08</a> <a id="4188" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="4190" href="Conformance.Builtin.Parser.Integer.html#3847" class="Function">expected-integer-08</a>
+<a id="4210" class="Symbol">_</a> <a id="4212" class="Symbol">=</a> <a id="4214" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="integer-09">integer-09</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+<h2 id="integer10">integer10</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+    </section>
+  </body>
+</html>

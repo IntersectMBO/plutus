@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.Keccak256</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.Keccak256</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/keccak_256</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="460" class="Keyword">module</a> <a id="467" href="Conformance.Builtin.Semantics.Keccak256.html" class="Module">Conformance.Builtin.Semantics.Keccak256</a> <a id="507" class="Keyword">where</a>
+
+<a id="514" class="Keyword">open</a> <a id="519" class="Keyword">import</a> <a id="526" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="keccak_256-empty">keccak_256-empty</h2>
+
+<pre class="Agda"><a id="573" class="Comment">-- builtin/semantics/keccak_256/keccak_256-empty</a>
+<a id="622" class="Comment">-- Test vector (0-bit input) from ShortMsgKAT_256.txt in</a>
+<a id="679" class="Comment">-- https://keccak.team/obsolete/KeccakKAT-3.zip.  The Keccak function we&#39;re</a>
+<a id="755" class="Comment">-- testing here is the version used by Ethereum, which was the Keccak submission</a>
+<a id="836" class="Comment">-- in round 3 of the SHA-3 competition.  The final SHA-3 hash function is a</a>
+<a id="912" class="Comment">-- modified version of that.</a>
+<a id="test-keccak-256-empty"></a><a id="941" href="Conformance.Builtin.Semantics.Keccak256.html#941" class="Function">test-keccak-256-empty</a> <a id="963" class="Symbol">:</a> <a id="965" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="973" href="Conformance.Builtin.Semantics.Keccak256.html#941" class="Function">test-keccak-256-empty</a> <a id="995" class="Symbol">=</a> <a id="997" class="Symbol">(</a><a id="998" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1003" class="Symbol">(</a><a id="1004" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1009" class="Symbol">(</a><a id="1010" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1019" href="Builtin.html#2313" class="InductiveConstructor">equalsByteString</a><a id="1035" class="Symbol">)</a> <a id="1037" class="Symbol">(</a><a id="1038" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1043" class="Symbol">(</a><a id="1044" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1053" href="Builtin.html#5461" class="InductiveConstructor">keccak-256</a><a id="1063" class="Symbol">)</a> <a id="1065" class="Symbol">(</a><a id="1066" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1071" class="Symbol">(</a><a id="1072" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1079" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1090" class="Symbol">(</a><a id="1091" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1104" class="String">&quot;&quot;</a><a id="1106" class="Symbol">)))))</a> <a id="1112" class="Symbol">(</a><a id="1113" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1118" class="Symbol">(</a><a id="1119" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1126" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1137" class="Symbol">(</a><a id="1138" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1151" class="String">&quot;\197\210F\SOH\134\247#&lt;\146~}\178\220\199\ETX\192\229\NUL\182S\202\130&#39;;{\250\216\EOT]\133\164p&quot;</a><a id="1248" class="Symbol">))))</a>
+
+<a id="expected-keccak-256-empty"></a><a id="1254" href="Conformance.Builtin.Semantics.Keccak256.html#1254" class="Function">expected-keccak-256-empty</a> <a id="1280" class="Symbol">:</a> <a id="1282" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1289" href="Conformance.Builtin.Semantics.Keccak256.html#1254" class="Function">expected-keccak-256-empty</a> <a id="1315" class="Symbol">=</a> <a id="1317" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1325" class="Symbol">(</a><a id="1326" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1331" class="Symbol">(</a><a id="1332" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1339" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="1344" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="1348" class="Symbol">))</a>
+
+<a id="1352" class="Comment">-- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `keccak-256`.</a>
+<a id="pending-keccak-256-empty"></a><a id="1457" href="Conformance.Builtin.Semantics.Keccak256.html#1457" class="Function">pending-keccak-256-empty</a> <a id="1482" class="Symbol">:</a> <a id="1484" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1488" href="Conformance.Builtin.Semantics.Keccak256.html#1457" class="Function">pending-keccak-256-empty</a> <a id="1513" class="Symbol">=</a> <a id="1515" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1523" class="Symbol">(</a><a id="1524" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1532" href="Conformance.Builtin.Semantics.Keccak256.html#941" class="Function">test-keccak-256-empty</a> <a id="1554" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1556" href="Conformance.Builtin.Semantics.Keccak256.html#1254" class="Function">expected-keccak-256-empty</a><a id="1581" class="Symbol">)</a>
+</pre>
+<h2 id="keccak_256-length-200">keccak_256-length-200</h2>
+
+<pre class="Agda"><a id="1618" class="Comment">-- builtin/semantics/keccak_256/keccak_256-length-200</a>
+<a id="1672" class="Comment">-- Test vector (200-bit input) from ShortMsgKAT_256.txt in</a>
+<a id="1731" class="Comment">-- https://keccak.team/obsolete/KeccakKAT-3.zip.  The Keccak function we&#39;re</a>
+<a id="1807" class="Comment">-- testing here is the version used by Ethereum, which was the Keccak submission</a>
+<a id="1888" class="Comment">-- in round 3 of the SHA-3 competition.  The final SHA-3 hash function is a</a>
+<a id="1964" class="Comment">-- modified version of that.</a>
+<a id="test-keccak-256-length-200"></a><a id="1993" href="Conformance.Builtin.Semantics.Keccak256.html#1993" class="Function">test-keccak-256-length-200</a> <a id="2020" class="Symbol">:</a> <a id="2022" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="2030" href="Conformance.Builtin.Semantics.Keccak256.html#1993" class="Function">test-keccak-256-length-200</a> <a id="2057" class="Symbol">=</a> <a id="2059" class="Symbol">(</a><a id="2060" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="2065" class="Symbol">(</a><a id="2066" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="2071" class="Symbol">(</a><a id="2072" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="2081" href="Builtin.html#2313" class="InductiveConstructor">equalsByteString</a><a id="2097" class="Symbol">)</a> <a id="2099" class="Symbol">(</a><a id="2100" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="2105" class="Symbol">(</a><a id="2106" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="2115" href="Builtin.html#5461" class="InductiveConstructor">keccak-256</a><a id="2125" class="Symbol">)</a> <a id="2127" class="Symbol">(</a><a id="2128" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2133" class="Symbol">(</a><a id="2134" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2141" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="2152" class="Symbol">(</a><a id="2153" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="2166" class="String">&quot;\170\253\201$==J\teX\163`\204&#39;\200\216b\240\190s\219^\136\170U&quot;</a><a id="2230" class="Symbol">)))))</a> <a id="2236" class="Symbol">(</a><a id="2237" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2242" class="Symbol">(</a><a id="2243" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2250" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="2261" class="Symbol">(</a><a id="2262" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="2275" class="String">&quot;o\255\160p\184e\190&gt;\231f\220-\180\155j\165\\6\159}\227p:\218&amp;\DC2\215T\DC4\\\SOH\230&quot;</a><a id="2362" class="Symbol">))))</a>
+
+<a id="expected-keccak-256-length-200"></a><a id="2368" href="Conformance.Builtin.Semantics.Keccak256.html#2368" class="Function">expected-keccak-256-length-200</a> <a id="2399" class="Symbol">:</a> <a id="2401" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="2408" href="Conformance.Builtin.Semantics.Keccak256.html#2368" class="Function">expected-keccak-256-length-200</a> <a id="2439" class="Symbol">=</a> <a id="2441" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="2449" class="Symbol">(</a><a id="2450" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2455" class="Symbol">(</a><a id="2456" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2463" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="2468" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="2472" class="Symbol">))</a>
+
+<a id="2476" class="Comment">-- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `keccak-256`.</a>
+<a id="pending-keccak-256-length-200"></a><a id="2581" href="Conformance.Builtin.Semantics.Keccak256.html#2581" class="Function">pending-keccak-256-length-200</a> <a id="2611" class="Symbol">:</a> <a id="2613" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="2617" href="Conformance.Builtin.Semantics.Keccak256.html#2581" class="Function">pending-keccak-256-length-200</a> <a id="2647" class="Symbol">=</a> <a id="2649" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="2657" class="Symbol">(</a><a id="2658" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2666" href="Conformance.Builtin.Semantics.Keccak256.html#1993" class="Function">test-keccak-256-length-200</a> <a id="2693" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2695" href="Conformance.Builtin.Semantics.Keccak256.html#2368" class="Function">expected-keccak-256-length-200</a><a id="2725" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

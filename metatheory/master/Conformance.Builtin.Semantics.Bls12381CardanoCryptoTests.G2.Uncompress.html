@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/G2/uncompress</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="525" class="Keyword">module</a> <a id="532" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html" class="Module">Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress</a> <a id="603" class="Keyword">where</a>
+
+<a id="610" class="Keyword">open</a> <a id="615" class="Keyword">import</a> <a id="622" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="off-curve">off-curve</h2>
+
+<pre class="Agda"><a id="662" class="Comment">-- builtin/semantics/bls12_381-cardano-crypto-tests/G2/uncompress/off-curve</a>
+<a id="738" class="Comment">-- This contains a value which is not the x-coordinate of a point on the E2 curve.</a>
+<a id="test-off-curve"></a><a id="821" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#821" class="Function">test-off-curve</a> <a id="836" class="Symbol">:</a> <a id="838" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="846" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#821" class="Function">test-off-curve</a> <a id="861" class="Symbol">=</a> <a id="863" class="Symbol">(</a><a id="864" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="869" class="Symbol">(</a><a id="870" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="879" href="Builtin.html#5243" class="InductiveConstructor">bls12-381-G2-uncompress</a><a id="902" class="Symbol">)</a> <a id="904" class="Symbol">(</a><a id="905" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="910" class="Symbol">(</a><a id="911" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="918" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="929" class="Symbol">(</a><a id="930" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="943" class="String">&quot;\135\134\CAN9\230\STX\252]\250\r\vr#-\216\GS+\SOKf\n~\186\&amp;5=\162~f\206\175-lw4\146RG(\CANf\161-gu*\RS\218\173\SOH\234Y\228\232n.\133\168\SUBW&lt;\214\143m\251ReX\216\SUB\143H\143&amp;\US5]\218\194?l\175\a\210\DEL\218q\216\243\150\141L\238\218\137\160\157&quot;</a><a id="1193" class="Symbol">))))</a>
+
+<a id="expected-off-curve"></a><a id="1199" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#1199" class="Function">expected-off-curve</a> <a id="1218" class="Symbol">:</a> <a id="1220" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1227" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#1199" class="Function">expected-off-curve</a> <a id="1246" class="Symbol">=</a> <a id="1248" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1257" class="Comment">-- Pending: bytestring constant; postulated builtin `bls12-381-G2-uncompress`.</a>
+<a id="pending-off-curve"></a><a id="1336" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#1336" class="Function">pending-off-curve</a> <a id="1354" class="Symbol">:</a> <a id="1356" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1360" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#1336" class="Function">pending-off-curve</a> <a id="1378" class="Symbol">=</a> <a id="1380" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1388" class="Symbol">(</a><a id="1389" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1397" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#821" class="Function">test-off-curve</a> <a id="1412" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1414" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#1199" class="Function">expected-off-curve</a><a id="1432" class="Symbol">)</a>
+</pre>
+<h2 id="out-of-group">out-of-group</h2>
+
+<pre class="Agda"><a id="1460" class="Comment">-- builtin/semantics/bls12_381-cardano-crypto-tests/G2/uncompress/out-of-group</a>
+<a id="1539" class="Comment">-- This contains a value which is the x-coordinate of a point which lies on the</a>
+<a id="1619" class="Comment">-- E2 curve but not the G2 subgroup.</a>
+<a id="test-out-of-group"></a><a id="1656" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#1656" class="Function">test-out-of-group</a> <a id="1674" class="Symbol">:</a> <a id="1676" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1684" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#1656" class="Function">test-out-of-group</a> <a id="1702" class="Symbol">=</a> <a id="1704" class="Symbol">(</a><a id="1705" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1710" class="Symbol">(</a><a id="1711" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1720" href="Builtin.html#5243" class="InductiveConstructor">bls12-381-G2-uncompress</a><a id="1743" class="Symbol">)</a> <a id="1745" class="Symbol">(</a><a id="1746" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1751" class="Symbol">(</a><a id="1752" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1759" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1770" class="Symbol">(</a><a id="1771" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1784" class="String">&quot;\139\216\&amp;6\153\246\aA$H\210\STX\217H\187\DC1\ESC\173\212V\214\128\134\255\154Y\ACK\234;,\218A\DC1\211c\131\145\247\167\177S\238\167z\180r\NAK\214\254\DC3\179P\245\159\136Ln1\172\br9\217\DC4[\129d$\203\162\200\188\183\179\237~\EMc\128\137\217\RS\\\145\&amp;6\210\174\252\141\161e(KB\&quot;\154p&quot;</a><a id="2071" class="Symbol">))))</a>
+
+<a id="expected-out-of-group"></a><a id="2077" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#2077" class="Function">expected-out-of-group</a> <a id="2099" class="Symbol">:</a> <a id="2101" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="2108" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#2077" class="Function">expected-out-of-group</a> <a id="2130" class="Symbol">=</a> <a id="2132" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="2141" class="Comment">-- Pending: bytestring constant; postulated builtin `bls12-381-G2-uncompress`.</a>
+<a id="pending-out-of-group"></a><a id="2220" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#2220" class="Function">pending-out-of-group</a> <a id="2241" class="Symbol">:</a> <a id="2243" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="2247" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#2220" class="Function">pending-out-of-group</a> <a id="2268" class="Symbol">=</a> <a id="2270" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="2278" class="Symbol">(</a><a id="2279" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2287" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#1656" class="Function">test-out-of-group</a> <a id="2305" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2307" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html#2077" class="Function">expected-out-of-group</a><a id="2328" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

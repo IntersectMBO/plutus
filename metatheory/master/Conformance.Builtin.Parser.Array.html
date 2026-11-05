@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Parser.Array</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Parser.Array</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/parser/array</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="445" class="Keyword">module</a> <a id="452" href="Conformance.Builtin.Parser.Array.html" class="Module">Conformance.Builtin.Parser.Array</a> <a id="485" class="Keyword">where</a>
+
+<a id="492" class="Keyword">open</a> <a id="497" class="Keyword">import</a> <a id="504" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="emptyarray">emptyArray</h2>
+
+<pre class="Agda"><a id="545" class="Comment">-- builtin/parser/array/emptyArray</a>
+<a id="test-emptyArray"></a><a id="580" href="Conformance.Builtin.Parser.Array.html#580" class="Function">test-emptyArray</a> <a id="596" class="Symbol">:</a> <a id="598" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="606" href="Conformance.Builtin.Parser.Array.html#580" class="Function">test-emptyArray</a> <a id="622" class="Symbol">=</a> <a id="624" class="Symbol">(</a><a id="625" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="630" class="Symbol">(</a><a id="631" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="638" class="Symbol">(</a><a id="639" href="RawU.html#2863" class="InductiveConstructor">array</a> <a id="645" href="RawU.html#2435" class="InductiveConstructor">integer</a><a id="652" class="Symbol">)</a> <a id="654" class="Symbol">(</a><a id="655" href="Utils.html#7780" class="Postulate">mkArray</a> <a id="663" class="Symbol">((</a><a id="665" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="667" class="Symbol">)))))</a>
+
+<a id="expected-emptyArray"></a><a id="674" href="Conformance.Builtin.Parser.Array.html#674" class="Function">expected-emptyArray</a> <a id="694" class="Symbol">:</a> <a id="696" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="703" href="Conformance.Builtin.Parser.Array.html#674" class="Function">expected-emptyArray</a> <a id="723" class="Symbol">=</a> <a id="725" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="733" class="Symbol">(</a><a id="734" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="739" class="Symbol">(</a><a id="740" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="747" class="Symbol">(</a><a id="748" href="RawU.html#2863" class="InductiveConstructor">array</a> <a id="754" href="RawU.html#2435" class="InductiveConstructor">integer</a><a id="761" class="Symbol">)</a> <a id="763" class="Symbol">(</a><a id="764" href="Utils.html#7780" class="Postulate">mkArray</a> <a id="772" class="Symbol">((</a><a id="774" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="776" class="Symbol">)))))</a>
+
+<a id="783" class="Comment">-- Pending: array constant.</a>
+<a id="pending-emptyArray"></a><a id="811" href="Conformance.Builtin.Parser.Array.html#811" class="Function">pending-emptyArray</a> <a id="830" class="Symbol">:</a> <a id="832" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="836" href="Conformance.Builtin.Parser.Array.html#811" class="Function">pending-emptyArray</a> <a id="855" class="Symbol">=</a> <a id="857" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="865" class="Symbol">(</a><a id="866" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="874" href="Conformance.Builtin.Parser.Array.html#580" class="Function">test-emptyArray</a> <a id="890" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="892" href="Conformance.Builtin.Parser.Array.html#674" class="Function">expected-emptyArray</a><a id="911" class="Symbol">)</a>
+</pre>
+<h2 id="illtypedarray-01">illTypedArray-01</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+<h2 id="illtypedarray-02">illTypedArray-02</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+<h2 id="simplearray">simpleArray</h2>
+
+<pre class="Agda"><a id="1146" class="Comment">-- builtin/parser/array/simpleArray</a>
+<a id="test-simpleArray"></a><a id="1182" href="Conformance.Builtin.Parser.Array.html#1182" class="Function">test-simpleArray</a> <a id="1199" class="Symbol">:</a> <a id="1201" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1209" href="Conformance.Builtin.Parser.Array.html#1182" class="Function">test-simpleArray</a> <a id="1226" class="Symbol">=</a> <a id="1228" class="Symbol">(</a><a id="1229" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1234" class="Symbol">(</a><a id="1235" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1242" class="Symbol">(</a><a id="1243" href="RawU.html#2863" class="InductiveConstructor">array</a> <a id="1249" href="RawU.html#2560" class="InductiveConstructor">bool</a><a id="1253" class="Symbol">)</a> <a id="1255" class="Symbol">(</a><a id="1256" href="Utils.html#7780" class="Postulate">mkArray</a> <a id="1264" class="Symbol">((</a><a id="1266" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a> <a id="1271" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1273" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a> <a id="1279" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1281" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a> <a id="1286" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1288" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1290" class="Symbol">)))))</a>
+
+<a id="expected-simpleArray"></a><a id="1297" href="Conformance.Builtin.Parser.Array.html#1297" class="Function">expected-simpleArray</a> <a id="1318" class="Symbol">:</a> <a id="1320" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1327" href="Conformance.Builtin.Parser.Array.html#1297" class="Function">expected-simpleArray</a> <a id="1348" class="Symbol">=</a> <a id="1350" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1358" class="Symbol">(</a><a id="1359" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1364" class="Symbol">(</a><a id="1365" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1372" class="Symbol">(</a><a id="1373" href="RawU.html#2863" class="InductiveConstructor">array</a> <a id="1379" href="RawU.html#2560" class="InductiveConstructor">bool</a><a id="1383" class="Symbol">)</a> <a id="1385" class="Symbol">(</a><a id="1386" href="Utils.html#7780" class="Postulate">mkArray</a> <a id="1394" class="Symbol">((</a><a id="1396" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a> <a id="1401" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1403" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a> <a id="1409" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1411" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a> <a id="1416" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1418" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1420" class="Symbol">)))))</a>
+
+<a id="1427" class="Comment">-- Pending: array constant.</a>
+<a id="pending-simpleArray"></a><a id="1455" href="Conformance.Builtin.Parser.Array.html#1455" class="Function">pending-simpleArray</a> <a id="1475" class="Symbol">:</a> <a id="1477" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1481" href="Conformance.Builtin.Parser.Array.html#1455" class="Function">pending-simpleArray</a> <a id="1501" class="Symbol">=</a> <a id="1503" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1511" class="Symbol">(</a><a id="1512" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1520" href="Conformance.Builtin.Parser.Array.html#1182" class="Function">test-simpleArray</a> <a id="1537" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1539" href="Conformance.Builtin.Parser.Array.html#1297" class="Function">expected-simpleArray</a><a id="1559" class="Symbol">)</a>
+</pre>
+<h2 id="unitarray">unitArray</h2>
+
+<pre class="Agda"><a id="1584" class="Comment">-- builtin/parser/array/unitArray</a>
+<a id="test-unitArray"></a><a id="1618" href="Conformance.Builtin.Parser.Array.html#1618" class="Function">test-unitArray</a> <a id="1633" class="Symbol">:</a> <a id="1635" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1643" href="Conformance.Builtin.Parser.Array.html#1618" class="Function">test-unitArray</a> <a id="1658" class="Symbol">=</a> <a id="1660" class="Symbol">(</a><a id="1661" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1666" class="Symbol">(</a><a id="1667" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1674" class="Symbol">(</a><a id="1675" href="RawU.html#2863" class="InductiveConstructor">array</a> <a id="1681" href="RawU.html#2600" class="InductiveConstructor">unit</a><a id="1685" class="Symbol">)</a> <a id="1687" class="Symbol">(</a><a id="1688" href="Utils.html#7780" class="Postulate">mkArray</a> <a id="1696" class="Symbol">((</a><a id="1698" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a> <a id="1701" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1703" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a> <a id="1706" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1708" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a> <a id="1711" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1713" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a> <a id="1716" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1718" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a> <a id="1721" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1723" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1725" class="Symbol">)))))</a>
+
+<a id="expected-unitArray"></a><a id="1732" href="Conformance.Builtin.Parser.Array.html#1732" class="Function">expected-unitArray</a> <a id="1751" class="Symbol">:</a> <a id="1753" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1760" href="Conformance.Builtin.Parser.Array.html#1732" class="Function">expected-unitArray</a> <a id="1779" class="Symbol">=</a> <a id="1781" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1789" class="Symbol">(</a><a id="1790" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1795" class="Symbol">(</a><a id="1796" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1803" class="Symbol">(</a><a id="1804" href="RawU.html#2863" class="InductiveConstructor">array</a> <a id="1810" href="RawU.html#2600" class="InductiveConstructor">unit</a><a id="1814" class="Symbol">)</a> <a id="1816" class="Symbol">(</a><a id="1817" href="Utils.html#7780" class="Postulate">mkArray</a> <a id="1825" class="Symbol">((</a><a id="1827" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a> <a id="1830" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1832" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a> <a id="1835" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1837" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a> <a id="1840" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1842" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a> <a id="1845" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1847" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a> <a id="1850" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1852" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1854" class="Symbol">)))))</a>
+
+<a id="1861" class="Comment">-- Pending: array constant.</a>
+<a id="pending-unitArray"></a><a id="1889" href="Conformance.Builtin.Parser.Array.html#1889" class="Function">pending-unitArray</a> <a id="1907" class="Symbol">:</a> <a id="1909" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1913" href="Conformance.Builtin.Parser.Array.html#1889" class="Function">pending-unitArray</a> <a id="1931" class="Symbol">=</a> <a id="1933" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1941" class="Symbol">(</a><a id="1942" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1950" href="Conformance.Builtin.Parser.Array.html#1618" class="Function">test-unitArray</a> <a id="1965" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1967" href="Conformance.Builtin.Parser.Array.html#1732" class="Function">expected-unitArray</a><a id="1985" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

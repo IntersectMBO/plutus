@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Parser.List</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Parser.List</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/parser/list</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="443" class="Keyword">module</a> <a id="450" href="Conformance.Builtin.Parser.List.html" class="Module">Conformance.Builtin.Parser.List</a> <a id="482" class="Keyword">where</a>
+
+<a id="489" class="Keyword">open</a> <a id="494" class="Keyword">import</a> <a id="501" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="emptylist">emptyList</h2>
+
+<pre class="Agda"><a id="541" class="Comment">-- builtin/parser/list/emptyList</a>
+<a id="test-emptyList"></a><a id="574" href="Conformance.Builtin.Parser.List.html#574" class="Function">test-emptyList</a> <a id="589" class="Symbol">:</a> <a id="591" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="599" href="Conformance.Builtin.Parser.List.html#574" class="Function">test-emptyList</a> <a id="614" class="Symbol">=</a> <a id="616" class="Symbol">(</a><a id="617" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="622" class="Symbol">(</a><a id="623" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="630" class="Symbol">(</a><a id="631" href="RawU.html#2798" class="InductiveConstructor">list</a> <a id="636" href="RawU.html#2435" class="InductiveConstructor">integer</a><a id="643" class="Symbol">)</a> <a id="645" class="Symbol">(</a><a id="646" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="648" class="Symbol">)))</a>
+
+<a id="expected-emptyList"></a><a id="653" href="Conformance.Builtin.Parser.List.html#653" class="Function">expected-emptyList</a> <a id="672" class="Symbol">:</a> <a id="674" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="681" href="Conformance.Builtin.Parser.List.html#653" class="Function">expected-emptyList</a> <a id="700" class="Symbol">=</a> <a id="702" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="710" class="Symbol">(</a><a id="711" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="716" class="Symbol">(</a><a id="717" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="724" class="Symbol">(</a><a id="725" href="RawU.html#2798" class="InductiveConstructor">list</a> <a id="730" href="RawU.html#2435" class="InductiveConstructor">integer</a><a id="737" class="Symbol">)</a> <a id="739" class="Symbol">(</a><a id="740" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="742" class="Symbol">)))</a>
+
+<a id="747" href="Conformance.Builtin.Parser.List.html#747" class="Function">_</a> <a id="749" class="Symbol">:</a> <a id="751" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="759" href="Conformance.Builtin.Parser.List.html#574" class="Function">test-emptyList</a> <a id="774" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="776" href="Conformance.Builtin.Parser.List.html#653" class="Function">expected-emptyList</a>
+<a id="795" class="Symbol">_</a> <a id="797" class="Symbol">=</a> <a id="799" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="illtypedlist-01">illTypedList-01</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+<h2 id="illtypedlist-02">illTypedList-02</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+<h2 id="simplelist">simpleList</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+<h2 id="unitlist">unitList</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+    </section>
+  </body>
+</html>

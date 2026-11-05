@@ -1,0 +1,1854 @@
+{
+  "$id": "my-contract",
+  "$schema": "https://cips.cardano.org/cips/cip57/schemas/plutus-blueprint.json",
+  "$vocabulary": {
+    "https://cips.cardano.org/cips/cip57": true,
+    "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+    "https://json-schema.org/draft/2020-12/vocab/core": true,
+    "https://json-schema.org/draft/2020-12/vocab/validation": true
+  },
+  "preamble": {
+    "title": "My Contract",
+    "description": "A simple contract",
+    "version": "1.0.0",
+    "plutusVersion": "v2",
+    "license": "MIT"
+  },
+  "validators": [
+    {
+      "title": "My Validator",
+      "description": "An example validator",
+      "redeemer": {
+        "title": "My Redeemer",
+        "description": "A redeemer that does something awesome",
+        "purpose": {
+          "oneOf": [
+            "spend",
+            "mint"
+          ]
+        },
+        "schema": {
+          "$ref": "#/definitions/MyRedeemer"
+        }
+      },
+      "datum": {
+        "title": "My Datum",
+        "description": "A datum that contains something awesome",
+        "purpose": "spend",
+        "schema": {
+          "$ref": "#/definitions/Integer"
+        }
+      },
+      "parameters": [
+        {
+          "title": "My Validator Parameters",
+          "description": "Compile-time validator parameters",
+          "purpose": "spend",
+          "schema": {
+            "$ref": "#/definitions/MyParams"
+          }
+        }
+      ]
+    }
+  ],
+  "definitions": {
+    "Address": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Credential"
+        },
+        {
+          "$ref": "#/definitions/Maybe_StakingCredential"
+        }
+      ],
+      "index": 0
+    },
+    "Bool": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 1
+        }
+      ]
+    },
+    "BuiltinByteString": {
+      "dataType": "bytes"
+    },
+    "BuiltinData": {},
+    "ChangedParameters": {
+      "title": "ChangedParameters"
+    },
+    "ColdCommitteeCredential": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/ScriptHash"
+            }
+          ],
+          "index": 1
+        }
+      ]
+    },
+    "Constitution": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Maybe_ScriptHash"
+        }
+      ],
+      "index": 0
+    },
+    "Credential": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/ScriptHash"
+            }
+          ],
+          "index": 1
+        }
+      ]
+    },
+    "CurrencySymbol": {
+      "title": "CurrencySymbol",
+      "dataType": "bytes"
+    },
+    "DCert": {
+      "oneOf": [
+        {
+          "title": "DCertDelegRegKey",
+          "description": "Delegation key registration certificate",
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/StakingCredential"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "title": "DCertDelegDeRegKey",
+          "description": "Delegation key deregistration certificate",
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/StakingCredential"
+            }
+          ],
+          "index": 1
+        },
+        {
+          "title": "DCertDelegDelegate",
+          "description": "Delegation certificate",
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/StakingCredential"
+            },
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            }
+          ],
+          "index": 2
+        },
+        {
+          "title": "DCertPoolRegister",
+          "description": "Pool registration certificate",
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            },
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            }
+          ],
+          "index": 3
+        },
+        {
+          "title": "DCertPoolRetire",
+          "description": "Pool retirement certificate",
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            },
+            {
+              "$ref": "#/definitions/Integer"
+            }
+          ],
+          "index": 4
+        },
+        {
+          "title": "DCertGenesis",
+          "description": "Genesis key",
+          "dataType": "constructor",
+          "fields": [],
+          "index": 5
+        },
+        {
+          "title": "DCertMir",
+          "description": "MIR key",
+          "dataType": "constructor",
+          "fields": [],
+          "index": 6
+        }
+      ]
+    },
+    "DRep": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/DRepCredential"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 2
+        }
+      ]
+    },
+    "DRepCredential": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/ScriptHash"
+            }
+          ],
+          "index": 1
+        }
+      ]
+    },
+    "Datum": {
+      "title": "Datum"
+    },
+    "DatumHash": {
+      "title": "DatumHash",
+      "dataType": "bytes"
+    },
+    "Delegatee": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/DRep"
+            }
+          ],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            },
+            {
+              "$ref": "#/definitions/DRep"
+            }
+          ],
+          "index": 2
+        }
+      ]
+    },
+    "DiffMilliSeconds": {
+      "title": "DiffMilliSeconds",
+      "dataType": "integer"
+    },
+    "Extended_Integer": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Integer"
+            }
+          ],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 2
+        }
+      ]
+    },
+    "Extended_POSIXTime": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/POSIXTime"
+            }
+          ],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 2
+        }
+      ]
+    },
+    "GovernanceAction": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Maybe_GovernanceActionId"
+            },
+            {
+              "$ref": "#/definitions/ChangedParameters"
+            },
+            {
+              "$ref": "#/definitions/Maybe_ScriptHash"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Maybe_GovernanceActionId"
+            },
+            {
+              "$ref": "#/definitions/ProtocolVersion"
+            }
+          ],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Map_Credential_Lovelace"
+            },
+            {
+              "$ref": "#/definitions/Maybe_ScriptHash"
+            }
+          ],
+          "index": 2
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Maybe_GovernanceActionId"
+            }
+          ],
+          "index": 3
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Maybe_GovernanceActionId"
+            },
+            {
+              "$ref": "#/definitions/List_ColdCommitteeCredential"
+            },
+            {
+              "$ref": "#/definitions/Map_ColdCommitteeCredential_Integer"
+            },
+            {
+              "$ref": "#/definitions/Rational"
+            }
+          ],
+          "index": 4
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Maybe_GovernanceActionId"
+            },
+            {
+              "$ref": "#/definitions/Constitution"
+            }
+          ],
+          "index": 5
+        },
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 6
+        }
+      ]
+    },
+    "GovernanceActionId": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/TxId"
+        },
+        {
+          "$ref": "#/definitions/Integer"
+        }
+      ],
+      "index": 0
+    },
+    "HotCommitteeCredential": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/ScriptHash"
+            }
+          ],
+          "index": 1
+        }
+      ]
+    },
+    "Integer": {
+      "dataType": "integer"
+    },
+    "Interval_Integer": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/LowerBound_Extended_Integer"
+        },
+        {
+          "$ref": "#/definitions/UpperBound_Extended_Integer"
+        }
+      ],
+      "index": 0
+    },
+    "Interval_POSIXTime": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/LowerBound_Extended_POSIXTime"
+        },
+        {
+          "$ref": "#/definitions/UpperBound_Extended_POSIXTime"
+        }
+      ],
+      "index": 0
+    },
+    "LedgerBytes": {
+      "title": "LedgerBytes",
+      "dataType": "bytes"
+    },
+    "List_ColdCommitteeCredential": {
+      "dataType": "list",
+      "items": {
+        "oneOf": [
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/PubKeyHash"
+              }
+            ],
+            "index": 0
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/ScriptHash"
+              }
+            ],
+            "index": 1
+          }
+        ]
+      }
+    },
+    "List_ProposalProcedure": {
+      "dataType": "list",
+      "items": {
+        "dataType": "constructor",
+        "fields": [
+          {
+            "$ref": "#/definitions/Lovelace"
+          },
+          {
+            "$ref": "#/definitions/Credential"
+          },
+          {
+            "$ref": "#/definitions/GovernanceAction"
+          }
+        ],
+        "index": 0
+      }
+    },
+    "List_PubKeyHash": {
+      "dataType": "list",
+      "items": {
+        "title": "PubKeyHash",
+        "dataType": "bytes"
+      }
+    },
+    "List_TxCert": {
+      "dataType": "list",
+      "items": {
+        "oneOf": [
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/Credential"
+              },
+              {
+                "$ref": "#/definitions/Maybe_Lovelace"
+              }
+            ],
+            "index": 0
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/Credential"
+              },
+              {
+                "$ref": "#/definitions/Maybe_Lovelace"
+              }
+            ],
+            "index": 1
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/Credential"
+              },
+              {
+                "$ref": "#/definitions/Delegatee"
+              }
+            ],
+            "index": 2
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/Credential"
+              },
+              {
+                "$ref": "#/definitions/Delegatee"
+              },
+              {
+                "$ref": "#/definitions/Lovelace"
+              }
+            ],
+            "index": 3
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/DRepCredential"
+              },
+              {
+                "$ref": "#/definitions/Lovelace"
+              }
+            ],
+            "index": 4
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/DRepCredential"
+              }
+            ],
+            "index": 5
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/DRepCredential"
+              },
+              {
+                "$ref": "#/definitions/Lovelace"
+              }
+            ],
+            "index": 6
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/PubKeyHash"
+              },
+              {
+                "$ref": "#/definitions/PubKeyHash"
+              }
+            ],
+            "index": 7
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/PubKeyHash"
+              },
+              {
+                "$ref": "#/definitions/Integer"
+              }
+            ],
+            "index": 8
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/ColdCommitteeCredential"
+              },
+              {
+                "$ref": "#/definitions/HotCommitteeCredential"
+              }
+            ],
+            "index": 9
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/ColdCommitteeCredential"
+              }
+            ],
+            "index": 10
+          }
+        ]
+      }
+    },
+    "List_TxInInfo": {
+      "dataType": "list",
+      "items": {
+        "dataType": "constructor",
+        "fields": [
+          {
+            "$ref": "#/definitions/TxOutRef"
+          },
+          {
+            "$ref": "#/definitions/TxOut"
+          }
+        ],
+        "index": 0
+      }
+    },
+    "List_TxOut": {
+      "dataType": "list",
+      "items": {
+        "dataType": "constructor",
+        "fields": [
+          {
+            "$ref": "#/definitions/Address"
+          },
+          {
+            "$ref": "#/definitions/Value"
+          },
+          {
+            "$ref": "#/definitions/OutputDatum"
+          },
+          {
+            "$ref": "#/definitions/Maybe_ScriptHash"
+          }
+        ],
+        "index": 0
+      }
+    },
+    "Lovelace": {
+      "title": "Lovelace",
+      "dataType": "integer"
+    },
+    "LowerBound_Extended_Integer": {
+      "title": "LowerBound",
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Extended_Integer"
+        },
+        {
+          "$ref": "#/definitions/Bool"
+        }
+      ],
+      "index": 0
+    },
+    "LowerBound_Extended_POSIXTime": {
+      "title": "LowerBound",
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Extended_POSIXTime"
+        },
+        {
+          "$ref": "#/definitions/Bool"
+        }
+      ],
+      "index": 0
+    },
+    "Map_ColdCommitteeCredential_Integer": {
+      "dataType": "map",
+      "keys": {
+        "oneOf": [
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/PubKeyHash"
+              }
+            ],
+            "index": 0
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/ScriptHash"
+              }
+            ],
+            "index": 1
+          }
+        ]
+      },
+      "values": {
+        "dataType": "integer"
+      }
+    },
+    "Map_Credential_Lovelace": {
+      "dataType": "map",
+      "keys": {
+        "oneOf": [
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/PubKeyHash"
+              }
+            ],
+            "index": 0
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/ScriptHash"
+              }
+            ],
+            "index": 1
+          }
+        ]
+      },
+      "values": {
+        "title": "Lovelace",
+        "dataType": "integer"
+      }
+    },
+    "Map_DatumHash_Datum": {
+      "dataType": "map",
+      "keys": {
+        "title": "DatumHash",
+        "dataType": "bytes"
+      },
+      "values": {
+        "title": "Datum"
+      }
+    },
+    "Map_GovernanceActionId_Vote": {
+      "dataType": "map",
+      "keys": {
+        "dataType": "constructor",
+        "fields": [
+          {
+            "$ref": "#/definitions/TxId"
+          },
+          {
+            "$ref": "#/definitions/Integer"
+          }
+        ],
+        "index": 0
+      },
+      "values": {
+        "oneOf": [
+          {
+            "dataType": "constructor",
+            "fields": [],
+            "index": 0
+          },
+          {
+            "dataType": "constructor",
+            "fields": [],
+            "index": 1
+          },
+          {
+            "dataType": "constructor",
+            "fields": [],
+            "index": 2
+          }
+        ]
+      }
+    },
+    "Map_Integer_Bool": {
+      "dataType": "map",
+      "keys": {
+        "dataType": "integer"
+      },
+      "values": {
+        "oneOf": [
+          {
+            "dataType": "constructor",
+            "fields": [],
+            "index": 0
+          },
+          {
+            "dataType": "constructor",
+            "fields": [],
+            "index": 1
+          }
+        ]
+      }
+    },
+    "Map_ScriptPurpose_Redeemer": {
+      "dataType": "map",
+      "keys": {
+        "oneOf": [
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/CurrencySymbol"
+              }
+            ],
+            "index": 0
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/TxOutRef"
+              }
+            ],
+            "index": 1
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/Credential"
+              }
+            ],
+            "index": 2
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/Integer"
+              },
+              {
+                "$ref": "#/definitions/TxCert"
+              }
+            ],
+            "index": 3
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/Voter"
+              }
+            ],
+            "index": 4
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/Integer"
+              },
+              {
+                "$ref": "#/definitions/ProposalProcedure"
+              }
+            ],
+            "index": 5
+          }
+        ]
+      },
+      "values": {
+        "title": "Redeemer"
+      }
+    },
+    "Map_Voter_Map_GovernanceActionId_Vote": {
+      "dataType": "map",
+      "keys": {
+        "oneOf": [
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/HotCommitteeCredential"
+              }
+            ],
+            "index": 0
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/DRepCredential"
+              }
+            ],
+            "index": 1
+          },
+          {
+            "dataType": "constructor",
+            "fields": [
+              {
+                "$ref": "#/definitions/PubKeyHash"
+              }
+            ],
+            "index": 2
+          }
+        ]
+      },
+      "values": {
+        "dataType": "map",
+        "keys": {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/TxId"
+            },
+            {
+              "$ref": "#/definitions/Integer"
+            }
+          ],
+          "index": 0
+        },
+        "values": {
+          "oneOf": [
+            {
+              "dataType": "constructor",
+              "fields": [],
+              "index": 0
+            },
+            {
+              "dataType": "constructor",
+              "fields": [],
+              "index": 1
+            },
+            {
+              "dataType": "constructor",
+              "fields": [],
+              "index": 2
+            }
+          ]
+        }
+      }
+    },
+    "Maybe_Datum": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Datum"
+            }
+          ],
+          "index": 0
+        }
+      ]
+    },
+    "Maybe_GovernanceActionId": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/GovernanceActionId"
+            }
+          ],
+          "index": 0
+        }
+      ]
+    },
+    "Maybe_Lovelace": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Lovelace"
+            }
+          ],
+          "index": 0
+        }
+      ]
+    },
+    "Maybe_ScriptHash": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/ScriptHash"
+            }
+          ],
+          "index": 0
+        }
+      ]
+    },
+    "Maybe_StakingCredential": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/StakingCredential"
+            }
+          ],
+          "index": 0
+        }
+      ]
+    },
+    "MintValue": {
+      "title": "MintValue",
+      "dataType": "map",
+      "keys": {
+        "$ref": "#/definitions/CurrencySymbol"
+      },
+      "values": {
+        "dataType": "map",
+        "keys": {
+          "$ref": "#/definitions/TokenName"
+        },
+        "values": {
+          "$ref": "#/definitions/Integer"
+        }
+      }
+    },
+    "MyParams": {
+      "title": "Title for the MyParams definition",
+      "description": "Description for the MyParams definition",
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Bool"
+        },
+        {
+          "$ref": "#/definitions/Integer"
+        },
+        {
+          "$ref": "#/definitions/Map_Integer_Bool"
+        },
+        {
+          "$ref": "#/definitions/DCert"
+        },
+        {
+          "$ref": "#/definitions/ScriptTag"
+        },
+        {
+          "$ref": "#/definitions/RedeemerPtr"
+        },
+        {
+          "$ref": "#/definitions/DiffMilliSeconds"
+        },
+        {
+          "$ref": "#/definitions/TxId"
+        },
+        {
+          "$ref": "#/definitions/TokenName"
+        },
+        {
+          "$ref": "#/definitions/Address"
+        },
+        {
+          "$ref": "#/definitions/PubKeyHash"
+        },
+        {
+          "$ref": "#/definitions/POSIXTime"
+        },
+        {
+          "$ref": "#/definitions/LedgerBytes"
+        },
+        {
+          "$ref": "#/definitions/Credential"
+        },
+        {
+          "$ref": "#/definitions/Datum"
+        },
+        {
+          "$ref": "#/definitions/Lovelace"
+        },
+        {
+          "$ref": "#/definitions/Interval_Integer"
+        },
+        {
+          "$ref": "#/definitions/ScriptHash"
+        },
+        {
+          "$ref": "#/definitions/Redeemer"
+        },
+        {
+          "$ref": "#/definitions/RedeemerHash"
+        },
+        {
+          "$ref": "#/definitions/Datum"
+        },
+        {
+          "$ref": "#/definitions/DatumHash"
+        },
+        {
+          "$ref": "#/definitions/TxInInfo"
+        },
+        {
+          "$ref": "#/definitions/TxInfo"
+        },
+        {
+          "$ref": "#/definitions/ScriptPurpose"
+        },
+        {
+          "$ref": "#/definitions/ScriptContext"
+        }
+      ],
+      "index": 0
+    },
+    "MyRedeemer": {
+      "oneOf": [
+        {
+          "$comment": "Redeemer 0",
+          "dataType": "constructor",
+          "fields": [],
+          "index": 0
+        },
+        {
+          "$comment": "Redeemer 1",
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Lovelace"
+            }
+          ],
+          "index": 1
+        },
+        {
+          "$comment": "Redeemer 2",
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Value"
+            }
+          ],
+          "index": 2
+        }
+      ]
+    },
+    "OutputDatum": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/DatumHash"
+            }
+          ],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Datum"
+            }
+          ],
+          "index": 2
+        }
+      ]
+    },
+    "POSIXTime": {
+      "title": "POSIXTime",
+      "dataType": "integer"
+    },
+    "ProposalProcedure": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Lovelace"
+        },
+        {
+          "$ref": "#/definitions/Credential"
+        },
+        {
+          "$ref": "#/definitions/GovernanceAction"
+        }
+      ],
+      "index": 0
+    },
+    "ProtocolVersion": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Integer"
+        },
+        {
+          "$ref": "#/definitions/Integer"
+        }
+      ],
+      "index": 0
+    },
+    "PubKeyHash": {
+      "title": "PubKeyHash",
+      "dataType": "bytes"
+    },
+    "Rational": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Integer"
+        },
+        {
+          "$ref": "#/definitions/Integer"
+        }
+      ],
+      "index": 0
+    },
+    "Redeemer": {
+      "title": "Redeemer"
+    },
+    "RedeemerHash": {
+      "title": "RedeemerHash",
+      "dataType": "bytes"
+    },
+    "RedeemerPtr": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/ScriptTag"
+        },
+        {
+          "$ref": "#/definitions/Integer"
+        }
+      ],
+      "index": 0
+    },
+    "ScriptContext": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/TxInfo"
+        },
+        {
+          "$ref": "#/definitions/Redeemer"
+        },
+        {
+          "$ref": "#/definitions/ScriptInfo"
+        }
+      ],
+      "index": 0
+    },
+    "ScriptHash": {
+      "title": "ScriptHash",
+      "dataType": "bytes"
+    },
+    "ScriptInfo": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/CurrencySymbol"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/TxOutRef"
+            },
+            {
+              "$ref": "#/definitions/Maybe_Datum"
+            }
+          ],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Credential"
+            }
+          ],
+          "index": 2
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Integer"
+            },
+            {
+              "$ref": "#/definitions/TxCert"
+            }
+          ],
+          "index": 3
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Voter"
+            }
+          ],
+          "index": 4
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Integer"
+            },
+            {
+              "$ref": "#/definitions/ProposalProcedure"
+            }
+          ],
+          "index": 5
+        }
+      ]
+    },
+    "ScriptPurpose": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/CurrencySymbol"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/TxOutRef"
+            }
+          ],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Credential"
+            }
+          ],
+          "index": 2
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Integer"
+            },
+            {
+              "$ref": "#/definitions/TxCert"
+            }
+          ],
+          "index": 3
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Voter"
+            }
+          ],
+          "index": 4
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Integer"
+            },
+            {
+              "$ref": "#/definitions/ProposalProcedure"
+            }
+          ],
+          "index": 5
+        }
+      ]
+    },
+    "ScriptTag": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 2
+        },
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 3
+        }
+      ]
+    },
+    "StakingCredential": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Credential"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Integer"
+            },
+            {
+              "$ref": "#/definitions/Integer"
+            },
+            {
+              "$ref": "#/definitions/Integer"
+            }
+          ],
+          "index": 1
+        }
+      ]
+    },
+    "TokenName": {
+      "title": "TokenName",
+      "dataType": "bytes"
+    },
+    "TxCert": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Credential"
+            },
+            {
+              "$ref": "#/definitions/Maybe_Lovelace"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Credential"
+            },
+            {
+              "$ref": "#/definitions/Maybe_Lovelace"
+            }
+          ],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Credential"
+            },
+            {
+              "$ref": "#/definitions/Delegatee"
+            }
+          ],
+          "index": 2
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/Credential"
+            },
+            {
+              "$ref": "#/definitions/Delegatee"
+            },
+            {
+              "$ref": "#/definitions/Lovelace"
+            }
+          ],
+          "index": 3
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/DRepCredential"
+            },
+            {
+              "$ref": "#/definitions/Lovelace"
+            }
+          ],
+          "index": 4
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/DRepCredential"
+            }
+          ],
+          "index": 5
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/DRepCredential"
+            },
+            {
+              "$ref": "#/definitions/Lovelace"
+            }
+          ],
+          "index": 6
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            },
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            }
+          ],
+          "index": 7
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            },
+            {
+              "$ref": "#/definitions/Integer"
+            }
+          ],
+          "index": 8
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/ColdCommitteeCredential"
+            },
+            {
+              "$ref": "#/definitions/HotCommitteeCredential"
+            }
+          ],
+          "index": 9
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/ColdCommitteeCredential"
+            }
+          ],
+          "index": 10
+        }
+      ]
+    },
+    "TxId": {
+      "title": "TxId",
+      "dataType": "bytes"
+    },
+    "TxInInfo": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/TxOutRef"
+        },
+        {
+          "$ref": "#/definitions/TxOut"
+        }
+      ],
+      "index": 0
+    },
+    "TxInfo": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/List_TxInInfo"
+        },
+        {
+          "$ref": "#/definitions/List_TxInInfo"
+        },
+        {
+          "$ref": "#/definitions/List_TxOut"
+        },
+        {
+          "$ref": "#/definitions/Lovelace"
+        },
+        {
+          "$ref": "#/definitions/MintValue"
+        },
+        {
+          "$ref": "#/definitions/List_TxCert"
+        },
+        {
+          "$ref": "#/definitions/Map_Credential_Lovelace"
+        },
+        {
+          "$ref": "#/definitions/Interval_POSIXTime"
+        },
+        {
+          "$ref": "#/definitions/List_PubKeyHash"
+        },
+        {
+          "$ref": "#/definitions/Map_ScriptPurpose_Redeemer"
+        },
+        {
+          "$ref": "#/definitions/Map_DatumHash_Datum"
+        },
+        {
+          "$ref": "#/definitions/TxId"
+        },
+        {
+          "$ref": "#/definitions/Map_Voter_Map_GovernanceActionId_Vote"
+        },
+        {
+          "$ref": "#/definitions/List_ProposalProcedure"
+        },
+        {
+          "$ref": "#/definitions/Maybe_Lovelace"
+        },
+        {
+          "$ref": "#/definitions/Maybe_Lovelace"
+        }
+      ],
+      "index": 0
+    },
+    "TxOut": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Address"
+        },
+        {
+          "$ref": "#/definitions/Value"
+        },
+        {
+          "$ref": "#/definitions/OutputDatum"
+        },
+        {
+          "$ref": "#/definitions/Maybe_ScriptHash"
+        }
+      ],
+      "index": 0
+    },
+    "TxOutRef": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/TxId"
+        },
+        {
+          "$ref": "#/definitions/Integer"
+        }
+      ],
+      "index": 0
+    },
+    "UpperBound_Extended_Integer": {
+      "title": "UpperBound",
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Extended_Integer"
+        },
+        {
+          "$ref": "#/definitions/Bool"
+        }
+      ],
+      "index": 0
+    },
+    "UpperBound_Extended_POSIXTime": {
+      "title": "UpperBound",
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Extended_POSIXTime"
+        },
+        {
+          "$ref": "#/definitions/Bool"
+        }
+      ],
+      "index": 0
+    },
+    "Value": {
+      "title": "Value",
+      "dataType": "map",
+      "keys": {
+        "$ref": "#/definitions/CurrencySymbol"
+      },
+      "values": {
+        "dataType": "map",
+        "keys": {
+          "$ref": "#/definitions/TokenName"
+        },
+        "values": {
+          "$ref": "#/definitions/Integer"
+        }
+      }
+    },
+    "Voter": {
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/HotCommitteeCredential"
+            }
+          ],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/DRepCredential"
+            }
+          ],
+          "index": 1
+        },
+        {
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/PubKeyHash"
+            }
+          ],
+          "index": 2
+        }
+      ]
+    }
+  }
+}

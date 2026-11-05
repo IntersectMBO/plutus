@@ -1,0 +1,121 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-| Machinery defined in this module allows to export mulptiple Plutus Core definitions
+<span class="lineno">    2 </span>(types and terms) as a single value which enables convenient testing of various procedures
+<span class="lineno">    3 </span>(pretty-printing, type checking, etc): each time a function / data type is added to that value,
+<span class="lineno">    4 </span>none of the tests is required to be adapted, instead all the tests see the new definition
+<span class="lineno">    5 </span>automatically. -}
+<span class="lineno">    6 </span>module PlutusCore.FsTree
+<span class="lineno">    7 </span>  ( FsTree (..)
+<span class="lineno">    8 </span>  , FolderContents (..)
+<span class="lineno">    9 </span>  , PlcEntity (..)
+<span class="lineno">   10 </span>  , PlcFsTree
+<span class="lineno">   11 </span>  , PlcFolderContents
+<span class="lineno">   12 </span>  , treeFolderContents
+<span class="lineno">   13 </span>  , plcTypeFile
+<span class="lineno">   14 </span>  , plcTermFile
+<span class="lineno">   15 </span>  , foldFsTree
+<span class="lineno">   16 </span>  , foldPlcFsTree
+<span class="lineno">   17 </span>  , foldPlcFolderContents
+<span class="lineno">   18 </span>  ) where
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import PlutusCore.Core
+<span class="lineno">   21 </span>import PlutusCore.Name.Unique
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>-- We use 'String's for names, because 'FilePath's are 'String's.
+<span class="lineno">   24 </span>-- | An 'FsTree' is either a file or a folder with a list of 'FsTree's inside.
+<span class="lineno">   25 </span>data FsTree a
+<span class="lineno">   26 </span>  = FsFolder String (FolderContents a)
+<span class="lineno">   27 </span>  | FsFile String a
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>{-| The contents of a folder. A wrapper around @[FsTree a]@.
+<span class="lineno">   30 </span>Exists because of its 'Semigroup' instance which allows to concatenate two 'FolderContents's
+<span class="lineno">   31 </span>without placing them into the same folder immediately, so we can have various PLC &quot;modules&quot;
+<span class="lineno">   32 </span>(@stdlib@, @examples@, etc), define compound modules (e.g. @stdlib &lt;&gt; examples@) and run various
+<span class="lineno">   33 </span>tests (pretty-printing, type synthesis, etc) against simple and compound modules uniformly. -}
+<span class="lineno">   34 </span>newtype FolderContents a = FolderContents
+<span class="lineno">   35 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unFolderContents</span></span></span> :: [FsTree a]
+<span class="lineno">   36 </span>  }
+<span class="lineno">   37 </span>  deriving newtype (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>)
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>-- | A 'PlcEntity' is either a 'Type' or a 'Term'.
+<span class="lineno">   40 </span>data PlcEntity uni fun
+<span class="lineno">   41 </span>  = PlcType (Type TyName uni ())
+<span class="lineno">   42 </span>  | PlcTerm (Term TyName Name uni fun ())
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>type PlcFsTree uni fun = FsTree (PlcEntity uni fun)
+<span class="lineno">   45 </span>type PlcFolderContents uni fun = FolderContents (PlcEntity uni fun)
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>-- | Construct an 'FsTree' out of the name of a folder and a list of 'FsTree's.
+<span class="lineno">   48 </span>treeFolderContents :: String -&gt; [FsTree a] -&gt; FsTree a
+<span class="lineno">   49 </span><span class="decl"><span class="istickedoff">treeFolderContents name = FsFolder name . FolderContents</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>-- | Construct a single-file 'PlcFsTree' out of a type.
+<span class="lineno">   52 </span>plcTypeFile :: String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">plcTypeFile name = FsFile name . PlcType</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>-- | Construct a single-file 'PlcFsTree' out of a term.
+<span class="lineno">   56 </span>plcTermFile :: String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">plcTermFile name = FsFile name . PlcTerm</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>-- | Fold a 'FsTree'.
+<span class="lineno">   60 </span>foldFsTree
+<span class="lineno">   61 </span>  :: (String -&gt; [b] -&gt; b)
+<span class="lineno">   62 </span>  -- ^ What to do on a folder.
+<span class="lineno">   63 </span>  -&gt; (String -&gt; a -&gt; b)
+<span class="lineno">   64 </span>  -- ^ What to do on a single file in a folder.
+<span class="lineno">   65 </span>  -&gt; FsTree a
+<span class="lineno">   66 </span>  -&gt; b
+<span class="lineno">   67 </span><span class="decl"><span class="istickedoff">foldFsTree onFolder onFile = go</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">go (FsFolder name (FolderContents trees)) = onFolder name $ map go trees</span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="istickedoff">go (FsFile name x) = onFile name x</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>-- | Fold a 'PlcFsTree'.
+<span class="lineno">   73 </span>foldPlcFsTree
+<span class="lineno">   74 </span>  :: (String -&gt; [b] -&gt; b)
+<span class="lineno">   75 </span>  -- ^ What to do on a folder.
+<span class="lineno">   76 </span>  -&gt; (String -&gt; Type TyName uni () -&gt; b)
+<span class="lineno">   77 </span>  -- ^ What to do on a type.
+<span class="lineno">   78 </span>  -&gt; (String -&gt; Term TyName Name uni fun () -&gt; b)
+<span class="lineno">   79 </span>  -- ^ What to do on a term.
+<span class="lineno">   80 </span>  -&gt; PlcFsTree uni fun
+<span class="lineno">   81 </span>  -&gt; b
+<span class="lineno">   82 </span><span class="decl"><span class="istickedoff">foldPlcFsTree onFolder onType onTerm = foldFsTree onFolder onFile</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="istickedoff">onFile name (PlcType getTy) = onType name getTy</span>
+<span class="lineno">   85 </span><span class="spaces">    </span><span class="istickedoff">onFile name (PlcTerm getTerm) = onTerm name getTerm</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>-- | Fold the contents of a PLC folder.
+<span class="lineno">   88 </span>foldPlcFolderContents
+<span class="lineno">   89 </span>  :: (String -&gt; [b] -&gt; b)
+<span class="lineno">   90 </span>  -- ^ What to do on a folder.
+<span class="lineno">   91 </span>  -&gt; (String -&gt; Type TyName uni () -&gt; b)
+<span class="lineno">   92 </span>  -- ^ What to do on a type.
+<span class="lineno">   93 </span>  -&gt; (String -&gt; Term TyName Name uni fun () -&gt; b)
+<span class="lineno">   94 </span>  -- ^ What to do on a term.
+<span class="lineno">   95 </span>  -&gt; PlcFolderContents uni fun
+<span class="lineno">   96 </span>  -&gt; [b]
+<span class="lineno">   97 </span><span class="decl"><span class="istickedoff">foldPlcFolderContents onFolder onType onTerm (FolderContents trees) =</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="istickedoff">map (foldPlcFsTree onFolder onType onTerm) trees</span></span>
+
+</pre>
+</body>
+</html>

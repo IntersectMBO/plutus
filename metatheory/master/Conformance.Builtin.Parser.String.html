@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Parser.String</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Parser.String</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/parser/string</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="447" class="Keyword">module</a> <a id="454" href="Conformance.Builtin.Parser.String.html" class="Module">Conformance.Builtin.Parser.String</a> <a id="488" class="Keyword">where</a>
+
+<a id="495" class="Keyword">open</a> <a id="500" class="Keyword">import</a> <a id="507" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="string-01">string-01</h2>
+
+<pre class="Agda"><a id="547" class="Comment">-- builtin/parser/string/string-01</a>
+<a id="test-string-01"></a><a id="582" href="Conformance.Builtin.Parser.String.html#582" class="Function">test-string-01</a> <a id="597" class="Symbol">:</a> <a id="599" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="607" href="Conformance.Builtin.Parser.String.html#582" class="Function">test-string-01</a> <a id="622" class="Symbol">=</a> <a id="624" class="Symbol">(</a><a id="625" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="630" class="Symbol">(</a><a id="631" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="638" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="645" class="String">&quot;&quot;</a><a id="647" class="Symbol">))</a>
+
+<a id="expected-string-01"></a><a id="651" href="Conformance.Builtin.Parser.String.html#651" class="Function">expected-string-01</a> <a id="670" class="Symbol">:</a> <a id="672" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="679" href="Conformance.Builtin.Parser.String.html#651" class="Function">expected-string-01</a> <a id="698" class="Symbol">=</a> <a id="700" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="708" class="Symbol">(</a><a id="709" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="714" class="Symbol">(</a><a id="715" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="722" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="729" class="String">&quot;&quot;</a><a id="731" class="Symbol">))</a>
+
+<a id="735" href="Conformance.Builtin.Parser.String.html#735" class="Function">_</a> <a id="737" class="Symbol">:</a> <a id="739" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="747" href="Conformance.Builtin.Parser.String.html#582" class="Function">test-string-01</a> <a id="762" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="764" href="Conformance.Builtin.Parser.String.html#651" class="Function">expected-string-01</a>
+<a id="783" class="Symbol">_</a> <a id="785" class="Symbol">=</a> <a id="787" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="string-02">string-02</h2>
+
+<pre class="Agda"><a id="815" class="Comment">-- builtin/parser/string/string-02</a>
+<a id="test-string-02"></a><a id="850" href="Conformance.Builtin.Parser.String.html#850" class="Function">test-string-02</a> <a id="865" class="Symbol">:</a> <a id="867" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="875" href="Conformance.Builtin.Parser.String.html#850" class="Function">test-string-02</a> <a id="890" class="Symbol">=</a> <a id="892" class="Symbol">(</a><a id="893" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="898" class="Symbol">(</a><a id="899" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="906" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="913" class="String">&quot;xyz&quot;</a><a id="918" class="Symbol">))</a>
+
+<a id="expected-string-02"></a><a id="922" href="Conformance.Builtin.Parser.String.html#922" class="Function">expected-string-02</a> <a id="941" class="Symbol">:</a> <a id="943" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="950" href="Conformance.Builtin.Parser.String.html#922" class="Function">expected-string-02</a> <a id="969" class="Symbol">=</a> <a id="971" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="979" class="Symbol">(</a><a id="980" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="985" class="Symbol">(</a><a id="986" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="993" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="1000" class="String">&quot;xyz&quot;</a><a id="1005" class="Symbol">))</a>
+
+<a id="1009" href="Conformance.Builtin.Parser.String.html#1009" class="Function">_</a> <a id="1011" class="Symbol">:</a> <a id="1013" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1021" href="Conformance.Builtin.Parser.String.html#850" class="Function">test-string-02</a> <a id="1036" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1038" href="Conformance.Builtin.Parser.String.html#922" class="Function">expected-string-02</a>
+<a id="1057" class="Symbol">_</a> <a id="1059" class="Symbol">=</a> <a id="1061" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="string-03">string-03</h2>
+
+<pre class="Agda"><a id="1089" class="Comment">-- builtin/parser/string/string-03</a>
+<a id="test-string-03"></a><a id="1124" href="Conformance.Builtin.Parser.String.html#1124" class="Function">test-string-03</a> <a id="1139" class="Symbol">:</a> <a id="1141" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1149" href="Conformance.Builtin.Parser.String.html#1124" class="Function">test-string-03</a> <a id="1164" class="Symbol">=</a> <a id="1166" class="Symbol">(</a><a id="1167" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1172" class="Symbol">(</a><a id="1173" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1180" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="1187" class="String">&quot;\955-calculus&quot;</a><a id="1202" class="Symbol">))</a>
+
+<a id="expected-string-03"></a><a id="1206" href="Conformance.Builtin.Parser.String.html#1206" class="Function">expected-string-03</a> <a id="1225" class="Symbol">:</a> <a id="1227" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1234" href="Conformance.Builtin.Parser.String.html#1206" class="Function">expected-string-03</a> <a id="1253" class="Symbol">=</a> <a id="1255" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1263" class="Symbol">(</a><a id="1264" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1269" class="Symbol">(</a><a id="1270" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1277" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="1284" class="String">&quot;\955-calculus&quot;</a><a id="1299" class="Symbol">))</a>
+
+<a id="1303" href="Conformance.Builtin.Parser.String.html#1303" class="Function">_</a> <a id="1305" class="Symbol">:</a> <a id="1307" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1315" href="Conformance.Builtin.Parser.String.html#1124" class="Function">test-string-03</a> <a id="1330" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1332" href="Conformance.Builtin.Parser.String.html#1206" class="Function">expected-string-03</a>
+<a id="1351" class="Symbol">_</a> <a id="1353" class="Symbol">=</a> <a id="1355" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="string-04">string-04</h2>
+
+<pre class="Agda"><a id="1383" class="Comment">-- builtin/parser/string/string-04</a>
+<a id="test-string-04"></a><a id="1418" href="Conformance.Builtin.Parser.String.html#1418" class="Function">test-string-04</a> <a id="1433" class="Symbol">:</a> <a id="1435" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1443" href="Conformance.Builtin.Parser.String.html#1418" class="Function">test-string-04</a> <a id="1458" class="Symbol">=</a> <a id="1460" class="Symbol">(</a><a id="1461" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1466" class="Symbol">(</a><a id="1467" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1474" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="1481" class="String">&quot;\t\&quot;Success!\&quot;\n&quot;</a><a id="1499" class="Symbol">))</a>
+
+<a id="expected-string-04"></a><a id="1503" href="Conformance.Builtin.Parser.String.html#1503" class="Function">expected-string-04</a> <a id="1522" class="Symbol">:</a> <a id="1524" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1531" href="Conformance.Builtin.Parser.String.html#1503" class="Function">expected-string-04</a> <a id="1550" class="Symbol">=</a> <a id="1552" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1560" class="Symbol">(</a><a id="1561" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1566" class="Symbol">(</a><a id="1567" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1574" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="1581" class="String">&quot;\t\&quot;Success!\&quot;\n&quot;</a><a id="1599" class="Symbol">))</a>
+
+<a id="1603" href="Conformance.Builtin.Parser.String.html#1603" class="Function">_</a> <a id="1605" class="Symbol">:</a> <a id="1607" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1615" href="Conformance.Builtin.Parser.String.html#1418" class="Function">test-string-04</a> <a id="1630" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1632" href="Conformance.Builtin.Parser.String.html#1503" class="Function">expected-string-04</a>
+<a id="1651" class="Symbol">_</a> <a id="1653" class="Symbol">=</a> <a id="1655" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="string-05">string-05</h2>
+
+<pre class="Agda"><a id="1683" class="Comment">-- builtin/parser/string/string-05</a>
+<a id="test-string-05"></a><a id="1718" href="Conformance.Builtin.Parser.String.html#1718" class="Function">test-string-05</a> <a id="1733" class="Symbol">:</a> <a id="1735" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1743" href="Conformance.Builtin.Parser.String.html#1718" class="Function">test-string-05</a> <a id="1758" class="Symbol">=</a> <a id="1760" class="Symbol">(</a><a id="1761" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1766" class="Symbol">(</a><a id="1767" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1774" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="1781" class="String">&quot;x \8712 \8477 \8658 x\178 \8805 0; z \8712 \8450\\\8477 \8658 z\178 \8713 {x \8712 \8477: x \8805 0}.&quot;</a><a id="1884" class="Symbol">))</a>
+
+<a id="expected-string-05"></a><a id="1888" href="Conformance.Builtin.Parser.String.html#1888" class="Function">expected-string-05</a> <a id="1907" class="Symbol">:</a> <a id="1909" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1916" href="Conformance.Builtin.Parser.String.html#1888" class="Function">expected-string-05</a> <a id="1935" class="Symbol">=</a> <a id="1937" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1945" class="Symbol">(</a><a id="1946" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1951" class="Symbol">(</a><a id="1952" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1959" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="1966" class="String">&quot;x \8712 \8477 \8658 x\178 \8805 0; z \8712 \8450\\\8477 \8658 z\178 \8713 {x \8712 \8477: x \8805 0}.&quot;</a><a id="2069" class="Symbol">))</a>
+
+<a id="2073" href="Conformance.Builtin.Parser.String.html#2073" class="Function">_</a> <a id="2075" class="Symbol">:</a> <a id="2077" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2085" href="Conformance.Builtin.Parser.String.html#1718" class="Function">test-string-05</a> <a id="2100" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2102" href="Conformance.Builtin.Parser.String.html#1888" class="Function">expected-string-05</a>
+<a id="2121" class="Symbol">_</a> <a id="2123" class="Symbol">=</a> <a id="2125" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="string-06">string-06</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+<h2 id="string-07">string-07</h2>
+
+<pre class="Agda"><a id="2250" class="Comment">-- builtin/parser/string/string-07</a>
+<a id="test-string-07"></a><a id="2285" href="Conformance.Builtin.Parser.String.html#2285" class="Function">test-string-07</a> <a id="2300" class="Symbol">:</a> <a id="2302" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="2310" href="Conformance.Builtin.Parser.String.html#2285" class="Function">test-string-07</a> <a id="2325" class="Symbol">=</a> <a id="2327" class="Symbol">(</a><a id="2328" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2333" class="Symbol">(</a><a id="2334" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2341" class="Symbol">(</a><a id="2342" href="RawU.html#2798" class="InductiveConstructor">list</a> <a id="2347" href="RawU.html#2518" class="InductiveConstructor">string</a><a id="2353" class="Symbol">)</a> <a id="2355" class="Symbol">(</a><a id="2356" class="String">&quot;z \8712 \8477 \8658 x\178 \8805 0; z \8712 \8450&quot;</a> <a id="2407" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2409" class="String">&quot;x \8712 \8477 \8658 x\178 \8805 0; z \8712 \8450\\\8477 \8658 z\178 \8713 {x \8712 \8477: x \8805 0}.&quot;</a> <a id="2513" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2515" class="String">&quot;\\&quot;</a> <a id="2520" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2522" class="String">&quot;\&quot;&quot;</a> <a id="2527" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2529" class="String">&quot;--- \&quot;\&quot;\&quot;\&quot; \\ \\ \\\\ \\\\\\ \&quot;&quot;</a> <a id="2565" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2567" class="String">&quot;\b\n\a\t&quot;</a> <a id="2578" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2580" class="String">&quot;\DEL&quot;</a> <a id="2587" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2589" class="String">&quot;\8364&quot;</a> <a id="2597" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2599" class="String">&quot;\n&quot;</a> <a id="2604" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2606" class="String">&quot;\t&quot;</a> <a id="2611" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2613" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="2615" class="Symbol">)))</a>
+
+<a id="expected-string-07"></a><a id="2620" href="Conformance.Builtin.Parser.String.html#2620" class="Function">expected-string-07</a> <a id="2639" class="Symbol">:</a> <a id="2641" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="2648" href="Conformance.Builtin.Parser.String.html#2620" class="Function">expected-string-07</a> <a id="2667" class="Symbol">=</a> <a id="2669" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="2677" class="Symbol">(</a><a id="2678" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2683" class="Symbol">(</a><a id="2684" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2691" class="Symbol">(</a><a id="2692" href="RawU.html#2798" class="InductiveConstructor">list</a> <a id="2697" href="RawU.html#2518" class="InductiveConstructor">string</a><a id="2703" class="Symbol">)</a> <a id="2705" class="Symbol">(</a><a id="2706" class="String">&quot;z \8712 \8477 \8658 x\178 \8805 0; z \8712 \8450&quot;</a> <a id="2757" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2759" class="String">&quot;x \8712 \8477 \8658 x\178 \8805 0; z \8712 \8450\\\8477 \8658 z\178 \8713 {x \8712 \8477: x \8805 0}.&quot;</a> <a id="2863" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2865" class="String">&quot;\\&quot;</a> <a id="2870" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2872" class="String">&quot;\&quot;&quot;</a> <a id="2877" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2879" class="String">&quot;--- \&quot;\&quot;\&quot;\&quot; \\ \\ \\\\ \\\\\\ \&quot;&quot;</a> <a id="2915" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2917" class="String">&quot;\b\n\a\t&quot;</a> <a id="2928" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2930" class="String">&quot;\DEL&quot;</a> <a id="2937" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2939" class="String">&quot;\8364&quot;</a> <a id="2947" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2949" class="String">&quot;\n&quot;</a> <a id="2954" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2956" class="String">&quot;\t&quot;</a> <a id="2961" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2963" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="2965" class="Symbol">)))</a>
+
+<a id="2970" href="Conformance.Builtin.Parser.String.html#2970" class="Function">_</a> <a id="2972" class="Symbol">:</a> <a id="2974" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2982" href="Conformance.Builtin.Parser.String.html#2285" class="Function">test-string-07</a> <a id="2997" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2999" href="Conformance.Builtin.Parser.String.html#2620" class="Function">expected-string-07</a>
+<a id="3018" class="Symbol">_</a> <a id="3020" class="Symbol">=</a> <a id="3022" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="string-08">string-08</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+    </section>
+  </body>
+</html>

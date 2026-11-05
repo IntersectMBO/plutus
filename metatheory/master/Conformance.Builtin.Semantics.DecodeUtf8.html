@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.DecodeUtf8</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.DecodeUtf8</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/decodeUtf8</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="461" class="Keyword">module</a> <a id="468" href="Conformance.Builtin.Semantics.DecodeUtf8.html" class="Module">Conformance.Builtin.Semantics.DecodeUtf8</a> <a id="509" class="Keyword">where</a>
+
+<a id="516" class="Keyword">open</a> <a id="521" class="Keyword">import</a> <a id="528" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="decodeutf8-invalid">decodeUtf8-invalid</h2>
+
+<pre class="Agda"><a id="577" class="Comment">-- builtin/semantics/decodeUtf8/decodeUtf8-invalid</a>
+<a id="628" class="Comment">-- invalid utf8</a>
+<a id="test-decodeUtf8-invalid"></a><a id="644" href="Conformance.Builtin.Semantics.DecodeUtf8.html#644" class="Function">test-decodeUtf8-invalid</a> <a id="668" class="Symbol">:</a> <a id="670" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="678" href="Conformance.Builtin.Semantics.DecodeUtf8.html#644" class="Function">test-decodeUtf8-invalid</a> <a id="702" class="Symbol">=</a> <a id="704" class="Symbol">(</a><a id="705" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="710" class="Symbol">(</a><a id="711" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="720" href="Builtin.html#2882" class="InductiveConstructor">decodeUtf8</a><a id="730" class="Symbol">)</a> <a id="732" class="Symbol">(</a><a id="733" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="738" class="Symbol">(</a><a id="739" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="746" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="757" class="Symbol">(</a><a id="758" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="771" class="String">&quot;\163&quot;</a><a id="777" class="Symbol">))))</a>
+
+<a id="expected-decodeUtf8-invalid"></a><a id="783" href="Conformance.Builtin.Semantics.DecodeUtf8.html#783" class="Function">expected-decodeUtf8-invalid</a> <a id="811" class="Symbol">:</a> <a id="813" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="820" href="Conformance.Builtin.Semantics.DecodeUtf8.html#783" class="Function">expected-decodeUtf8-invalid</a> <a id="848" class="Symbol">=</a> <a id="850" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="859" class="Comment">-- Pending: bytestring constant; postulated builtin `decodeUtf8`.</a>
+<a id="pending-decodeUtf8-invalid"></a><a id="925" href="Conformance.Builtin.Semantics.DecodeUtf8.html#925" class="Function">pending-decodeUtf8-invalid</a> <a id="952" class="Symbol">:</a> <a id="954" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="958" href="Conformance.Builtin.Semantics.DecodeUtf8.html#925" class="Function">pending-decodeUtf8-invalid</a> <a id="985" class="Symbol">=</a> <a id="987" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="995" class="Symbol">(</a><a id="996" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1004" href="Conformance.Builtin.Semantics.DecodeUtf8.html#644" class="Function">test-decodeUtf8-invalid</a> <a id="1028" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1030" href="Conformance.Builtin.Semantics.DecodeUtf8.html#783" class="Function">expected-decodeUtf8-invalid</a><a id="1057" class="Symbol">)</a>
+</pre>
+<h2 id="decodeutf8-ok">decodeUtf8-ok</h2>
+
+<pre class="Agda"><a id="1086" class="Comment">-- builtin/semantics/decodeUtf8/decodeUtf8-ok</a>
+<a id="test-decodeUtf8-ok"></a><a id="1132" href="Conformance.Builtin.Semantics.DecodeUtf8.html#1132" class="Function">test-decodeUtf8-ok</a> <a id="1151" class="Symbol">:</a> <a id="1153" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1161" href="Conformance.Builtin.Semantics.DecodeUtf8.html#1132" class="Function">test-decodeUtf8-ok</a> <a id="1180" class="Symbol">=</a> <a id="1182" class="Symbol">(</a><a id="1183" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1188" class="Symbol">(</a><a id="1189" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1198" href="Builtin.html#2882" class="InductiveConstructor">decodeUtf8</a><a id="1208" class="Symbol">)</a> <a id="1210" class="Symbol">(</a><a id="1211" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1216" class="Symbol">(</a><a id="1217" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1224" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1235" class="Symbol">(</a><a id="1236" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1249" class="String">&quot;Ola&quot;</a><a id="1254" class="Symbol">))))</a>
+
+<a id="expected-decodeUtf8-ok"></a><a id="1260" href="Conformance.Builtin.Semantics.DecodeUtf8.html#1260" class="Function">expected-decodeUtf8-ok</a> <a id="1283" class="Symbol">:</a> <a id="1285" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1292" href="Conformance.Builtin.Semantics.DecodeUtf8.html#1260" class="Function">expected-decodeUtf8-ok</a> <a id="1315" class="Symbol">=</a> <a id="1317" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1325" class="Symbol">(</a><a id="1326" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1331" class="Symbol">(</a><a id="1332" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1339" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="1346" class="String">&quot;Ola&quot;</a><a id="1351" class="Symbol">))</a>
+
+<a id="1355" class="Comment">-- Pending: bytestring constant; postulated builtin `decodeUtf8`.</a>
+<a id="pending-decodeUtf8-ok"></a><a id="1421" href="Conformance.Builtin.Semantics.DecodeUtf8.html#1421" class="Function">pending-decodeUtf8-ok</a> <a id="1443" class="Symbol">:</a> <a id="1445" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1449" href="Conformance.Builtin.Semantics.DecodeUtf8.html#1421" class="Function">pending-decodeUtf8-ok</a> <a id="1471" class="Symbol">=</a> <a id="1473" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1481" class="Symbol">(</a><a id="1482" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1490" href="Conformance.Builtin.Semantics.DecodeUtf8.html#1132" class="Function">test-decodeUtf8-ok</a> <a id="1509" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1511" href="Conformance.Builtin.Semantics.DecodeUtf8.html#1260" class="Function">expected-decodeUtf8-ok</a><a id="1533" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

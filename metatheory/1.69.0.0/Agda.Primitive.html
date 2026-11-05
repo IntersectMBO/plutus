@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Agda.Primitive</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">-- The Agda primitives (preloaded).</a>
+
+<a id="38" class="Symbol">{-#</a> <a id="42" class="Keyword">OPTIONS</a> <a id="50" class="Pragma">--cubical-compatible</a> <a id="71" class="Pragma">--no-import-sorts</a> <a id="89" class="Pragma">--level-universe</a> <a id="106" class="Symbol">#-}</a>
+
+<a id="111" class="Keyword">module</a> <a id="118" href="Agda.Primitive.html" class="Module">Agda.Primitive</a> <a id="133" class="Keyword">where</a>
+
+<a id="140" class="Comment">------------------------------------------------------------------------</a>
+<a id="213" class="Comment">-- Universe levels</a>
+<a id="232" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="306" class="Keyword">infixl</a> <a id="313" class="Number">6</a> <a id="315" href="Agda.Primitive.html#961" class="Primitive Operator">_⊔_</a>
+
+<a id="320" class="Symbol">{-#</a> <a id="324" class="Keyword">BUILTIN</a> <a id="332" class="Keyword">PROP</a>           <a id="Prop"></a><a id="347" href="Agda.Primitive.html#347" class="Primitive">Prop</a>      <a id="357" class="Symbol">#-}</a>
+<a id="361" class="Symbol">{-#</a> <a id="365" class="Keyword">BUILTIN</a> <a id="373" class="Keyword">TYPE</a>           <a id="Set"></a><a id="388" href="Agda.Primitive.html#388" class="Primitive">Set</a>       <a id="398" class="Symbol">#-}</a>
+<a id="402" class="Symbol">{-#</a> <a id="406" class="Keyword">BUILTIN</a> <a id="414" class="Keyword">STRICTSET</a>      <a id="SSet"></a><a id="429" href="Agda.Primitive.html#429" class="Primitive">SSet</a>      <a id="439" class="Symbol">#-}</a>
+
+<a id="444" class="Symbol">{-#</a> <a id="448" class="Keyword">BUILTIN</a> <a id="456" class="Keyword">PROPOMEGA</a>      <a id="Propω"></a><a id="471" href="Agda.Primitive.html#471" class="Primitive">Propω</a>     <a id="481" class="Symbol">#-}</a>
+<a id="485" class="Symbol">{-#</a> <a id="489" class="Keyword">BUILTIN</a> <a id="497" class="Keyword">SETOMEGA</a>       <a id="Setω"></a><a id="512" href="Agda.Primitive.html#512" class="Primitive">Setω</a>      <a id="522" class="Symbol">#-}</a>
+<a id="526" class="Symbol">{-#</a> <a id="530" class="Keyword">BUILTIN</a> <a id="538" class="Keyword">STRICTSETOMEGA</a> <a id="SSetω"></a><a id="553" href="Agda.Primitive.html#553" class="Primitive">SSetω</a>     <a id="563" class="Symbol">#-}</a>
+
+<a id="568" class="Symbol">{-#</a> <a id="572" class="Keyword">BUILTIN</a> <a id="580" class="Keyword">LEVELUNIV</a>      <a id="LevelUniv"></a><a id="595" href="Agda.Primitive.html#595" class="Primitive">LevelUniv</a> <a id="605" class="Symbol">#-}</a>
+
+<a id="610" class="Comment">-- Level is the first thing we need to define.</a>
+<a id="657" class="Comment">-- The other postulates can only be checked if built-in Level is known.</a>
+
+<a id="730" class="Keyword">postulate</a>
+  <a id="Level"></a><a id="742" href="Agda.Primitive.html#742" class="Postulate">Level</a> <a id="748" class="Symbol">:</a> <a id="750" href="Agda.Primitive.html#595" class="Primitive">LevelUniv</a>
+
+<a id="761" class="Comment">-- MAlonzo compiles Level to (). This should be safe, because it is</a>
+<a id="829" class="Comment">-- not possible to pattern match on levels.</a>
+
+<a id="874" class="Symbol">{-#</a> <a id="878" class="Keyword">BUILTIN</a> <a id="886" class="Keyword">LEVEL</a> <a id="892" href="Agda.Primitive.html#742" class="Postulate">Level</a> <a id="898" class="Symbol">#-}</a>
+
+<a id="903" class="Keyword">postulate</a>
+  <a id="lzero"></a><a id="915" href="Agda.Primitive.html#915" class="Postulate">lzero</a> <a id="921" class="Symbol">:</a> <a id="923" href="Agda.Primitive.html#742" class="Postulate">Level</a>
+  <a id="lsuc"></a><a id="931" href="Agda.Primitive.html#931" class="Postulate">lsuc</a>  <a id="937" class="Symbol">:</a> <a id="939" class="Symbol">(</a><a id="940" href="Agda.Primitive.html#940" class="Bound">ℓ</a> <a id="942" class="Symbol">:</a> <a id="944" href="Agda.Primitive.html#742" class="Postulate">Level</a><a id="949" class="Symbol">)</a> <a id="951" class="Symbol">→</a> <a id="953" href="Agda.Primitive.html#742" class="Postulate">Level</a>
+  <a id="_⊔_"></a><a id="961" href="Agda.Primitive.html#961" class="Postulate Operator">_⊔_</a>   <a id="967" class="Symbol">:</a> <a id="969" class="Symbol">(</a><a id="970" href="Agda.Primitive.html#970" class="Bound">ℓ₁</a> <a id="973" href="Agda.Primitive.html#973" class="Bound">ℓ₂</a> <a id="976" class="Symbol">:</a> <a id="978" href="Agda.Primitive.html#742" class="Postulate">Level</a><a id="983" class="Symbol">)</a> <a id="985" class="Symbol">→</a> <a id="987" href="Agda.Primitive.html#742" class="Postulate">Level</a>
+
+<a id="994" class="Symbol">{-#</a> <a id="998" class="Keyword">BUILTIN</a> <a id="1006" class="Keyword">LEVELZERO</a> <a id="1016" href="Agda.Primitive.html#915" class="Primitive">lzero</a> <a id="1022" class="Symbol">#-}</a>
+<a id="1026" class="Symbol">{-#</a> <a id="1030" class="Keyword">BUILTIN</a> <a id="1038" class="Keyword">LEVELSUC</a>  <a id="1048" href="Agda.Primitive.html#931" class="Primitive">lsuc</a>  <a id="1054" class="Symbol">#-}</a>
+<a id="1058" class="Symbol">{-#</a> <a id="1062" class="Keyword">BUILTIN</a> <a id="1070" class="Keyword">LEVELMAX</a>  <a id="1080" href="Agda.Primitive.html#961" class="Primitive Operator">_⊔_</a>   <a id="1086" class="Symbol">#-}</a>
+</pre></body></html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Parser.Bool</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Parser.Bool</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/parser/bool</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="443" class="Keyword">module</a> <a id="450" href="Conformance.Builtin.Parser.Bool.html" class="Module">Conformance.Builtin.Parser.Bool</a> <a id="482" class="Keyword">where</a>
+
+<a id="489" class="Keyword">open</a> <a id="494" class="Keyword">import</a> <a id="501" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="false">False</h2>
+
+<pre class="Agda"><a id="537" class="Comment">-- builtin/parser/bool/False</a>
+<a id="test-False"></a><a id="566" href="Conformance.Builtin.Parser.Bool.html#566" class="Function">test-False</a> <a id="577" class="Symbol">:</a> <a id="579" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="587" href="Conformance.Builtin.Parser.Bool.html#566" class="Function">test-False</a> <a id="598" class="Symbol">=</a> <a id="600" class="Symbol">(</a><a id="601" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="606" class="Symbol">(</a><a id="607" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="614" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="619" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="624" class="Symbol">))</a>
+
+<a id="expected-False"></a><a id="628" href="Conformance.Builtin.Parser.Bool.html#628" class="Function">expected-False</a> <a id="643" class="Symbol">:</a> <a id="645" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="652" href="Conformance.Builtin.Parser.Bool.html#628" class="Function">expected-False</a> <a id="667" class="Symbol">=</a> <a id="669" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="677" class="Symbol">(</a><a id="678" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="683" class="Symbol">(</a><a id="684" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="691" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="696" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="701" class="Symbol">))</a>
+
+<a id="705" href="Conformance.Builtin.Parser.Bool.html#705" class="Function">_</a> <a id="707" class="Symbol">:</a> <a id="709" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="717" href="Conformance.Builtin.Parser.Bool.html#566" class="Function">test-False</a> <a id="728" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="730" href="Conformance.Builtin.Parser.Bool.html#628" class="Function">expected-False</a>
+<a id="745" class="Symbol">_</a> <a id="747" class="Symbol">=</a> <a id="749" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="maybe">Maybe</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+<h2 id="true">True</h2>
+
+<pre class="Agda"><a id="865" class="Comment">-- builtin/parser/bool/True</a>
+<a id="test-True"></a><a id="893" href="Conformance.Builtin.Parser.Bool.html#893" class="Function">test-True</a> <a id="903" class="Symbol">:</a> <a id="905" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="913" href="Conformance.Builtin.Parser.Bool.html#893" class="Function">test-True</a> <a id="923" class="Symbol">=</a> <a id="925" class="Symbol">(</a><a id="926" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="931" class="Symbol">(</a><a id="932" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="939" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="944" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="948" class="Symbol">))</a>
+
+<a id="expected-True"></a><a id="952" href="Conformance.Builtin.Parser.Bool.html#952" class="Function">expected-True</a> <a id="966" class="Symbol">:</a> <a id="968" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="975" href="Conformance.Builtin.Parser.Bool.html#952" class="Function">expected-True</a> <a id="989" class="Symbol">=</a> <a id="991" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="999" class="Symbol">(</a><a id="1000" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1005" class="Symbol">(</a><a id="1006" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1013" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="1018" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="1022" class="Symbol">))</a>
+
+<a id="1026" href="Conformance.Builtin.Parser.Bool.html#1026" class="Function">_</a> <a id="1028" class="Symbol">:</a> <a id="1030" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1038" href="Conformance.Builtin.Parser.Bool.html#893" class="Function">test-True</a> <a id="1048" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1050" href="Conformance.Builtin.Parser.Bool.html#952" class="Function">expected-True</a>
+<a id="1064" class="Symbol">_</a> <a id="1066" class="Symbol">=</a> <a id="1068" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="boolean">boolean</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+<h2 id="false-lc">false-lc</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+<h2 id="true-lc">true-lc</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+    </section>
+  </body>
+</html>

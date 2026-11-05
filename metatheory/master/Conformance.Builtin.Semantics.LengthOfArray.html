@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.LengthOfArray</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.LengthOfArray</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lengthOfArray</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="467" class="Keyword">module</a> <a id="474" href="Conformance.Builtin.Semantics.LengthOfArray.html" class="Module">Conformance.Builtin.Semantics.LengthOfArray</a> <a id="518" class="Keyword">where</a>
+
+<a id="525" class="Keyword">open</a> <a id="530" class="Keyword">import</a> <a id="537" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="lengthofarray-01">lengthOfArray-01</h2>
+
+<pre class="Agda"><a id="584" class="Comment">-- builtin/semantics/lengthOfArray/lengthOfArray-01</a>
+<a id="636" class="Comment">-- Measuring the length of an empty array</a>
+<a id="test-lengthOfArray-01"></a><a id="678" href="Conformance.Builtin.Semantics.LengthOfArray.html#678" class="Function">test-lengthOfArray-01</a> <a id="700" class="Symbol">:</a> <a id="702" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="710" href="Conformance.Builtin.Semantics.LengthOfArray.html#678" class="Function">test-lengthOfArray-01</a> <a id="732" class="Symbol">=</a> <a id="734" class="Symbol">(</a><a id="735" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="740" class="Symbol">(</a><a id="741" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="748" class="Symbol">(</a><a id="749" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="758" href="Builtin.html#3433" class="InductiveConstructor">lengthOfArray</a><a id="771" class="Symbol">))</a> <a id="774" class="Symbol">(</a><a id="775" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="780" class="Symbol">(</a><a id="781" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="788" class="Symbol">(</a><a id="789" href="RawU.html#2863" class="InductiveConstructor">array</a> <a id="795" href="RawU.html#2560" class="InductiveConstructor">bool</a><a id="799" class="Symbol">)</a> <a id="801" class="Symbol">(</a><a id="802" href="Utils.html#7780" class="Postulate">mkArray</a> <a id="810" class="Symbol">((</a><a id="812" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="814" class="Symbol">))))))</a>
+
+<a id="expected-lengthOfArray-01"></a><a id="822" href="Conformance.Builtin.Semantics.LengthOfArray.html#822" class="Function">expected-lengthOfArray-01</a> <a id="848" class="Symbol">:</a> <a id="850" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="857" href="Conformance.Builtin.Semantics.LengthOfArray.html#822" class="Function">expected-lengthOfArray-01</a> <a id="883" class="Symbol">=</a> <a id="885" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="893" class="Symbol">(</a><a id="894" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="899" class="Symbol">(</a><a id="900" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="907" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="915" class="Symbol">(</a><a id="916" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="922" class="Number">0</a><a id="923" class="Symbol">)))</a>
+
+<a id="928" class="Comment">-- Pending: array constant; postulated builtin `lengthOfArray`.</a>
+<a id="pending-lengthOfArray-01"></a><a id="992" href="Conformance.Builtin.Semantics.LengthOfArray.html#992" class="Function">pending-lengthOfArray-01</a> <a id="1017" class="Symbol">:</a> <a id="1019" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1023" href="Conformance.Builtin.Semantics.LengthOfArray.html#992" class="Function">pending-lengthOfArray-01</a> <a id="1048" class="Symbol">=</a> <a id="1050" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1058" class="Symbol">(</a><a id="1059" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1067" href="Conformance.Builtin.Semantics.LengthOfArray.html#678" class="Function">test-lengthOfArray-01</a> <a id="1089" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1091" href="Conformance.Builtin.Semantics.LengthOfArray.html#822" class="Function">expected-lengthOfArray-01</a><a id="1116" class="Symbol">)</a>
+</pre>
+<h2 id="lengthofarray-02">lengthOfArray-02</h2>
+
+<pre class="Agda"><a id="1148" class="Comment">-- builtin/semantics/lengthOfArray/lengthOfArray-02</a>
+<a id="1200" class="Comment">-- Measuring the length of a non-empty array</a>
+<a id="test-lengthOfArray-02"></a><a id="1245" href="Conformance.Builtin.Semantics.LengthOfArray.html#1245" class="Function">test-lengthOfArray-02</a> <a id="1267" class="Symbol">:</a> <a id="1269" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1277" href="Conformance.Builtin.Semantics.LengthOfArray.html#1245" class="Function">test-lengthOfArray-02</a> <a id="1299" class="Symbol">=</a> <a id="1301" class="Symbol">(</a><a id="1302" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1307" class="Symbol">(</a><a id="1308" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="1315" class="Symbol">(</a><a id="1316" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1325" href="Builtin.html#3433" class="InductiveConstructor">lengthOfArray</a><a id="1338" class="Symbol">))</a> <a id="1341" class="Symbol">(</a><a id="1342" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1347" class="Symbol">(</a><a id="1348" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1355" class="Symbol">(</a><a id="1356" href="RawU.html#2863" class="InductiveConstructor">array</a> <a id="1362" href="RawU.html#2560" class="InductiveConstructor">bool</a><a id="1366" class="Symbol">)</a> <a id="1368" class="Symbol">(</a><a id="1369" href="Utils.html#7780" class="Postulate">mkArray</a> <a id="1377" class="Symbol">((</a><a id="1379" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a> <a id="1384" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1386" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a> <a id="1392" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1394" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a> <a id="1399" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1401" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1403" class="Symbol">))))))</a>
+
+<a id="expected-lengthOfArray-02"></a><a id="1411" href="Conformance.Builtin.Semantics.LengthOfArray.html#1411" class="Function">expected-lengthOfArray-02</a> <a id="1437" class="Symbol">:</a> <a id="1439" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1446" href="Conformance.Builtin.Semantics.LengthOfArray.html#1411" class="Function">expected-lengthOfArray-02</a> <a id="1472" class="Symbol">=</a> <a id="1474" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1482" class="Symbol">(</a><a id="1483" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1488" class="Symbol">(</a><a id="1489" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1496" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1504" class="Symbol">(</a><a id="1505" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1511" class="Number">3</a><a id="1512" class="Symbol">)))</a>
+
+<a id="1517" class="Comment">-- Pending: array constant; postulated builtin `lengthOfArray`.</a>
+<a id="pending-lengthOfArray-02"></a><a id="1581" href="Conformance.Builtin.Semantics.LengthOfArray.html#1581" class="Function">pending-lengthOfArray-02</a> <a id="1606" class="Symbol">:</a> <a id="1608" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1612" href="Conformance.Builtin.Semantics.LengthOfArray.html#1581" class="Function">pending-lengthOfArray-02</a> <a id="1637" class="Symbol">=</a> <a id="1639" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1647" class="Symbol">(</a><a id="1648" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1656" href="Conformance.Builtin.Semantics.LengthOfArray.html#1245" class="Function">test-lengthOfArray-02</a> <a id="1678" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1680" href="Conformance.Builtin.Semantics.LengthOfArray.html#1411" class="Function">expected-lengthOfArray-02</a><a id="1705" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.Blake2b224</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.Blake2b224</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/blake2b_224</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="462" class="Keyword">module</a> <a id="469" href="Conformance.Builtin.Semantics.Blake2b224.html" class="Module">Conformance.Builtin.Semantics.Blake2b224</a> <a id="510" class="Keyword">where</a>
+
+<a id="517" class="Keyword">open</a> <a id="522" class="Keyword">import</a> <a id="529" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="blake2b_224-empty">blake2b_224-empty</h2>
+
+<pre class="Agda"><a id="577" class="Comment">-- builtin/semantics/blake2b_224/blake2b_224-empty</a>
+<a id="628" class="Comment">-- Test vector (0-bit input) for Blake2b_224.</a>
+<a id="674" class="Comment">-- Output obtained using the b2sum program from https://github.com/BLAKE2/BLAKE2</a>
+<a id="test-blake2b-224-empty"></a><a id="755" href="Conformance.Builtin.Semantics.Blake2b224.html#755" class="Function">test-blake2b-224-empty</a> <a id="778" class="Symbol">:</a> <a id="780" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="788" href="Conformance.Builtin.Semantics.Blake2b224.html#755" class="Function">test-blake2b-224-empty</a> <a id="811" class="Symbol">=</a> <a id="813" class="Symbol">(</a><a id="814" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="819" class="Symbol">(</a><a id="820" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="825" class="Symbol">(</a><a id="826" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="835" href="Builtin.html#2313" class="InductiveConstructor">equalsByteString</a><a id="851" class="Symbol">)</a> <a id="853" class="Symbol">(</a><a id="854" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="859" class="Symbol">(</a><a id="860" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="869" href="Builtin.html#5505" class="InductiveConstructor">blake2b-224</a><a id="880" class="Symbol">)</a> <a id="882" class="Symbol">(</a><a id="883" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="888" class="Symbol">(</a><a id="889" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="896" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="907" class="Symbol">(</a><a id="908" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="921" class="String">&quot;&quot;</a><a id="923" class="Symbol">)))))</a> <a id="929" class="Symbol">(</a><a id="930" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="935" class="Symbol">(</a><a id="936" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="943" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="954" class="Symbol">(</a><a id="955" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="968" class="String">&quot;\131l\198\137\&amp;1\194\228\227\232\&amp;8`.\202\EM\STXY\GS!h7\186\253\223\230\240\200\203\a&quot;</a><a id="1055" class="Symbol">))))</a>
+
+<a id="expected-blake2b-224-empty"></a><a id="1061" href="Conformance.Builtin.Semantics.Blake2b224.html#1061" class="Function">expected-blake2b-224-empty</a> <a id="1088" class="Symbol">:</a> <a id="1090" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1097" href="Conformance.Builtin.Semantics.Blake2b224.html#1061" class="Function">expected-blake2b-224-empty</a> <a id="1124" class="Symbol">=</a> <a id="1126" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1134" class="Symbol">(</a><a id="1135" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1140" class="Symbol">(</a><a id="1141" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1148" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="1153" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="1157" class="Symbol">))</a>
+
+<a id="1161" class="Comment">-- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `blake2b-224`.</a>
+<a id="pending-blake2b-224-empty"></a><a id="1267" href="Conformance.Builtin.Semantics.Blake2b224.html#1267" class="Function">pending-blake2b-224-empty</a> <a id="1293" class="Symbol">:</a> <a id="1295" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1299" href="Conformance.Builtin.Semantics.Blake2b224.html#1267" class="Function">pending-blake2b-224-empty</a> <a id="1325" class="Symbol">=</a> <a id="1327" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1335" class="Symbol">(</a><a id="1336" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1344" href="Conformance.Builtin.Semantics.Blake2b224.html#755" class="Function">test-blake2b-224-empty</a> <a id="1367" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1369" href="Conformance.Builtin.Semantics.Blake2b224.html#1061" class="Function">expected-blake2b-224-empty</a><a id="1395" class="Symbol">)</a>
+</pre>
+<h2 id="blake2b_224-length-200">blake2b_224-length-200</h2>
+
+<pre class="Agda"><a id="1433" class="Comment">-- builtin/semantics/blake2b_224/blake2b_224-length-200</a>
+<a id="1489" class="Comment">-- Test vector (200-bit input) for Blake2b_224.</a>
+<a id="1537" class="Comment">-- Output obtained using the b2sum program from https://github.com/BLAKE2/BLAKE2</a>
+<a id="test-blake2b-224-length-200"></a><a id="1618" href="Conformance.Builtin.Semantics.Blake2b224.html#1618" class="Function">test-blake2b-224-length-200</a> <a id="1646" class="Symbol">:</a> <a id="1648" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1656" href="Conformance.Builtin.Semantics.Blake2b224.html#1618" class="Function">test-blake2b-224-length-200</a> <a id="1684" class="Symbol">=</a> <a id="1686" class="Symbol">(</a><a id="1687" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1692" class="Symbol">(</a><a id="1693" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1698" class="Symbol">(</a><a id="1699" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1708" href="Builtin.html#2313" class="InductiveConstructor">equalsByteString</a><a id="1724" class="Symbol">)</a> <a id="1726" class="Symbol">(</a><a id="1727" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1732" class="Symbol">(</a><a id="1733" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1742" href="Builtin.html#5505" class="InductiveConstructor">blake2b-224</a><a id="1753" class="Symbol">)</a> <a id="1755" class="Symbol">(</a><a id="1756" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1761" class="Symbol">(</a><a id="1762" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1769" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1780" class="Symbol">(</a><a id="1781" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1794" class="String">&quot;.~\168M\164\188M|\251F&gt;?,\134G\ENQz\255\243\251\236\236\161\210\NUL&quot;</a><a id="1863" class="Symbol">)))))</a> <a id="1869" class="Symbol">(</a><a id="1870" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1875" class="Symbol">(</a><a id="1876" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1883" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1894" class="Symbol">(</a><a id="1895" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1908" class="String">&quot;\147\212\184\fS\EM\152\151;\b)\DEL\197\EOT*\243Y\134Z\135\STX\242\v_\194\219\141\245&quot;</a><a id="1994" class="Symbol">))))</a>
+
+<a id="expected-blake2b-224-length-200"></a><a id="2000" href="Conformance.Builtin.Semantics.Blake2b224.html#2000" class="Function">expected-blake2b-224-length-200</a> <a id="2032" class="Symbol">:</a> <a id="2034" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="2041" href="Conformance.Builtin.Semantics.Blake2b224.html#2000" class="Function">expected-blake2b-224-length-200</a> <a id="2073" class="Symbol">=</a> <a id="2075" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="2083" class="Symbol">(</a><a id="2084" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2089" class="Symbol">(</a><a id="2090" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2097" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="2102" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="2106" class="Symbol">))</a>
+
+<a id="2110" class="Comment">-- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `blake2b-224`.</a>
+<a id="pending-blake2b-224-length-200"></a><a id="2216" href="Conformance.Builtin.Semantics.Blake2b224.html#2216" class="Function">pending-blake2b-224-length-200</a> <a id="2247" class="Symbol">:</a> <a id="2249" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="2253" href="Conformance.Builtin.Semantics.Blake2b224.html#2216" class="Function">pending-blake2b-224-length-200</a> <a id="2284" class="Symbol">=</a> <a id="2286" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="2294" class="Symbol">(</a><a id="2295" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2303" href="Conformance.Builtin.Semantics.Blake2b224.html#1618" class="Function">test-blake2b-224-length-200</a> <a id="2331" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2333" href="Conformance.Builtin.Semantics.Blake2b224.html#2000" class="Function">expected-blake2b-224-length-200</a><a id="2364" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

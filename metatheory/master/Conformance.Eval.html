@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Eval</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Eval</h1>
+    <section>
+      <p>Support for the generated conformance unit tests under <code class="language-plaintext highlighter-rouge">Conformance.*</code>.</p>
+
+<p>The modules under <code class="language-plaintext highlighter-rouge">Conformance</code> are generated from the UPLC evaluation
+conformance test cases in <code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation</code> by</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cabal run plutus-conformance:generate-agda-typecheck-conformance
+</code></pre></div></div>
+
+<p>(run from the repository root) and must not be edited by hand. Each test case
+becomes a <code class="language-plaintext highlighter-rouge">refl</code> proof that evaluating the program with the untyped CEK
+machine gives the expected result, or, when the case involves constants or
+builtins that are still postulated and so cannot reduce at type-checking time,
+a <em>pending</em> statement of that proposition which is type-checked but not proved.
+This module provides the evaluator wrapper and re-exports everything the
+generated code refers to.</p>
+
+<pre class="Agda"><a id="827" class="Keyword">module</a> <a id="834" href="Conformance.Eval.html" class="Module">Conformance.Eval</a> <a id="851" class="Keyword">where</a>
+
+<a id="858" class="Keyword">open</a> <a id="863" class="Keyword">import</a> <a id="870" href="Data.Unit.html" class="Module">Data.Unit</a> <a id="880" class="Keyword">public</a> <a id="887" class="Keyword">using</a> <a id="893" class="Symbol">(</a><a id="894" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="896" class="Symbol">)</a>
+<a id="898" class="Keyword">open</a> <a id="903" class="Keyword">import</a> <a id="910" href="Data.Bool.html" class="Module">Data.Bool</a> <a id="920" class="Keyword">public</a> <a id="927" class="Keyword">using</a> <a id="933" class="Symbol">(</a><a id="934" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="938" class="Symbol">;</a> <a id="940" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="945" class="Symbol">)</a>
+<a id="947" class="Keyword">open</a> <a id="952" class="Keyword">import</a> <a id="959" href="Data.Integer.html" class="Module">Data.Integer</a> <a id="972" class="Keyword">public</a> <a id="979" class="Keyword">using</a> <a id="985" class="Symbol">(</a><a id="986" href="Agda.Builtin.Int.html#245" class="Datatype">ℤ</a><a id="987" class="Symbol">)</a>
+<a id="989" class="Keyword">open</a> <a id="994" class="Keyword">import</a> <a id="1001" href="Relation.Binary.PropositionalEquality.html" class="Module">Relation.Binary.PropositionalEquality</a> <a id="1039" class="Keyword">public</a> <a id="1046" class="Keyword">using</a> <a id="1052" class="Symbol">(</a><a id="1053" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a><a id="1056" class="Symbol">;</a> <a id="1058" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a><a id="1062" class="Symbol">)</a>
+
+<a id="1065" class="Keyword">open</a> <a id="1070" class="Keyword">import</a> <a id="1077" href="Utils.html" class="Module">Utils</a> <a id="1083" class="Keyword">public</a>
+  <a id="1092" class="Keyword">using</a> <a id="1098" class="Symbol">(</a><a id="1099" href="Utils.html#6161" class="Datatype">List</a><a id="1103" class="Symbol">;</a> <a id="1105" href="Utils.html#5923" class="Record Operator">_×_</a><a id="1108" class="Symbol">;</a> <a id="1110" href="Utils.html#4869" class="InductiveConstructor Operator">_,_</a><a id="1113" class="Symbol">;</a> <a id="1115" href="Utils.html#7841" class="Datatype">DATA</a><a id="1119" class="Symbol">;</a> <a id="1121" href="Utils.html#5583" class="Postulate">mkByteString</a><a id="1133" class="Symbol">;</a> <a id="1135" href="Utils.html#7780" class="Postulate">mkArray</a><a id="1142" class="Symbol">;</a> <a id="1144" href="Utils.html#12317" class="Postulate">valueFromList</a><a id="1157" class="Symbol">)</a>
+<a id="1159" class="Keyword">open</a> <a id="1164" href="Utils.html#6161" class="Module">Utils.List</a> <a id="1175" class="Keyword">public</a>
+<a id="1182" class="Keyword">open</a> <a id="1187" href="Utils.html#7841" class="Module">Utils.DATA</a> <a id="1198" class="Keyword">public</a>
+
+<a id="1206" class="Keyword">open</a> <a id="1211" class="Keyword">import</a> <a id="1218" href="RawU.html" class="Module">RawU</a> <a id="1223" class="Keyword">public</a> <a id="1230" class="Keyword">using</a> <a id="1236" class="Symbol">(</a><a id="1237" href="RawU.html#8264" class="Datatype">Untyped</a><a id="1244" class="Symbol">;</a> <a id="1246" href="RawU.html#6434" class="Datatype">TagCon</a><a id="1252" class="Symbol">;</a> <a id="1254" href="RawU.html#2411" class="Datatype">Tag</a><a id="1257" class="Symbol">)</a>
+<a id="1259" class="Keyword">open</a> <a id="1264" href="RawU.html#8264" class="Module">RawU.Untyped</a> <a id="1277" class="Keyword">public</a>
+<a id="1284" class="Keyword">open</a> <a id="1289" href="RawU.html#6434" class="Module">RawU.TagCon</a> <a id="1301" class="Keyword">public</a>
+<a id="1308" class="Keyword">open</a> <a id="1313" href="RawU.html#2411" class="Module">RawU.Tag</a> <a id="1322" class="Keyword">public</a>
+
+<a id="1330" class="Keyword">open</a> <a id="1335" class="Keyword">import</a> <a id="1342" href="Builtin.html" class="Module">Builtin</a> <a id="1350" class="Keyword">public</a> <a id="1357" class="Keyword">using</a> <a id="1363" class="Symbol">(</a><a id="1364" href="Builtin.html#1600" class="Datatype">Builtin</a><a id="1371" class="Symbol">)</a>
+<a id="1373" class="Keyword">open</a> <a id="1378" href="Builtin.html#1600" class="Module">Builtin.Builtin</a> <a id="1394" class="Keyword">public</a>
+</pre>
+<h2 id="evaluation">Evaluation</h2>
+
+<p>A closed raw term is scope-checked, run through the untyped CEK machine with
+the same step budget as the compiled evaluator, and the resulting value is
+discharged and converted back to a raw term. Every way of failing (scope error,
+evaluation error, running out of steps) is collapsed into <code class="language-plaintext highlighter-rouge">failure</code>, which is
+what the conformance tests mean by <code class="language-plaintext highlighter-rouge">evaluation failure</code>.</p>
+
+<pre class="Agda"><a id="1793" class="Keyword">open</a> <a id="1798" class="Keyword">import</a> <a id="1805" href="Utils.html" class="Module">Utils</a> <a id="1811" class="Keyword">using</a> <a id="1817" class="Symbol">(</a><a id="1818" href="Utils.html#1276" class="Datatype">Either</a><a id="1824" class="Symbol">;</a> <a id="1826" href="Utils.html#1309" class="InductiveConstructor">inj₁</a><a id="1830" class="Symbol">;</a> <a id="1832" href="Utils.html#1333" class="InductiveConstructor">inj₂</a><a id="1836" class="Symbol">)</a>
+<a id="1838" class="Keyword">open</a> <a id="1843" class="Keyword">import</a> <a id="1850" href="Untyped.html" class="Module">Untyped</a> <a id="1858" class="Keyword">using</a> <a id="1864" class="Symbol">(</a><a id="1865" href="Untyped.html#1790" class="Datatype Operator">_⊢</a><a id="1867" class="Symbol">;</a> <a id="1869" href="Untyped.html#6879" class="Function">scopeCheckU0</a><a id="1881" class="Symbol">;</a> <a id="1883" href="Untyped.html#5681" class="Function">extricateU0</a><a id="1894" class="Symbol">)</a>
+<a id="1896" class="Keyword">open</a> <a id="1901" class="Keyword">import</a> <a id="1908" href="Untyped.CEK.html" class="Module">Untyped.CEK</a> <a id="1920" class="Keyword">using</a> <a id="1926" class="Symbol">(</a><a id="1927" href="Untyped.CEK.html#29561" class="Function">stepper</a><a id="1934" class="Symbol">;</a> <a id="1936" href="Untyped.CEK.html#1445" class="InductiveConstructor">ε</a><a id="1937" class="Symbol">;</a> <a id="1939" href="Untyped.CEK.html#1540" class="InductiveConstructor">[]</a><a id="1941" class="Symbol">;</a> <a id="1943" href="Untyped.CEK.html#3787" class="InductiveConstructor Operator">_;_▻_</a><a id="1948" class="Symbol">;</a> <a id="1950" href="Untyped.CEK.html#3879" class="InductiveConstructor">□</a><a id="1951" class="Symbol">;</a> <a id="1953" href="Untyped.CEK.html#2678" class="Function">discharge</a><a id="1962" class="Symbol">)</a>
+<a id="1964" class="Keyword">open</a> <a id="1969" class="Keyword">import</a> <a id="1976" href="Evaluator.Base.html" class="Module">Evaluator.Base</a> <a id="1991" class="Keyword">using</a> <a id="1997" class="Symbol">(</a><a id="1998" href="Evaluator.Base.html#3064" class="Function">maxsteps</a><a id="2006" class="Symbol">)</a>
+
+<a id="2009" class="Keyword">data</a> <a id="Result"></a><a id="2014" href="Conformance.Eval.html#2014" class="Datatype">Result</a> <a id="2021" class="Symbol">:</a> <a id="2023" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="2027" class="Keyword">where</a>
+  <a id="Result.failure"></a><a id="2035" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a> <a id="2043" class="Symbol">:</a> <a id="2045" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+  <a id="Result.success"></a><a id="2054" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="2062" class="Symbol">:</a> <a id="2064" href="RawU.html#8264" class="Datatype">Untyped</a> <a id="2072" class="Symbol">→</a> <a id="2074" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+
+<a id="evalRaw"></a><a id="2082" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2090" class="Symbol">:</a> <a id="2092" href="RawU.html#8264" class="Datatype">Untyped</a> <a id="2100" class="Symbol">→</a> <a id="2102" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="2109" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2117" href="Conformance.Eval.html#2117" class="Bound">raw</a> <a id="2121" class="Keyword">with</a> <a id="2126" href="Untyped.html#6879" class="Function">scopeCheckU0</a> <a id="2139" href="Conformance.Eval.html#2117" class="Bound">raw</a>
+<a id="2143" class="Symbol">...</a> <a id="2147" class="Symbol">|</a> <a id="2149" href="Utils.html#1309" class="InductiveConstructor">inj₁</a> <a id="2154" class="Symbol">_</a> <a id="2156" class="Symbol">=</a> <a id="2158" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+<a id="2166" class="Symbol">...</a> <a id="2170" class="Symbol">|</a> <a id="2172" href="Utils.html#1333" class="InductiveConstructor">inj₂</a> <a id="2177" href="Conformance.Eval.html#2177" class="Bound">t</a> <a id="2179" class="Keyword">with</a> <a id="2184" href="Untyped.CEK.html#29561" class="Function">stepper</a> <a id="2192" href="Evaluator.Base.html#3064" class="Function">maxsteps</a> <a id="2201" class="Symbol">(</a><a id="2202" href="Untyped.CEK.html#1445" class="InductiveConstructor">ε</a> <a id="2204" href="Untyped.CEK.html#3787" class="InductiveConstructor Operator">;</a> <a id="2206" href="Untyped.CEK.html#1540" class="InductiveConstructor">[]</a> <a id="2209" href="Untyped.CEK.html#3787" class="InductiveConstructor Operator">▻</a> <a id="2211" href="Conformance.Eval.html#2177" class="Bound">t</a><a id="2212" class="Symbol">)</a>
+<a id="2214" class="Symbol">...</a> <a id="2218" class="Symbol">|</a> <a id="2220" href="Utils.html#1333" class="InductiveConstructor">inj₂</a> <a id="2225" class="Symbol">(</a><a id="2226" href="Untyped.CEK.html#3879" class="InductiveConstructor">□</a> <a id="2228" href="Conformance.Eval.html#2228" class="Bound">v</a><a id="2229" class="Symbol">)</a> <a id="2231" class="Symbol">=</a> <a id="2233" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="2241" class="Symbol">(</a><a id="2242" href="Untyped.html#5681" class="Function">extricateU0</a> <a id="2254" class="Symbol">(</a><a id="2255" href="Untyped.CEK.html#2678" class="Function">discharge</a> <a id="2265" href="Conformance.Eval.html#2228" class="Bound">v</a><a id="2266" class="Symbol">))</a>
+<a id="2269" class="CatchallClause Symbol">...</a><a id="2272" class="CatchallClause"> </a><a id="2273" class="CatchallClause Symbol">|</a><a id="2274" class="CatchallClause"> </a><a id="2275" class="CatchallClause Symbol">_</a>          <a id="2286" class="Symbol">=</a> <a id="2288" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+</pre>
+<h2 id="pending-tests">Pending tests</h2>
+
+<p><code class="language-plaintext highlighter-rouge">Pending P</code> is just <code class="language-plaintext highlighter-rouge">P</code>. A generated module states <code class="language-plaintext highlighter-rouge">Pending (evalRaw t ≡ r)</code>
+as a type, without proving it, for cases that cannot be decided by <code class="language-plaintext highlighter-rouge">refl</code> yet.
+This still checks that the terms are well-formed, and once the case can be
+proved, regenerating only replaces that statement with a <code class="language-plaintext highlighter-rouge">refl</code> proof; the
+program and expected result stay unchanged.</p>
+
+<pre class="Agda"><a id="Pending"></a><a id="2674" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="2682" class="Symbol">:</a> <a id="2684" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="2688" class="Symbol">→</a> <a id="2690" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="2694" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="2702" href="Conformance.Eval.html#2702" class="Bound">P</a> <a id="2704" class="Symbol">=</a> <a id="2706" href="Conformance.Eval.html#2702" class="Bound">P</a>
+</pre>
+
+    </section>
+  </body>
+</html>
