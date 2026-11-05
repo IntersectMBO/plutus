@@ -20,6 +20,7 @@ module Evaluation.Builtins.Bitwise.CIP0122
   , writeBitsHomomorphismLaws
   , replicateHomomorphismLaws
   , replicateIndex
+  , bitwise_cip0122_property_names
   , generate_bitwise_cip0122_properties
   ) where
 
@@ -32,12 +33,13 @@ import Data.Bits qualified as Bits
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Evaluation.Builtins.Bitwise.Conformance
-import Evaluation.Builtins.Conformance (OutputFormat)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
 import GHC.Exts (fromString)
 import Hedgehog (Gen, Property)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
+import Control.Monad (when)
 import System.FilePath ((</>))
 import Test.QuickCheck.Random (QCGen)
 import Test.Tasty (TestTree, testGroup)
@@ -677,13 +679,15 @@ unitCases f isPadding unit = do
   checkConstant bs lhs
 
 -- | Emit cases for each law and builtin/semantics combination in the normal suite.
-generate_bitwise_cip0122_properties :: OutputFormat -> FilePath -> Int -> QCGen -> IO ()
-generate_bitwise_cip0122_properties format outputDir numFiles seed =
+generate_bitwise_cip0122_properties
+  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
+generate_bitwise_cip0122_properties format include outputDir numFiles seed =
   mapM_
-    (\(name, gen) -> generateBitwisePropertyFiles format suiteDir numFiles seed name gen)
+    ( \(name, gen) ->
+        when (include (conformanceSuiteDirectory </> name)) $
+          generateBitwisePropertyFiles format (outputDir </> conformanceSuiteDirectory) numFiles seed name gen
+    )
     conformanceProperties
-  where
-    suiteDir = outputDir </> "bitwise" </> "CIP0122"
 
 -- Names identify the Haskell property, plus its parameters where needed to
 -- distinguish instantiations. Keep the combinations aligned with test_Bitwise_CIP0122.
@@ -743,3 +747,11 @@ conformanceProperties =
       , ("orByteString", PLC.OrByteString)
       , ("xorByteString", PLC.XorByteString)
       ]
+
+-- | Qualified property names, without sampling inputs or evaluating checks.
+bitwise_cip0122_property_names :: [FilePath]
+bitwise_cip0122_property_names =
+  map ((conformanceSuiteDirectory </>) . fst) conformanceProperties
+
+conformanceSuiteDirectory :: FilePath
+conformanceSuiteDirectory = "bitwise" </> "CIP0122"

@@ -10,27 +10,27 @@
 module Evaluation.Builtins.BLS12_381
 where
 
+import Evaluation.Builtins.BLS12_381.Conformance
 import Evaluation.Builtins.BLS12_381.TestClasses
 import Evaluation.Builtins.BLS12_381.Utils
 import Evaluation.Builtins.Common
   ( PlcTerm
-  , TypeErrorOrCekResult (..)
+  , TypeErrorOrCekResult (CekError)
   , bytestring
   , cekSuccessFalse
   , cekSuccessTrue
-  , evalTerm
   , integer
   , mkApp2
   )
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
 import PlutusCore.Crypto.BLS12_381.Bounds qualified as Bounds
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Default
 import PlutusCore.Generators.QuickCheck.Builtin (arbitraryBuiltin)
-import UntypedPlutusCore qualified as UPLC
 
 import Cardano.Crypto.EllipticCurve.BLS12_381 (scalarPeriod)
-import Control.Monad (replicateM)
+import Control.Monad (replicateM, when)
 import Data.ByteString as BS
   ( empty
   , length
@@ -39,9 +39,10 @@ import Data.ByteString as BS
 import Data.List as List
   ( foldl'
   , genericReplicate
-  , length
   , nub
   )
+import System.FilePath ((</>))
+import Test.QuickCheck.Random (QCGen)
 import Text.Printf (printf)
 
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
@@ -110,12 +111,7 @@ test_add_assoc =
   testProperty
     (mkTestName @g "add_assoc")
     . withNTests
-    $ do
-      p1 <- arbitraryPlcConst @g
-      p2 <- arbitraryPlcConst @g
-      p3 <- arbitraryPlcConst @g
-      let e = eqTerm @g (addTerm @g p1 (addTerm @g p2 p3)) (addTerm @g (addTerm @g p1 p2) p3)
-      pure $ evalTerm e === cekSuccessTrue
+    $ cases_add_assoc @g
 
 -- | Zero is an identity for addition.
 test_add_zero :: forall g. TestableAbelianGroup g => TestTree
@@ -123,10 +119,7 @@ test_add_zero =
   testProperty
     (mkTestName @g "add_zero")
     . withNTests
-    $ do
-      p <- arbitraryPlcConst @g
-      let e = eqTerm @g (addTerm @g p $ zeroTerm @g) p
-      pure $ evalTerm e === cekSuccessTrue
+    $ cases_add_zero @g
 
 {-| Every element has an inverse
 | a+(-a) = 0 for all group elements. -}
@@ -135,10 +128,7 @@ test_neg =
   testProperty
     (mkTestName @g "additive_inverse")
     . withNTests
-    $ do
-      p <- arbitraryPlcConst @g
-      let e = eqTerm @g (addTerm @g p (negTerm @g p)) $ zeroTerm @g
-      pure $ evalTerm e === cekSuccessTrue
+    $ cases_neg @g
 
 -- | Group addition is commutative.
 test_add_commutative :: forall g. TestableAbelianGroup g => TestTree
@@ -146,11 +136,7 @@ test_add_commutative =
   testProperty
     (mkTestName @g "add_commutative")
     . withNTests
-    $ do
-      p1 <- arbitraryPlcConst @g
-      p2 <- arbitraryPlcConst @g
-      let e = eqTerm @g (addTerm @g p1 p2) (addTerm @g p2 p1)
-      pure $ evalTerm e === cekSuccessTrue
+    $ cases_add_commutative @g
 
 test_is_an_abelian_group :: forall g. TestableAbelianGroup g => TestTree
 test_is_an_abelian_group =
@@ -170,14 +156,7 @@ test_scalarMul_assoc =
   testProperty
     (mkTestName @g "scalarMul_mul_assoc")
     . withNTests
-    $ do
-      m <- arbitraryPlcScalar
-      n <- arbitraryPlcScalar
-      p <- arbitraryPlcConst @g
-      let e1 = scalarMulTerm @g (mkApp2 MultiplyInteger m n) p
-          e2 = scalarMulTerm @g m (scalarMulTerm @g n p)
-          e3 = eqTerm @g e1 e2
-      pure $ evalTerm e3 === cekSuccessTrue
+    $ cases_scalarMul_assoc @g
 
 -- | (a+b)p = ap +bp for all scalars a and b and all group elements p.
 test_scalarMul_distributive_left :: forall g. TestableAbelianGroup g => TestTree
@@ -185,14 +164,7 @@ test_scalarMul_distributive_left =
   testProperty
     (mkTestName @g "scalarMul_distributive_left")
     . withNTests
-    $ do
-      m <- arbitraryPlcScalar
-      n <- arbitraryPlcScalar
-      p <- arbitraryPlcConst @g
-      let e1 = scalarMulTerm @g (mkApp2 AddInteger m n) p
-          e2 = addTerm @g (scalarMulTerm @g m p) (scalarMulTerm @g n p)
-          e3 = eqTerm @g e1 e2
-      pure $ evalTerm e3 === cekSuccessTrue
+    $ cases_scalarMul_distributive_left @g
 
 -- | a(p+q) = ap + aq for all scalars a and all group elements p and q.
 test_scalarMul_distributive_right :: forall g. TestableAbelianGroup g => TestTree
@@ -200,14 +172,7 @@ test_scalarMul_distributive_right =
   testProperty
     (mkTestName @g "scalarMul_distributive_right")
     . withNTests
-    $ do
-      n <- arbitraryPlcScalar
-      p <- arbitraryPlcConst @g
-      q <- arbitraryPlcConst @g
-      let e1 = scalarMulTerm @g n (addTerm @g p q)
-          e2 = addTerm @g (scalarMulTerm @g n p) (scalarMulTerm @g n q)
-          e3 = eqTerm @g e1 e2
-      pure $ evalTerm e3 === cekSuccessTrue
+    $ cases_scalarMul_distributive_right @g
 
 -- | 0p = 0 for all group elements p.
 test_scalarMul_zero :: forall g. TestableAbelianGroup g => TestTree
@@ -215,10 +180,7 @@ test_scalarMul_zero =
   testProperty
     (mkTestName @g "scalarMul_zero")
     . withNTests
-    $ do
-      p <- arbitraryPlcConst @g
-      let e = eqTerm @g (scalarMulTerm @g (integer 0) p) $ zeroTerm @g
-      pure $ evalTerm e === cekSuccessTrue
+    $ cases_scalarMul_zero @g
 
 -- | 1p = p for all group elements p.
 test_scalarMul_one :: forall g. TestableAbelianGroup g => TestTree
@@ -226,10 +188,7 @@ test_scalarMul_one =
   testProperty
     (mkTestName @g "scalarMul_one")
     . withNTests
-    $ do
-      p <- arbitraryPlcConst @g
-      let e = eqTerm @g (scalarMulTerm @g (integer 1) p) p
-      pure $ evalTerm e === cekSuccessTrue
+    $ cases_scalarMul_one @g
 
 -- | (-1)p = -p for all group elements p.
 test_scalarMul_inverse :: forall g. TestableAbelianGroup g => TestTree
@@ -237,10 +196,7 @@ test_scalarMul_inverse =
   testProperty
     (mkTestName @g "scalarMul_inverse")
     . withNTests
-    $ do
-      p <- arbitraryPlcConst @g
-      let e = eqTerm @g (scalarMulTerm @g (integer (-1)) p) (negTerm @g p)
-      pure $ evalTerm e == cekSuccessTrue
+    $ cases_scalarMul_inverse @g
 
 -- Check that scalar multiplication is repeated addition (including negative
 -- scalars). We should really check this for scalars greater than the group
@@ -251,18 +207,7 @@ test_scalarMul_repeated_addition =
   testProperty
     (mkTestName @g "scalarMul_repeated_addition")
     . withNTests
-    $ do
-      n <- resize 100 arbitrary -- number of additions
-      p <- arbitraryPlcConst @g
-      let e1 = repeatedAdd n p
-          e2 = eqTerm @g (scalarMulTerm @g (integer n) p) e1
-      pure $ evalTerm e2 === cekSuccessTrue
-  where
-    repeatedAdd :: Integer -> PlcTerm -> PlcTerm
-    repeatedAdd n t =
-      if n >= 0
-        then List.foldl' (addTerm @g) (zeroTerm @g) $ genericReplicate n t
-        else repeatedAdd (-n) (negTerm @g t)
+    $ cases_scalarMul_repeated_addition @g
 
 -- (m + n|G|)p = mp for all group elements p and integers m and n.
 -- We have |G1| = |G2| = scalarPeriod
@@ -271,15 +216,7 @@ test_scalarMul_periodic =
   testProperty
     (mkTestName @g "scalarMul_periodic")
     . withNTests
-    $ do
-      m <- arbitraryPlcScalar
-      n <- arbitraryPlcScalar
-      p <- arbitraryPlcConst @g
-      let e1 = scalarMulTerm @g m p
-          k = mkApp2 AddInteger m (mkApp2 MultiplyInteger n (integer scalarPeriod))
-          e2 = scalarMulTerm @g k p -- k = m+n|G|
-          e = eqTerm @g e1 e2
-      pure $ evalTerm e === cekSuccessTrue
+    $ cases_scalarMul_periodic @g
 
 test_Z_action_good :: forall g. TestableAbelianGroup g => TestTree
 test_Z_action_good =
@@ -305,18 +242,7 @@ test_multiScalarMul_correct =
   testProperty
     (mkTestName @g "multiScalarMul_is_iterated_mul_and_add")
     . withNTests
-    $ do
-      scalars <- listOf arbitraryMsmScalar
-      points <- listOf (arbitrary @g)
-      let e1 = multiScalarMulTerm @g (asPlc scalars) (asPlc points)
-          mkMulAdd acc (s, x) = addTerm @g acc (scalarMulTerm @g s x)
-          scalarTerms = fmap asPlc scalars
-          pointTerms = fmap asPlc points
-          e2 = List.foldl' mkMulAdd (zeroTerm @g) (zip scalarTerms pointTerms)
-      -- \^ Remember that zip truncates the longer list and `multiScalarMul`
-      -- is supposed to disregard extra elements if the inputs have different
-      -- lengths.
-      pure $ evalTerm e1 === evalTerm e2
+    $ cases_multiScalarMul_correct @g
 
 -- Check that multiScalarMul returns the zero point if the list of scalars is empty
 test_multiScalarMul_no_scalars :: forall g. TestableAbelianGroup g => TestTree
@@ -324,10 +250,7 @@ test_multiScalarMul_no_scalars =
   testProperty
     (mkTestName @g "multiScalarMul_returns_zero_if_no_scalars")
     . withNTests
-    $ do
-      points <- listOf (arbitrary @g)
-      let e = multiScalarMulTerm @g (asPlc ([] @Integer)) (asPlc points)
-      pure $ evalTerm e === evalTerm (zeroTerm @g)
+    $ cases_multiScalarMul_no_scalars @g
 
 -- Check that multiScalarMul returns the zero point if the list of points is empty
 test_multiScalarMul_no_points :: forall g. TestableAbelianGroup g => TestTree
@@ -335,10 +258,7 @@ test_multiScalarMul_no_points =
   testProperty
     (mkTestName @g "multiScalarMul_returns_zero_if_no_points")
     . withNTests
-    $ do
-      scalars <- listOf arbitraryMsmScalar
-      let e = multiScalarMulTerm @g (asPlc scalars) (asPlc ([] @g))
-      pure $ evalTerm e === evalTerm (zeroTerm @g)
+    $ cases_multiScalarMul_no_points @g
 
 {- Check that the result of multiScalarMul doesn't change if you permute the input
    pairs (disregarding extra inputs when the two input lists are of different
@@ -349,14 +269,7 @@ test_multiScalarMul_permutation =
   testProperty
     (mkTestName @g "multiScalarMul_invariant_under_permutation")
     . withNTests
-    $ do
-      l <- listOf ((,) <$> arbitraryMsmScalar <*> arbitrary @g)
-      l' <- shuffle l
-      let (scalars, points) = unzip l
-          (scalars', points') = unzip l'
-          e1 = multiScalarMulTerm @g (asPlc scalars) (asPlc points)
-          e2 = multiScalarMulTerm @g (asPlc scalars') (asPlc points')
-      pure $ evalTerm e1 === evalTerm e2
+    $ cases_multiScalarMul_permutation @g
 
 test_multiScalarMul :: forall g. TestableAbelianGroup g => TestTree
 test_multiScalarMul =
@@ -376,10 +289,7 @@ test_roundtrip_compression =
   testProperty
     (mkTestName @g "roundtrip_compression")
     . withNTests
-    $ do
-      p <- arbitraryPlcConst @g
-      let e = eqTerm @g (uncompressTerm @g (compressTerm @g p)) p
-      pure $ evalTerm e === cekSuccessTrue
+    $ cases_roundtrip_compression @g
 
 {-| Uncompression should only accept inputs of the expected length, so we check
 it on random inputs of the incorrect length.  Inputs of the expected length
@@ -392,12 +302,7 @@ test_uncompression_wrong_size =
   testProperty
     (mkTestName @g "uncompression_wrong_size")
     . withNTests
-    $ do
-      b <- suchThat (resize 128 arbitrary) incorrectSize
-      let e = uncompressTerm @g (bytestring b)
-      pure $ evalTerm e === CekError
-  where
-    incorrectSize s = BS.length s /= compressedSize @g
+    $ cases_uncompression_wrong_size @g
 
 {-| This tests the case we've omitted in the previous test, and should fail
 with very high probablity.  It's quite difficult to test this with random
@@ -412,13 +317,7 @@ test_uncompress_out_of_group =
   testProperty
     (mkTestName @g "uncompress_out_of_group")
     . BaseQC.withNumTests 99
-    $ do
-      b <- suchThat (resize 128 arbitrary) correctSize
-      let b' = setBits compressionBit $ clearBits infinityBit b
-      let e = uncompressTerm @g (bytestring b')
-      pure $ evalTerm e === CekError
-  where
-    correctSize s = BS.length s == compressedSize @g
+    $ cases_uncompress_out_of_group @g
 
 -- | Check that the most significant bit is set for all compressed points
 test_compression_bit_set :: forall g. HashAndCompress g => TestTree
@@ -426,12 +325,7 @@ test_compression_bit_set =
   testProperty
     (mkTestName @g "compression_bit_set")
     . withNTests
-    $ do
-      p <- arbitraryPlcConst @g
-      case evalTerm (compressTerm @g p) of
-        CekSuccess (UPLC.Constant _ (Some (ValueOf DefaultUniByteString bs))) ->
-          pure $ isSet compressionBit bs
-        _ -> pure False
+    $ cases_compression_bit_set @g
 
 -- | Check that bytestrings with the compression bit clear fail to uncompress.
 test_clear_compression_bit :: forall g. HashAndCompress g => TestTree
@@ -439,11 +333,7 @@ test_clear_compression_bit =
   testProperty
     (mkTestName @g "clear_compression_bit")
     . withNTests
-    $ do
-      p <- arbitrary @g
-      let b = clearBits compressionBit $ compress @g p
-          e = uncompressTerm @g (bytestring b)
-      pure $ evalTerm e === CekError
+    $ cases_clear_compression_bit @g
 
 {-| Check that flipping the sign bit in a compressed nonzero point gives the
 inverse of the point. -}
@@ -452,14 +342,7 @@ test_flip_sign_bit =
   testProperty
     (mkTestName @g "flip_sign_bit")
     . withNTests
-    $ do
-      p <- arbitraryNonZero @g
-      let b1 = compress @g p
-          b2 = flipBits signBit b1
-          e1 = uncompressTerm @g (bytestring b1)
-          e2 = uncompressTerm @g (bytestring b2)
-          e = eqTerm @g e2 (negTerm @g e1)
-      pure $ evalTerm e === cekSuccessTrue
+    $ cases_flip_sign_bit @g
 
 -- | Check that bytestrings with the infinity bit set fail to uncompress.
 test_set_infinity_bit :: forall g. HashAndCompress g => TestTree
@@ -467,11 +350,7 @@ test_set_infinity_bit =
   testProperty
     (mkTestName @g "set_infinity_bit")
     . withNTests
-    $ do
-      p <- arbitraryNonZero @g -- This will have the infinity bit set.
-      let b = setBits infinityBit $ compress @g p
-          e = uncompressTerm @g (bytestring b)
-      pure $ evalTerm e === CekError
+    $ cases_set_infinity_bit @g
 
 -- We test for hash collisions by generating a list of `numHashCollisionTests`
 -- bytestrings, discarding duplicates, hashing the remaining bytestrings, and
@@ -486,17 +365,10 @@ suggest an implementation error somewhere.  Here we test multiple messages
 but always use an empty Domain Separation Tag. -}
 test_no_hash_collisions :: forall g. HashAndCompress g => TestTree
 test_no_hash_collisions =
-  let emptyBS = bytestring BS.empty
-   in testProperty
-        (mkTestName @g "no_hash_collisions")
-        . BaseQC.withNumTests 1
-        $ do
-          msgs <- nub <$> replicateM numHashCollisionInputs arbitrary
-          let terms = fmap (\msg -> hashToGroupTerm @g (bytestring msg) emptyBS) msgs
-              hashed = fmap evalTerm terms
-              noErrors = property $ all (/= CekError) hashed -- Just in case
-              noDuplicates = List.length hashed === List.length (nub hashed)
-          pure $ noErrors .&. noDuplicates
+  testProperty
+    (mkTestName @g "no_hash_collisions")
+    . BaseQC.withNumTests 1
+    $ cases_no_hash_collisions @g
 
 {-| Test that we get no collisions if we keep the message constant but vary the
 DST.  DSTs can be at most 255 bytes long in Plutus Core; there's a test
@@ -505,18 +377,10 @@ not because of a hash collision) if we let it generate longer DSTs because
 the final list could contain multiple occurrences of CekError. -}
 test_no_hash_collisions_dst :: forall g. HashAndCompress g => TestTree
 test_no_hash_collisions_dst =
-  let msg = bytestring $ pack [0x01, 0x02]
-      maxDstSize = 255
-   in testProperty
-        (mkTestName @g "no_hash_collisions_dst")
-        . BaseQC.withNumTests 1
-        $ do
-          dsts <- nub <$> replicateM numHashCollisionInputs (resize maxDstSize arbitrary)
-          let terms = fmap (\dst -> hashToGroupTerm @g msg (bytestring dst)) dsts
-              hashed = fmap evalTerm terms
-              noErrors = property $ all (/= CekError) hashed
-              noDuplicates = List.length hashed === List.length (nub hashed)
-          pure $ noErrors .&. noDuplicates
+  testProperty
+    (mkTestName @g "no_hash_collisions_dst")
+    . BaseQC.withNumTests 1
+    $ cases_no_hash_collisions_dst @g
 
 test_compress_hash :: forall g. HashAndCompress g => TestTree
 test_compress_hash =
@@ -552,14 +416,7 @@ test_pairing_left_additive =
   testProperty
     "pairing_left_additive"
     . withNTests
-    $ do
-      p1 <- arbitraryPlcConst @G1.Element
-      p2 <- arbitraryPlcConst @G1.Element
-      q <- arbitraryPlcConst @G2.Element
-      let e1 = millerLoopTerm (addTerm @G1.Element p1 p2) q
-          e2 = mulMlResultTerm (millerLoopTerm p1 q) (millerLoopTerm p2 q)
-          e3 = finalVerifyTerm e1 e2
-      pure $ evalTerm e3 === cekSuccessTrue
+    $ cases_pairing_left_additive
 
 -- <p,q1+q2> = <p,q1>.<p,q2>
 test_pairing_right_additive :: TestTree
@@ -567,14 +424,7 @@ test_pairing_right_additive =
   testProperty
     "pairing_right_additive"
     . withNTests
-    $ do
-      p <- arbitraryPlcConst @G1.Element
-      q1 <- arbitraryPlcConst @G2.Element
-      q2 <- arbitraryPlcConst @G2.Element
-      let e1 = millerLoopTerm p (addTerm @G2.Element q1 q2)
-          e2 = mulMlResultTerm (millerLoopTerm p q1) (millerLoopTerm p q2)
-          e3 = finalVerifyTerm e1 e2
-      pure $ evalTerm e3 === cekSuccessTrue
+    $ cases_pairing_right_additive
 
 -- <[n]p,q> = <p,[n]q>
 test_pairing_balanced :: TestTree
@@ -582,14 +432,7 @@ test_pairing_balanced =
   testProperty
     "pairing_balanced"
     . withNTests
-    $ do
-      n <- arbitraryPlcScalar
-      p <- arbitraryPlcConst @G1.Element
-      q <- arbitraryPlcConst @G2.Element
-      let e1 = millerLoopTerm (scalarMulTerm @G1.Element n p) q
-          e2 = millerLoopTerm p (scalarMulTerm @G2.Element n q)
-          e3 = finalVerifyTerm e1 e2
-      pure $ evalTerm e3 === cekSuccessTrue
+    $ cases_pairing_balanced
 
 -- Check that `finalVerify` returns False for random inputs.  We exclude the
 -- zero points because `millerLoop` returns 1 if either of its inputs is zero.
@@ -598,15 +441,7 @@ test_random_pairing =
   testProperty
     "pairing_random_unequal"
     . withNTests
-    $ do
-      p1 <- arbitraryNonZeroPlcConst @G1.Element
-      p2 <- arbitraryNonZeroPlcConst @G1.Element
-      q1 <- arbitraryNonZeroPlcConst @G2.Element
-      q2 <- arbitraryNonZeroPlcConst @G2.Element
-      pure $
-        p1 /= p2 && q1 /= q2 ==>
-          let e = finalVerifyTerm (millerLoopTerm p1 q1) (millerLoopTerm p2 q2)
-           in evalTerm e === cekSuccessFalse
+    $ cases_random_pairing
 
 -- All of the tests
 
@@ -636,3 +471,318 @@ test_BLS12_381 =
         , test_random_pairing
         ]
     ]
+
+-- Shared input generators and unevaluated checks.
+
+cases_add_assoc :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_add_assoc = do
+  p1 <- arbitraryPlcConst @g
+  p2 <- arbitraryPlcConst @g
+  p3 <- arbitraryPlcConst @g
+  let e = eqTerm @g (addTerm @g p1 (addTerm @g p2 p3)) (addTerm @g (addTerm @g p1 p2) p3)
+  pure $ EvaluatesTo e cekSuccessTrue
+
+cases_add_zero :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_add_zero = do
+  p <- arbitraryPlcConst @g
+  let e = eqTerm @g (addTerm @g p $ zeroTerm @g) p
+  pure $ EvaluatesTo e cekSuccessTrue
+
+cases_neg :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_neg = do
+  p <- arbitraryPlcConst @g
+  let e = eqTerm @g (addTerm @g p (negTerm @g p)) $ zeroTerm @g
+  pure $ EvaluatesTo e cekSuccessTrue
+
+cases_add_commutative :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_add_commutative = do
+  p1 <- arbitraryPlcConst @g
+  p2 <- arbitraryPlcConst @g
+  let e = eqTerm @g (addTerm @g p1 p2) (addTerm @g p2 p1)
+  pure $ EvaluatesTo e cekSuccessTrue
+
+cases_scalarMul_assoc :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_scalarMul_assoc = do
+  m <- arbitraryPlcScalar
+  n <- arbitraryPlcScalar
+  p <- arbitraryPlcConst @g
+  let e1 = scalarMulTerm @g (mkApp2 MultiplyInteger m n) p
+      e2 = scalarMulTerm @g m (scalarMulTerm @g n p)
+      e3 = eqTerm @g e1 e2
+  pure $ EvaluatesTo e3 cekSuccessTrue
+
+cases_scalarMul_distributive_left :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_scalarMul_distributive_left = do
+  m <- arbitraryPlcScalar
+  n <- arbitraryPlcScalar
+  p <- arbitraryPlcConst @g
+  let e1 = scalarMulTerm @g (mkApp2 AddInteger m n) p
+      e2 = addTerm @g (scalarMulTerm @g m p) (scalarMulTerm @g n p)
+      e3 = eqTerm @g e1 e2
+  pure $ EvaluatesTo e3 cekSuccessTrue
+
+cases_scalarMul_distributive_right :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_scalarMul_distributive_right = do
+  n <- arbitraryPlcScalar
+  p <- arbitraryPlcConst @g
+  q <- arbitraryPlcConst @g
+  let e1 = scalarMulTerm @g n (addTerm @g p q)
+      e2 = addTerm @g (scalarMulTerm @g n p) (scalarMulTerm @g n q)
+      e3 = eqTerm @g e1 e2
+  pure $ EvaluatesTo e3 cekSuccessTrue
+
+cases_scalarMul_zero :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_scalarMul_zero = do
+  p <- arbitraryPlcConst @g
+  let e = eqTerm @g (scalarMulTerm @g (integer 0) p) $ zeroTerm @g
+  pure $ EvaluatesTo e cekSuccessTrue
+
+cases_scalarMul_one :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_scalarMul_one = do
+  p <- arbitraryPlcConst @g
+  let e = eqTerm @g (scalarMulTerm @g (integer 1) p) p
+  pure $ EvaluatesTo e cekSuccessTrue
+
+cases_scalarMul_inverse :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_scalarMul_inverse = do
+  p <- arbitraryPlcConst @g
+  let e = eqTerm @g (scalarMulTerm @g (integer (-1)) p) (negTerm @g p)
+  pure $ EvaluatesTo e cekSuccessTrue
+
+cases_scalarMul_repeated_addition :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_scalarMul_repeated_addition = do
+  n <- resize 100 arbitrary -- number of additions
+  p <- arbitraryPlcConst @g
+  let e1 = repeatedAdd n p
+      e2 = eqTerm @g (scalarMulTerm @g (integer n) p) e1
+  pure $ EvaluatesTo e2 cekSuccessTrue
+  where
+    repeatedAdd :: Integer -> PlcTerm -> PlcTerm
+    repeatedAdd n t =
+      if n >= 0
+        then List.foldl' (addTerm @g) (zeroTerm @g) $ genericReplicate n t
+        else repeatedAdd (-n) (negTerm @g t)
+
+cases_scalarMul_periodic :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_scalarMul_periodic = do
+  m <- arbitraryPlcScalar
+  n <- arbitraryPlcScalar
+  p <- arbitraryPlcConst @g
+  let e1 = scalarMulTerm @g m p
+      k = mkApp2 AddInteger m (mkApp2 MultiplyInteger n (integer scalarPeriod))
+      e2 = scalarMulTerm @g k p -- k = m+n|G|
+      e = eqTerm @g e1 e2
+  pure $ EvaluatesTo e cekSuccessTrue
+
+cases_multiScalarMul_correct :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_multiScalarMul_correct = do
+  scalars <- listOf arbitraryMsmScalar
+  points <- listOf (arbitrary @g)
+  let e1 = multiScalarMulTerm @g (asPlc scalars) (asPlc points)
+      mkMulAdd acc (s, x) = addTerm @g acc (scalarMulTerm @g s x)
+      scalarTerms = fmap asPlc scalars
+      pointTerms = fmap asPlc points
+      e2 = List.foldl' mkMulAdd (zeroTerm @g) (zip scalarTerms pointTerms)
+  -- \^ Remember that zip truncates the longer list and `multiScalarMul`
+  -- is supposed to disregard extra elements if the inputs have different
+  -- lengths.
+  pure $ SameResult e1 e2
+
+cases_multiScalarMul_no_scalars :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_multiScalarMul_no_scalars = do
+  points <- listOf (arbitrary @g)
+  let e = multiScalarMulTerm @g (asPlc ([] @Integer)) (asPlc points)
+  pure $ SameResult e (zeroTerm @g)
+
+cases_multiScalarMul_no_points :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_multiScalarMul_no_points = do
+  scalars <- listOf arbitraryMsmScalar
+  let e = multiScalarMulTerm @g (asPlc scalars) (asPlc ([] @g))
+  pure $ SameResult e (zeroTerm @g)
+
+cases_multiScalarMul_permutation :: forall g. TestableAbelianGroup g => Gen BlsCheck
+cases_multiScalarMul_permutation = do
+  l <- listOf ((,) <$> arbitraryMsmScalar <*> arbitrary @g)
+  l' <- shuffle l
+  let (scalars, points) = unzip l
+      (scalars', points') = unzip l'
+      e1 = multiScalarMulTerm @g (asPlc scalars) (asPlc points)
+      e2 = multiScalarMulTerm @g (asPlc scalars') (asPlc points')
+  pure $ SameResult e1 e2
+
+cases_roundtrip_compression :: forall g. HashAndCompress g => Gen BlsCheck
+cases_roundtrip_compression = do
+  p <- arbitraryPlcConst @g
+  let e = eqTerm @g (uncompressTerm @g (compressTerm @g p)) p
+  pure $ EvaluatesTo e cekSuccessTrue
+
+cases_uncompression_wrong_size :: forall g. HashAndCompress g => Gen BlsCheck
+cases_uncompression_wrong_size = do
+  b <- suchThat (resize 128 arbitrary) incorrectSize
+  let e = uncompressTerm @g (bytestring b)
+  pure $ EvaluatesTo e CekError
+  where
+    incorrectSize s = BS.length s /= compressedSize @g
+
+cases_uncompress_out_of_group :: forall g. HashAndCompress g => Gen BlsCheck
+cases_uncompress_out_of_group = do
+  b <- suchThat (resize 128 arbitrary) correctSize
+  let b' = setBits compressionBit $ clearBits infinityBit b
+  let e = uncompressTerm @g (bytestring b')
+  pure $ EvaluatesTo e CekError
+  where
+    correctSize s = BS.length s == compressedSize @g
+
+cases_compression_bit_set :: forall g. HashAndCompress g => Gen BlsCheck
+cases_compression_bit_set = do
+  p <- arbitraryPlcConst @g
+  pure $ CompressionBitSet (compressTerm @g p)
+
+cases_clear_compression_bit :: forall g. HashAndCompress g => Gen BlsCheck
+cases_clear_compression_bit = do
+  p <- arbitrary @g
+  let b = clearBits compressionBit $ compress @g p
+      e = uncompressTerm @g (bytestring b)
+  pure $ EvaluatesTo e CekError
+
+cases_flip_sign_bit :: forall g. HashAndCompress g => Gen BlsCheck
+cases_flip_sign_bit = do
+  p <- arbitraryNonZero @g
+  let b1 = compress @g p
+      b2 = flipBits signBit b1
+      e1 = uncompressTerm @g (bytestring b1)
+      e2 = uncompressTerm @g (bytestring b2)
+      e = eqTerm @g e2 (negTerm @g e1)
+  pure $ EvaluatesTo e cekSuccessTrue
+
+cases_set_infinity_bit :: forall g. HashAndCompress g => Gen BlsCheck
+cases_set_infinity_bit = do
+  p <- arbitraryNonZero @g -- This will have the infinity bit set.
+  let b = setBits infinityBit $ compress @g p
+      e = uncompressTerm @g (bytestring b)
+  pure $ EvaluatesTo e CekError
+
+cases_no_hash_collisions :: forall g. HashAndCompress g => Gen BlsCheck
+cases_no_hash_collisions = do
+  let emptyBS = bytestring BS.empty
+  msgs <- nub <$> replicateM numHashCollisionInputs arbitrary
+  let terms = fmap (\msg -> hashToGroupTerm @g (bytestring msg) emptyBS) msgs
+  pure $ DistinctResults terms
+
+cases_no_hash_collisions_dst :: forall g. HashAndCompress g => Gen BlsCheck
+cases_no_hash_collisions_dst = do
+  let msg = bytestring $ pack [0x01, 0x02]
+      maxDstSize = 255
+  dsts <- nub <$> replicateM numHashCollisionInputs (resize maxDstSize arbitrary)
+  let terms = fmap (\dst -> hashToGroupTerm @g msg (bytestring dst)) dsts
+  pure $ DistinctResults terms
+
+cases_pairing_left_additive :: Gen BlsCheck
+cases_pairing_left_additive = do
+  p1 <- arbitraryPlcConst @G1.Element
+  p2 <- arbitraryPlcConst @G1.Element
+  q <- arbitraryPlcConst @G2.Element
+  let e1 = millerLoopTerm (addTerm @G1.Element p1 p2) q
+      e2 = mulMlResultTerm (millerLoopTerm p1 q) (millerLoopTerm p2 q)
+      e3 = finalVerifyTerm e1 e2
+  pure $ EvaluatesTo e3 cekSuccessTrue
+
+cases_pairing_right_additive :: Gen BlsCheck
+cases_pairing_right_additive = do
+  p <- arbitraryPlcConst @G1.Element
+  q1 <- arbitraryPlcConst @G2.Element
+  q2 <- arbitraryPlcConst @G2.Element
+  let e1 = millerLoopTerm p (addTerm @G2.Element q1 q2)
+      e2 = mulMlResultTerm (millerLoopTerm p q1) (millerLoopTerm p q2)
+      e3 = finalVerifyTerm e1 e2
+  pure $ EvaluatesTo e3 cekSuccessTrue
+
+cases_pairing_balanced :: Gen BlsCheck
+cases_pairing_balanced = do
+  n <- arbitraryPlcScalar
+  p <- arbitraryPlcConst @G1.Element
+  q <- arbitraryPlcConst @G2.Element
+  let e1 = millerLoopTerm (scalarMulTerm @G1.Element n p) q
+      e2 = millerLoopTerm p (scalarMulTerm @G2.Element n q)
+      e3 = finalVerifyTerm e1 e2
+  pure $ EvaluatesTo e3 cekSuccessTrue
+
+cases_random_pairing :: Gen BlsCheck
+cases_random_pairing = do
+  p1 <- arbitraryNonZeroPlcConst @G1.Element
+  p2 <- arbitraryNonZeroPlcConst @G1.Element
+  q1 <- arbitraryNonZeroPlcConst @G2.Element
+  q2 <- arbitraryNonZeroPlcConst @G2.Element
+  let e = finalVerifyTerm (millerLoopTerm p1 q1) (millerLoopTerm p2 q2)
+  pure $ Given (p1 /= p2 && q1 /= q2) (EvaluatesTo e cekSuccessFalse)
+
+{-| Generate cases for both groups and the pairing properties. Group-valued
+outputs are compressed so inputs and results support both textual and Flat formats. -}
+generate_bls12_381_properties :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
+generate_bls12_381_properties format include outputDir numCases seed = do
+  generateGroup @G1.Element
+  generateGroup @G2.Element
+  mapM_ (emit "pairing" id) pairingCases
+  where
+    emit group encodeResult (name, gen) =
+      when (include (conformanceSuiteDirectory </> group </> name)) $
+        generateBlsPropertyFiles
+          format
+          (outputDir </> conformanceSuiteDirectory </> group)
+          numCases
+          seed
+          name
+          encodeResult
+          gen
+    generateGroup :: forall g. HashAndCompress g => IO ()
+    generateGroup = mapM_ (emit (groupName @g) (compressTerm @g)) (groupCases @g)
+
+-- Identifiers follow the property function names, without the test_ prefix.
+groupCases :: forall g. HashAndCompress g => [(String, Gen BlsCheck)]
+groupCases =
+  [ ("add_assoc", cases_add_assoc @g)
+  , ("add_zero", cases_add_zero @g)
+  , ("neg", cases_neg @g)
+  , ("add_commutative", cases_add_commutative @g)
+  , ("scalarMul_assoc", cases_scalarMul_assoc @g)
+  , ("scalarMul_distributive_left", cases_scalarMul_distributive_left @g)
+  , ("scalarMul_distributive_right", cases_scalarMul_distributive_right @g)
+  , ("scalarMul_zero", cases_scalarMul_zero @g)
+  , ("scalarMul_one", cases_scalarMul_one @g)
+  , ("scalarMul_inverse", cases_scalarMul_inverse @g)
+  , ("scalarMul_repeated_addition", cases_scalarMul_repeated_addition @g)
+  , ("scalarMul_periodic", cases_scalarMul_periodic @g)
+  , ("multiScalarMul_correct", cases_multiScalarMul_correct @g)
+  , ("multiScalarMul_no_scalars", cases_multiScalarMul_no_scalars @g)
+  , ("multiScalarMul_no_points", cases_multiScalarMul_no_points @g)
+  , ("multiScalarMul_permutation", cases_multiScalarMul_permutation @g)
+  , ("roundtrip_compression", cases_roundtrip_compression @g)
+  , ("uncompression_wrong_size", cases_uncompression_wrong_size @g)
+  , ("uncompress_out_of_group", cases_uncompress_out_of_group @g)
+  , ("compression_bit_set", cases_compression_bit_set @g)
+  , ("clear_compression_bit", cases_clear_compression_bit @g)
+  , ("flip_sign_bit", cases_flip_sign_bit @g)
+  , ("set_infinity_bit", cases_set_infinity_bit @g)
+  , ("no_hash_collisions", cases_no_hash_collisions @g)
+  , ("no_hash_collisions_dst", cases_no_hash_collisions_dst @g)
+  ]
+
+pairingCases :: [(String, Gen BlsCheck)]
+pairingCases =
+  [ ("pairing_left_additive", cases_pairing_left_additive)
+  , ("pairing_right_additive", cases_pairing_right_additive)
+  , ("pairing_balanced", cases_pairing_balanced)
+  , ("random_pairing", cases_random_pairing)
+  ]
+
+-- | Qualified property names, without sampling inputs or evaluating checks.
+bls12_381_property_names :: [FilePath]
+bls12_381_property_names =
+  map (qualify (groupName @G1.Element) . fst) (groupCases @G1.Element)
+    <> map (qualify (groupName @G2.Element) . fst) (groupCases @G2.Element)
+    <> map (qualify "pairing" . fst) pairingCases
+  where
+    qualify group name = conformanceSuiteDirectory </> group </> name
+
+conformanceSuiteDirectory :: FilePath
+conformanceSuiteDirectory = "bls12_381" </> "BLS12_381"

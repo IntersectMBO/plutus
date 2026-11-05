@@ -524,6 +524,7 @@ library untyped-plutus-core-testlib
     Evaluation.Builtins.Bitwise.CIP0123
     Evaluation.Builtins.Bitwise.Conformance
     Evaluation.Builtins.BLS12_381
+    Evaluation.Builtins.BLS12_381.Conformance
     Evaluation.Builtins.BLS12_381.TestClasses
     Evaluation.Builtins.BLS12_381.Utils
     Evaluation.Builtins.Common

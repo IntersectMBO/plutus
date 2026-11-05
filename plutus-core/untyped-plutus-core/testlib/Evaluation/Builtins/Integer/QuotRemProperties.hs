@@ -6,6 +6,7 @@
 -- | Property tests for the `quotientInteger` and `remainderInteger` builtins
 module Evaluation.Builtins.Integer.QuotRemProperties
   ( test_integer_quot_rem_properties
+  , integer_quot_rem_property_names
   , generate_integer_quot_rem_properties
   )
 where
@@ -16,8 +17,9 @@ import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common
 import Evaluation.Builtins.Integer.Conformance
 
-import Evaluation.Builtins.Conformance (OutputFormat)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
 
+import Control.Monad (when)
 import System.FilePath ((</>))
 
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
@@ -142,19 +144,16 @@ test_integer_quot_rem_properties =
     integerQuotRemPropertiesWith $ \_ name prop ->
       testProperty name $ BaseQC.withNumTests numberOfTests prop
 
-{-| Generate the requested number of UPLC programs per property, with expected
+{-| Generate the requested number of numbered cases per property, with expected
 results and budgets. No property assertions are run. -}
-generate_integer_quot_rem_properties :: OutputFormat -> FilePath -> Int -> QCGen -> IO ()
-generate_integer_quot_rem_properties format outputDir numFiles seed =
+generate_integer_quot_rem_properties
+  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
+generate_integer_quot_rem_properties format include outputDir numFiles seed =
   sequence_ $
     integerQuotRemPropertiesWith
-      ( \identifier _ ->
-          generatePropertyFiles
-            format
-            (outputDir </> "integer" </> "QuotRemProperties")
-            numFiles
-            seed
-            identifier
+      ( \identifier _ prop ->
+          when (include (conformanceSuiteDirectory </> identifier)) $
+            generatePropertyFiles format (outputDir </> conformanceSuiteDirectory) numFiles seed identifier prop
       )
 
 {-| Share stable identifiers, test descriptions and property definitions.
@@ -195,3 +194,11 @@ integerQuotRemPropertiesWith testProp =
   , testProp "rem_pos_neg" "remainderInteger (>= 0) (< 0) >= 0" prop_rem_pos_neg
   , testProp "rem_neg_neg" "remainderInteger (<= 0) (< 0) <= 0" prop_rem_neg_neg
   ]
+
+-- | Qualified property names, without sampling inputs or evaluating checks.
+integer_quot_rem_property_names :: [FilePath]
+integer_quot_rem_property_names =
+  integerQuotRemPropertiesWith $ \identifier _ _ -> conformanceSuiteDirectory </> identifier
+
+conformanceSuiteDirectory :: FilePath
+conformanceSuiteDirectory = "integer" </> "QuotRemProperties"

@@ -6,6 +6,7 @@
 -- | Property tests for the `divideInteger` and `modInteger` builtins
 module Evaluation.Builtins.Integer.DivModProperties
   ( test_integer_div_mod_properties
+  , integer_div_mod_property_names
   , generate_integer_div_mod_properties
   )
 where
@@ -14,8 +15,9 @@ import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common
 import Evaluation.Builtins.Integer.Conformance
 
-import Evaluation.Builtins.Conformance (OutputFormat)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
 
+import Control.Monad (when)
 import System.FilePath ((</>))
 
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
@@ -126,19 +128,16 @@ test_integer_div_mod_properties =
     integerDivModPropertiesWith $ \_ name prop ->
       testProperty name $ BaseQC.withNumTests numberOfTests prop
 
-{-| Generate the requested number of UPLC programs per property, with expected
+{-| Generate the requested number of numbered cases per property, with expected
 results and budgets. No property assertions are run. -}
-generate_integer_div_mod_properties :: OutputFormat -> FilePath -> Int -> QCGen -> IO ()
-generate_integer_div_mod_properties format outputDir numFiles seed =
+generate_integer_div_mod_properties
+  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
+generate_integer_div_mod_properties format include outputDir numFiles seed =
   sequence_ $
     integerDivModPropertiesWith
-      ( \identifier _ ->
-          generatePropertyFiles
-            format
-            (outputDir </> "integer" </> "DivModProperties")
-            numFiles
-            seed
-            identifier
+      ( \identifier _ prop ->
+          when (include (conformanceSuiteDirectory </> identifier)) $
+            generatePropertyFiles format (outputDir </> conformanceSuiteDirectory) numFiles seed identifier prop
       )
 
 {-| Share stable identifiers, test descriptions and property definitions.
@@ -167,3 +166,11 @@ integerDivModPropertiesWith testProp =
   , testProp "mod_pos_neg" "modInteger (<= 0) (> 0) <= 0" prop_mod_pos_neg
   , testProp "mod_neg_neg" "modInteger (<= 0) (< 0) <= 0" prop_mod_neg_neg
   ]
+
+-- | Qualified property names, without sampling inputs or evaluating checks.
+integer_div_mod_property_names :: [FilePath]
+integer_div_mod_property_names =
+  integerDivModPropertiesWith $ \identifier _ _ -> conformanceSuiteDirectory </> identifier
+
+conformanceSuiteDirectory :: FilePath
+conformanceSuiteDirectory = "integer" </> "DivModProperties"

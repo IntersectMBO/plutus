@@ -7,6 +7,7 @@
    and their interaction with the arithmetic functions. -}
 module Evaluation.Builtins.Integer.OrderProperties
   ( test_integer_order_properties
+  , integer_order_property_names
   , generate_integer_order_properties
   )
 where
@@ -17,8 +18,9 @@ import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common
 import Evaluation.Builtins.Integer.Conformance
 
-import Evaluation.Builtins.Conformance (OutputFormat)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
 
+import Control.Monad (when)
 import System.FilePath ((</>))
 
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
@@ -106,19 +108,16 @@ test_integer_order_properties =
     integerOrderPropertiesWith $ \_ name prop ->
       testProperty name $ BaseQC.withNumTests numberOfTests prop
 
-{-| Generate the requested number of UPLC programs per property, with expected
+{-| Generate the requested number of numbered cases per property, with expected
 results and budgets. No property assertions are run. -}
-generate_integer_order_properties :: OutputFormat -> FilePath -> Int -> QCGen -> IO ()
-generate_integer_order_properties format outputDir numFiles seed =
+generate_integer_order_properties
+  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
+generate_integer_order_properties format include outputDir numFiles seed =
   sequence_ $
     integerOrderPropertiesWith
-      ( \identifier _ ->
-          generatePropertyFiles
-            format
-            (outputDir </> "integer" </> "OrderProperties")
-            numFiles
-            seed
-            identifier
+      ( \identifier _ prop ->
+          when (include (conformanceSuiteDirectory </> identifier)) $
+            generatePropertyFiles format (outputDir </> conformanceSuiteDirectory) numFiles seed identifier prop
       )
 
 {-| Share stable identifiers, test descriptions and property definitions.
@@ -138,3 +137,11 @@ integerOrderPropertiesWith testProp =
   , testProp "mul_neg_pos" "multiplyInteger (<= 0) (>= 0) <= 0" mul_neg_pos
   , testProp "mul_neg_neg" "multiplyInteger (<= 0) (<= 0) >= 0" mul_neg_neg
   ]
+
+-- | Qualified property names, without sampling inputs or evaluating checks.
+integer_order_property_names :: [FilePath]
+integer_order_property_names =
+  integerOrderPropertiesWith $ \identifier _ _ -> conformanceSuiteDirectory </> identifier
+
+conformanceSuiteDirectory :: FilePath
+conformanceSuiteDirectory = "integer" </> "OrderProperties"

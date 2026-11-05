@@ -27,6 +27,7 @@ module Evaluation.Builtins.Bitwise.CIP0123
   , shiftMinBound
   , rotateMinBound
   , ffs6453
+  , bitwise_cip0123_property_names
   , generate_bitwise_cip0123_properties
   ) where
 
@@ -41,11 +42,12 @@ import PlutusCore.Test (mapTestLimitAtLeast)
 import Data.Bits qualified as Bits
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
-import Evaluation.Builtins.Conformance (OutputFormat)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
 import Hedgehog (Gen, Property)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
+import Control.Monad (when)
 import System.FilePath ((</>))
 import Test.QuickCheck.Random (QCGen)
 import Test.Tasty (TestTree)
@@ -789,13 +791,15 @@ csbEmptyTerm :: PlcTerm
 csbEmptyTerm = mkIterAppNoAnn (builtin () PLC.CountSetBits) [mkConstant @ByteString () ""]
 
 -- | Emit cases for all the properties, including the fixed empty-input check.
-generate_bitwise_cip0123_properties :: OutputFormat -> FilePath -> Int -> QCGen -> IO ()
-generate_bitwise_cip0123_properties format outputDir numFiles seed =
+generate_bitwise_cip0123_properties
+  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
+generate_bitwise_cip0123_properties format include outputDir numFiles seed =
   mapM_
-    (\(name, gen) -> generateBitwisePropertyFiles format suiteDir numFiles seed name gen)
+    ( \(name, gen) ->
+        when (include (conformanceSuiteDirectory </> name)) $
+          generateBitwisePropertyFiles format (outputDir </> conformanceSuiteDirectory) numFiles seed name gen
+    )
     conformanceProperties
-  where
-    suiteDir = outputDir </> "bitwise" </> "CIP0123"
 
 conformanceProperties :: [(String, Gen Check)]
 conformanceProperties =
@@ -827,3 +831,11 @@ conformanceProperties =
   , ("rotateMinBound", rotateMinBoundCases)
   , ("ffs6453", ffs6453Cases)
   ]
+
+-- | Qualified property names, without sampling inputs or evaluating checks.
+bitwise_cip0123_property_names :: [FilePath]
+bitwise_cip0123_property_names =
+  map ((conformanceSuiteDirectory </>) . fst) conformanceProperties
+
+conformanceSuiteDirectory :: FilePath
+conformanceSuiteDirectory = "bitwise" </> "CIP0123"

@@ -7,6 +7,7 @@
 -- | Property tests for the `addInteger`, `subtractInteger`, and `multiplyInteger` builtins
 module Evaluation.Builtins.Integer.RingProperties
   ( test_integer_ring_properties
+  , integer_ring_property_names
   , generate_integer_ring_properties
   )
 where
@@ -15,8 +16,9 @@ import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common
 import Evaluation.Builtins.Integer.Conformance
 
-import Evaluation.Builtins.Conformance (OutputFormat)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
 
+import Control.Monad (when)
 import System.FilePath ((</>))
 
 import Test.QuickCheck.Random (QCGen)
@@ -80,14 +82,16 @@ test_integer_ring_properties =
     integerRingPropertiesWith $
       \_ name prop -> testProperty name prop
 
-{-| Generate the requested number of UPLC programs per property, with expected
+{-| Generate the requested number of numbered cases per property, with expected
 results and budgets. No property assertions are run. -}
-generate_integer_ring_properties :: OutputFormat -> FilePath -> Int -> QCGen -> IO ()
-generate_integer_ring_properties format outputDir numFiles seed =
+generate_integer_ring_properties
+  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
+generate_integer_ring_properties format include outputDir numFiles seed =
   sequence_ $
     integerRingPropertiesWith
-      ( \identifier _ ->
-          generatePropertyFiles format (outputDir </> "integer" </> "RingProperties") numFiles seed identifier
+      ( \identifier _ prop ->
+          when (include (conformanceSuiteDirectory </> identifier)) $
+            generatePropertyFiles format (outputDir </> conformanceSuiteDirectory) numFiles seed identifier prop
       )
 
 {-| Share stable identifiers, test descriptions and property definitions.
@@ -117,3 +121,11 @@ integerRingPropertiesWith testProp =
       prop_one_multiplicative_identity
   , testProp "distibutive" "multiplyInteger distributes over addInteger" prop_distibutive
   ]
+
+-- | Qualified property names, without sampling inputs or evaluating checks.
+integer_ring_property_names :: [FilePath]
+integer_ring_property_names =
+  integerRingPropertiesWith $ \identifier _ _ -> conformanceSuiteDirectory </> identifier
+
+conformanceSuiteDirectory :: FilePath
+conformanceSuiteDirectory = "integer" </> "RingProperties"
