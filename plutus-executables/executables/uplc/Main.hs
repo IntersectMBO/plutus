@@ -598,7 +598,7 @@ execCertifier
   -> CertName
   -> CertifierOutput
   -> [ ( Maybe
-           (Cek.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+           (Cek.CekEvaluationException UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun)
        , ExBudget
        )
      ]
@@ -778,15 +778,15 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
       -- does, erroring on an unexpected failure.
       cekEval = either (error . show) (const ()) . evaluateCekLikeInProd evalCtx (prog ^. UPLC.progVer)
       -- readProgam throws away De Bruijn indices and returns an AST with Names;
-      -- we have to put them back to get an AST with NamedDeBruijn names.
+      -- we have to put them back before removing the textual names.
       term =
         fromRight (error "Unexpected open term in runBenchmark.")
           . runExcept @FreeVariableError
           $ UPLC.deBruijnTerm (UPLC._progTerm prog)
-      -- Big names slow things down
-      anonTerm = UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) term
+      -- Remove names before entering the machine
+      anonTerm = UPLC.termMapNames UPLC.unNameDeBruijn term
       -- Big annotations slow things down.  Forcing this to NF here drives all
-      -- the preparatory work (de Bruijn conversion, name anonymisation, 'void')
+      -- the preparatory work (de Bruijn conversion, name removal, 'void')
       -- to completion before benchmarking, so it isn't measured by Criterion.
       !unitAnnTerm = force (void anonTerm)
   benchmarkWith criterionConfig $! whnf cekEval unitAnnTerm
@@ -867,11 +867,11 @@ runTimeEval (TimeEvalOptions inp ifmt semvar n raw) = do
           $ UPLC.deBruijnTerm term
   -- Fully evaluate the anonymised term to NF before timing.  This single
   -- 'force' drives all the preparatory work (the 'void', the de Bruijn
-  -- conversion and the name anonymisation) to completion, since 'anonTerm'
+  -- conversion and the name removal) to completion, since 'anonTerm'
   -- depends on all of it; doing it here keeps it out of the timed loop.
   anonTerm <-
     evaluate . force $
-      UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) dbTerm
+      UPLC.termMapNames UPLC.unNameDeBruijn dbTerm
   let !evalCtx = mkDefaultEvalCtx semvar
   performGC
   -- Store the term in an IORef so GHC cannot CSE/share the result of
@@ -913,7 +913,8 @@ runDbg (DbgOptions inp ifmt cekModel semvar) = do
       nterm =
         fromRight (error "Term to debug must be closed.") $
           runExcept @FreeVariableError $
-            UPLC.deBruijnTerm term
+            fmap (UPLC.termMapNames UPLC.unNameDeBruijn) $
+              UPLC.deBruijnTerm term
   let cekparams = case cekModel of
         -- AST nodes are charged according to the appropriate cost model
         Default -> PLC.defaultCekParametersForVariant semvar

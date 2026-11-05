@@ -94,7 +94,7 @@ cekResultMatchesHaskellValue actual matches expected =
     (unsafeRunTermCek actual)
     (unsafeRunTermCek (compiledCodeToTerm (Tx.liftCodeDef expected)))
   where
-    unsafeRunTermCek :: Term -> EvaluationResult Term
+    unsafeRunTermCek :: Term -> EvaluationResult (UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ())
     unsafeRunTermCek =
       unsafeSplitStructuralOperational
         . Cek.cekResultToEither
@@ -103,3 +103,4 @@ cekResultMatchesHaskellValue actual matches expected =
           PLC.defaultCekParametersForTesting
           Cek.restrictingEnormous
           Cek.noEmitter
+        . toAnonDeBruijnTerm

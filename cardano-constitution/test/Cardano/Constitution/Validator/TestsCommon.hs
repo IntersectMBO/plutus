@@ -66,10 +66,16 @@ unsafeRunCekRes = unsafeFromRight . runCekRes
 
 runCekRes
   :: t ~ Term NamedDeBruijn DefaultUni DefaultFun ()
-  => t -> Either (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun) t
+  => t -> Either (CekEvaluationException DeBruijn DefaultUni DefaultFun) t
 runCekRes t =
-  UPLC.cekResultToEither . UPLC._cekReportResult $
-    UPLC.runCekDeBruijn defaultCekParametersForTesting restrictingEnormous noEmitter t
+  fmap (UPLC.termMapNames UPLC.fakeNameDeBruijn)
+    . UPLC.cekResultToEither
+    . UPLC._cekReportResult
+    $ UPLC.runCekDeBruijn
+      defaultCekParametersForTesting
+      restrictingEnormous
+      noEmitter
+      (UPLC.termMapNames UPLC.unNameDeBruijn t)
 
 liftCode110 :: Lift DefaultUni a => a -> CompiledCode a
 liftCode110 = liftCode plcVersion110

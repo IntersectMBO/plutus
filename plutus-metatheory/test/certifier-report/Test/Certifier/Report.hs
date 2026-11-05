@@ -73,7 +73,7 @@ evalCtx = mkDefaultEvalCtx def
 evalTrace
   :: OptimizerTrace Name DefaultUni DefaultFun ()
   -> [Term NamedDeBruijn DefaultUni DefaultFun ()]
-  -> [ ( Maybe (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+  -> [ ( Maybe (CekEvaluationException UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun)
        , ExBudget
        )
      ]

@@ -51,7 +51,7 @@ mkFfiOptimizerTrace (OptimizerTrace simplNonEmptySep) = go (reverse simplNonEmpt
       Cons (convTerm before) (stage, convTerm <$> hints) (go xs)
 
 toEvalResult
-  :: Maybe (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+  :: Maybe (CekEvaluationException UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun)
   -> ExBudget
   -> EvalResult
 toEvalResult res budget = case res of

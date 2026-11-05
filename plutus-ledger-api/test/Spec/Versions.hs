@@ -89,7 +89,7 @@ mkTestTerm
   :: PlutusLedgerLanguage
   -> MajorProtocolVersion
   -> UPLC.Program DeBruijn DefaultUni DefaultFun ()
-  -> Either ScriptDecodeError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+  -> Either ScriptDecodeError (UPLC.Term DeBruijn DefaultUni DefaultFun ())
 mkTestTerm ll pv prog =
   case deserialiseScript ll pv $ serialiseUPLC prog of
     Right s ->
