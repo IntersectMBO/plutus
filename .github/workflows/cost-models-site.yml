@@ -37,31 +37,28 @@ jobs:
 
       - name: Deploy Site
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        uses: JamesIves/github-pages-deploy-action@v4.9.0
-        with:
-          folder: doc/cost-models
-          target-folder: cost-models
-          single-commit: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/deploy-gh-pages.sh doc/cost-models cost-models
 
       - name: Deploy Preview Site
-        id: preview
-        if: github.event_name == 'pull_request'
-        uses: rossjrw/pr-preview-action@v1.6.3
-        with:
-          source-dir: doc/cost-models
-          umbrella-dir: pr-preview/cost-models
-          # The link is posted by the next step instead, with the branch in it.
-          comment: false
+        # PRs from forks, and runs triggered by Dependabot, get a read-only token.
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: ./scripts/deploy-gh-pages.sh doc/cost-models "pr-preview/cost-models/pr-$PR_NUMBER"
 
       # The pages read the benchmark CSV and the cost model JSON from a branch of this
       # repository, and remember the last branch used in the browser's local storage.
       # The `branch` parameter in the link overrides that, so the preview of this PR
       # plots this PR's data for everyone who opens it.
       - name: Comment Preview Link
-        if: github.event_name == 'pull_request' && steps.preview.outputs['deployment-action'] == 'deploy'
+        # PRs from forks, and runs triggered by Dependabot, get a read-only token.
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
         uses: actions/github-script@v7.1.0
         env:
-          PREVIEW_URL: ${{ steps.preview.outputs['preview-url'] }}
+          PREVIEW_URL: https://plutus.cardano.intersectmbo.org/pr-preview/cost-models/pr-${{ github.event.pull_request.number }}/
         with:
           script: |
             const branch = context.payload.pull_request.head.ref;

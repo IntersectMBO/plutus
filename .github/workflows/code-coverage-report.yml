@@ -39,8 +39,6 @@ jobs:
           mv out/hpc_index.html out/index.html
 
       - name: Deploy Report
-        uses: JamesIves/github-pages-deploy-action@v4.9.0
-        with:
-          folder: out
-          target-folder: dev/coverage
-          single-commit: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/deploy-gh-pages.sh out dev/coverage

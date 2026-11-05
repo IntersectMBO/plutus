@@ -2341,11 +2341,17 @@ test_KeepPolicies =
           @?= expectedValue (unsafeMkValue [("bbb", "t1", 1), ("bbb", "t2", 3)])
     , testCase "oversized policy id matches nothing" do
         evalKeepPolicies [pack (replicate 33 0)] mixedValue @?= expectedValue Value.empty
-    , testCase "accepts a Value at the policy bound" do
-        evalKeepPolicies [] (manyPolicies Value.policyFilterMaxSize) @?= expectedValue Value.empty
-    , testCase "refuses a Value above the policy bound" do
-        evalKeepPolicies [] (manyPolicies (Value.policyFilterMaxSize + 1))
+    , testCase "accepts a list at the id bound" do
+        evalKeepPolicies (absentIds Value.policyFilterMaxIds) mixedValue
+          @?= expectedValue Value.empty
+    , testCase "refuses a list above the id bound" do
+        evalKeepPolicies (absentIds (Value.policyFilterMaxIds + 1)) mixedValue
           @?= Right EvaluationFailure
+    , testCase "repeated and oversized ids count toward the bound" do
+        evalKeepPolicies (overBound "aaa") mixedValue @?= Right EvaluationFailure
+        evalKeepPolicies (overBound (pack (replicate 33 0))) mixedValue @?= Right EvaluationFailure
+    , testCase "accepts a Value of any size" do
+        evalKeepPolicies [] (manyPolicies 20000) @?= expectedValue Value.empty
     ]
   where
     evalKeepPolicies = evalPolicyFilter KeepPolicies
@@ -2378,12 +2384,18 @@ test_DropPolicies =
           @?= expectedValue (unsafeMkValue [("bbb", "t1", 1), ("bbb", "t2", 3)])
     , testCase "oversized policy id matches nothing" do
         evalDropPolicies [pack (replicate 33 0)] mixedValue @?= expectedValue mixedValue
-    , testCase "accepts a Value at the policy bound" do
-        let v = manyPolicies Value.policyFilterMaxSize
-        evalDropPolicies [] v @?= expectedValue v
-    , testCase "refuses a Value above the policy bound" do
-        evalDropPolicies [] (manyPolicies (Value.policyFilterMaxSize + 1))
+    , testCase "accepts a list at the id bound" do
+        evalDropPolicies (absentIds Value.policyFilterMaxIds) mixedValue
+          @?= expectedValue mixedValue
+    , testCase "refuses a list above the id bound" do
+        evalDropPolicies (absentIds (Value.policyFilterMaxIds + 1)) mixedValue
           @?= Right EvaluationFailure
+    , testCase "repeated and oversized ids count toward the bound" do
+        evalDropPolicies (overBound "aaa") mixedValue @?= Right EvaluationFailure
+        evalDropPolicies (overBound (pack (replicate 33 0))) mixedValue @?= Right EvaluationFailure
+    , testCase "accepts a Value of any size" do
+        let v = manyPolicies 20000
+        evalDropPolicies [] v @?= expectedValue v
     ]
   where
     evalDropPolicies = evalPolicyFilter DropPolicies
@@ -2402,6 +2414,14 @@ evalPolicyFilter fun ps v =
 manyPolicies :: Int -> Value
 manyPolicies m =
   unsafeMkValue [(fromString (show i), "t", 1) | i <- [1 .. m]]
+
+-- | @n@ distinct policy ids, none of them in `mixedValue`.
+absentIds :: Int -> [ByteString]
+absentIds n = [fromString ("absent" <> show i) | i <- [1 .. n]]
+
+-- | One id repeated once more than `Value.policyFilterMaxIds` allows.
+overBound :: ByteString -> [ByteString]
+overBound = replicate (Value.policyFilterMaxIds + 1)
 
 -- | The expected result of a successful `evalPolicyFilter` evaluation.
 expectedFilteredValue :: Value -> Either PlcError (EvaluationResult UplcTerm)

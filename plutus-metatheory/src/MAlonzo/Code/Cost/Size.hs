@@ -21,6 +21,7 @@ import qualified MAlonzo.Code.Agda.Builtin.Bool
 import qualified MAlonzo.Code.Agda.Builtin.Int
 import qualified MAlonzo.Code.Agda.Builtin.String
 import qualified MAlonzo.Code.Agda.Builtin.Unit
+import qualified MAlonzo.Code.Builtin
 import qualified MAlonzo.Code.Builtin.ByteString.Base
 import qualified MAlonzo.Code.Builtin.Constant.AtomicType
 import qualified MAlonzo.Code.Builtin.Signature
@@ -44,21 +45,21 @@ d_byteStringSize_6 ::
 d_byteStringSize_6 = size . toHS
 -- Cost.Size.g1ElementSize
 d_g1ElementSize_8 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_758 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_748 -> Integer
 d_g1ElementSize_8 = size
 -- Cost.Size.g2ElementSize
 d_g2ElementSize_10 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_762 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_752 -> Integer
 d_g2ElementSize_10 = size
 -- Cost.Size.mlResultElementSize
 d_mlResultElementSize_12 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_766 -> Integer
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_756 -> Integer
 d_mlResultElementSize_12 = size
 -- Cost.Size.dataSize
-d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_612 -> Integer
+d_dataSize_14 :: MAlonzo.Code.Utils.T_DATA_602 -> Integer
 d_dataSize_14 = size
 -- Cost.Size.dataNodeCount
-d_dataNodeCount_16 :: MAlonzo.Code.Utils.T_DATA_612 -> Integer
+d_dataNodeCount_16 :: MAlonzo.Code.Utils.T_DATA_602 -> Integer
 d_dataNodeCount_16 = size . DataNodeCount
 -- Cost.Size.boolSize
 d_boolSize_18 :: Bool -> Integer
@@ -72,10 +73,10 @@ d_stringSize_22 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 -> Integer
 d_stringSize_22 = size
 -- Cost.Size.valueSize
-d_valueSize_24 :: MAlonzo.Code.Utils.T_Value_770 -> Integer
+d_valueSize_24 :: MAlonzo.Code.Utils.T_Value_760 -> Integer
 d_valueSize_24 = size
 -- Cost.Size.valueMaxDepth
-d_valueMaxDepth_26 :: MAlonzo.Code.Utils.T_Value_770 -> Integer
+d_valueMaxDepth_26 :: MAlonzo.Code.Utils.T_Value_760 -> Integer
 d_valueMaxDepth_26 = size . ValueMaxDepth
 -- Cost.Size.defaultConstantMeasure
 d_defaultConstantMeasure_28 ::
@@ -111,7 +112,7 @@ d_defaultConstantMeasure_28 v0
                -> coe MAlonzo.Code.Utils.du_length_484 (coe v2)
              MAlonzo.Code.Builtin.Signature.C_array_20 v4
                -> let v5
-                        = coe MAlonzo.Code.Utils.d_HSlengthOfArray_600 erased v2 in
+                        = coe MAlonzo.Code.Builtin.d_HSlengthOfArray_420 erased v2 in
                   coe
                     (case coe v5 of
                        0 -> coe (1 :: Integer)

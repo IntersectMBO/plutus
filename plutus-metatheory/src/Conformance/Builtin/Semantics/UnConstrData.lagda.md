@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
      Regenerate with `generate-agda-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -23,6 +28,7 @@ open import Conformance.Eval
 ```
 -- builtin/semantics/unConstrData/unConstrData-01
 test-unConstrData-01 : Untyped
+<<<<<<< HEAD
 test-unConstrData-01 = (UApp (UBuiltin unConstrData) (UCon (tagCon pdata (ConstrDATA (ℤ.pos 1278) ((bDATA (mkByteString "ff31")) ∷ (iDATA (ℤ.negsuc 7971)) ∷ (ListDATA ((ListDATA ([])) ∷ [])) ∷ [])))))
 
 expected-unConstrData-01 : Result
@@ -30,6 +36,16 @@ expected-unConstrData-01 = success (UCon (tagCon (pair integer (list pdata)) ((�
 
 _ : evalRaw test-unConstrData-01 ≡ expected-unConstrData-01
 _ = refl
+=======
+test-unConstrData-01 = (UApp (UBuiltin unConstrData) (UCon (tagCon pdata (ConstrDATA (ℤ.pos 1278) ((bDATA (mkByteString "\255\&1")) ∷ (iDATA (ℤ.negsuc 7971)) ∷ (ListDATA ((ListDATA ([])) ∷ [])) ∷ [])))))
+
+expected-unConstrData-01 : Result
+expected-unConstrData-01 = success (UCon (tagCon (pair integer (list pdata)) ((ℤ.pos 1278) , ((bDATA (mkByteString "\255\&1")) ∷ (iDATA (ℤ.negsuc 7971)) ∷ (ListDATA ((ListDATA ([])) ∷ [])) ∷ []))))
+
+-- Pending: bytestring inside a `data` constant.
+pending-unConstrData-01 : Set
+pending-unConstrData-01 = Pending (evalRaw test-unConstrData-01 ≡ expected-unConstrData-01)
+>>>>>>> origin/master
 ```
 
 ## unConstrData-fail
@@ -37,11 +53,21 @@ _ = refl
 ```
 -- builtin/semantics/unConstrData/unConstrData-fail
 test-unConstrData-fail : Untyped
+<<<<<<< HEAD
 test-unConstrData-fail = (UApp (UBuiltin unConstrData) (UCon (tagCon pdata (bDATA (mkByteString "af00")))))
+=======
+test-unConstrData-fail = (UApp (UBuiltin unConstrData) (UCon (tagCon pdata (bDATA (mkByteString "\175\NUL")))))
+>>>>>>> origin/master
 
 expected-unConstrData-fail : Result
 expected-unConstrData-fail = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-unConstrData-fail ≡ expected-unConstrData-fail
 _ = refl
+=======
+-- Pending: bytestring inside a `data` constant.
+pending-unConstrData-fail : Set
+pending-unConstrData-fail = Pending (evalRaw test-unConstrData-fail ≡ expected-unConstrData-fail)
+>>>>>>> origin/master
 ```

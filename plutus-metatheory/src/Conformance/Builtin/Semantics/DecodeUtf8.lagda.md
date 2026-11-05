@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
      Regenerate with `generate-agda-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -24,12 +29,20 @@ open import Conformance.Eval
 -- builtin/semantics/decodeUtf8/decodeUtf8-invalid
 -- invalid utf8
 test-decodeUtf8-invalid : Untyped
+<<<<<<< HEAD
 test-decodeUtf8-invalid = (UApp (UBuiltin decodeUtf8) (UCon (tagCon bytestring (mkByteString "a3"))))
+=======
+test-decodeUtf8-invalid = (UApp (UBuiltin decodeUtf8) (UCon (tagCon bytestring (mkByteString "\163"))))
+>>>>>>> origin/master
 
 expected-decodeUtf8-invalid : Result
 expected-decodeUtf8-invalid = failure
 
+<<<<<<< HEAD
 -- Pending: postulated builtin `decodeUtf8`.
+=======
+-- Pending: bytestring constant; postulated builtin `decodeUtf8`.
+>>>>>>> origin/master
 pending-decodeUtf8-invalid : Set
 pending-decodeUtf8-invalid = Pending (evalRaw test-decodeUtf8-invalid ≡ expected-decodeUtf8-invalid)
 ```
@@ -39,12 +52,20 @@ pending-decodeUtf8-invalid = Pending (evalRaw test-decodeUtf8-invalid ≡ expect
 ```
 -- builtin/semantics/decodeUtf8/decodeUtf8-ok
 test-decodeUtf8-ok : Untyped
+<<<<<<< HEAD
 test-decodeUtf8-ok = (UApp (UBuiltin decodeUtf8) (UCon (tagCon bytestring (mkByteString "4f6c61"))))
+=======
+test-decodeUtf8-ok = (UApp (UBuiltin decodeUtf8) (UCon (tagCon bytestring (mkByteString "Ola"))))
+>>>>>>> origin/master
 
 expected-decodeUtf8-ok : Result
 expected-decodeUtf8-ok = success (UCon (tagCon string "Ola"))
 
+<<<<<<< HEAD
 -- Pending: postulated builtin `decodeUtf8`.
+=======
+-- Pending: bytestring constant; postulated builtin `decodeUtf8`.
+>>>>>>> origin/master
 pending-decodeUtf8-ok : Set
 pending-decodeUtf8-ok = Pending (evalRaw test-decodeUtf8-ok ≡ expected-decodeUtf8-ok)
 ```

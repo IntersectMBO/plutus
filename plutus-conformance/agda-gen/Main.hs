@@ -16,11 +16,11 @@ type-checked) but not proved.  See @Conformance.Eval@ in the metatheory.
 
 Run from the nix shell:
 
-> generate-agda-conformance
+> generate-agda-typecheck-conformance
 
 or, without nix, from the repository root:
 
-> cabal run plutus-conformance:generate-agda-conformance
+> cabal run plutus-conformance:generate-agda-typecheck-conformance
 
 The classification of builtins and constant types, and the list of excluded
 cases, are the tables at the top of this file. -}
@@ -45,6 +45,7 @@ import PlutusConformance.Common
   , getInputProg
   , shownEvaluationFailure
   )
+import PlutusCore.Data (Data (..))
 import PlutusCore.Default
   ( DefaultFun (..)
   , DefaultUni (..)
@@ -375,8 +376,8 @@ moduleName comps = intercalate "." ("Conformance" : comps)
 generatedNote :: [String]
 generatedNote =
   [ "<!-- GENERATED FILE: do not edit."
-  , "     Regenerate with `generate-agda-conformance` from the nix shell, or with"
-  , "     `cabal run plutus-conformance:generate-agda-conformance` from the"
+  , "     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with"
+  , "     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the"
   , "     repository root. -->"
   ]
 
@@ -492,7 +493,7 @@ writeUtf8 path = BS.writeFile path . TE.encodeUtf8 . T.pack
 main :: IO ()
 main = do
   args <- getArgs
-  unless (null args) $ die "usage: generate-agda-conformance (takes no arguments)"
+  unless (null args) $ die "usage: generate-agda-typecheck-conformance (takes no arguments)"
   let root = "plutus-conformance/test-cases/uplc/evaluation"
       outDir = "plutus-metatheory/src"
   rootExists <- doesDirectoryExist root

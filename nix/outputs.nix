@@ -104,6 +104,21 @@ let
       lib.remove metatheory.agda-with-stdlib-and-metatheory attrs.nativeBuildInputs;
   });
 
+  # Like the jailbreak shell, but with agda/agda-mode built with the `debug` flag (for `agda -v`).
+  metatheory-debug-shell = devShells.default.overrideAttrs (attrs:
+    let
+      agda-debug = (agda-tools.agda-project.appendModule {
+        modules = [{ packages.Agda.flags.debug = true; }];
+      }).hsPkgs.Agda.components.exes;
+      remove = lib.subtractLists
+        [ agda-tools.agda agda-tools.agda-mode metatheory.agda-with-stdlib-and-metatheory ];
+    in
+    {
+      buildInputs = remove attrs.buildInputs;
+      nativeBuildInputs = remove attrs.nativeBuildInputs
+        ++ [ agda-debug.agda agda-debug.agda-mode ];
+    });
+
   devShells = rec {
     default = ghc96;
     ghc96 = mkShell "ghc96";
@@ -111,6 +126,7 @@ let
     ghc96-profiled = mkShell "ghc96-profiled";
     ghc912-profiled = mkShell "ghc912-profiled";
     metatheory-jailbreak = metatheory-jailbreak-shell;
+    metatheory-debug = metatheory-debug-shell;
   };
 
   nested-ci-jobs = {

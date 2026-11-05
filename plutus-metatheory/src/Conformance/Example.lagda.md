@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
      Regenerate with `generate-agda-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -23,12 +28,20 @@ open import Conformance.Eval
 ```
 -- example/ApplyAdd1
 test-ApplyAdd1 : Untyped
+<<<<<<< HEAD
 test-ApplyAdd1 = (UApp (UApp (UForce (UForce (UDelay (UDelay (ULambda (ULambda (UApp (UVar 1) (UVar 0)))))))) (UApp (UBuiltin addInteger) (UApp (ULambda (UApp (UApp (UBuiltin multiplyInteger) (UApp (UApp (UBuiltin multiplyInteger) (UVar 0)) (UVar 0))) (UApp (UApp (UBuiltin subtractInteger) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon integer (ℤ.pos 1))))) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 3)))) (UCon (tagCon integer (ℤ.pos 0))))))) (UApp (ULambda (UApp (UApp (UBuiltin subtractInteger) (UApp (UApp (UBuiltin multiplyInteger) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon integer (ℤ.pos 2))))) (UApp (UApp (UBuiltin addInteger) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon integer (ℤ.pos 1)))))) (UApp (ULambda (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 2))))) (UApp (UBuiltin sha3-256) (UCon (tagCon bytestring (mkByteString "76"))))))))) (UApp (ULambda (UApp (UApp (UBuiltin addInteger) (UApp (UApp (UBuiltin addInteger) (UApp (UApp (UBuiltin multiplyInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 1))))) (UApp (UApp (UBuiltin addInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 3)))))) (UApp (UApp (UBuiltin subtractInteger) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon integer (ℤ.pos 2))))) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 1))))))) (UApp (UApp (UBuiltin lessThanInteger) (UCon (tagCon integer (ℤ.pos 3)))) (UApp (UApp (UBuiltin multiplyInteger) (UApp (UApp (UBuiltin addInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 1))))) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 0))))))))
+=======
+test-ApplyAdd1 = (UApp (UApp (UForce (UForce (UDelay (UDelay (ULambda (ULambda (UApp (UVar 1) (UVar 0)))))))) (UApp (UBuiltin addInteger) (UApp (ULambda (UApp (UApp (UBuiltin multiplyInteger) (UApp (UApp (UBuiltin multiplyInteger) (UVar 0)) (UVar 0))) (UApp (UApp (UBuiltin subtractInteger) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon integer (ℤ.pos 1))))) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 3)))) (UCon (tagCon integer (ℤ.pos 0))))))) (UApp (ULambda (UApp (UApp (UBuiltin subtractInteger) (UApp (UApp (UBuiltin multiplyInteger) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon integer (ℤ.pos 2))))) (UApp (UApp (UBuiltin addInteger) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon integer (ℤ.pos 1)))))) (UApp (ULambda (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 2))))) (UApp (UBuiltin sha3-256) (UCon (tagCon bytestring (mkByteString "v"))))))))) (UApp (ULambda (UApp (UApp (UBuiltin addInteger) (UApp (UApp (UBuiltin addInteger) (UApp (UApp (UBuiltin multiplyInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 1))))) (UApp (UApp (UBuiltin addInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 3)))))) (UApp (UApp (UBuiltin subtractInteger) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon integer (ℤ.pos 2))))) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 1))))))) (UApp (UApp (UBuiltin lessThanInteger) (UCon (tagCon integer (ℤ.pos 3)))) (UApp (UApp (UBuiltin multiplyInteger) (UApp (UApp (UBuiltin addInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 1))))) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 0))))))))
+>>>>>>> origin/master
 
 expected-ApplyAdd1 : Result
 expected-ApplyAdd1 = success (UCon (tagCon integer (ℤ.pos 1)))
 
+<<<<<<< HEAD
 -- Pending: postulated builtin `sha3-256`.
+=======
+-- Pending: bytestring constant; postulated builtin `sha3-256`.
+>>>>>>> origin/master
 pending-ApplyAdd1 : Set
 pending-ApplyAdd1 = Pending (evalRaw test-ApplyAdd1 ≡ expected-ApplyAdd1)
 ```
@@ -52,12 +65,20 @@ _ = refl
 ```
 -- example/DivideByZero
 test-DivideByZero : Untyped
+<<<<<<< HEAD
 test-DivideByZero = (UApp (UApp (UBuiltin remainderInteger) (UApp (ULambda (UApp (UApp (UBuiltin addInteger) (UApp (ULambda (UApp (UApp (UBuiltin addInteger) (UCon (tagCon integer (ℤ.pos 3)))) (UCon (tagCon integer (ℤ.pos 3))))) (UApp (UApp (UBuiltin lessThanInteger) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon integer (ℤ.pos 0)))))) (UApp (ULambda (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon integer (ℤ.pos 3))))) (UApp (UApp (UBuiltin equalsByteString) (UCon (tagCon bytestring (mkByteString "7063")))) (UCon (tagCon bytestring (mkByteString "716466"))))))) (UApp (UBuiltin sha2-256) (UApp (UApp (UBuiltin appendByteString) (UApp (UBuiltin sha2-256) (UCon (tagCon bytestring (mkByteString "67696d"))))) (UApp (UBuiltin sha2-256) (UCon (tagCon bytestring (mkByteString "767174")))))))) (UCon (tagCon integer (ℤ.pos 0))))
+=======
+test-DivideByZero = (UApp (UApp (UBuiltin remainderInteger) (UApp (ULambda (UApp (UApp (UBuiltin addInteger) (UApp (ULambda (UApp (UApp (UBuiltin addInteger) (UCon (tagCon integer (ℤ.pos 3)))) (UCon (tagCon integer (ℤ.pos 3))))) (UApp (UApp (UBuiltin lessThanInteger) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon integer (ℤ.pos 0)))))) (UApp (ULambda (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon integer (ℤ.pos 3))))) (UApp (UApp (UBuiltin equalsByteString) (UCon (tagCon bytestring (mkByteString "pc")))) (UCon (tagCon bytestring (mkByteString "qdf"))))))) (UApp (UBuiltin sha2-256) (UApp (UApp (UBuiltin appendByteString) (UApp (UBuiltin sha2-256) (UCon (tagCon bytestring (mkByteString "gim"))))) (UApp (UBuiltin sha2-256) (UCon (tagCon bytestring (mkByteString "vqt")))))))) (UCon (tagCon integer (ℤ.pos 0))))
+>>>>>>> origin/master
 
 expected-DivideByZero : Result
 expected-DivideByZero = failure
 
+<<<<<<< HEAD
 -- Pending: postulated builtin `sha2-256`.
+=======
+-- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `sha2-256`; postulated builtin `appendByteString`.
+>>>>>>> origin/master
 pending-DivideByZero : Set
 pending-DivideByZero = Pending (evalRaw test-DivideByZero ≡ expected-DivideByZero)
 ```
@@ -81,12 +102,20 @@ _ = refl
 ```
 -- example/IfIntegers
 test-IfIntegers : Untyped
+<<<<<<< HEAD
 test-IfIntegers = (UApp (UApp (UApp (UForce (UDelay (ULambda (ULambda (ULambda (UApp (UApp (UApp (UApp (UForce (UBuiltin ifThenElse)) (UVar 2)) (UVar 1)) (UVar 0)) (UCon (tagCon unit tt)))))))) (UApp (ULambda (UApp (UApp (UBuiltin equalsByteString) (UApp (UBuiltin sha2-256) (UApp (UBuiltin sha3-256) (UCon (tagCon bytestring (mkByteString "64")))))) (UVar 0))) (UApp (UApp (UBuiltin appendByteString) (UApp (ULambda (UApp (UBuiltin sha3-256) (UCon (tagCon bytestring (mkByteString "78"))))) (UApp (UBuiltin sha3-256) (UCon (tagCon bytestring (mkByteString "726e")))))) (UCon (tagCon bytestring (mkByteString "6973")))))) (UApp (UForce (UForce (UDelay (UDelay (ULambda (ULambda (UVar 1))))))) (UApp (ULambda (UApp (ULambda (UVar 1)) (UApp (UBuiltin sha2-256) (UApp (UBuiltin sha3-256) (UCon (tagCon bytestring (mkByteString ""))))))) (UApp (UApp (UBuiltin subtractInteger) (UApp (UApp (UBuiltin addInteger) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 2))))) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon integer (ℤ.pos 3)))))) (UApp (ULambda (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 3)))) (UCon (tagCon integer (ℤ.pos 3))))) (UApp (UApp (UBuiltin equalsByteString) (UCon (tagCon bytestring (mkByteString "6c7a")))) (UCon (tagCon bytestring (mkByteString "6673"))))))))) (UApp (UForce (UForce (UDelay (UDelay (ULambda (ULambda (UVar 1))))))) (UCon (tagCon integer (ℤ.pos 0)))))
+=======
+test-IfIntegers = (UApp (UApp (UApp (UForce (UDelay (ULambda (ULambda (ULambda (UApp (UApp (UApp (UApp (UForce (UBuiltin ifThenElse)) (UVar 2)) (UVar 1)) (UVar 0)) (UCon (tagCon unit tt)))))))) (UApp (ULambda (UApp (UApp (UBuiltin equalsByteString) (UApp (UBuiltin sha2-256) (UApp (UBuiltin sha3-256) (UCon (tagCon bytestring (mkByteString "d")))))) (UVar 0))) (UApp (UApp (UBuiltin appendByteString) (UApp (ULambda (UApp (UBuiltin sha3-256) (UCon (tagCon bytestring (mkByteString "x"))))) (UApp (UBuiltin sha3-256) (UCon (tagCon bytestring (mkByteString "rn")))))) (UCon (tagCon bytestring (mkByteString "is")))))) (UApp (UForce (UForce (UDelay (UDelay (ULambda (ULambda (UVar 1))))))) (UApp (ULambda (UApp (ULambda (UVar 1)) (UApp (UBuiltin sha2-256) (UApp (UBuiltin sha3-256) (UCon (tagCon bytestring (mkByteString ""))))))) (UApp (UApp (UBuiltin subtractInteger) (UApp (UApp (UBuiltin addInteger) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 2)))) (UCon (tagCon integer (ℤ.pos 2))))) (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon integer (ℤ.pos 3)))))) (UApp (ULambda (UApp (UApp (UBuiltin subtractInteger) (UCon (tagCon integer (ℤ.pos 3)))) (UCon (tagCon integer (ℤ.pos 3))))) (UApp (UApp (UBuiltin equalsByteString) (UCon (tagCon bytestring (mkByteString "lz")))) (UCon (tagCon bytestring (mkByteString "fs"))))))))) (UApp (UForce (UForce (UDelay (UDelay (ULambda (ULambda (UVar 1))))))) (UCon (tagCon integer (ℤ.pos 0)))))
+>>>>>>> origin/master
 
 expected-IfIntegers : Result
 expected-IfIntegers = success (UCon (tagCon integer (ℤ.pos 0)))
 
+<<<<<<< HEAD
 -- Pending: postulated builtin `sha2-256`; postulated builtin `sha3-256`.
+=======
+-- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `sha2-256`; postulated builtin `sha3-256`; postulated builtin `appendByteString`.
+>>>>>>> origin/master
 pending-IfIntegers : Set
 pending-IfIntegers = Pending (evalRaw test-IfIntegers ≡ expected-IfIntegers)
 ```

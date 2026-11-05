@@ -132,7 +132,7 @@ d_certifyPass_26 v0 v1
                -> coe
                     MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_204
                     (coe
-                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_decide_526
+                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_decide_590
                        (coe (0 :: Integer)))
              MAlonzo.Code.VerifiedCompilation.Trace.C_letFloatOutT_28
                -> coe

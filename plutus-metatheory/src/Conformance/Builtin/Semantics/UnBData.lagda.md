@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
      Regenerate with `generate-agda-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -23,6 +28,7 @@ open import Conformance.Eval
 ```
 -- builtin/semantics/unBData/unBData-01
 test-unBData-01 : Untyped
+<<<<<<< HEAD
 test-unBData-01 = (UApp (UBuiltin unBData) (UCon (tagCon pdata (bDATA (mkByteString "af00")))))
 
 expected-unBData-01 : Result
@@ -30,6 +36,16 @@ expected-unBData-01 = success (UCon (tagCon bytestring (mkByteString "af00")))
 
 _ : evalRaw test-unBData-01 ≡ expected-unBData-01
 _ = refl
+=======
+test-unBData-01 = (UApp (UBuiltin unBData) (UCon (tagCon pdata (bDATA (mkByteString "\175\NUL")))))
+
+expected-unBData-01 : Result
+expected-unBData-01 = success (UCon (tagCon bytestring (mkByteString "\175\NUL")))
+
+-- Pending: bytestring inside a `data` constant; bytestring constant.
+pending-unBData-01 : Set
+pending-unBData-01 = Pending (evalRaw test-unBData-01 ≡ expected-unBData-01)
+>>>>>>> origin/master
 ```
 
 ## unBData-fail

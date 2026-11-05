@@ -1,4 +1,4 @@
-# `generate-agda-conformance`
+# `generate-agda-typecheck-conformance`
 
 This tool turns the UPLC evaluation conformance test cases in
 `plutus-conformance/test-cases/uplc/evaluation` into Agda unit tests under
@@ -10,20 +10,20 @@ when it type-checks the module, so a test "runs" when you type-check
 
 Regenerate and type-check the tests from the nix shell with
 
-    generate-agda-conformance
+    generate-agda-typecheck-conformance
 
 This fails if any generated test doesn't type-check. Without nix, run the two
 steps yourself from the repository root:
 
-    cabal run plutus-conformance:generate-agda-conformance
+    cabal run plutus-conformance:generate-agda-typecheck-conformance
     cd plutus-metatheory && agda-with-stdlib src/Conformance.lagda.md
 
 The cabal executable only writes the files. The counts it prints are what it
 generated, not what Agda has checked. A pre-push hook runs
-`generate-agda-conformance` (generation and type-checking) when the test
-cases, this tool, or `plutus-metatheory/src/{Conformance,FFI}` change.
+`generate-agda-typecheck-conformance` when the test cases, this tool, or
+`plutus-metatheory/src/{Conformance,FFI}` change.
 
-## Why this exists: compile-time vs runtime Agda
+## Why this exists: Agda type-checking time vs runtime 
 
 There are two ways to run the Agda semantics against the same conformance test
 cases, and they test different things:
@@ -34,7 +34,7 @@ cases, and they test different things:
   MAlonzo representation, runs the compiled CEK machine, converts the result
   back, and compares it with the expected output. Budgets are checked too.
 - **The generated `Conformance.*` modules** run the Agda evaluator **at
-  type-checking time**. Each test is stated as
+  Agda type-checking time**. Each test is stated as
   `evalRaw test-x ≡ expected-x` and proved by `refl`, so Agda's normaliser has
   to evaluate the program using the Agda *definitions* of the CEK machine and
   of the builtins. Nothing is compiled and no Haskell code runs.
@@ -53,7 +53,7 @@ A `refl` test checks that, for a closed program `t` with expected result `r`
 
 It does **not** test costing (there is no budget check), the MAlonzo
 compilation, the `COMPILE` pragmas, or the Haskell↔Agda term conversion used
-at runtime.
+at Agda runtime.
 
 ### Pending and skipped tests
 
@@ -90,19 +90,20 @@ one and pass in the other:
 
 - **Passes in `agda-conformance`, pending here.** Postulated builtins are
   bound to their Haskell implementations with `COMPILE GHC` pragmas, so at
-  runtime they compute normally, but at type-checking time they don't reduce.
+  Agda runtime they compute normally, but at Agda type-checking time they
+  don't reduce.
   This is the most common difference, and it is expected rather than a bug.
   Such a case is only checking the Haskell implementation together with the
   Agda CEK machine, not an Agda specification of the builtin. Once a postulate
   is replaced by a definition, mark the builtin as supported in
   `builtinSupported` and regenerate, so that its cases become `refl` proofs.
 - **Passes in `agda-conformance`, fails here.** The Agda definition gives the
-  wrong answer, but something on the runtime path hides it. For example, a
+  wrong answer, but something on the Agda runtime path hides it. For example, a
   `COMPILE` pragma that replaces a defined function or data type with Haskell
   code makes the compiled program run the Haskell code instead of the Agda
   definition. Errors in the runtime term conversion that happen to cancel out
   can hide it too.
-- **Fails in `agda-conformance`, passes here.** The bug is on the runtime path
+- **Fails in `agda-conformance`, passes here.** The bug is on the Agda runtime path
   only: a wrong `COMPILE` pragma or a broken Haskell↔Agda data binding
   (for example the `ByteString` pattern synonyms), a bug in the FFI term
   conversion (`FFI.Untyped`) or the conversion back, a MAlonzo code-generation

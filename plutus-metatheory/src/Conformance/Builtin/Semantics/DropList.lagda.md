@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
      Regenerate with `generate-agda-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -39,6 +44,7 @@ _ = refl
 -- builtin/semantics/dropList/dropList-02
 -- Dropping zero elements has no effect.
 test-dropList-02 : Untyped
+<<<<<<< HEAD
 test-dropList-02 = (UApp (UApp (UForce (UBuiltin dropList)) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon (list bytestring) ((mkByteString "123456") ∷ (mkByteString "234567") ∷ (mkByteString "345678") ∷ (mkByteString "456789") ∷ (mkByteString "56789a") ∷ (mkByteString "6789ab") ∷ (mkByteString "789abc") ∷ (mkByteString "89abcd93232479173417824fff") ∷ (mkByteString "ffeeffeeffee") ∷ []))))
 
 expected-dropList-02 : Result
@@ -46,6 +52,16 @@ expected-dropList-02 = success (UCon (tagCon (list bytestring) ((mkByteString "1
 
 _ : evalRaw test-dropList-02 ≡ expected-dropList-02
 _ = refl
+=======
+test-dropList-02 = (UApp (UApp (UForce (UBuiltin dropList)) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon (list bytestring) ((mkByteString "\DC24V") ∷ (mkByteString "#Eg") ∷ (mkByteString "4Vx") ∷ (mkByteString "Eg\137") ∷ (mkByteString "Vx\154") ∷ (mkByteString "g\137\171") ∷ (mkByteString "x\154\188") ∷ (mkByteString "\137\171\205\147#$y\ETB4\ETB\130O\255") ∷ (mkByteString "\255\238\255\238\255\238") ∷ []))))
+
+expected-dropList-02 : Result
+expected-dropList-02 = success (UCon (tagCon (list bytestring) ((mkByteString "\DC24V") ∷ (mkByteString "#Eg") ∷ (mkByteString "4Vx") ∷ (mkByteString "Eg\137") ∷ (mkByteString "Vx\154") ∷ (mkByteString "g\137\171") ∷ (mkByteString "x\154\188") ∷ (mkByteString "\137\171\205\147#$y\ETB4\ETB\130O\255") ∷ (mkByteString "\255\238\255\238\255\238") ∷ [])))
+
+-- Pending: bytestring constant.
+pending-dropList-02 : Set
+pending-dropList-02 = Pending (evalRaw test-dropList-02 ≡ expected-dropList-02)
+>>>>>>> origin/master
 ```
 
 ## dropList-03
@@ -69,6 +85,7 @@ _ = refl
 -- builtin/semantics/dropList/dropList-04
 -- A typical case where you really drop some elements.
 test-dropList-04 : Untyped
+<<<<<<< HEAD
 test-dropList-04 = (UApp (UApp (UForce (UBuiltin dropList)) (UCon (tagCon integer (ℤ.pos 7)))) (UCon (tagCon (list bytestring) ((mkByteString "123456") ∷ (mkByteString "234567") ∷ (mkByteString "345678") ∷ (mkByteString "456789") ∷ (mkByteString "56789a") ∷ (mkByteString "6789ab") ∷ (mkByteString "789abc") ∷ (mkByteString "89abcd93232479173417824fff") ∷ (mkByteString "ffeeffeeffee") ∷ []))))
 
 expected-dropList-04 : Result
@@ -76,6 +93,16 @@ expected-dropList-04 = success (UCon (tagCon (list bytestring) ((mkByteString "8
 
 _ : evalRaw test-dropList-04 ≡ expected-dropList-04
 _ = refl
+=======
+test-dropList-04 = (UApp (UApp (UForce (UBuiltin dropList)) (UCon (tagCon integer (ℤ.pos 7)))) (UCon (tagCon (list bytestring) ((mkByteString "\DC24V") ∷ (mkByteString "#Eg") ∷ (mkByteString "4Vx") ∷ (mkByteString "Eg\137") ∷ (mkByteString "Vx\154") ∷ (mkByteString "g\137\171") ∷ (mkByteString "x\154\188") ∷ (mkByteString "\137\171\205\147#$y\ETB4\ETB\130O\255") ∷ (mkByteString "\255\238\255\238\255\238") ∷ []))))
+
+expected-dropList-04 : Result
+expected-dropList-04 = success (UCon (tagCon (list bytestring) ((mkByteString "\137\171\205\147#$y\ETB4\ETB\130O\255") ∷ (mkByteString "\255\238\255\238\255\238") ∷ [])))
+
+-- Pending: bytestring constant.
+pending-dropList-04 : Set
+pending-dropList-04 = Pending (evalRaw test-dropList-04 ≡ expected-dropList-04)
+>>>>>>> origin/master
 ```
 
 ## dropList-05
@@ -101,13 +128,23 @@ _ = refl
 -- Dropping more elements than the length of the list succeeds and returns the
 -- empty list.
 test-dropList-06 : Untyped
+<<<<<<< HEAD
 test-dropList-06 = (UApp (UApp (UForce (UBuiltin dropList)) (UCon (tagCon integer (ℤ.pos 17)))) (UCon (tagCon (list bytestring) ((mkByteString "123456") ∷ (mkByteString "234567") ∷ (mkByteString "345678") ∷ (mkByteString "456789") ∷ (mkByteString "56789a") ∷ (mkByteString "6789ab") ∷ (mkByteString "789abc") ∷ (mkByteString "89abcd93232479173417824fff") ∷ (mkByteString "ffeeffeeffee") ∷ []))))
+=======
+test-dropList-06 = (UApp (UApp (UForce (UBuiltin dropList)) (UCon (tagCon integer (ℤ.pos 17)))) (UCon (tagCon (list bytestring) ((mkByteString "\DC24V") ∷ (mkByteString "#Eg") ∷ (mkByteString "4Vx") ∷ (mkByteString "Eg\137") ∷ (mkByteString "Vx\154") ∷ (mkByteString "g\137\171") ∷ (mkByteString "x\154\188") ∷ (mkByteString "\137\171\205\147#$y\ETB4\ETB\130O\255") ∷ (mkByteString "\255\238\255\238\255\238") ∷ []))))
+>>>>>>> origin/master
 
 expected-dropList-06 : Result
 expected-dropList-06 = success (UCon (tagCon (list bytestring) ([])))
 
+<<<<<<< HEAD
 _ : evalRaw test-dropList-06 ≡ expected-dropList-06
 _ = refl
+=======
+-- Pending: bytestring constant.
+pending-dropList-06 : Set
+pending-dropList-06 = Pending (evalRaw test-dropList-06 ≡ expected-dropList-06)
+>>>>>>> origin/master
 ```
 
 ## dropList-07
@@ -131,6 +168,7 @@ _ = refl
 -- builtin/semantics/dropList/dropList-08
 -- Dropping a negative number of elements succeeds and returns the list unchanged.
 test-dropList-08 : Untyped
+<<<<<<< HEAD
 test-dropList-08 = (UApp (UApp (UForce (UBuiltin dropList)) (UCon (tagCon integer (ℤ.negsuc 6)))) (UCon (tagCon (list bytestring) ((mkByteString "123456") ∷ (mkByteString "234567") ∷ (mkByteString "345678") ∷ (mkByteString "456789") ∷ (mkByteString "56789a") ∷ (mkByteString "6789ab") ∷ (mkByteString "789abc") ∷ (mkByteString "89abcd93232479173417824fff") ∷ (mkByteString "ffeeffeeffee") ∷ []))))
 
 expected-dropList-08 : Result
@@ -138,6 +176,16 @@ expected-dropList-08 = success (UCon (tagCon (list bytestring) ((mkByteString "1
 
 _ : evalRaw test-dropList-08 ≡ expected-dropList-08
 _ = refl
+=======
+test-dropList-08 = (UApp (UApp (UForce (UBuiltin dropList)) (UCon (tagCon integer (ℤ.negsuc 6)))) (UCon (tagCon (list bytestring) ((mkByteString "\DC24V") ∷ (mkByteString "#Eg") ∷ (mkByteString "4Vx") ∷ (mkByteString "Eg\137") ∷ (mkByteString "Vx\154") ∷ (mkByteString "g\137\171") ∷ (mkByteString "x\154\188") ∷ (mkByteString "\137\171\205\147#$y\ETB4\ETB\130O\255") ∷ (mkByteString "\255\238\255\238\255\238") ∷ []))))
+
+expected-dropList-08 : Result
+expected-dropList-08 = success (UCon (tagCon (list bytestring) ((mkByteString "\DC24V") ∷ (mkByteString "#Eg") ∷ (mkByteString "4Vx") ∷ (mkByteString "Eg\137") ∷ (mkByteString "Vx\154") ∷ (mkByteString "g\137\171") ∷ (mkByteString "x\154\188") ∷ (mkByteString "\137\171\205\147#$y\ETB4\ETB\130O\255") ∷ (mkByteString "\255\238\255\238\255\238") ∷ [])))
+
+-- Pending: bytestring constant.
+pending-dropList-08 : Set
+pending-dropList-08 = Pending (evalRaw test-dropList-08 ≡ expected-dropList-08)
+>>>>>>> origin/master
 ```
 
 ## dropList-09

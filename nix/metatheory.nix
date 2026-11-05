@@ -39,14 +39,15 @@ let
   # plutus-metatheory/src/Conformance from the UPLC conformance test cases, then
   # type-checks them, so that a failing `refl` makes the command (and the
   # pre-push hook) fail.
-  generate-agda-conformance = pkgs.writeShellScriptBin "generate-agda-conformance" ''
-    set -e
-    cd "$(git rev-parse --show-toplevel)"
-    cabal run plutus-conformance:generate-agda-conformance -- "$@"
-    echo "Type-checking the generated tests..."
-    cd plutus-metatheory
-    agda-with-stdlib src/Conformance.lagda.md
-  '';
+  generate-agda-typecheck-conformance =
+    pkgs.writeShellScriptBin "generate-agda-typecheck-conformance" ''
+      set -e
+      cd "$(git rev-parse --show-toplevel)"
+      cabal run plutus-conformance:generate-agda-conformance -- "$@"
+      echo "Type-checking the generated tests..."
+      cd plutus-metatheory
+      agda-with-stdlib src/Conformance.lagda.md
+    '';
 
   # Agda executable wrapper that includes both stdlib and the metatheory package.
   agda-with-stdlib-and-metatheory = pkgs.stdenv.mkDerivation {
@@ -126,7 +127,11 @@ in
     metatheory-agda-library
     metatheory-site
     generate-malonzo-code
+    <<<<<<< HEAD
     generate-agda-conformance
+    =======
+    generate-agda-typecheck-conformance
+    >>>>>>> origin/master
     agda-with-stdlib-and-metatheory;
 }
 

@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
      Regenerate with `generate-agda-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -28,8 +33,14 @@ test-case-01 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring 
 expected-case-01 : Result
 expected-case-01 = success (UCon (tagCon bytestring (mkByteString "")))
 
+<<<<<<< HEAD
 _ : evalRaw test-case-01 ≡ expected-case-01
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-01 : Set
+pending-case-01 = Pending (evalRaw test-case-01 ≡ expected-case-01)
+>>>>>>> origin/master
 ```
 
 ## case-02
@@ -42,8 +53,14 @@ test-case-02 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring 
 expected-case-02 : Result
 expected-case-02 = success (UCon (tagCon bytestring (mkByteString "")))
 
+<<<<<<< HEAD
 _ : evalRaw test-case-02 ≡ expected-case-02
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-02 : Set
+pending-case-02 = Pending (evalRaw test-case-02 ≡ expected-case-02)
+>>>>>>> origin/master
 ```
 
 ## case-03
@@ -51,6 +68,7 @@ _ = refl
 ```
 -- builtin/semantics/rotateByteString/case-03
 test-case-03 : Untyped
+<<<<<<< HEAD
 test-case-03 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "ebfc")))) (UCon (tagCon integer (ℤ.pos 5))))
 
 expected-case-03 : Result
@@ -58,6 +76,16 @@ expected-case-03 = success (UCon (tagCon bytestring (mkByteString "7f9d")))
 
 _ : evalRaw test-case-03 ≡ expected-case-03
 _ = refl
+=======
+test-case-03 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "\235\252")))) (UCon (tagCon integer (ℤ.pos 5))))
+
+expected-case-03 : Result
+expected-case-03 = success (UCon (tagCon bytestring (mkByteString "\DEL\157")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-03 : Set
+pending-case-03 = Pending (evalRaw test-case-03 ≡ expected-case-03)
+>>>>>>> origin/master
 ```
 
 ## case-04
@@ -65,6 +93,7 @@ _ = refl
 ```
 -- builtin/semantics/rotateByteString/case-04
 test-case-04 : Untyped
+<<<<<<< HEAD
 test-case-04 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "ebfc")))) (UCon (tagCon integer (ℤ.negsuc 4))))
 
 expected-case-04 : Result
@@ -72,6 +101,16 @@ expected-case-04 = success (UCon (tagCon bytestring (mkByteString "e75f")))
 
 _ : evalRaw test-case-04 ≡ expected-case-04
 _ = refl
+=======
+test-case-04 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "\235\252")))) (UCon (tagCon integer (ℤ.negsuc 4))))
+
+expected-case-04 : Result
+expected-case-04 = success (UCon (tagCon bytestring (mkByteString "\231_")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-04 : Set
+pending-case-04 = Pending (evalRaw test-case-04 ≡ expected-case-04)
+>>>>>>> origin/master
 ```
 
 ## case-05
@@ -79,6 +118,7 @@ _ = refl
 ```
 -- builtin/semantics/rotateByteString/case-05
 test-case-05 : Untyped
+<<<<<<< HEAD
 test-case-05 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "ebfc")))) (UCon (tagCon integer (ℤ.pos 16))))
 
 expected-case-05 : Result
@@ -86,6 +126,16 @@ expected-case-05 = success (UCon (tagCon bytestring (mkByteString "ebfc")))
 
 _ : evalRaw test-case-05 ≡ expected-case-05
 _ = refl
+=======
+test-case-05 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "\235\252")))) (UCon (tagCon integer (ℤ.pos 16))))
+
+expected-case-05 : Result
+expected-case-05 = success (UCon (tagCon bytestring (mkByteString "\235\252")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-05 : Set
+pending-case-05 = Pending (evalRaw test-case-05 ≡ expected-case-05)
+>>>>>>> origin/master
 ```
 
 ## case-06
@@ -93,6 +143,7 @@ _ = refl
 ```
 -- builtin/semantics/rotateByteString/case-06
 test-case-06 : Untyped
+<<<<<<< HEAD
 test-case-06 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "ebfc")))) (UCon (tagCon integer (ℤ.negsuc 15))))
 
 expected-case-06 : Result
@@ -100,6 +151,16 @@ expected-case-06 = success (UCon (tagCon bytestring (mkByteString "ebfc")))
 
 _ : evalRaw test-case-06 ≡ expected-case-06
 _ = refl
+=======
+test-case-06 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "\235\252")))) (UCon (tagCon integer (ℤ.negsuc 15))))
+
+expected-case-06 : Result
+expected-case-06 = success (UCon (tagCon bytestring (mkByteString "\235\252")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-06 : Set
+pending-case-06 = Pending (evalRaw test-case-06 ≡ expected-case-06)
+>>>>>>> origin/master
 ```
 
 ## case-07
@@ -107,6 +168,7 @@ _ = refl
 ```
 -- builtin/semantics/rotateByteString/case-07
 test-case-07 : Untyped
+<<<<<<< HEAD
 test-case-07 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "ebfc")))) (UCon (tagCon integer (ℤ.pos 21))))
 
 expected-case-07 : Result
@@ -114,6 +176,16 @@ expected-case-07 = success (UCon (tagCon bytestring (mkByteString "7f9d")))
 
 _ : evalRaw test-case-07 ≡ expected-case-07
 _ = refl
+=======
+test-case-07 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "\235\252")))) (UCon (tagCon integer (ℤ.pos 21))))
+
+expected-case-07 : Result
+expected-case-07 = success (UCon (tagCon bytestring (mkByteString "\DEL\157")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-07 : Set
+pending-case-07 = Pending (evalRaw test-case-07 ≡ expected-case-07)
+>>>>>>> origin/master
 ```
 
 ## case-08
@@ -121,6 +193,7 @@ _ = refl
 ```
 -- builtin/semantics/rotateByteString/case-08
 test-case-08 : Untyped
+<<<<<<< HEAD
 test-case-08 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "ebfc")))) (UCon (tagCon integer (ℤ.negsuc 20))))
 
 expected-case-08 : Result
@@ -128,6 +201,16 @@ expected-case-08 = success (UCon (tagCon bytestring (mkByteString "e75f")))
 
 _ : evalRaw test-case-08 ≡ expected-case-08
 _ = refl
+=======
+test-case-08 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "\235\252")))) (UCon (tagCon integer (ℤ.negsuc 20))))
+
+expected-case-08 : Result
+expected-case-08 = success (UCon (tagCon bytestring (mkByteString "\231_")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-08 : Set
+pending-case-08 = Pending (evalRaw test-case-08 ≡ expected-case-08)
+>>>>>>> origin/master
 ```
 
 ## case-09
@@ -136,6 +219,7 @@ _ = refl
 -- builtin/semantics/rotateByteString/case-09
 -- Rotate by 0: the result should be the same as the input.
 test-case-09 : Untyped
+<<<<<<< HEAD
 test-case-09 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "33c2f0d68584803b9dc05b3b0b9cbd6683edc0ce742bb09957613e44150205679d3f61a467b25cc758a3b0")))) (UCon (tagCon integer (ℤ.pos 0))))
 
 expected-case-09 : Result
@@ -143,6 +227,16 @@ expected-case-09 = success (UCon (tagCon bytestring (mkByteString "33c2f0d685848
 
 _ : evalRaw test-case-09 ≡ expected-case-09
 _ = refl
+=======
+test-case-09 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))) (UCon (tagCon integer (ℤ.pos 0))))
+
+expected-case-09 : Result
+expected-case-09 = success (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-09 : Set
+pending-case-09 = Pending (evalRaw test-case-09 ≡ expected-case-09)
+>>>>>>> origin/master
 ```
 
 ## case-10
@@ -151,6 +245,7 @@ _ = refl
 -- builtin/semantics/rotateByteString/case-10
 -- Rotate by 1000 times the bit length: the result should be the same as the input.
 test-case-10 : Untyped
+<<<<<<< HEAD
 test-case-10 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "33c2f0d68584803b9dc05b3b0b9cbd6683edc0ce742bb09957613e44150205679d3f61a467b25cc758a3b0")))) (UCon (tagCon integer (ℤ.pos 344000))))
 
 expected-case-10 : Result
@@ -158,6 +253,16 @@ expected-case-10 = success (UCon (tagCon bytestring (mkByteString "33c2f0d685848
 
 _ : evalRaw test-case-10 ≡ expected-case-10
 _ = refl
+=======
+test-case-10 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))) (UCon (tagCon integer (ℤ.pos 344000))))
+
+expected-case-10 : Result
+expected-case-10 = success (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-10 : Set
+pending-case-10 = Pending (evalRaw test-case-10 ≡ expected-case-10)
+>>>>>>> origin/master
 ```
 
 ## case-11
@@ -166,6 +271,7 @@ _ = refl
 -- builtin/semantics/rotateByteString/case-11
 -- Rotate by -10000 times the bit length: the result should be the same as the input.
 test-case-11 : Untyped
+<<<<<<< HEAD
 test-case-11 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "33c2f0d68584803b9dc05b3b0b9cbd6683edc0ce742bb09957613e44150205679d3f61a467b25cc758a3b0")))) (UCon (tagCon integer (ℤ.negsuc 3439999))))
 
 expected-case-11 : Result
@@ -173,6 +279,16 @@ expected-case-11 = success (UCon (tagCon bytestring (mkByteString "33c2f0d685848
 
 _ : evalRaw test-case-11 ≡ expected-case-11
 _ = refl
+=======
+test-case-11 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))) (UCon (tagCon integer (ℤ.negsuc 3439999))))
+
+expected-case-11 : Result
+expected-case-11 = success (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-11 : Set
+pending-case-11 = Pending (evalRaw test-case-11 ≡ expected-case-11)
+>>>>>>> origin/master
 ```
 
 ## case-12
@@ -180,6 +296,7 @@ _ = refl
 ```
 -- builtin/semantics/rotateByteString/case-12
 test-case-12 : Untyped
+<<<<<<< HEAD
 test-case-12 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "33c2f0d68584803b9dc05b3b0b9cbd6683edc0ce742bb09957613e44150205679d3f61a467b25cc758a3b0")))) (UCon (tagCon integer (ℤ.pos 23))))
 
 expected-case-12 : Result
@@ -187,6 +304,16 @@ expected-case-12 = success (UCon (tagCon bytestring (mkByteString "6b42c2401dcee
 
 _ : evalRaw test-case-12 ≡ expected-case-12
 _ = refl
+=======
+test-case-12 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))) (UCon (tagCon integer (ℤ.pos 23))))
+
+expected-case-12 : Result
+expected-case-12 = success (UCon (tagCon bytestring (mkByteString "kB\194@\GS\206\224-\157\133\206^\179A\246\224g:\NAK\216L\171\176\159\"\n\129\STX\179\206\159\176\210\&3\217.c\172Q\216\EM\225x")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-12 : Set
+pending-case-12 = Pending (evalRaw test-case-12 ≡ expected-case-12)
+>>>>>>> origin/master
 ```
 
 ## case-13
@@ -195,6 +322,7 @@ _ = refl
 -- builtin/semantics/rotateByteString/case-13
 -- Rotate by (1000 times the bit length) + 23
 test-case-13 : Untyped
+<<<<<<< HEAD
 test-case-13 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "33c2f0d68584803b9dc05b3b0b9cbd6683edc0ce742bb09957613e44150205679d3f61a467b25cc758a3b0")))) (UCon (tagCon integer (ℤ.pos 344023))))
 
 expected-case-13 : Result
@@ -202,6 +330,16 @@ expected-case-13 = success (UCon (tagCon bytestring (mkByteString "6b42c2401dcee
 
 _ : evalRaw test-case-13 ≡ expected-case-13
 _ = refl
+=======
+test-case-13 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))) (UCon (tagCon integer (ℤ.pos 344023))))
+
+expected-case-13 : Result
+expected-case-13 = success (UCon (tagCon bytestring (mkByteString "kB\194@\GS\206\224-\157\133\206^\179A\246\224g:\NAK\216L\171\176\159\"\n\129\STX\179\206\159\176\210\&3\217.c\172Q\216\EM\225x")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-13 : Set
+pending-case-13 = Pending (evalRaw test-case-13 ≡ expected-case-13)
+>>>>>>> origin/master
 ```
 
 ## case-14
@@ -210,6 +348,7 @@ _ = refl
 -- builtin/semantics/rotateByteString/case-14
 -- Rotate by (-10000 times the bit length) + 23
 test-case-14 : Untyped
+<<<<<<< HEAD
 test-case-14 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "33c2f0d68584803b9dc05b3b0b9cbd6683edc0ce742bb09957613e44150205679d3f61a467b25cc758a3b0")))) (UCon (tagCon integer (ℤ.negsuc 3439976))))
 
 expected-case-14 : Result
@@ -217,6 +356,16 @@ expected-case-14 = success (UCon (tagCon bytestring (mkByteString "6b42c2401dcee
 
 _ : evalRaw test-case-14 ≡ expected-case-14
 _ = refl
+=======
+test-case-14 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))) (UCon (tagCon integer (ℤ.negsuc 3439976))))
+
+expected-case-14 : Result
+expected-case-14 = success (UCon (tagCon bytestring (mkByteString "kB\194@\GS\206\224-\157\133\206^\179A\246\224g:\NAK\216L\171\176\159\"\n\129\STX\179\206\159\176\210\&3\217.c\172Q\216\EM\225x")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-14 : Set
+pending-case-14 = Pending (evalRaw test-case-14 ≡ expected-case-14)
+>>>>>>> origin/master
 ```
 
 ## case-15
@@ -225,6 +374,7 @@ _ = refl
 -- builtin/semantics/rotateByteString/case-15
 -- Rotate by maxBound :: Int64
 test-case-15 : Untyped
+<<<<<<< HEAD
 test-case-15 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "33c2f0d68584803b9dc05b3b0b9cbd6683edc0ce742bb09957613e44150205679d3f61a467b25cc758a3b0")))) (UCon (tagCon integer (ℤ.pos 9223372036854775807))))
 
 expected-case-15 : Result
@@ -232,6 +382,16 @@ expected-case-15 = success (UCon (tagCon bytestring (mkByteString "41f6e0673a15d
 
 _ : evalRaw test-case-15 ≡ expected-case-15
 _ = refl
+=======
+test-case-15 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))) (UCon (tagCon integer (ℤ.pos 9223372036854775807))))
+
+expected-case-15 : Result
+expected-case-15 = success (UCon (tagCon bytestring (mkByteString "A\246\224g:\NAK\216L\171\176\159\"\n\129\STX\179\206\159\176\210\&3\217.c\172Q\216\EM\225xkB\194@\GS\206\224-\157\133\206^\179")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-15 : Set
+pending-case-15 = Pending (evalRaw test-case-15 ≡ expected-case-15)
+>>>>>>> origin/master
 ```
 
 ## case-16
@@ -240,13 +400,23 @@ _ = refl
 -- builtin/semantics/rotateByteString/case-16
 -- Rotate by (maxBound :: Int64)+1
 test-case-16 : Untyped
+<<<<<<< HEAD
 test-case-16 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "33c2f0d68584803b9dc05b3b0b9cbd6683edc0ce742bb09957613e44150205679d3f61a467b25cc758a3b0")))) (UCon (tagCon integer (ℤ.pos 9223372036854775808))))
+=======
+test-case-16 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))) (UCon (tagCon integer (ℤ.pos 9223372036854775808))))
+>>>>>>> origin/master
 
 expected-case-16 : Result
 expected-case-16 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-16 ≡ expected-case-16
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-16 : Set
+pending-case-16 = Pending (evalRaw test-case-16 ≡ expected-case-16)
+>>>>>>> origin/master
 ```
 
 ## case-17
@@ -255,6 +425,7 @@ _ = refl
 -- builtin/semantics/rotateByteString/case-17
 -- Rotate by minBound :: Int64
 test-case-17 : Untyped
+<<<<<<< HEAD
 test-case-17 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "33c2f0d68584803b9dc05b3b0b9cbd6683edc0ce742bb09957613e44150205679d3f61a467b25cc758a3b0")))) (UCon (tagCon integer (ℤ.negsuc 9223372036854775807))))
 
 expected-case-17 : Result
@@ -262,6 +433,16 @@ expected-case-17 = success (UCon (tagCon bytestring (mkByteString "44150205679d3
 
 _ : evalRaw test-case-17 ≡ expected-case-17
 _ = refl
+=======
+test-case-17 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))) (UCon (tagCon integer (ℤ.negsuc 9223372036854775807))))
+
+expected-case-17 : Result
+expected-case-17 = success (UCon (tagCon bytestring (mkByteString "D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176\&3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>")))
+
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-17 : Set
+pending-case-17 = Pending (evalRaw test-case-17 ≡ expected-case-17)
+>>>>>>> origin/master
 ```
 
 ## case-18
@@ -270,11 +451,21 @@ _ = refl
 -- builtin/semantics/rotateByteString/case-18
 -- Rotate by (minBound :: Int64) - 1
 test-case-18 : Untyped
+<<<<<<< HEAD
 test-case-18 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "33c2f0d68584803b9dc05b3b0b9cbd6683edc0ce742bb09957613e44150205679d3f61a467b25cc758a3b0")))) (UCon (tagCon integer (ℤ.negsuc 9223372036854775808))))
+=======
+test-case-18 = (UApp (UApp (UBuiltin rotateByteString) (UCon (tagCon bytestring (mkByteString "3\194\240\214\133\132\128;\157\192[;\v\156\189f\131\237\192\206t+\176\153Wa>D\NAK\STX\ENQg\157?a\164g\178\\\199X\163\176")))) (UCon (tagCon integer (ℤ.negsuc 9223372036854775808))))
+>>>>>>> origin/master
 
 expected-case-18 : Result
 expected-case-18 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-18 ≡ expected-case-18
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `rotateByteString`.
+pending-case-18 : Set
+pending-case-18 = Pending (evalRaw test-case-18 ≡ expected-case-18)
+>>>>>>> origin/master
 ```

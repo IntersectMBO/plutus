@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
      Regenerate with `generate-agda-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -28,8 +33,14 @@ test-case-01 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (
 expected-case-01 : Result
 expected-case-01 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-01 ≡ expected-case-01
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-01 : Set
+pending-case-01 = Pending (evalRaw test-case-01 ≡ expected-case-01)
+>>>>>>> origin/master
 ```
 
 ## case-02
@@ -42,8 +53,14 @@ test-case-02 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (
 expected-case-02 : Result
 expected-case-02 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-02 ≡ expected-case-02
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-02 : Set
+pending-case-02 = Pending (evalRaw test-case-02 ≡ expected-case-02)
+>>>>>>> origin/master
 ```
 
 ## case-03
@@ -56,8 +73,14 @@ test-case-03 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (
 expected-case-03 : Result
 expected-case-03 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-03 ≡ expected-case-03
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-03 : Set
+pending-case-03 = Pending (evalRaw test-case-03 ≡ expected-case-03)
+>>>>>>> origin/master
 ```
 
 ## case-04
@@ -70,8 +93,14 @@ test-case-04 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (
 expected-case-04 : Result
 expected-case-04 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-04 ≡ expected-case-04
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-04 : Set
+pending-case-04 = Pending (evalRaw test-case-04 ≡ expected-case-04)
+>>>>>>> origin/master
 ```
 
 ## case-05
@@ -79,13 +108,23 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-05
 test-case-05 : Untyped
+<<<<<<< HEAD
 test-case-05 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.negsuc 0) ∷ [])))) (UCon (tagCon bool false)))
+=======
+test-case-05 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.negsuc 0) ∷ [])))) (UCon (tagCon bool false)))
+>>>>>>> origin/master
 
 expected-case-05 : Result
 expected-case-05 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-05 ≡ expected-case-05
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-05 : Set
+pending-case-05 = Pending (evalRaw test-case-05 ≡ expected-case-05)
+>>>>>>> origin/master
 ```
 
 ## case-06
@@ -93,13 +132,23 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-06
 test-case-06 : Untyped
+<<<<<<< HEAD
 test-case-06 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 0) ∷ (ℤ.negsuc 0) ∷ [])))) (UCon (tagCon bool false)))
+=======
+test-case-06 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 0) ∷ (ℤ.negsuc 0) ∷ [])))) (UCon (tagCon bool false)))
+>>>>>>> origin/master
 
 expected-case-06 : Result
 expected-case-06 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-06 ≡ expected-case-06
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-06 : Set
+pending-case-06 = Pending (evalRaw test-case-06 ≡ expected-case-06)
+>>>>>>> origin/master
 ```
 
 ## case-07
@@ -107,13 +156,23 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-07
 test-case-07 : Untyped
+<<<<<<< HEAD
 test-case-07 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.negsuc 0) ∷ (ℤ.pos 0) ∷ [])))) (UCon (tagCon bool false)))
+=======
+test-case-07 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.negsuc 0) ∷ (ℤ.pos 0) ∷ [])))) (UCon (tagCon bool false)))
+>>>>>>> origin/master
 
 expected-case-07 : Result
 expected-case-07 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-07 ≡ expected-case-07
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-07 : Set
+pending-case-07 = Pending (evalRaw test-case-07 ≡ expected-case-07)
+>>>>>>> origin/master
 ```
 
 ## case-08
@@ -121,13 +180,23 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-08
 test-case-08 : Untyped
+<<<<<<< HEAD
 test-case-08 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 8) ∷ [])))) (UCon (tagCon bool false)))
+=======
+test-case-08 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 8) ∷ [])))) (UCon (tagCon bool false)))
+>>>>>>> origin/master
 
 expected-case-08 : Result
 expected-case-08 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-08 ≡ expected-case-08
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-08 : Set
+pending-case-08 = Pending (evalRaw test-case-08 ≡ expected-case-08)
+>>>>>>> origin/master
 ```
 
 ## case-09
@@ -135,13 +204,23 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-09
 test-case-09 : Untyped
+<<<<<<< HEAD
 test-case-09 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 1) ∷ (ℤ.pos 8) ∷ [])))) (UCon (tagCon bool false)))
+=======
+test-case-09 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 1) ∷ (ℤ.pos 8) ∷ [])))) (UCon (tagCon bool false)))
+>>>>>>> origin/master
 
 expected-case-09 : Result
 expected-case-09 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-09 ≡ expected-case-09
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-09 : Set
+pending-case-09 = Pending (evalRaw test-case-09 ≡ expected-case-09)
+>>>>>>> origin/master
 ```
 
 ## case-10
@@ -149,13 +228,23 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-10
 test-case-10 : Untyped
+<<<<<<< HEAD
 test-case-10 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 8) ∷ (ℤ.pos 1) ∷ [])))) (UCon (tagCon bool false)))
+=======
+test-case-10 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 8) ∷ (ℤ.pos 1) ∷ [])))) (UCon (tagCon bool false)))
+>>>>>>> origin/master
 
 expected-case-10 : Result
 expected-case-10 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-10 ≡ expected-case-10
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-10 : Set
+pending-case-10 = Pending (evalRaw test-case-10 ≡ expected-case-10)
+>>>>>>> origin/master
 ```
 
 ## case-11
@@ -163,6 +252,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-11
 test-case-11 : Untyped
+<<<<<<< HEAD
 test-case-11 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 0) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-11 : Result
@@ -170,6 +260,16 @@ expected-case-11 = success (UCon (tagCon bytestring (mkByteString "fe")))
 
 _ : evalRaw test-case-11 ≡ expected-case-11
 _ = refl
+=======
+test-case-11 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 0) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-11 : Result
+expected-case-11 = success (UCon (tagCon bytestring (mkByteString "\254")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-11 : Set
+pending-case-11 = Pending (evalRaw test-case-11 ≡ expected-case-11)
+>>>>>>> origin/master
 ```
 
 ## case-12
@@ -177,6 +277,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-12
 test-case-12 : Untyped
+<<<<<<< HEAD
 test-case-12 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 1) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-12 : Result
@@ -184,6 +285,16 @@ expected-case-12 = success (UCon (tagCon bytestring (mkByteString "fd")))
 
 _ : evalRaw test-case-12 ≡ expected-case-12
 _ = refl
+=======
+test-case-12 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 1) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-12 : Result
+expected-case-12 = success (UCon (tagCon bytestring (mkByteString "\253")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-12 : Set
+pending-case-12 = Pending (evalRaw test-case-12 ≡ expected-case-12)
+>>>>>>> origin/master
 ```
 
 ## case-13
@@ -191,6 +302,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-13
 test-case-13 : Untyped
+<<<<<<< HEAD
 test-case-13 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 2) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-13 : Result
@@ -198,6 +310,16 @@ expected-case-13 = success (UCon (tagCon bytestring (mkByteString "fb")))
 
 _ : evalRaw test-case-13 ≡ expected-case-13
 _ = refl
+=======
+test-case-13 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 2) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-13 : Result
+expected-case-13 = success (UCon (tagCon bytestring (mkByteString "\251")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-13 : Set
+pending-case-13 = Pending (evalRaw test-case-13 ≡ expected-case-13)
+>>>>>>> origin/master
 ```
 
 ## case-14
@@ -205,6 +327,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-14
 test-case-14 : Untyped
+<<<<<<< HEAD
 test-case-14 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 3) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-14 : Result
@@ -212,6 +335,16 @@ expected-case-14 = success (UCon (tagCon bytestring (mkByteString "f7")))
 
 _ : evalRaw test-case-14 ≡ expected-case-14
 _ = refl
+=======
+test-case-14 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 3) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-14 : Result
+expected-case-14 = success (UCon (tagCon bytestring (mkByteString "\247")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-14 : Set
+pending-case-14 = Pending (evalRaw test-case-14 ≡ expected-case-14)
+>>>>>>> origin/master
 ```
 
 ## case-15
@@ -219,6 +352,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-15
 test-case-15 : Untyped
+<<<<<<< HEAD
 test-case-15 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 4) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-15 : Result
@@ -226,6 +360,16 @@ expected-case-15 = success (UCon (tagCon bytestring (mkByteString "ef")))
 
 _ : evalRaw test-case-15 ≡ expected-case-15
 _ = refl
+=======
+test-case-15 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 4) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-15 : Result
+expected-case-15 = success (UCon (tagCon bytestring (mkByteString "\239")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-15 : Set
+pending-case-15 = Pending (evalRaw test-case-15 ≡ expected-case-15)
+>>>>>>> origin/master
 ```
 
 ## case-16
@@ -233,6 +377,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-16
 test-case-16 : Untyped
+<<<<<<< HEAD
 test-case-16 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 5) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-16 : Result
@@ -240,6 +385,16 @@ expected-case-16 = success (UCon (tagCon bytestring (mkByteString "df")))
 
 _ : evalRaw test-case-16 ≡ expected-case-16
 _ = refl
+=======
+test-case-16 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 5) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-16 : Result
+expected-case-16 = success (UCon (tagCon bytestring (mkByteString "\223")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-16 : Set
+pending-case-16 = Pending (evalRaw test-case-16 ≡ expected-case-16)
+>>>>>>> origin/master
 ```
 
 ## case-17
@@ -247,6 +402,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-17
 test-case-17 : Untyped
+<<<<<<< HEAD
 test-case-17 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 6) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-17 : Result
@@ -254,6 +410,16 @@ expected-case-17 = success (UCon (tagCon bytestring (mkByteString "bf")))
 
 _ : evalRaw test-case-17 ≡ expected-case-17
 _ = refl
+=======
+test-case-17 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 6) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-17 : Result
+expected-case-17 = success (UCon (tagCon bytestring (mkByteString "\191")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-17 : Set
+pending-case-17 = Pending (evalRaw test-case-17 ≡ expected-case-17)
+>>>>>>> origin/master
 ```
 
 ## case-18
@@ -261,6 +427,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-18
 test-case-18 : Untyped
+<<<<<<< HEAD
 test-case-18 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 7) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-18 : Result
@@ -268,6 +435,16 @@ expected-case-18 = success (UCon (tagCon bytestring (mkByteString "7f")))
 
 _ : evalRaw test-case-18 ≡ expected-case-18
 _ = refl
+=======
+test-case-18 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 7) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-18 : Result
+expected-case-18 = success (UCon (tagCon bytestring (mkByteString "\DEL")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-18 : Set
+pending-case-18 = Pending (evalRaw test-case-18 ≡ expected-case-18)
+>>>>>>> origin/master
 ```
 
 ## case-19
@@ -275,13 +452,23 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-19
 test-case-19 : Untyped
+<<<<<<< HEAD
 test-case-19 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon (list integer) ((ℤ.negsuc 0) ∷ [])))) (UCon (tagCon bool true)))
+=======
+test-case-19 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon (list integer) ((ℤ.negsuc 0) ∷ [])))) (UCon (tagCon bool true)))
+>>>>>>> origin/master
 
 expected-case-19 : Result
 expected-case-19 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-19 ≡ expected-case-19
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-19 : Set
+pending-case-19 = Pending (evalRaw test-case-19 ≡ expected-case-19)
+>>>>>>> origin/master
 ```
 
 ## case-20
@@ -289,6 +476,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-20
 test-case-20 : Untyped
+<<<<<<< HEAD
 test-case-20 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon (list integer) ((ℤ.pos 0) ∷ [])))) (UCon (tagCon bool true)))
 
 expected-case-20 : Result
@@ -296,6 +484,16 @@ expected-case-20 = success (UCon (tagCon bytestring (mkByteString "01")))
 
 _ : evalRaw test-case-20 ≡ expected-case-20
 _ = refl
+=======
+test-case-20 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 0) ∷ [])))) (UCon (tagCon bool true)))
+
+expected-case-20 : Result
+expected-case-20 = success (UCon (tagCon bytestring (mkByteString "\SOH")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-20 : Set
+pending-case-20 = Pending (evalRaw test-case-20 ≡ expected-case-20)
+>>>>>>> origin/master
 ```
 
 ## case-21
@@ -303,6 +501,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-21
 test-case-21 : Untyped
+<<<<<<< HEAD
 test-case-21 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon (list integer) ((ℤ.pos 1) ∷ [])))) (UCon (tagCon bool true)))
 
 expected-case-21 : Result
@@ -310,6 +509,16 @@ expected-case-21 = success (UCon (tagCon bytestring (mkByteString "02")))
 
 _ : evalRaw test-case-21 ≡ expected-case-21
 _ = refl
+=======
+test-case-21 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 1) ∷ [])))) (UCon (tagCon bool true)))
+
+expected-case-21 : Result
+expected-case-21 = success (UCon (tagCon bytestring (mkByteString "\STX")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-21 : Set
+pending-case-21 = Pending (evalRaw test-case-21 ≡ expected-case-21)
+>>>>>>> origin/master
 ```
 
 ## case-22
@@ -317,6 +526,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-22
 test-case-22 : Untyped
+<<<<<<< HEAD
 test-case-22 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon (list integer) ((ℤ.pos 2) ∷ [])))) (UCon (tagCon bool true)))
 
 expected-case-22 : Result
@@ -324,6 +534,16 @@ expected-case-22 = success (UCon (tagCon bytestring (mkByteString "04")))
 
 _ : evalRaw test-case-22 ≡ expected-case-22
 _ = refl
+=======
+test-case-22 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 2) ∷ [])))) (UCon (tagCon bool true)))
+
+expected-case-22 : Result
+expected-case-22 = success (UCon (tagCon bytestring (mkByteString "\EOT")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-22 : Set
+pending-case-22 = Pending (evalRaw test-case-22 ≡ expected-case-22)
+>>>>>>> origin/master
 ```
 
 ## case-23
@@ -331,6 +551,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-23
 test-case-23 : Untyped
+<<<<<<< HEAD
 test-case-23 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon (list integer) ((ℤ.pos 3) ∷ [])))) (UCon (tagCon bool true)))
 
 expected-case-23 : Result
@@ -338,6 +559,16 @@ expected-case-23 = success (UCon (tagCon bytestring (mkByteString "08")))
 
 _ : evalRaw test-case-23 ≡ expected-case-23
 _ = refl
+=======
+test-case-23 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 3) ∷ [])))) (UCon (tagCon bool true)))
+
+expected-case-23 : Result
+expected-case-23 = success (UCon (tagCon bytestring (mkByteString "\b")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-23 : Set
+pending-case-23 = Pending (evalRaw test-case-23 ≡ expected-case-23)
+>>>>>>> origin/master
 ```
 
 ## case-24
@@ -345,6 +576,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-24
 test-case-24 : Untyped
+<<<<<<< HEAD
 test-case-24 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon (list integer) ((ℤ.pos 4) ∷ [])))) (UCon (tagCon bool true)))
 
 expected-case-24 : Result
@@ -352,6 +584,16 @@ expected-case-24 = success (UCon (tagCon bytestring (mkByteString "10")))
 
 _ : evalRaw test-case-24 ≡ expected-case-24
 _ = refl
+=======
+test-case-24 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 4) ∷ [])))) (UCon (tagCon bool true)))
+
+expected-case-24 : Result
+expected-case-24 = success (UCon (tagCon bytestring (mkByteString "\DLE")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-24 : Set
+pending-case-24 = Pending (evalRaw test-case-24 ≡ expected-case-24)
+>>>>>>> origin/master
 ```
 
 ## case-25
@@ -359,6 +601,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-25
 test-case-25 : Untyped
+<<<<<<< HEAD
 test-case-25 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon (list integer) ((ℤ.pos 5) ∷ [])))) (UCon (tagCon bool true)))
 
 expected-case-25 : Result
@@ -366,6 +609,16 @@ expected-case-25 = success (UCon (tagCon bytestring (mkByteString "20")))
 
 _ : evalRaw test-case-25 ≡ expected-case-25
 _ = refl
+=======
+test-case-25 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 5) ∷ [])))) (UCon (tagCon bool true)))
+
+expected-case-25 : Result
+expected-case-25 = success (UCon (tagCon bytestring (mkByteString " ")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-25 : Set
+pending-case-25 = Pending (evalRaw test-case-25 ≡ expected-case-25)
+>>>>>>> origin/master
 ```
 
 ## case-26
@@ -373,6 +626,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-26
 test-case-26 : Untyped
+<<<<<<< HEAD
 test-case-26 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon (list integer) ((ℤ.pos 6) ∷ [])))) (UCon (tagCon bool true)))
 
 expected-case-26 : Result
@@ -380,6 +634,16 @@ expected-case-26 = success (UCon (tagCon bytestring (mkByteString "40")))
 
 _ : evalRaw test-case-26 ≡ expected-case-26
 _ = refl
+=======
+test-case-26 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 6) ∷ [])))) (UCon (tagCon bool true)))
+
+expected-case-26 : Result
+expected-case-26 = success (UCon (tagCon bytestring (mkByteString "@")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-26 : Set
+pending-case-26 = Pending (evalRaw test-case-26 ≡ expected-case-26)
+>>>>>>> origin/master
 ```
 
 ## case-27
@@ -387,6 +651,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-27
 test-case-27 : Untyped
+<<<<<<< HEAD
 test-case-27 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon (list integer) ((ℤ.pos 7) ∷ [])))) (UCon (tagCon bool true)))
 
 expected-case-27 : Result
@@ -394,6 +659,16 @@ expected-case-27 = success (UCon (tagCon bytestring (mkByteString "80")))
 
 _ : evalRaw test-case-27 ≡ expected-case-27
 _ = refl
+=======
+test-case-27 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 7) ∷ [])))) (UCon (tagCon bool true)))
+
+expected-case-27 : Result
+expected-case-27 = success (UCon (tagCon bytestring (mkByteString "\128")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-27 : Set
+pending-case-27 = Pending (evalRaw test-case-27 ≡ expected-case-27)
+>>>>>>> origin/master
 ```
 
 ## case-28
@@ -401,13 +676,23 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-28
 test-case-28 : Untyped
+<<<<<<< HEAD
 test-case-28 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon (list integer) ((ℤ.pos 8) ∷ [])))) (UCon (tagCon bool true)))
+=======
+test-case-28 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 8) ∷ [])))) (UCon (tagCon bool true)))
+>>>>>>> origin/master
 
 expected-case-28 : Result
 expected-case-28 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-28 ≡ expected-case-28
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-28 : Set
+pending-case-28 = Pending (evalRaw test-case-28 ≡ expected-case-28)
+>>>>>>> origin/master
 ```
 
 ## case-29
@@ -415,6 +700,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-29
 test-case-29 : Untyped
+<<<<<<< HEAD
 test-case-29 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "f4ff")))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-29 : Result
@@ -422,6 +708,16 @@ expected-case-29 = success (UCon (tagCon bytestring (mkByteString "f0ff")))
 
 _ : evalRaw test-case-29 ≡ expected-case-29
 _ = refl
+=======
+test-case-29 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\244\255")))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-29 : Result
+expected-case-29 = success (UCon (tagCon bytestring (mkByteString "\240\255")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-29 : Set
+pending-case-29 = Pending (evalRaw test-case-29 ≡ expected-case-29)
+>>>>>>> origin/master
 ```
 
 ## case-30
@@ -429,6 +725,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-30
 test-case-30 : Untyped
+<<<<<<< HEAD
 test-case-30 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "f4ff")))) (UCon (tagCon (list integer) ((ℤ.pos 1) ∷ (ℤ.pos 10) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-30 : Result
@@ -436,6 +733,16 @@ expected-case-30 = success (UCon (tagCon bytestring (mkByteString "f0fd")))
 
 _ : evalRaw test-case-30 ≡ expected-case-30
 _ = refl
+=======
+test-case-30 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\244\255")))) (UCon (tagCon (list integer) ((ℤ.pos 1) ∷ (ℤ.pos 10) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-30 : Result
+expected-case-30 = success (UCon (tagCon bytestring (mkByteString "\240\253")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-30 : Set
+pending-case-30 = Pending (evalRaw test-case-30 ≡ expected-case-30)
+>>>>>>> origin/master
 ```
 
 ## case-31
@@ -443,6 +750,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-31
 test-case-31 : Untyped
+<<<<<<< HEAD
 test-case-31 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "f4ff")))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ (ℤ.pos 1) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-31 : Result
@@ -450,6 +758,16 @@ expected-case-31 = success (UCon (tagCon bytestring (mkByteString "f0fd")))
 
 _ : evalRaw test-case-31 ≡ expected-case-31
 _ = refl
+=======
+test-case-31 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\244\255")))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ (ℤ.pos 1) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-31 : Result
+expected-case-31 = success (UCon (tagCon bytestring (mkByteString "\240\253")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-31 : Set
+pending-case-31 = Pending (evalRaw test-case-31 ≡ expected-case-31)
+>>>>>>> origin/master
 ```
 
 ## case-32
@@ -457,6 +775,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-32
 test-case-32 : Untyped
+<<<<<<< HEAD
 test-case-32 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "f4ff")))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 10) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-32 : Result
@@ -464,6 +783,16 @@ expected-case-32 = success (UCon (tagCon bytestring (mkByteString "f0fd")))
 
 _ : evalRaw test-case-32 ≡ expected-case-32
 _ = refl
+=======
+test-case-32 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\244\255")))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 10) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-32 : Result
+expected-case-32 = success (UCon (tagCon bytestring (mkByteString "\240\253")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-32 : Set
+pending-case-32 = Pending (evalRaw test-case-32 ≡ expected-case-32)
+>>>>>>> origin/master
 ```
 
 ## case-33
@@ -471,6 +800,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-33
 test-case-33 : Untyped
+<<<<<<< HEAD
 test-case-33 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "f4ff")))) (UCon (tagCon (list integer) ((ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 10) ∷ (ℤ.pos 10) ∷ (ℤ.pos 10) ∷ (ℤ.pos 11) ∷ (ℤ.pos 11) ∷ (ℤ.pos 9) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-33 : Result
@@ -478,6 +808,16 @@ expected-case-33 = success (UCon (tagCon bytestring (mkByteString "f0fd")))
 
 _ : evalRaw test-case-33 ≡ expected-case-33
 _ = refl
+=======
+test-case-33 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\244\255")))) (UCon (tagCon (list integer) ((ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 1) ∷ (ℤ.pos 10) ∷ (ℤ.pos 10) ∷ (ℤ.pos 10) ∷ (ℤ.pos 10) ∷ (ℤ.pos 11) ∷ (ℤ.pos 11) ∷ (ℤ.pos 9) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-33 : Result
+expected-case-33 = success (UCon (tagCon bytestring (mkByteString "\240\253")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-33 : Set
+pending-case-33 = Pending (evalRaw test-case-33 ≡ expected-case-33)
+>>>>>>> origin/master
 ```
 
 ## case-34
@@ -485,6 +825,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-34
 test-case-34 : Untyped
+<<<<<<< HEAD
 test-case-34 = (UApp (UApp (UApp (UBuiltin writeBits) (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00ff")))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ [])))) (UCon (tagCon bool true)))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-34 : Result
@@ -492,6 +833,16 @@ expected-case-34 = success (UCon (tagCon bytestring (mkByteString "00ff")))
 
 _ : evalRaw test-case-34 ≡ expected-case-34
 _ = refl
+=======
+test-case-34 = (UApp (UApp (UApp (UBuiltin writeBits) (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL\255")))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ [])))) (UCon (tagCon bool true)))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-34 : Result
+expected-case-34 = success (UCon (tagCon bytestring (mkByteString "\NUL\255")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-34 : Set
+pending-case-34 = Pending (evalRaw test-case-34 ≡ expected-case-34)
+>>>>>>> origin/master
 ```
 
 ## case-35
@@ -499,6 +850,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-35
 test-case-35 : Untyped
+<<<<<<< HEAD
 test-case-35 = (UApp (UApp (UApp (UBuiltin writeBits) (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00ff")))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ [])))) (UCon (tagCon bool false)))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ [])))) (UCon (tagCon bool true)))
 
 expected-case-35 : Result
@@ -506,6 +858,16 @@ expected-case-35 = success (UCon (tagCon bytestring (mkByteString "04ff")))
 
 _ : evalRaw test-case-35 ≡ expected-case-35
 _ = refl
+=======
+test-case-35 = (UApp (UApp (UApp (UBuiltin writeBits) (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL\255")))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ [])))) (UCon (tagCon bool false)))) (UCon (tagCon (list integer) ((ℤ.pos 10) ∷ [])))) (UCon (tagCon bool true)))
+
+expected-case-35 : Result
+expected-case-35 = success (UCon (tagCon bytestring (mkByteString "\EOT\255")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-35 : Set
+pending-case-35 = Pending (evalRaw test-case-35 ≡ expected-case-35)
+>>>>>>> origin/master
 ```
 
 ## case-36
@@ -513,6 +875,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-36
 test-case-36 : Untyped
+<<<<<<< HEAD
 test-case-36 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ff")))) (UCon (tagCon (list integer) ((ℤ.pos 0) ∷ [])))) (UCon (tagCon bool true)))
 
 expected-case-36 : Result
@@ -520,6 +883,16 @@ expected-case-36 = success (UCon (tagCon bytestring (mkByteString "ff")))
 
 _ : evalRaw test-case-36 ≡ expected-case-36
 _ = refl
+=======
+test-case-36 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255")))) (UCon (tagCon (list integer) ((ℤ.pos 0) ∷ [])))) (UCon (tagCon bool true)))
+
+expected-case-36 : Result
+expected-case-36 = success (UCon (tagCon bytestring (mkByteString "\255")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-36 : Set
+pending-case-36 = Pending (evalRaw test-case-36 ≡ expected-case-36)
+>>>>>>> origin/master
 ```
 
 ## case-37
@@ -527,6 +900,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-37
 test-case-37 : Untyped
+<<<<<<< HEAD
 test-case-37 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon (list integer) ((ℤ.pos 0) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-37 : Result
@@ -534,6 +908,16 @@ expected-case-37 = success (UCon (tagCon bytestring (mkByteString "00")))
 
 _ : evalRaw test-case-37 ≡ expected-case-37
 _ = refl
+=======
+test-case-37 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 0) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-37 : Result
+expected-case-37 = success (UCon (tagCon bytestring (mkByteString "\NUL")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-37 : Set
+pending-case-37 = Pending (evalRaw test-case-37 ≡ expected-case-37)
+>>>>>>> origin/master
 ```
 
 ## case-38
@@ -541,6 +925,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-38
 test-case-38 : Untyped
+<<<<<<< HEAD
 test-case-38 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000")))) (UCon (tagCon (list integer) ((ℤ.pos 340) ∷ (ℤ.pos 342) ∷ (ℤ.pos 343) ∷ [])))) (UCon (tagCon bool true)))
 
 expected-case-38 : Result
@@ -548,6 +933,16 @@ expected-case-38 = success (UCon (tagCon bytestring (mkByteString "d000000000000
 
 _ : evalRaw test-case-38 ≡ expected-case-38
 _ = refl
+=======
+test-case-38 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 340) ∷ (ℤ.pos 342) ∷ (ℤ.pos 343) ∷ [])))) (UCon (tagCon bool true)))
+
+expected-case-38 : Result
+expected-case-38 = success (UCon (tagCon bytestring (mkByteString "\208\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-38 : Set
+pending-case-38 = Pending (evalRaw test-case-38 ≡ expected-case-38)
+>>>>>>> origin/master
 ```
 
 ## case-39
@@ -556,6 +951,7 @@ _ = refl
 -- builtin/semantics/writeBits/case-39
 -- Later updates to duplicate indices take precedence.
 test-case-39 : Untyped
+<<<<<<< HEAD
 test-case-39 = (UApp (UApp (UApp (UBuiltin writeBits) (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000")))) (UCon (tagCon (list integer) ((ℤ.pos 340) ∷ (ℤ.pos 342) ∷ (ℤ.pos 343) ∷ (ℤ.pos 340) ∷ (ℤ.pos 342) ∷ (ℤ.pos 343) ∷ [])))) (UCon (tagCon bool true)))) (UCon (tagCon (list integer) ((ℤ.pos 340) ∷ (ℤ.pos 342) ∷ (ℤ.pos 343) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-39 : Result
@@ -563,6 +959,16 @@ expected-case-39 = success (UCon (tagCon bytestring (mkByteString "0000000000000
 
 _ : evalRaw test-case-39 ≡ expected-case-39
 _ = refl
+=======
+test-case-39 = (UApp (UApp (UApp (UBuiltin writeBits) (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 340) ∷ (ℤ.pos 342) ∷ (ℤ.pos 343) ∷ (ℤ.pos 340) ∷ (ℤ.pos 342) ∷ (ℤ.pos 343) ∷ [])))) (UCon (tagCon bool true)))) (UCon (tagCon (list integer) ((ℤ.pos 340) ∷ (ℤ.pos 342) ∷ (ℤ.pos 343) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-39 : Result
+expected-case-39 = success (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-39 : Set
+pending-case-39 = Pending (evalRaw test-case-39 ≡ expected-case-39)
+>>>>>>> origin/master
 ```
 
 ## case-40
@@ -570,6 +976,7 @@ _ = refl
 ```
 -- builtin/semantics/writeBits/case-40
 test-case-40 : Untyped
+<<<<<<< HEAD
 test-case-40 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000")))) (UCon (tagCon (list integer) ((ℤ.pos 340) ∷ (ℤ.pos 342) ∷ (ℤ.pos 343) ∷ [])))) (UCon (tagCon bool false)))
 
 expected-case-40 : Result
@@ -577,6 +984,16 @@ expected-case-40 = success (UCon (tagCon bytestring (mkByteString "0000000000000
 
 _ : evalRaw test-case-40 ≡ expected-case-40
 _ = refl
+=======
+test-case-40 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))) (UCon (tagCon (list integer) ((ℤ.pos 340) ∷ (ℤ.pos 342) ∷ (ℤ.pos 343) ∷ [])))) (UCon (tagCon bool false)))
+
+expected-case-40 : Result
+expected-case-40 = success (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-40 : Set
+pending-case-40 = Pending (evalRaw test-case-40 ≡ expected-case-40)
+>>>>>>> origin/master
 ```
 
 ## case-41
@@ -585,6 +1002,7 @@ _ = refl
 -- builtin/semantics/writeBits/case-41
 -- An empty list of updates doesn't change anything.
 test-case-41 : Untyped
+<<<<<<< HEAD
 test-case-41 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00000000000000000000000000000000000000000000000000000000000000000000000000000000")))) (UCon (tagCon (list integer) ([])))) (UCon (tagCon bool false)))
 
 expected-case-41 : Result
@@ -592,6 +1010,16 @@ expected-case-41 = success (UCon (tagCon bytestring (mkByteString "0000000000000
 
 _ : evalRaw test-case-41 ≡ expected-case-41
 _ = refl
+=======
+test-case-41 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))) (UCon (tagCon (list integer) ([])))) (UCon (tagCon bool false)))
+
+expected-case-41 : Result
+expected-case-41 = success (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-41 : Set
+pending-case-41 = Pending (evalRaw test-case-41 ≡ expected-case-41)
+>>>>>>> origin/master
 ```
 
 ## case-42
@@ -600,6 +1028,7 @@ _ = refl
 -- builtin/semantics/writeBits/case-42
 -- An empty list of updates doesn't change anything.
 test-case-42 : Untyped
+<<<<<<< HEAD
 test-case-42 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "00000000000000000000000000000000000000000000000000000000000000000000000000000000")))) (UCon (tagCon (list integer) ([])))) (UCon (tagCon bool true)))
 
 expected-case-42 : Result
@@ -607,6 +1036,16 @@ expected-case-42 = success (UCon (tagCon bytestring (mkByteString "0000000000000
 
 _ : evalRaw test-case-42 ≡ expected-case-42
 _ = refl
+=======
+test-case-42 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))) (UCon (tagCon (list integer) ([])))) (UCon (tagCon bool true)))
+
+expected-case-42 : Result
+expected-case-42 = success (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-42 : Set
+pending-case-42 = Pending (evalRaw test-case-42 ≡ expected-case-42)
+>>>>>>> origin/master
 ```
 
 ## case-43
@@ -615,6 +1054,7 @@ _ = refl
 -- builtin/semantics/writeBits/case-43
 -- An empty list of updates doesn't change anything.
 test-case-43 : Untyped
+<<<<<<< HEAD
 test-case-43 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")))) (UCon (tagCon (list integer) ([])))) (UCon (tagCon bool false)))
 
 expected-case-43 : Result
@@ -622,6 +1062,16 @@ expected-case-43 = success (UCon (tagCon bytestring (mkByteString "fffffffffffff
 
 _ : evalRaw test-case-43 ≡ expected-case-43
 _ = refl
+=======
+test-case-43 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255")))) (UCon (tagCon (list integer) ([])))) (UCon (tagCon bool false)))
+
+expected-case-43 : Result
+expected-case-43 = success (UCon (tagCon bytestring (mkByteString "\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-43 : Set
+pending-case-43 = Pending (evalRaw test-case-43 ≡ expected-case-43)
+>>>>>>> origin/master
 ```
 
 ## case-44
@@ -630,6 +1080,7 @@ _ = refl
 -- builtin/semantics/writeBits/case-44
 -- An empty list of updates doesn't change anything.
 test-case-44 : Untyped
+<<<<<<< HEAD
 test-case-44 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")))) (UCon (tagCon (list integer) ([])))) (UCon (tagCon bool true)))
 
 expected-case-44 : Result
@@ -637,6 +1088,16 @@ expected-case-44 = success (UCon (tagCon bytestring (mkByteString "fffffffffffff
 
 _ : evalRaw test-case-44 ≡ expected-case-44
 _ = refl
+=======
+test-case-44 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (mkByteString "\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255")))) (UCon (tagCon (list integer) ([])))) (UCon (tagCon bool true)))
+
+expected-case-44 : Result
+expected-case-44 = success (UCon (tagCon bytestring (mkByteString "\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255")))
+
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-44 : Set
+pending-case-44 = Pending (evalRaw test-case-44 ≡ expected-case-44)
+>>>>>>> origin/master
 ```
 
 ## case-45
@@ -650,8 +1111,14 @@ test-case-45 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (
 expected-case-45 : Result
 expected-case-45 = success (UCon (tagCon bytestring (mkByteString "")))
 
+<<<<<<< HEAD
 _ : evalRaw test-case-45 ≡ expected-case-45
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-45 : Set
+pending-case-45 = Pending (evalRaw test-case-45 ≡ expected-case-45)
+>>>>>>> origin/master
 ```
 
 ## case-46
@@ -665,8 +1132,14 @@ test-case-46 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (
 expected-case-46 : Result
 expected-case-46 = success (UCon (tagCon bytestring (mkByteString "")))
 
+<<<<<<< HEAD
 _ : evalRaw test-case-46 ≡ expected-case-46
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-46 : Set
+pending-case-46 = Pending (evalRaw test-case-46 ≡ expected-case-46)
+>>>>>>> origin/master
 ```
 
 ## case-47
@@ -680,8 +1153,14 @@ test-case-47 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (
 expected-case-47 : Result
 expected-case-47 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-47 ≡ expected-case-47
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-47 : Set
+pending-case-47 = Pending (evalRaw test-case-47 ≡ expected-case-47)
+>>>>>>> origin/master
 ```
 
 ## case-48
@@ -695,6 +1174,12 @@ test-case-48 = (UApp (UApp (UApp (UBuiltin writeBits) (UCon (tagCon bytestring (
 expected-case-48 : Result
 expected-case-48 = failure
 
+<<<<<<< HEAD
 _ : evalRaw test-case-48 ≡ expected-case-48
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `writeBits`.
+pending-case-48 : Set
+pending-case-48 = Pending (evalRaw test-case-48 ≡ expected-case-48)
+>>>>>>> origin/master
 ```

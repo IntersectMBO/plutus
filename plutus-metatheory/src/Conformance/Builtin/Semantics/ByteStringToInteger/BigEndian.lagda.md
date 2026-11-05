@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
      Regenerate with `generate-agda-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -24,13 +29,23 @@ open import Conformance.Eval
 -- builtin/semantics/byteStringToInteger/big-endian/all-zeros
 -- A bytestring consisting entirely of zeros decodes to 0.
 test-all-zeros : Untyped
+<<<<<<< HEAD
 test-all-zeros = (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "00000000000000000000000000"))))
+=======
+test-all-zeros = (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL"))))
+>>>>>>> origin/master
 
 expected-all-zeros : Result
 expected-all-zeros = success (UCon (tagCon integer (ℤ.pos 0)))
 
+<<<<<<< HEAD
 _ : evalRaw test-all-zeros ≡ expected-all-zeros
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `byteStringToInteger`.
+pending-all-zeros : Set
+pending-all-zeros = Pending (evalRaw test-all-zeros ≡ expected-all-zeros)
+>>>>>>> origin/master
 ```
 
 ## correct-output
@@ -39,13 +54,23 @@ _ = refl
 -- builtin/semantics/byteStringToInteger/big-endian/correct-output
 -- Check that a particular bytestring decodes to the expected integer.
 test-correct-output : Untyped
+<<<<<<< HEAD
 test-correct-output = (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "123456abcdef"))))
+=======
+test-correct-output = (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "\DC24V\171\205\239"))))
+>>>>>>> origin/master
 
 expected-correct-output : Result
 expected-correct-output = success (UCon (tagCon integer (ℤ.pos 20016001699311)))
 
+<<<<<<< HEAD
 _ : evalRaw test-correct-output ≡ expected-correct-output
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `byteStringToInteger`.
+pending-correct-output : Set
+pending-correct-output = Pending (evalRaw test-correct-output ≡ expected-correct-output)
+>>>>>>> origin/master
 ```
 
 ## empty
@@ -59,8 +84,14 @@ test-empty = (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true)
 expected-empty : Result
 expected-empty = success (UCon (tagCon integer (ℤ.pos 0)))
 
+<<<<<<< HEAD
 _ : evalRaw test-empty ≡ expected-empty
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `byteStringToInteger`.
+pending-empty : Set
+pending-empty = Pending (evalRaw test-empty ≡ expected-empty)
+>>>>>>> origin/master
 ```
 
 ## leading-zeros
@@ -69,11 +100,21 @@ _ = refl
 -- builtin/semantics/byteStringToInteger/big-endian/leading-zeros
 -- Check that leading zeros don't affect the result of a big-endian decoding.
 test-leading-zeros : Untyped
+<<<<<<< HEAD
 test-leading-zeros = (UApp (UApp (UBuiltin equalsInteger) (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "123456abcdef"))))) (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "0000000000000000123456abcdef")))))
+=======
+test-leading-zeros = (UApp (UApp (UBuiltin equalsInteger) (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "\DC24V\171\205\239"))))) (UApp (UApp (UBuiltin byteStringToInteger) (UCon (tagCon bool true))) (UCon (tagCon bytestring (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\DC24V\171\205\239")))))
+>>>>>>> origin/master
 
 expected-leading-zeros : Result
 expected-leading-zeros = success (UCon (tagCon bool true))
 
+<<<<<<< HEAD
 _ : evalRaw test-leading-zeros ≡ expected-leading-zeros
 _ = refl
+=======
+-- Pending: bytestring constant; postulated builtin `byteStringToInteger`.
+pending-leading-zeros : Set
+pending-leading-zeros = Pending (evalRaw test-leading-zeros ≡ expected-leading-zeros)
+>>>>>>> origin/master
 ```

@@ -23,6 +23,7 @@ open import Data.String using (String)
 
 open import Utils using (_,_;_∷_;[];DATA;List)
 open import Builtin.ByteString.Base using (ByteString)
+open import Builtin using (HSlengthOfArray)
 open import Builtin.Signature using (_⊢♯)
 open _⊢♯
 open import Builtin.Constant.AtomicType using (AtomicTyCon)
@@ -87,7 +88,7 @@ defaultConstantMeasure (tmCon (atomic aBls12-381-g1-element) x) = g1ElementSize 
 defaultConstantMeasure (tmCon (atomic aBls12-381-g2-element) x) = g2ElementSize x
 defaultConstantMeasure (tmCon (atomic aBls12-381-mlresult) x) = mlResultElementSize x
 defaultConstantMeasure (tmCon (list t) l) = Utils.length l
-defaultConstantMeasure (tmCon (array t) a) with Utils.HSlengthOfArray a
+defaultConstantMeasure (tmCon (array t) a) with HSlengthOfArray a
 ... | ℤ.pos ℕ.zero = 1
 ... | ℤ.pos (ℕ.suc n) = ℕ.suc n
 ... | ℤ.negsuc n = 1

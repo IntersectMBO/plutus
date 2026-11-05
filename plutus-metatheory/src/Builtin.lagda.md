@@ -25,6 +25,7 @@ open import Data.Bool using (Bool;true;false)
 open import Data.Maybe using (Maybe;just;nothing)
 open import Data.List using (List; _∷_; [])
 open import Data.Nat using (ℕ;suc)
+open import Data.Integer using (ℤ; +_)
 open import Agda.Builtin.Nat using (_==_)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
 open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse;length)
@@ -177,6 +178,13 @@ data Builtin : Set where
   -- BLS12-381 multi-scalar-multiplication
   bls12-381-G1-multiScalarMul     : Builtin
   bls12-381-G2-multiScalarMul     : Builtin
+
+  -- batch 7
+  multiIndexArray                 : Builtin
+  policies                        : Builtin
+  assetCount                      : Builtin
+  keepPolicies                    : Builtin
+  dropPolicies                    : Builtin
 
 ```
 
@@ -375,6 +383,11 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature dropList                        = ∀a [ integer ↑ , list a ]⟶ list a
     signature bls12-381-G1-multiScalarMul     = ∙ [ list integer , list bls12-381-g1-element ]⟶ bls12-381-g1-element ↑
     signature bls12-381-G2-multiScalarMul     = ∙ [ list integer , list bls12-381-g2-element ]⟶ bls12-381-g2-element ↑
+    signature multiIndexArray                 = ∀a [ array a , list integer ]⟶ list a
+    signature policies                        = ∙ [ value ↑ ]⟶ list bytestring
+    signature assetCount                      = ∙ [ value ↑ ]⟶ integer ↑
+    signature keepPolicies                    = ∙ [ list bytestring , value ↑ ]⟶ value ↑
+    signature dropPolicies                    = ∙ [ list bytestring , value ↑ ]⟶ value ↑
 
 open SugaredSignature using (signature) public
 
@@ -496,6 +509,11 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | DropList
                                           | Bls12_381_G1_multiScalarMul
                                           | Bls12_381_G2_multiScalarMul
+                                          | MultiIndexArray
+                                          | Policies
+                                          | AssetCount
+                                          | KeepPolicies
+                                          | DropPolicies
                                           ) #-}
 ```
 
@@ -508,7 +526,7 @@ Note that the conformance unit tests under `Conformance` (see
 `Conformance.Eval`) are only proved for builtins whose semantics are fully
 defined in Agda. If you replace one of these postulates with a definition,
 mark it as supported in `builtinSupported` in `plutus-conformance/agda-gen/Main.hs`
-and regenerate the tests with `generate-agda-conformance`.
+and regenerate the tests with `generate-agda-typecheck-conformance`.
 
 ```
 postulate
@@ -551,6 +569,14 @@ postulate
   expModINTEGER               : Int -> Int -> Int -> Maybe Int
   BLS12-381-G1-multiScalarMul : List Int → List Bls12-381-G1-Element → Maybe Bls12-381-G1-Element
   BLS12-381-G2-multiScalarMul : List Int → List Bls12-381-G2-Element → Maybe Bls12-381-G2-Element
+  POLICIES                    : Value → List ByteString
+  assetCOUNT                  : Value → Int
+  keepPOLICIES                : List ByteString → Value → Maybe Value
+  dropPOLICIES                : List ByteString → Value → Maybe Value
+  HSlengthOfArray             : {A : Set} → U.Array A → ℤ
+  HSlistToArray               : {A : Set} → (ls : List A) → U.Array A
+  HSindexArray                : {A : Set} → U.Array A → ℤ → A
+  HSmultiIndexArray           : {A : Set} → U.Array A → List ℤ → Maybe (List A)
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -666,6 +692,23 @@ postulate
 
 {-# COMPILE GHC BLS12-381-G1-multiScalarMul = \s p -> builtinResultToMaybe $ G1.multiScalarMul s p #-}
 {-# COMPILE GHC BLS12-381-G2-multiScalarMul = \s p -> builtinResultToMaybe $ G2.multiScalarMul s p #-}
+
+{-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExMemoryUsage (ValueOuterSize(..)) #-}
+{-# COMPILE GHC POLICIES = map fromHS . Value.policies #-}
+{-# COMPILE GHC assetCOUNT = toInteger . Value.totalSize #-}
+{-# COMPILE GHC keepPOLICIES = \ bs v -> builtinResultToMaybe (Value.keepPolicies (map toHS bs) v) #-}
+{-# COMPILE GHC dropPOLICIES = \ bs v -> builtinResultToMaybe (Value.dropPolicies (map toHS bs) v) #-}
+
+
+{-# FOREIGN GHC import qualified Data.Vector.Strict as Strict #-}
+{-# FOREIGN GHC import qualified PlutusCore.Arrays as Arrays #-}
+
+
+-- These have to consume the hidden {A : Set} param in the Agda.
+{-# COMPILE GHC HSlengthOfArray = \() -> \as -> toInteger (Strict.length as) #-}
+{-# COMPILE GHC HSlistToArray = \() -> Strict.fromList #-}
+{-# COMPILE GHC HSindexArray = \() -> \as -> \i -> as Strict.! (fromInteger i) #-}
+{-# COMPILE GHC HSmultiIndexArray = \() -> \as -> \is -> builtinResultToMaybe $ Arrays.multiIndexArray as is #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
