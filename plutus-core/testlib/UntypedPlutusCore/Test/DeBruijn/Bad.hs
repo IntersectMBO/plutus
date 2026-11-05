@@ -27,7 +27,7 @@ module UntypedPlutusCore.Test.DeBruijn.Bad
   , illOverAppFun
   ) where
 
-import Data.Vector (fromList)
+import GHC.IsList (fromList)
 import PlutusCore.Default
 import PlutusCore.MkPlc
 import PlutusCore.StdLib.Data.Bool
