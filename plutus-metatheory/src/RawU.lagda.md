@@ -36,7 +36,8 @@ open import Relation.Nullary using (does;yes;no;¬_)
 open import Data.Unit using (⊤;tt)
 open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
 
-open import Utils using (♯;ByteString;DATA;Value;List;Array;[];_∷_;_×_;_,_;eqDATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
+open import Builtin.ByteString.Base using (ByteString)
+open import Utils using (♯;DATA;Value;List;Array;[];_∷_;_×_;_,_;eqDATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
 open import Utils.Decidable using (dcong;dcong₂)
 import Builtin as B
 open import Builtin using (Builtin;equals)
@@ -92,7 +93,7 @@ data Tag : Set → Set where
 
 {-# FOREIGN GHC type Tag = DefaultUni #-}
 {-# FOREIGN GHC pattern TagInt                  = DefaultUniInteger  #-}
-{-# FOREIGN GHC pattern TagBS                   = DefaultUniByteString #-}
+{-# FOREIGN GHC import FFI.ByteString (pattern AgdaTagBS) #-}
 {-# FOREIGN GHC pattern TagStr                  = DefaultUniString #-}
 {-# FOREIGN GHC pattern TagBool                 = DefaultUniBool #-}
 {-# FOREIGN GHC pattern TagUnit                 = DefaultUniUnit #-}
@@ -105,7 +106,7 @@ data Tag : Set → Set where
 {-# FOREIGN GHC pattern TagBLS12_381_G2_Element = DefaultUniBLS12_381_G2_Element #-}
 {-# FOREIGN GHC pattern TagBLS12_381_MlResult   = DefaultUniBLS12_381_MlResult #-}
 {-# COMPILE GHC Tag                             = data Tag (TagInt
-                                                           | TagBS
+                                                           | AgdaTagBS
                                                            | TagStr
                                                            | TagBool
                                                            | TagUnit
@@ -175,8 +176,10 @@ data TagCon : Set where
   tagCon : ∀{A} → Tag (Esc A) → A → TagCon
 
 {-# FOREIGN GHC type TagCon = Some (ValueOf DefaultUni) #-}
-{-# FOREIGN GHC pattern TagCon t x = Some (ValueOf t x) #-}
-{-# COMPILE GHC TagCon = data TagCon (TagCon) #-}
+-- Converts the bytestrings in constants between the Haskell and the Agda
+-- representation; see `FFI.ByteString`.
+{-# FOREIGN GHC import FFI.ByteString (pattern AgdaTagCon) #-}
+{-# COMPILE GHC TagCon = data TagCon (AgdaTagCon) #-}
 
 decTagCon' : ∀{A B} → (t : Tag (Esc A)) → (x : A) → (t' : Tag (Esc B)) → (y : B) → Bool
 decTagCon' integer i integer i'                          = does (i Data.Integer.≟ i')

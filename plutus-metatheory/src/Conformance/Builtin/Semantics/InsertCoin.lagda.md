@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
+     Regenerate with `generate-agda-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
      Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -24,12 +29,20 @@ open import Conformance.Eval
 -- builtin/semantics/insertCoin/key-too-long-1
 -- A key larger than 32-bit, which is not allowed
 test-key-too-long-1 : Untyped
+<<<<<<< HEAD
+test-key-too-long-1 = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")))) (UCon (tagCon bytestring (mkByteString "")))) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon value (valueFromList ([])))))
+=======
 test-key-too-long-1 = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170")))) (UCon (tagCon bytestring (mkByteString "")))) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon value (valueFromList ([])))))
+>>>>>>> origin/master
 
 expected-key-too-long-1 : Result
 expected-key-too-long-1 = failure
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-key-too-long-1 : Set
 pending-key-too-long-1 = Pending (evalRaw test-key-too-long-1 ≡ expected-key-too-long-1)
 ```
@@ -40,12 +53,20 @@ pending-key-too-long-1 = Pending (evalRaw test-key-too-long-1 ≡ expected-key-t
 -- builtin/semantics/insertCoin/key-too-long-2
 -- A key larger than 32-bit, which is not allowed
 test-key-too-long-2 : Untyped
+<<<<<<< HEAD
+test-key-too-long-2 = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "")))) (UCon (tagCon bytestring (mkByteString "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")))) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon value (valueFromList ([])))))
+=======
 test-key-too-long-2 = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "")))) (UCon (tagCon bytestring (mkByteString "\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170")))) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon value (valueFromList ([])))))
+>>>>>>> origin/master
 
 expected-key-too-long-2 : Result
 expected-key-too-long-2 = failure
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-key-too-long-2 : Set
 pending-key-too-long-2 = Pending (evalRaw test-key-too-long-2 ≡ expected-key-too-long-2)
 ```
@@ -56,12 +77,20 @@ pending-key-too-long-2 = Pending (evalRaw test-key-too-long-2 ≡ expected-key-t
 -- builtin/semantics/insertCoin/long-key-zero-1
 -- A key larger than 32-bit, which is only allowed when inserting 0 value
 test-long-key-zero-1 : Untyped
+<<<<<<< HEAD
+test-long-key-zero-1 = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")))) (UCon (tagCon bytestring (mkByteString "")))) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
+=======
 test-long-key-zero-1 = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170")))) (UCon (tagCon bytestring (mkByteString "")))) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
+>>>>>>> origin/master
 
 expected-long-key-zero-1 : Result
 expected-long-key-zero-1 = success (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ []))))
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-long-key-zero-1 : Set
 pending-long-key-zero-1 = Pending (evalRaw test-long-key-zero-1 ≡ expected-long-key-zero-1)
 ```
@@ -72,12 +101,20 @@ pending-long-key-zero-1 = Pending (evalRaw test-long-key-zero-1 ≡ expected-lon
 -- builtin/semantics/insertCoin/long-key-zero-2
 -- A key larger than 32-bit, which is only allowed when inserting 0 value
 test-long-key-zero-2 : Untyped
+<<<<<<< HEAD
+test-long-key-zero-2 = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "")))) (UCon (tagCon bytestring (mkByteString "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")))) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
+=======
 test-long-key-zero-2 = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "")))) (UCon (tagCon bytestring (mkByteString "\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170\170")))) (UCon (tagCon integer (ℤ.pos 0)))) (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
+>>>>>>> origin/master
 
 expected-long-key-zero-2 : Result
 expected-long-key-zero-2 = success (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ []))))
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-long-key-zero-2 : Set
 pending-long-key-zero-2 = Pending (evalRaw test-long-key-zero-2 ≡ expected-long-key-zero-2)
 ```
@@ -87,12 +124,21 @@ pending-long-key-zero-2 = Pending (evalRaw test-long-key-zero-2 ≡ expected-lon
 ```
 -- builtin/semantics/insertCoin/multi-ccy-empty
 test-multi-ccy-empty : Untyped
+<<<<<<< HEAD
+test-multi-ccy-empty = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon bytestring (mkByteString "00")))) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
+
+expected-multi-ccy-empty : Result
+expected-multi-ccy-empty = success (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ ((mkByteString "00") , (((mkByteString "00") , (ℤ.pos 1)) ∷ [])) ∷ []))))
+
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 test-multi-ccy-empty = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon bytestring (mkByteString "\NUL")))) (UCon (tagCon integer (ℤ.pos 1)))) (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
 
 expected-multi-ccy-empty : Result
 expected-multi-ccy-empty = success (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ ((mkByteString "\NUL") , (((mkByteString "\NUL") , (ℤ.pos 1)) ∷ [])) ∷ []))))
 
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-multi-ccy-empty : Set
 pending-multi-ccy-empty = Pending (evalRaw test-multi-ccy-empty ≡ expected-multi-ccy-empty)
 ```
@@ -102,12 +148,21 @@ pending-multi-ccy-empty = Pending (evalRaw test-multi-ccy-empty ≡ expected-mul
 ```
 -- builtin/semantics/insertCoin/multi-ccy-nonempty
 test-multi-ccy-nonempty : Untyped
+<<<<<<< HEAD
+test-multi-ccy-nonempty = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "aa")))) (UCon (tagCon bytestring (mkByteString "aa")))) (UCon (tagCon integer (ℤ.pos 5)))) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 1)) ∷ [])) ∷ ((mkByteString "bb") , (((mkByteString "aa") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
+
+expected-multi-ccy-nonempty : Result
+expected-multi-ccy-nonempty = success (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 5)) ∷ [])) ∷ ((mkByteString "bb") , (((mkByteString "aa") , (ℤ.pos 1)) ∷ [])) ∷ []))))
+
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 test-multi-ccy-nonempty = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "\170")))) (UCon (tagCon bytestring (mkByteString "\170")))) (UCon (tagCon integer (ℤ.pos 5)))) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 1)) ∷ [])) ∷ ((mkByteString "\187") , (((mkByteString "\170") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
 
 expected-multi-ccy-nonempty : Result
 expected-multi-ccy-nonempty = success (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 5)) ∷ [])) ∷ ((mkByteString "\187") , (((mkByteString "\170") , (ℤ.pos 1)) ∷ [])) ∷ []))))
 
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-multi-ccy-nonempty : Set
 pending-multi-ccy-nonempty = Pending (evalRaw test-multi-ccy-nonempty ≡ expected-multi-ccy-nonempty)
 ```
@@ -117,12 +172,21 @@ pending-multi-ccy-nonempty = Pending (evalRaw test-multi-ccy-nonempty ≡ expect
 ```
 -- builtin/semantics/insertCoin/multi-token
 test-multi-token : Untyped
+<<<<<<< HEAD
+test-multi-token = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "aa")))) (UCon (tagCon bytestring (mkByteString "bb")))) (UCon (tagCon integer (ℤ.pos 10)))) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 5)) ∷ ((mkByteString "bb") , (ℤ.pos 15)) ∷ ((mkByteString "cc") , (ℤ.pos 20)) ∷ [])) ∷ [])))))
+
+expected-multi-token : Result
+expected-multi-token = success (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 5)) ∷ ((mkByteString "bb") , (ℤ.pos 10)) ∷ ((mkByteString "cc") , (ℤ.pos 20)) ∷ [])) ∷ []))))
+
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 test-multi-token = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon bytestring (mkByteString "\170")))) (UCon (tagCon bytestring (mkByteString "\187")))) (UCon (tagCon integer (ℤ.pos 10)))) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 5)) ∷ ((mkByteString "\187") , (ℤ.pos 15)) ∷ ((mkByteString "\204") , (ℤ.pos 20)) ∷ [])) ∷ [])))))
 
 expected-multi-token : Result
 expected-multi-token = success (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 5)) ∷ ((mkByteString "\187") , (ℤ.pos 10)) ∷ ((mkByteString "\204") , (ℤ.pos 20)) ∷ [])) ∷ []))))
 
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-multi-token : Set
 pending-multi-token = Pending (evalRaw test-multi-token ≡ expected-multi-token)
 ```
@@ -137,7 +201,11 @@ test-negative-empty = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCo
 expected-negative-empty : Result
 expected-negative-empty = success (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.negsuc 0)) ∷ [])) ∷ []))))
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-negative-empty : Set
 pending-negative-empty = Pending (evalRaw test-negative-empty ≡ expected-negative-empty)
 ```
@@ -153,7 +221,11 @@ test-no-overflow = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon b
 expected-no-overflow : Result
 expected-no-overflow = success (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 170141183460469231731687303715884105727)) ∷ [])) ∷ []))))
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-no-overflow : Set
 pending-no-overflow = Pending (evalRaw test-no-overflow ≡ expected-no-overflow)
 ```
@@ -169,7 +241,11 @@ test-no-underflow = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon 
 expected-no-underflow : Result
 expected-no-underflow = success (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.negsuc 170141183460469231731687303715884105727)) ∷ [])) ∷ []))))
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-no-underflow : Set
 pending-no-underflow = Pending (evalRaw test-no-underflow ≡ expected-no-underflow)
 ```
@@ -185,7 +261,11 @@ test-overflow = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon byte
 expected-overflow : Result
 expected-overflow = failure
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-overflow : Set
 pending-overflow = Pending (evalRaw test-overflow ≡ expected-overflow)
 ```
@@ -200,7 +280,11 @@ test-positive-empty = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCo
 expected-positive-empty : Result
 expected-positive-empty = success (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ []))))
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-positive-empty : Set
 pending-positive-empty = Pending (evalRaw test-positive-empty ≡ expected-positive-empty)
 ```
@@ -215,7 +299,11 @@ test-positive-nonempty = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (ta
 expected-positive-nonempty : Result
 expected-positive-nonempty = success (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ []))))
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-positive-nonempty : Set
 pending-positive-nonempty = Pending (evalRaw test-positive-nonempty ≡ expected-positive-nonempty)
 ```
@@ -231,7 +319,11 @@ test-underflow = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon byt
 expected-underflow : Result
 expected-underflow = failure
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-underflow : Set
 pending-underflow = Pending (evalRaw test-underflow ≡ expected-underflow)
 ```
@@ -246,7 +338,11 @@ test-zero-positive = (UApp (UApp (UApp (UApp (UBuiltin insertCoin) (UCon (tagCon
 expected-zero-positive : Result
 expected-zero-positive = success (UCon (tagCon value (valueFromList ([]))))
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `insertCoin`.
+=======
 -- Pending: bytestring constant; value constant; postulated builtin `insertCoin`.
+>>>>>>> origin/master
 pending-zero-positive : Set
 pending-zero-positive = Pending (evalRaw test-zero-positive ≡ expected-zero-positive)
 ```

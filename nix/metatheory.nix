@@ -127,7 +127,11 @@ in
     metatheory-agda-library
     metatheory-site
     generate-malonzo-code
+    <<<<<<< HEAD
+    generate-agda-conformance
+    =======
     generate-agda-typecheck-conformance
+    >>>>>>> origin/master
     agda-with-stdlib-and-metatheory;
 }
 

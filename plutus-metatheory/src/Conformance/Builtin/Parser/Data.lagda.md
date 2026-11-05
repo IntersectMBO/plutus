@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
+     Regenerate with `generate-agda-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
      Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -23,6 +28,15 @@ open import Conformance.Eval
 ```
 -- builtin/parser/data/dataByteString
 test-dataByteString : Untyped
+<<<<<<< HEAD
+test-dataByteString = (UCon (tagCon pdata (bDATA (mkByteString "0123456789abcdef"))))
+
+expected-dataByteString : Result
+expected-dataByteString = success (UCon (tagCon pdata (bDATA (mkByteString "0123456789abcdef"))))
+
+_ : evalRaw test-dataByteString ≡ expected-dataByteString
+_ = refl
+=======
 test-dataByteString = (UCon (tagCon pdata (bDATA (mkByteString "\SOH#Eg\137\171\205\239"))))
 
 expected-dataByteString : Result
@@ -31,6 +45,7 @@ expected-dataByteString = success (UCon (tagCon pdata (bDATA (mkByteString "\SOH
 -- Pending: bytestring inside a `data` constant.
 pending-dataByteString : Set
 pending-dataByteString = Pending (evalRaw test-dataByteString ≡ expected-dataByteString)
+>>>>>>> origin/master
 ```
 
 ## dataConstr
@@ -66,6 +81,15 @@ _ = refl
 ```
 -- builtin/parser/data/dataList
 test-dataList : Untyped
+<<<<<<< HEAD
+test-dataList = (UCon (tagCon pdata (ListDATA ((ConstrDATA (ℤ.pos 1) ([])) ∷ (iDATA (ℤ.pos 1234)) ∷ (bDATA (mkByteString "abcdef")) ∷ []))))
+
+expected-dataList : Result
+expected-dataList = success (UCon (tagCon pdata (ListDATA ((ConstrDATA (ℤ.pos 1) ([])) ∷ (iDATA (ℤ.pos 1234)) ∷ (bDATA (mkByteString "abcdef")) ∷ []))))
+
+_ : evalRaw test-dataList ≡ expected-dataList
+_ = refl
+=======
 test-dataList = (UCon (tagCon pdata (ListDATA ((ConstrDATA (ℤ.pos 1) ([])) ∷ (iDATA (ℤ.pos 1234)) ∷ (bDATA (mkByteString "\171\205\239")) ∷ []))))
 
 expected-dataList : Result
@@ -74,6 +98,7 @@ expected-dataList = success (UCon (tagCon pdata (ListDATA ((ConstrDATA (ℤ.pos 
 -- Pending: bytestring inside a `data` constant.
 pending-dataList : Set
 pending-dataList = Pending (evalRaw test-dataList ≡ expected-dataList)
+>>>>>>> origin/master
 ```
 
 ## dataMap
@@ -81,6 +106,15 @@ pending-dataList = Pending (evalRaw test-dataList ≡ expected-dataList)
 ```
 -- builtin/parser/data/dataMap
 test-dataMap : Untyped
+<<<<<<< HEAD
+test-dataMap = (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "0123")) , (iDATA (ℤ.pos 12345))) ∷ ((iDATA (ℤ.pos 789453)) , (bDATA (mkByteString "456789"))) ∷ ((ListDATA ((iDATA (ℤ.negsuc 12364689485)) ∷ [])) , (ConstrDATA (ℤ.pos 7) ([]))) ∷ []))))
+
+expected-dataMap : Result
+expected-dataMap = success (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "0123")) , (iDATA (ℤ.pos 12345))) ∷ ((iDATA (ℤ.pos 789453)) , (bDATA (mkByteString "456789"))) ∷ ((ListDATA ((iDATA (ℤ.negsuc 12364689485)) ∷ [])) , (ConstrDATA (ℤ.pos 7) ([]))) ∷ []))))
+
+_ : evalRaw test-dataMap ≡ expected-dataMap
+_ = refl
+=======
 test-dataMap = (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\SOH#")) , (iDATA (ℤ.pos 12345))) ∷ ((iDATA (ℤ.pos 789453)) , (bDATA (mkByteString "Eg\137"))) ∷ ((ListDATA ((iDATA (ℤ.negsuc 12364689485)) ∷ [])) , (ConstrDATA (ℤ.pos 7) ([]))) ∷ []))))
 
 expected-dataMap : Result
@@ -89,6 +123,7 @@ expected-dataMap = success (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "
 -- Pending: bytestring inside a `data` constant.
 pending-dataMap : Set
 pending-dataMap = Pending (evalRaw test-dataMap ≡ expected-dataMap)
+>>>>>>> origin/master
 ```
 
 ## dataMisByteString

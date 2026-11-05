@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
+     Regenerate with `generate-agda-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
      Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -39,6 +44,15 @@ _ = refl
 -- term/constant-case/data/data-02
 -- select the second Data.Constr branch and pass its fields to the handler
 test-data-02 : Untyped
+<<<<<<< HEAD
+test-data-02 = (UCase (UCon (tagCon pdata (ConstrDATA (ℤ.pos 1) ((iDATA (ℤ.pos 42)) ∷ (bDATA (mkByteString "abcd")) ∷ (ListDATA ((iDATA (ℤ.pos 7)) ∷ [])) ∷ [])))) ((ULambda (UCon (tagCon integer (ℤ.pos 0)))) ∷ (ULambda (UVar 0)) ∷ []))
+
+expected-data-02 : Result
+expected-data-02 = success (UCon (tagCon (list pdata) ((iDATA (ℤ.pos 42)) ∷ (bDATA (mkByteString "abcd")) ∷ (ListDATA ((iDATA (ℤ.pos 7)) ∷ [])) ∷ [])))
+
+_ : evalRaw test-data-02 ≡ expected-data-02
+_ = refl
+=======
 test-data-02 = (UCase (UCon (tagCon pdata (ConstrDATA (ℤ.pos 1) ((iDATA (ℤ.pos 42)) ∷ (bDATA (mkByteString "\171\205")) ∷ (ListDATA ((iDATA (ℤ.pos 7)) ∷ [])) ∷ [])))) ((ULambda (UCon (tagCon integer (ℤ.pos 0)))) ∷ (ULambda (UVar 0)) ∷ []))
 
 expected-data-02 : Result
@@ -47,6 +61,7 @@ expected-data-02 = success (UCon (tagCon (list pdata) ((iDATA (ℤ.pos 42)) ∷ 
 -- Pending: bytestring inside a `data` constant.
 pending-data-02 : Set
 pending-data-02 = Pending (evalRaw test-data-02 ≡ expected-data-02)
+>>>>>>> origin/master
 ```
 
 ## data-03

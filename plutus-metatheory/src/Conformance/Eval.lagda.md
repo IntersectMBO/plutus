@@ -8,7 +8,11 @@ Support for the generated conformance unit tests under `Conformance.*`.
 The modules under `Conformance` are generated from the UPLC evaluation
 conformance test cases in `plutus-conformance/test-cases/uplc/evaluation` by
 
+<<<<<<< HEAD
+    cabal run plutus-conformance:generate-agda-conformance
+=======
     cabal run plutus-conformance:generate-agda-typecheck-conformance
+>>>>>>> origin/master
 
 (run from the repository root) and must not be edited by hand. Each test case
 becomes a `refl` proof that evaluating the program with the untyped CEK
@@ -27,7 +31,12 @@ open import Data.Integer public using (ℤ)
 open import Relation.Binary.PropositionalEquality public using (_≡_; refl)
 
 open import Utils public
+<<<<<<< HEAD
+  using (List; _×_; _,_; DATA; mkArray; valueFromList)
+open import Builtin.ByteString.Base public using (mkByteString)
+=======
   using (List; _×_; _,_; DATA; mkByteString; mkArray; valueFromList)
+>>>>>>> origin/master
 open Utils.List public
 open Utils.DATA public
 

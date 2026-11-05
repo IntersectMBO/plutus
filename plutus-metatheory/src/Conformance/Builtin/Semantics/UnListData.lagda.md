@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
+     Regenerate with `generate-agda-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
      Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -37,12 +42,21 @@ _ = refl
 ```
 -- builtin/semantics/unListData/unListData-fail
 test-unListData-fail : Untyped
+<<<<<<< HEAD
+test-unListData-fail = (UApp (UBuiltin unListData) (UCon (tagCon pdata (bDATA (mkByteString "af00")))))
+=======
 test-unListData-fail = (UApp (UBuiltin unListData) (UCon (tagCon pdata (bDATA (mkByteString "\175\NUL")))))
+>>>>>>> origin/master
 
 expected-unListData-fail : Result
 expected-unListData-fail = failure
 
+<<<<<<< HEAD
+_ : evalRaw test-unListData-fail ≡ expected-unListData-fail
+_ = refl
+=======
 -- Pending: bytestring inside a `data` constant.
 pending-unListData-fail : Set
 pending-unListData-fail = Pending (evalRaw test-unListData-fail ≡ expected-unListData-fail)
+>>>>>>> origin/master
 ```

@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
+     Regenerate with `generate-agda-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
      Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -69,10 +74,17 @@ pending-combine = Pending (evalRaw test-combine ≡ expected-combine)
 -- builtin/semantics/unionValue/no-overflow
 -- This adds up to 2^127 - 1, the maximum allowed value for a single token
 test-no-overflow : Untyped
+<<<<<<< HEAD
+test-no-overflow = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 170141183460469231731687303715884105726)) ∷ [])) ∷ []))))) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
+
+expected-no-overflow : Result
+expected-no-overflow = success (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 170141183460469231731687303715884105727)) ∷ [])) ∷ []))))
+=======
 test-no-overflow = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 170141183460469231731687303715884105726)) ∷ [])) ∷ []))))) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
 
 expected-no-overflow : Result
 expected-no-overflow = success (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 170141183460469231731687303715884105727)) ∷ [])) ∷ []))))
+>>>>>>> origin/master
 
 -- Pending: value constant; postulated builtin `unionValue`.
 pending-no-overflow : Set
@@ -86,10 +98,17 @@ pending-no-overflow = Pending (evalRaw test-no-overflow ≡ expected-no-overflow
 -- This adds up to -2^-127, which is the minimum allowed value for a single
 -- token
 test-no-underflow : Untyped
+<<<<<<< HEAD
+test-no-underflow = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.negsuc 170141183460469231731687303715884105726)) ∷ [])) ∷ []))))) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.negsuc 0)) ∷ [])) ∷ [])))))
+
+expected-no-underflow : Result
+expected-no-underflow = success (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.negsuc 170141183460469231731687303715884105727)) ∷ [])) ∷ []))))
+=======
 test-no-underflow = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.negsuc 170141183460469231731687303715884105726)) ∷ [])) ∷ []))))) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.negsuc 0)) ∷ [])) ∷ [])))))
 
 expected-no-underflow : Result
 expected-no-underflow = success (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.negsuc 170141183460469231731687303715884105727)) ∷ [])) ∷ []))))
+>>>>>>> origin/master
 
 -- Pending: value constant; postulated builtin `unionValue`.
 pending-no-underflow : Set
@@ -103,7 +122,11 @@ pending-no-underflow = Pending (evalRaw test-no-underflow ≡ expected-no-underf
 -- This would add up to 2^127, which is over the allowed maximum value of a
 -- token
 test-overflow : Untyped
+<<<<<<< HEAD
+test-overflow = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 170141183460469231731687303715884105727)) ∷ [])) ∷ []))))) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
+=======
 test-overflow = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 170141183460469231731687303715884105727)) ∷ [])) ∷ []))))) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 1)) ∷ [])) ∷ [])))))
+>>>>>>> origin/master
 
 expected-overflow : Result
 expected-overflow = failure
@@ -120,7 +143,11 @@ pending-overflow = Pending (evalRaw test-overflow ≡ expected-overflow)
 -- This would add up to (-2^-127 - 1), which is less than the allowed minimum value of a
 -- token
 test-underflow : Untyped
+<<<<<<< HEAD
+test-underflow = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.negsuc 170141183460469231731687303715884105727)) ∷ [])) ∷ []))))) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.negsuc 0)) ∷ [])) ∷ [])))))
+=======
 test-underflow = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.negsuc 170141183460469231731687303715884105727)) ∷ [])) ∷ []))))) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.negsuc 0)) ∷ [])) ∷ [])))))
+>>>>>>> origin/master
 
 expected-underflow : Result
 expected-underflow = failure
@@ -135,10 +162,17 @@ pending-underflow = Pending (evalRaw test-underflow ≡ expected-underflow)
 ```
 -- builtin/semantics/unionValue/unitl
 test-unitl : Untyped
+<<<<<<< HEAD
+test-unitl = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList ([]))))) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 100000)) ∷ [])) ∷ ((mkByteString "bb") , (((mkByteString "aa") , (ℤ.pos 125)) ∷ [])) ∷ [])))))
+
+expected-unitl : Result
+expected-unitl = success (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 100000)) ∷ [])) ∷ ((mkByteString "bb") , (((mkByteString "aa") , (ℤ.pos 125)) ∷ [])) ∷ []))))
+=======
 test-unitl = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList ([]))))) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 100000)) ∷ [])) ∷ ((mkByteString "\187") , (((mkByteString "\170") , (ℤ.pos 125)) ∷ [])) ∷ [])))))
 
 expected-unitl : Result
 expected-unitl = success (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 100000)) ∷ [])) ∷ ((mkByteString "\187") , (((mkByteString "\170") , (ℤ.pos 125)) ∷ [])) ∷ []))))
+>>>>>>> origin/master
 
 -- Pending: value constant; postulated builtin `unionValue`.
 pending-unitl : Set
@@ -150,10 +184,17 @@ pending-unitl = Pending (evalRaw test-unitl ≡ expected-unitl)
 ```
 -- builtin/semantics/unionValue/unitr
 test-unitr : Untyped
+<<<<<<< HEAD
+test-unitr = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 100000)) ∷ [])) ∷ ((mkByteString "bb") , (((mkByteString "aa") , (ℤ.pos 125)) ∷ [])) ∷ []))))) (UCon (tagCon value (valueFromList ([])))))
+
+expected-unitr : Result
+expected-unitr = success (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 100000)) ∷ [])) ∷ ((mkByteString "bb") , (((mkByteString "aa") , (ℤ.pos 125)) ∷ [])) ∷ []))))
+=======
 test-unitr = (UApp (UApp (UBuiltin unionValue) (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 100000)) ∷ [])) ∷ ((mkByteString "\187") , (((mkByteString "\170") , (ℤ.pos 125)) ∷ [])) ∷ []))))) (UCon (tagCon value (valueFromList ([])))))
 
 expected-unitr : Result
 expected-unitr = success (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 100000)) ∷ [])) ∷ ((mkByteString "\187") , (((mkByteString "\170") , (ℤ.pos 125)) ∷ [])) ∷ []))))
+>>>>>>> origin/master
 
 -- Pending: value constant; postulated builtin `unionValue`.
 pending-unitr : Set

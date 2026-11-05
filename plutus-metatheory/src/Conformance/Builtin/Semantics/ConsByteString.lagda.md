@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
+     Regenerate with `generate-agda-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
      Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -29,9 +34,14 @@ test-consByteString-01 = (UApp (UApp (UBuiltin consByteString) (UCon (tagCon int
 expected-consByteString-01 : Result
 expected-consByteString-01 = failure
 
+<<<<<<< HEAD
+_ : evalRaw test-consByteString-01 ≡ expected-consByteString-01
+_ = refl
+=======
 -- Pending: bytestring constant; postulated builtin `consByteString`.
 pending-consByteString-01 : Set
 pending-consByteString-01 = Pending (evalRaw test-consByteString-01 ≡ expected-consByteString-01)
+>>>>>>> origin/master
 ```
 
 ## consByteString-02
@@ -39,14 +49,23 @@ pending-consByteString-01 = Pending (evalRaw test-consByteString-01 ≡ expected
 ```
 -- builtin/semantics/consByteString/consByteString-02
 test-consByteString-02 : Untyped
+<<<<<<< HEAD
+test-consByteString-02 = (UApp (UApp (UBuiltin consByteString) (UCon (tagCon integer (ℤ.negsuc 87)))) (UCon (tagCon bytestring (mkByteString "686543616b654973414c6965"))))
+=======
 test-consByteString-02 = (UApp (UApp (UBuiltin consByteString) (UCon (tagCon integer (ℤ.negsuc 87)))) (UCon (tagCon bytestring (mkByteString "heCakeIsALie"))))
+>>>>>>> origin/master
 
 expected-consByteString-02 : Result
 expected-consByteString-02 = failure
 
+<<<<<<< HEAD
+_ : evalRaw test-consByteString-02 ≡ expected-consByteString-02
+_ = refl
+=======
 -- Pending: bytestring constant; postulated builtin `consByteString`.
 pending-consByteString-02 : Set
 pending-consByteString-02 = Pending (evalRaw test-consByteString-02 ≡ expected-consByteString-02)
+>>>>>>> origin/master
 ```
 
 ## consByteString-03
@@ -54,6 +73,15 @@ pending-consByteString-02 = Pending (evalRaw test-consByteString-02 ≡ expected
 ```
 -- builtin/semantics/consByteString/consByteString-03
 test-consByteString-03 : Untyped
+<<<<<<< HEAD
+test-consByteString-03 = (UApp (UApp (UBuiltin consByteString) (UCon (tagCon integer (ℤ.pos 84)))) (UCon (tagCon bytestring (mkByteString "686543616b654973414c6965"))))
+
+expected-consByteString-03 : Result
+expected-consByteString-03 = success (UCon (tagCon bytestring (mkByteString "54686543616b654973414c6965")))
+
+_ : evalRaw test-consByteString-03 ≡ expected-consByteString-03
+_ = refl
+=======
 test-consByteString-03 = (UApp (UApp (UBuiltin consByteString) (UCon (tagCon integer (ℤ.pos 84)))) (UCon (tagCon bytestring (mkByteString "heCakeIsALie"))))
 
 expected-consByteString-03 : Result
@@ -62,4 +90,5 @@ expected-consByteString-03 = success (UCon (tagCon bytestring (mkByteString "The
 -- Pending: bytestring constant; postulated builtin `consByteString`.
 pending-consByteString-03 : Set
 pending-consByteString-03 = Pending (evalRaw test-consByteString-03 ≡ expected-consByteString-03)
+>>>>>>> origin/master
 ```

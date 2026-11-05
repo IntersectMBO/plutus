@@ -4,8 +4,13 @@ layout: page
 ---
 
 <!-- GENERATED FILE: do not edit.
+<<<<<<< HEAD
+     Regenerate with `generate-agda-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-conformance` from the
+=======
      Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
      `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+>>>>>>> origin/master
      repository root. -->
 
 Conformance tests generated from
@@ -24,12 +29,20 @@ open import Conformance.Eval
 -- builtin/semantics/unValueData/currency-key-too-long
 -- Currency symbol with 33 bytes (> maxKeyLen)
 test-currency-key-too-long : Untyped
+<<<<<<< HEAD
+test-currency-key-too-long = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "000000000000000000000000000000000000000000000000000000000000000000")) , (MapDATA (((bDATA (mkByteString "")) , (iDATA (ℤ.pos 1))) ∷ []))) ∷ [])))))
+=======
 test-currency-key-too-long = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")) , (MapDATA (((bDATA (mkByteString "")) , (iDATA (ℤ.pos 1))) ∷ []))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-currency-key-too-long : Result
 expected-currency-key-too-long = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-currency-key-too-long : Set
 pending-currency-key-too-long = Pending (evalRaw test-currency-key-too-long ≡ expected-currency-key-too-long)
 ```
@@ -39,12 +52,20 @@ pending-currency-key-too-long = Pending (evalRaw test-currency-key-too-long ≡ 
 ```
 -- builtin/semantics/unValueData/data-duplicate-currencies
 test-data-duplicate-currencies : Untyped
+<<<<<<< HEAD
+test-data-duplicate-currencies = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 100))) ∷ []))) ∷ ((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "cc")) , (iDATA (ℤ.pos 50))) ∷ []))) ∷ [])))))
+=======
 test-data-duplicate-currencies = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 100))) ∷ []))) ∷ ((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\204")) , (iDATA (ℤ.pos 50))) ∷ []))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-data-duplicate-currencies : Result
 expected-data-duplicate-currencies = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-data-duplicate-currencies : Set
 pending-data-duplicate-currencies = Pending (evalRaw test-data-duplicate-currencies ≡ expected-data-duplicate-currencies)
 ```
@@ -54,12 +75,20 @@ pending-data-duplicate-currencies = Pending (evalRaw test-data-duplicate-currenc
 ```
 -- builtin/semantics/unValueData/data-duplicate-currencies-cancel
 test-data-duplicate-currencies-cancel : Untyped
+<<<<<<< HEAD
+test-data-duplicate-currencies-cancel = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "aa")) , (iDATA (ℤ.pos 123))) ∷ []))) ∷ ((bDATA (mkByteString "bb")) , (MapDATA (((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 2))) ∷ []))) ∷ ((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "aa")) , (iDATA (ℤ.negsuc 79))) ∷ []))) ∷ ((bDATA (mkByteString "cc")) , (MapDATA (((bDATA (mkByteString "cc")) , (iDATA (ℤ.pos 2))) ∷ []))) ∷ ((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "aa")) , (iDATA (ℤ.negsuc 42))) ∷ []))) ∷ [])))))
+=======
 test-data-duplicate-currencies-cancel = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\170")) , (iDATA (ℤ.pos 123))) ∷ []))) ∷ ((bDATA (mkByteString "\187")) , (MapDATA (((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 2))) ∷ []))) ∷ ((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\170")) , (iDATA (ℤ.negsuc 79))) ∷ []))) ∷ ((bDATA (mkByteString "\204")) , (MapDATA (((bDATA (mkByteString "\204")) , (iDATA (ℤ.pos 2))) ∷ []))) ∷ ((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\170")) , (iDATA (ℤ.negsuc 42))) ∷ []))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-data-duplicate-currencies-cancel : Result
 expected-data-duplicate-currencies-cancel = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-data-duplicate-currencies-cancel : Set
 pending-data-duplicate-currencies-cancel = Pending (evalRaw test-data-duplicate-currencies-cancel ≡ expected-data-duplicate-currencies-cancel)
 ```
@@ -69,12 +98,20 @@ pending-data-duplicate-currencies-cancel = Pending (evalRaw test-data-duplicate-
 ```
 -- builtin/semantics/unValueData/data-duplicate-currencies-merge
 test-data-duplicate-currencies-merge : Untyped
+<<<<<<< HEAD
+test-data-duplicate-currencies-merge = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "aa")) , (iDATA (ℤ.pos 123))) ∷ []))) ∷ ((bDATA (mkByteString "bb")) , (MapDATA (((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 2))) ∷ []))) ∷ ((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "aa")) , (iDATA (ℤ.pos 80))) ∷ []))) ∷ ((bDATA (mkByteString "cc")) , (MapDATA (((bDATA (mkByteString "cc")) , (iDATA (ℤ.pos 2))) ∷ []))) ∷ ((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "aa")) , (iDATA (ℤ.pos 43))) ∷ []))) ∷ [])))))
+=======
 test-data-duplicate-currencies-merge = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\170")) , (iDATA (ℤ.pos 123))) ∷ []))) ∷ ((bDATA (mkByteString "\187")) , (MapDATA (((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 2))) ∷ []))) ∷ ((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\170")) , (iDATA (ℤ.pos 80))) ∷ []))) ∷ ((bDATA (mkByteString "\204")) , (MapDATA (((bDATA (mkByteString "\204")) , (iDATA (ℤ.pos 2))) ∷ []))) ∷ ((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\170")) , (iDATA (ℤ.pos 43))) ∷ []))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-data-duplicate-currencies-merge : Result
 expected-data-duplicate-currencies-merge = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-data-duplicate-currencies-merge : Set
 pending-data-duplicate-currencies-merge = Pending (evalRaw test-data-duplicate-currencies-merge ≡ expected-data-duplicate-currencies-merge)
 ```
@@ -84,12 +121,20 @@ pending-data-duplicate-currencies-merge = Pending (evalRaw test-data-duplicate-c
 ```
 -- builtin/semantics/unValueData/data-duplicate-tokens
 test-data-duplicate-tokens : Untyped
+<<<<<<< HEAD
+test-data-duplicate-tokens = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 100))) ∷ ((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 50))) ∷ []))) ∷ [])))))
+=======
 test-data-duplicate-tokens = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 100))) ∷ ((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 50))) ∷ []))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-data-duplicate-tokens : Result
 expected-data-duplicate-tokens = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-data-duplicate-tokens : Set
 pending-data-duplicate-tokens = Pending (evalRaw test-data-duplicate-tokens ≡ expected-data-duplicate-tokens)
 ```
@@ -99,12 +144,20 @@ pending-data-duplicate-tokens = Pending (evalRaw test-data-duplicate-tokens ≡ 
 ```
 -- builtin/semantics/unValueData/data-empty-tokens
 test-data-empty-tokens : Untyped
+<<<<<<< HEAD
+test-data-empty-tokens = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA ([]))) ∷ [])))))
+=======
 test-data-empty-tokens = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA ([]))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-data-empty-tokens : Result
 expected-data-empty-tokens = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-data-empty-tokens : Set
 pending-data-empty-tokens = Pending (evalRaw test-data-empty-tokens ≡ expected-data-empty-tokens)
 ```
@@ -114,12 +167,20 @@ pending-data-empty-tokens = Pending (evalRaw test-data-empty-tokens ≡ expected
 ```
 -- builtin/semantics/unValueData/data-unordered-currencies
 test-data-unordered-currencies : Untyped
+<<<<<<< HEAD
+test-data-unordered-currencies = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "bb")) , (MapDATA (((bDATA (mkByteString "aa")) , (iDATA (ℤ.pos 10))) ∷ []))) ∷ ((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "cc")) , (iDATA (ℤ.pos 20))) ∷ []))) ∷ [])))))
+=======
 test-data-unordered-currencies = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\187")) , (MapDATA (((bDATA (mkByteString "\170")) , (iDATA (ℤ.pos 10))) ∷ []))) ∷ ((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\204")) , (iDATA (ℤ.pos 20))) ∷ []))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-data-unordered-currencies : Result
 expected-data-unordered-currencies = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-data-unordered-currencies : Set
 pending-data-unordered-currencies = Pending (evalRaw test-data-unordered-currencies ≡ expected-data-unordered-currencies)
 ```
@@ -129,12 +190,20 @@ pending-data-unordered-currencies = Pending (evalRaw test-data-unordered-currenc
 ```
 -- builtin/semantics/unValueData/data-unordered-tokens
 test-data-unordered-tokens : Untyped
+<<<<<<< HEAD
+test-data-unordered-tokens = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "cc")) , (iDATA (ℤ.pos 100))) ∷ ((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 50))) ∷ []))) ∷ [])))))
+=======
 test-data-unordered-tokens = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\204")) , (iDATA (ℤ.pos 100))) ∷ ((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 50))) ∷ []))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-data-unordered-tokens : Result
 expected-data-unordered-tokens = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-data-unordered-tokens : Set
 pending-data-unordered-tokens = Pending (evalRaw test-data-unordered-tokens ≡ expected-data-unordered-tokens)
 ```
@@ -144,12 +213,20 @@ pending-data-unordered-tokens = Pending (evalRaw test-data-unordered-tokens ≡ 
 ```
 -- builtin/semantics/unValueData/data-zero-quantity
 test-data-zero-quantity : Untyped
+<<<<<<< HEAD
+test-data-zero-quantity = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 0))) ∷ ((bDATA (mkByteString "cc")) , (iDATA (ℤ.pos 100))) ∷ []))) ∷ [])))))
+=======
 test-data-zero-quantity = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 0))) ∷ ((bDATA (mkByteString "\204")) , (iDATA (ℤ.pos 100))) ∷ []))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-data-zero-quantity : Result
 expected-data-zero-quantity = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-data-zero-quantity : Set
 pending-data-zero-quantity = Pending (evalRaw test-data-zero-quantity ≡ expected-data-zero-quantity)
 ```
@@ -159,12 +236,20 @@ pending-data-zero-quantity = Pending (evalRaw test-data-zero-quantity ≡ expect
 ```
 -- builtin/semantics/unValueData/data-zero-sum
 test-data-zero-sum : Untyped
+<<<<<<< HEAD
+test-data-zero-sum = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 100))) ∷ ((bDATA (mkByteString "bb")) , (iDATA (ℤ.negsuc 99))) ∷ []))) ∷ [])))))
+=======
 test-data-zero-sum = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 100))) ∷ ((bDATA (mkByteString "\187")) , (iDATA (ℤ.negsuc 99))) ∷ []))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-data-zero-sum : Result
 expected-data-zero-sum = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-data-zero-sum : Set
 pending-data-zero-sum = Pending (evalRaw test-data-zero-sum ≡ expected-data-zero-sum)
 ```
@@ -189,12 +274,21 @@ pending-empty = Pending (evalRaw test-empty ≡ expected-empty)
 ```
 -- builtin/semantics/unValueData/max-key-len
 test-max-key-len : Untyped
+<<<<<<< HEAD
+test-max-key-len = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "0000000000000000000000000000000000000000000000000000000000000000")) , (MapDATA (((bDATA (mkByteString "0000000000000000000000000000000000000000000000000000000000000000")) , (iDATA (ℤ.pos 1))) ∷ []))) ∷ [])))))
+
+expected-max-key-len : Result
+expected-max-key-len = success (UCon (tagCon value (valueFromList (((mkByteString "0000000000000000000000000000000000000000000000000000000000000000") , (((mkByteString "0000000000000000000000000000000000000000000000000000000000000000") , (ℤ.pos 1)) ∷ [])) ∷ []))))
+
+-- Pending: value constant; postulated builtin `unValueData`.
+=======
 test-max-key-len = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")) , (MapDATA (((bDATA (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")) , (iDATA (ℤ.pos 1))) ∷ []))) ∷ [])))))
 
 expected-max-key-len : Result
 expected-max-key-len = success (UCon (tagCon value (valueFromList (((mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL") , (((mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL") , (ℤ.pos 1)) ∷ [])) ∷ []))))
 
 -- Pending: bytestring inside a `data` constant; value constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-max-key-len : Set
 pending-max-key-len = Pending (evalRaw test-max-key-len ≡ expected-max-key-len)
 ```
@@ -204,12 +298,21 @@ pending-max-key-len = Pending (evalRaw test-max-key-len ≡ expected-max-key-len
 ```
 -- builtin/semantics/unValueData/multi-currency
 test-multi-currency : Untyped
+<<<<<<< HEAD
+test-multi-currency = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "aa")) , (iDATA (ℤ.pos 1))) ∷ []))) ∷ ((bDATA (mkByteString "bb")) , (MapDATA (((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 2))) ∷ []))) ∷ [])))))
+
+expected-multi-currency : Result
+expected-multi-currency = success (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 1)) ∷ [])) ∷ ((mkByteString "bb") , (((mkByteString "bb") , (ℤ.pos 2)) ∷ [])) ∷ []))))
+
+-- Pending: value constant; postulated builtin `unValueData`.
+=======
 test-multi-currency = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\170")) , (iDATA (ℤ.pos 1))) ∷ []))) ∷ ((bDATA (mkByteString "\187")) , (MapDATA (((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 2))) ∷ []))) ∷ [])))))
 
 expected-multi-currency : Result
 expected-multi-currency = success (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 1)) ∷ [])) ∷ ((mkByteString "\187") , (((mkByteString "\187") , (ℤ.pos 2)) ∷ [])) ∷ []))))
 
 -- Pending: bytestring inside a `data` constant; value constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-multi-currency : Set
 pending-multi-currency = Pending (evalRaw test-multi-currency ≡ expected-multi-currency)
 ```
@@ -219,12 +322,21 @@ pending-multi-currency = Pending (evalRaw test-multi-currency ≡ expected-multi
 ```
 -- builtin/semantics/unValueData/multi-token
 test-multi-token : Untyped
+<<<<<<< HEAD
+test-multi-token = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "aa")) , (iDATA (ℤ.pos 5))) ∷ ((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 10))) ∷ []))) ∷ [])))))
+
+expected-multi-token : Result
+expected-multi-token = success (UCon (tagCon value (valueFromList (((mkByteString "aa") , (((mkByteString "aa") , (ℤ.pos 5)) ∷ ((mkByteString "bb") , (ℤ.pos 10)) ∷ [])) ∷ []))))
+
+-- Pending: value constant; postulated builtin `unValueData`.
+=======
 test-multi-token = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\170")) , (iDATA (ℤ.pos 5))) ∷ ((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 10))) ∷ []))) ∷ [])))))
 
 expected-multi-token : Result
 expected-multi-token = success (UCon (tagCon value (valueFromList (((mkByteString "\170") , (((mkByteString "\170") , (ℤ.pos 5)) ∷ ((mkByteString "\187") , (ℤ.pos 10)) ∷ [])) ∷ []))))
 
 -- Pending: bytestring inside a `data` constant; value constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-multi-token : Set
 pending-multi-token = Pending (evalRaw test-multi-token ≡ expected-multi-token)
 ```
@@ -239,7 +351,11 @@ test-negative-quantity = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDA
 expected-negative-quantity : Result
 expected-negative-quantity = success (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.negsuc 99)) ∷ [])) ∷ []))))
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; value constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-negative-quantity : Set
 pending-negative-quantity = Pending (evalRaw test-negative-quantity ≡ expected-negative-quantity)
 ```
@@ -255,7 +371,11 @@ test-non-bytestring-currency = (UApp (UBuiltin unValueData) (UCon (tagCon pdata 
 expected-non-bytestring-currency : Result
 expected-non-bytestring-currency = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-non-bytestring-currency : Set
 pending-non-bytestring-currency = Pending (evalRaw test-non-bytestring-currency ≡ expected-non-bytestring-currency)
 ```
@@ -271,7 +391,11 @@ test-non-bytestring-token = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (Ma
 expected-non-bytestring-token : Result
 expected-non-bytestring-token = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-non-bytestring-token : Set
 pending-non-bytestring-token = Pending (evalRaw test-non-bytestring-token ≡ expected-non-bytestring-token)
 ```
@@ -282,12 +406,20 @@ pending-non-bytestring-token = Pending (evalRaw test-non-bytestring-token ≡ ex
 -- builtin/semantics/unValueData/non-integer-quantity
 -- Quantity is B instead of I
 test-non-integer-quantity : Untyped
+<<<<<<< HEAD
+test-non-integer-quantity = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "")) , (MapDATA (((bDATA (mkByteString "")) , (bDATA (mkByteString "ff"))) ∷ []))) ∷ [])))))
+=======
 test-non-integer-quantity = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "")) , (MapDATA (((bDATA (mkByteString "")) , (bDATA (mkByteString "\255"))) ∷ []))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-non-integer-quantity : Result
 expected-non-integer-quantity = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-non-integer-quantity : Set
 pending-non-integer-quantity = Pending (evalRaw test-non-integer-quantity ≡ expected-non-integer-quantity)
 ```
@@ -297,12 +429,20 @@ pending-non-integer-quantity = Pending (evalRaw test-non-integer-quantity ≡ ex
 ```
 -- builtin/semantics/unValueData/non-map-bytes
 test-non-map-bytes : Untyped
+<<<<<<< HEAD
+test-non-map-bytes = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (bDATA (mkByteString "ff")))))
+=======
 test-non-map-bytes = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (bDATA (mkByteString "\255")))))
+>>>>>>> origin/master
 
 expected-non-map-bytes : Result
 expected-non-map-bytes = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-non-map-bytes : Set
 pending-non-map-bytes = Pending (evalRaw test-non-map-bytes ≡ expected-non-map-bytes)
 ```
@@ -363,7 +503,11 @@ test-non-map-tokens = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA 
 expected-non-map-tokens : Result
 expected-non-map-tokens = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-non-map-tokens : Set
 pending-non-map-tokens = Pending (evalRaw test-non-map-tokens ≡ expected-non-map-tokens)
 ```
@@ -379,7 +523,11 @@ test-quantity-overflow = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDA
 expected-quantity-overflow : Result
 expected-quantity-overflow = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-quantity-overflow : Set
 pending-quantity-overflow = Pending (evalRaw test-quantity-overflow ≡ expected-quantity-overflow)
 ```
@@ -395,7 +543,11 @@ test-quantity-underflow = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapD
 expected-quantity-underflow : Result
 expected-quantity-underflow = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-quantity-underflow : Set
 pending-quantity-underflow = Pending (evalRaw test-quantity-underflow ≡ expected-quantity-underflow)
 ```
@@ -405,12 +557,21 @@ pending-quantity-underflow = Pending (evalRaw test-quantity-underflow ≡ expect
 ```
 -- builtin/semantics/unValueData/roundtrip-from-data
 test-roundtrip-from-data : Untyped
+<<<<<<< HEAD
+test-roundtrip-from-data = (UApp (UBuiltin valueData) (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 100))) ∷ []))) ∷ []))))))
+
+expected-roundtrip-from-data : Result
+expected-roundtrip-from-data = success (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "aa")) , (MapDATA (((bDATA (mkByteString "bb")) , (iDATA (ℤ.pos 100))) ∷ []))) ∷ []))))
+
+-- Pending: postulated builtin `valueData`; postulated builtin `unValueData`.
+=======
 test-roundtrip-from-data = (UApp (UBuiltin valueData) (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 100))) ∷ []))) ∷ []))))))
 
 expected-roundtrip-from-data : Result
 expected-roundtrip-from-data = success (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "\170")) , (MapDATA (((bDATA (mkByteString "\187")) , (iDATA (ℤ.pos 100))) ∷ []))) ∷ []))))
 
 -- Pending: bytestring inside a `data` constant; postulated builtin `valueData`; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-roundtrip-from-data : Set
 pending-roundtrip-from-data = Pending (evalRaw test-roundtrip-from-data ≡ expected-roundtrip-from-data)
 ```
@@ -425,7 +586,11 @@ test-single-entry = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA ((
 expected-single-entry : Result
 expected-single-entry = success (UCon (tagCon value (valueFromList (((mkByteString "") , (((mkByteString "") , (ℤ.pos 1)) ∷ [])) ∷ []))))
 
+<<<<<<< HEAD
+-- Pending: value constant; postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; value constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-single-entry : Set
 pending-single-entry = Pending (evalRaw test-single-entry ≡ expected-single-entry)
 ```
@@ -436,12 +601,20 @@ pending-single-entry = Pending (evalRaw test-single-entry ≡ expected-single-en
 -- builtin/semantics/unValueData/token-key-too-long
 -- Token name with 33 bytes (> maxKeyLen)
 test-token-key-too-long : Untyped
+<<<<<<< HEAD
+test-token-key-too-long = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "")) , (MapDATA (((bDATA (mkByteString "000000000000000000000000000000000000000000000000000000000000000000")) , (iDATA (ℤ.pos 1))) ∷ []))) ∷ [])))))
+=======
 test-token-key-too-long = (UApp (UBuiltin unValueData) (UCon (tagCon pdata (MapDATA (((bDATA (mkByteString "")) , (MapDATA (((bDATA (mkByteString "\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL\NUL")) , (iDATA (ℤ.pos 1))) ∷ []))) ∷ [])))))
+>>>>>>> origin/master
 
 expected-token-key-too-long : Result
 expected-token-key-too-long = failure
 
+<<<<<<< HEAD
+-- Pending: postulated builtin `unValueData`.
+=======
 -- Pending: bytestring inside a `data` constant; postulated builtin `unValueData`.
+>>>>>>> origin/master
 pending-token-key-too-long : Set
 pending-token-key-too-long = Pending (evalRaw test-token-key-too-long ≡ expected-token-key-too-long)
 ```
