@@ -18,10 +18,80 @@ import Data.Kind (Type)
 import Data.List.NonEmpty qualified as NE
 import Data.Text (Text)
 import Data.Text.Encoding qualified as Text
+import Language.Haskell.TH.Syntax (Lift)
 import PlutusCore.Crypto.Hash (blake2b_224)
 import PlutusTx.Blueprint.Argument (ArgumentBlueprint)
 import PlutusTx.Blueprint.Parameter (ParameterBlueprint)
 import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (..))
+import PlutusTx.Blueprint.Schema (Schema)
+
+{-| Legacy annotation encoding vocabulary. The coordinated interface producer
+checks these annotations against the parameter's CIP-57 wire schema and emits
+interface references rather than a second encoding authority. 'AsNative' requires
+a native builtin schema. Scott execution is not implemented by the initial profile. -}
+data ArgumentEncoding = AsData | AsNative | AsScott
+  deriving stock (Show, Eq, Ord, Lift)
+
+instance ToJSON ArgumentEncoding where
+  toJSON = \case
+    AsData -> "asData"
+    AsNative -> "asNative"
+    AsScott -> "asScott"
+
+{-| A validator's declared execution budget. Not a CIP-0057 field: CIP-0057 has
+no budget at all, and this is carried as an additional field, which validator
+objects permit.
+
+Step budgets bound interpreter transitions, not ledger execution units.
+'MkSemanticStepBudget' additionally fixes the builtin semantics variant, avoiding
+dependence on a consumer's default. The UAL 0.5 checking profile requires this
+explicit form; 'MkStepBudget' remains available for legacy producers.
+Exhausting a step limit is an unfinished computation, not script rejection.
+A ledger-budget consumer must use the actual cost model and protocol rules. -}
+data ExecutionBudget
+  = -- | Cost-model units, as the ledger meters execution.
+    MkExecutionBudget Integer Integer
+  | -- | Abstract-machine steps. Provisional; see above.
+    MkStepBudget Integer
+  | -- | Steps with an explicit Plutus builtin semantics variant (A–E).
+    MkSemanticStepBudget Integer Text
+  deriving stock (Show, Eq, Ord, Lift)
+
+{-| Positional rather than a record: field selectors on a sum type are partial,
+and @budgetCPU@ applied to an 'MkStepBudget' would be a runtime error. -}
+instance ToJSON ExecutionBudget where
+  toJSON = \case
+    MkExecutionBudget cpu mem ->
+      buildObject $
+        requiredField "exCPU" cpu
+          . requiredField "exMem" mem
+    MkStepBudget steps ->
+      buildObject $ requiredField "steps" steps
+    MkSemanticStepBudget steps semantics ->
+      buildObject $ requiredField "steps" steps . requiredField "semantics" semantics
+
+{-| One element of a validator's ordered applied-argument list: the terms the
+compiled program is applied to, in order.
+
+Positional and unnamed: the element carries only an encoding and a schema.
+
+Not part of CIP-0057, which splits a validator's arguments into
+@parameters@/@datum@/@redeemer@ and leaves the script context implicit; that is
+not enough to apply a compiled program to concrete terms in order.
+
+Unlike 'ArgumentEncoding' and 'ExecutionBudget' this type has no 'Lift'
+instance, because 'Schema' has none. -}
+data AppliedArgument (referencedTypes :: [Type]) = MkAppliedArgument
+  { appliedArgumentEncoding :: ArgumentEncoding
+  , appliedArgumentSchema :: Schema referencedTypes
+  }
+  deriving stock (Show, Eq, Ord)
+
+instance ToJSON (AppliedArgument referencedTypes) where
+  toJSON MkAppliedArgument {..} =
+    buildObject $
+      requiredField "encoding" appliedArgumentEncoding
+        . requiredField "schema" appliedArgumentSchema
 
 {-| A blueprint of a validator, as defined by the CIP-0057
 
@@ -33,14 +103,30 @@ data ValidatorBlueprint (referencedTypes :: [Type]) = MkValidatorBlueprint
   -- ^ A short and descriptive name for the validator.
   , validatorDescription :: Maybe Text
   -- ^ An informative description of the validator.
-  , validatorRedeemer :: ArgumentBlueprint referencedTypes
-  -- ^ A description of the redeemer format expected by this validator.
+  , validatorRedeemer :: ~(ArgumentBlueprint referencedTypes)
+  {-^ A description of the redeemer format expected by this validator.
+
+  Lazy, unlike every other field here: this package's library stanza sets
+  @default-extensions: Strict@, so an unannotated field would make any record
+  holding a bottom redeemer bottom itself, and 'mkValidatorBlueprint' defaults
+  this field to a bottom. With the annotation that bottom is only reached if the
+  blueprint is used without setting the field. -}
   , validatorDatum :: Maybe (ArgumentBlueprint referencedTypes)
   -- ^ A description of the datum format expected by this validator.
   , validatorParameters :: [ParameterBlueprint referencedTypes]
   -- ^ A list of parameters required by the script.
   , validatorCompiled :: Maybe CompiledValidator
   -- ^ A full compiled and CBOR-encoded serialized flat script together with its hash.
+  , validatorId :: Maybe Text
+  {-^ An identifier for this validator, intended to be unique within the
+  contract so that other documents can reference it. Not part of CIP-0057, and
+  uniqueness is not checked here. -}
+  , validatorArguments :: [AppliedArgument referencedTypes]
+  {-^ The ordered list of terms the compiled program is applied to. Not part of
+  CIP-0057; an empty list omits the key from the JSON. -}
+  , validatorBudget :: Maybe ExecutionBudget
+  {-^ The execution budget declared for this validator. Not part of CIP-0057,
+  and not checked against 'validatorCompiled'. -}
   }
   deriving stock (Show, Eq, Ord)
 
@@ -74,6 +160,42 @@ instance ToJSON (ValidatorBlueprint referencedTypes) where
         . optionalField "parameters" (NE.nonEmpty validatorParameters)
         . optionalField "compiledCode" (toHex . compiledValidatorCode <$> validatorCompiled)
         . optionalField "hash" (toHex . compiledValidatorHash <$> validatorCompiled)
+        . optionalField "id" validatorId
+        . optionalField "arguments" (NE.nonEmpty validatorArguments)
+        . optionalField "budget" validatorBudget
     where
       toHex :: ByteString -> Text
       toHex = Text.decodeUtf8 . Base16.encode
+
+{-| A 'ValidatorBlueprint' with everything optional left out. Set the fields you
+need with record-update syntax:
+
+@
+mkValidatorBlueprint
+  { validatorTitle = "My Validator"
+  , validatorRedeemer = ...
+  }
+@
+
+Prefer this over the raw constructor: new optional fields can then be added
+without breaking your call site.
+
+'validatorRedeemer' is deliberately a bottom that names itself: CIP-0057 makes
+@redeemer@ required, so there is no honest default, and a bottom is better than a
+silently wrong value. It must be set. Because that field is lazy, the bottom is
+not raised when the record is built but when the field is first demanded — in
+practice when the blueprint is encoded. -}
+mkValidatorBlueprint :: ValidatorBlueprint referencedTypes
+mkValidatorBlueprint =
+  MkValidatorBlueprint
+    { validatorTitle = ""
+    , validatorDescription = Nothing
+    , validatorRedeemer =
+        error "mkValidatorBlueprint: validatorRedeemer must be set"
+    , validatorDatum = Nothing
+    , validatorParameters = []
+    , validatorCompiled = Nothing
+    , validatorId = Nothing
+    , validatorArguments = []
+    , validatorBudget = Nothing
+    }

@@ -42,6 +42,7 @@ import PlutusTx.Blueprint.Validator
   ( CompiledValidator (..)
   , ValidatorBlueprint (..)
   , compiledValidator
+  , mkValidatorBlueprint
   )
 import PlutusTx.Blueprint.Write (writeBlueprint)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
@@ -71,7 +72,7 @@ contractBlueprint =
           }
     , contractValidators =
         Set.fromList
-          [ MkValidatorBlueprint
+          [ mkValidatorBlueprint
               { validatorTitle =
                   "Acme Validator #1"
               , validatorDescription =
@@ -85,7 +86,7 @@ contractBlueprint =
               , validatorCompiled =
                   Just (compiledValidator PlutusV3 (serialisedScript validatorScript1))
               }
-          , MkValidatorBlueprint
+          , mkValidatorBlueprint
               { validatorTitle =
                   "Acme Validator #2"
               , validatorDescription =

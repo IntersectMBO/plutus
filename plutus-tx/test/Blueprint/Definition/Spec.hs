@@ -20,7 +20,12 @@ import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Set (isSubsetOf)
 import Data.Set qualified as Set
-import PlutusTx.Blueprint.Definition (DefinitionId, definitionsToMap, deriveDefinitions)
+import PlutusTx.Blueprint.Definition
+  ( DefinitionId
+  , definitionsToMap
+  , deriveDefinitions
+  , deriveRecursiveDefinitions
+  )
 import PlutusTx.Blueprint.Schema (Schema (..))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, testCase, (@?), (@?=))
@@ -38,6 +43,14 @@ tests =
     , testCase
         "All referenced schema definitions are defined."
         allReferencedDefinitionsAreDefined
+    , testCase "Mutual recursion derives a finite complete definition graph" $ do
+        let graph = definitionsToMap (deriveRecursiveDefinitions @'[Fixture.MutualA]) SomeSchema
+            defined = Set.fromList (Map.keys graph)
+            referenced =
+              Set.fromList
+                [ref | schemas <- universe (Map.elems graph), SomeSchema (SchemaDefinitionRef ref) <- schemas]
+        Map.size graph @?= 3
+        referenced `isSubsetOf` defined @? "recursive graph contains an unresolved reference"
     ]
 
 atLeastAsManyDefinitionsAsTypes :: Assertion
