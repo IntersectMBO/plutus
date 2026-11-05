@@ -433,6 +433,7 @@ test-suite plutus-core-test
     CostModelJSON.Spec
     CostModelSafety.Spec
     Evaluation.Machines
+    Evaluation.MemoryUsage
     Evaluation.Spec
     Flat.Spec
     Generators.QuickCheck.Utils

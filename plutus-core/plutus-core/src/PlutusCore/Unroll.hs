@@ -75,6 +75,9 @@ Returns 'Nothing' if the list has fewer than @n@ elements.
 
 The @n@ parameter is a 'Peano' number that guides instance resolution.
 Use 'dropN' for a more convenient interface with 'Nat' literals. -}
+
+-- We tried returning the shortfall count in an Either. It produced efficient code, but we
+-- kept Maybe because the precomputed costs in list memory costing substantially increased Core size.
 class Drop (n :: Peano) where
   drop' :: [a] -> Maybe [a]
 
