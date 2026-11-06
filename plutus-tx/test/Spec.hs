@@ -14,6 +14,7 @@ import Codec.CBOR.FlatTerm qualified as FlatTerm
 import Codec.Serialise (deserialiseOrFail, serialise)
 import Codec.Serialise qualified as Serialise
 import Control.Exception (ErrorCall, catch)
+import Data.AssocMap.Spec (assocMapTests)
 import Data.ByteString qualified as BS
 import Data.Either (isLeft)
 import Data.Word (Word64)
@@ -44,6 +45,7 @@ tests =
   testGroup
     "plutus-tx"
     [ arrayTests
+    , assocMapTests
     , serdeTests
     , sqrtTests
     , ratioTests
