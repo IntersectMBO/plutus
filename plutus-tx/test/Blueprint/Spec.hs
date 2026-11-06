@@ -49,6 +49,18 @@ import PlutusTx.IsData.Class qualified as PlutusTx
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 
+data ConstructorProduct = ConstructorProduct Integer BuiltinByteString
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass (HasBlueprintDefinition)
+
+PlutusTx.makeIsDataSchemaIndexed ''ConstructorProduct [('ConstructorProduct, 0)]
+
+data EmptyConstructorProduct = EmptyConstructorProduct
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass (HasBlueprintDefinition)
+
+PlutusTx.makeIsDataSchemaIndexed ''EmptyConstructorProduct [('EmptyConstructorProduct, 0)]
+
 data ListProduct = ListProduct Integer BuiltinByteString
   deriving stock (Eq, Show, Generic)
   deriving anyclass (HasBlueprintDefinition)
@@ -66,18 +78,48 @@ data SumProduct = SumFirst | SumSecond
 tests :: TestTree
 tests =
   testGroup
-    "List product schemas"
-    [ testCase "codec roundtrip" $ do
+    "Product schemas"
+    [ testCase "constructor codec roundtrip" $ do
+        let value = ConstructorProduct 3 "token"
+        PlutusTx.toData value @?= Constr 0 [I 3, B "token"]
+        PlutusTx.fromData (PlutusTx.toData value) @?= Just value
+        PlutusTx.unsafeFromBuiltinData (PlutusTx.toBuiltinData value) @?= value
+    , testCase "reject malformed constructor products" $ do
+        let malformed =
+              [ List [I 3, B "token"]
+              , Constr 0 []
+              , Constr 0 [I 3]
+              , Constr 0 [I 3, I 4]
+              , Constr 0 [I 3, B "token", I 4]
+              , Constr 0 [I 3, B "token", I 4, B "extra"]
+              ]
+        map (PlutusTx.fromData @ConstructorProduct) malformed
+          @?= replicate (length malformed) Nothing
+    , testCase "empty constructor product" $ do
+        PlutusTx.toData EmptyConstructorProduct @?= Constr 0 []
+        PlutusTx.fromData @EmptyConstructorProduct (Constr 0 []) @?= Just EmptyConstructorProduct
+        PlutusTx.fromData @EmptyConstructorProduct (Constr 0 [I 1]) @?= Nothing
+        PlutusTx.fromData @EmptyConstructorProduct (Constr 0 [I 1, I 2]) @?= Nothing
+    , testCase "list codec roundtrip" $ do
         let value = ListProduct 3 "token"
         PlutusTx.toData value @?= List [I 3, B "token"]
         PlutusTx.fromData (PlutusTx.toData value) @?= Just value
         PlutusTx.unsafeFromBuiltinData (PlutusTx.toBuiltinData value) @?= value
-    , testCase "reject malformed products" $ do
-        let malformed = [Constr 0 [I 3, B "token"], List [], List [I 3], List [I 3, I 4]]
+    , testCase "reject malformed list products" $ do
+        let malformed =
+              [ Constr 0 [I 3, B "token"]
+              , List []
+              , List [I 3]
+              , List [I 3, I 4]
+              , List [I 3, B "token", I 4]
+              , List [I 3, B "token", I 4, B "extra"]
+              ]
         map (PlutusTx.fromData @ListProduct) malformed @?= replicate (length malformed) Nothing
-    , testCase "empty product" $ do
+    , testCase "empty list product" $ do
         PlutusTx.toData EmptyProduct @?= List []
         PlutusTx.fromData @EmptyProduct (List []) @?= Just EmptyProduct
+        PlutusTx.fromData @EmptyProduct (List [I 1]) @?= Nothing
+        PlutusTx.fromData @EmptyProduct (List [I 1, I 2]) @?= Nothing
         schema @EmptyProduct @'[] @?= SchemaListTuple emptySchemaInfo []
     , testCase "positional schema" $
         schema @ListProduct @'[Integer, BuiltinByteString]
