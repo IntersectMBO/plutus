@@ -122,7 +122,8 @@ newtype RestrictingSt = RestrictingSt ExRestrictingBudget
 instance Pretty RestrictingSt where
   pretty (RestrictingSt budget) = parens $ "final budget:" <+> pretty budget <> line
 
--- | For execution, to avoid overruns.
+{-| For execution, to avoid overruns.
+See Note [Inlining budgeting modes] in the CEK machine. -}
 restricting
   :: ThrowableBuiltins uni fun
   => ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
@@ -163,6 +164,7 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
           ErrorWithCause
             (OperationalError (CekOutOfExError $ ExRestrictingBudget budgetLeft))
             Nothing
+    {-# INLINE spend #-}
     spender = CekBudgetSpender spend
     remaining = ExBudget <$> readCpu <*> readMem
     cumulative = do
@@ -170,6 +172,7 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
       pure $ initB `minusExBudget` r
     final = RestrictingSt . ExRestrictingBudget <$> remaining
   pure $ ExBudgetInfo spender final cumulative
+{-# INLINE restricting #-}
 
 -- | 'restricting' instantiated at 'largeBudget'.
 restrictingLarge :: ThrowableBuiltins uni fun => ExBudgetMode RestrictingSt uni fun
@@ -178,3 +181,4 @@ restrictingLarge = restricting largeBudget
 -- | 'restricting' instantiated at 'enormousBudget'.
 restrictingEnormous :: ThrowableBuiltins uni fun => ExBudgetMode RestrictingSt uni fun
 restrictingEnormous = restricting enormousBudget
+{-# INLINE restrictingEnormous #-}
