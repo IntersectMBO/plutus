@@ -44,7 +44,7 @@ The functions in Batch 7 are defined in Table~\ref{table:built-in-functions-7}.
   \TT{policies}
     & $[\ty{value}] \to \listOf{\ty{bytestring}}$
     & $v \mapsto [c_1,\ldots,c_n]$, where
-      $C_v=\{c_1<\cdots<c_n\}$
+      $C_v=\{c_1, \ldots, c_n\}$ with $c_1 < \cdots < c_n$
     & No & \ref{note:policies-semantics} \\[2mm]
   \TT{assetCount}
     & $[\ty{value}] \to \ty{integer}$
@@ -76,6 +76,7 @@ For an array $[x_0,\ldots,x_{n-1}]$ and a list of integer indices $[i_1,\ldots,i
 \end{aligned}
 \]
 
+\noindent
 The indices are zero-based; their order and repetitions are preserved in the result.
 An empty index list returns the empty list, including when the array is empty.
 
@@ -90,7 +91,7 @@ Each distinct pair is counted once, regardless of the sign of its quantity.
 
 \note{Semantics of \texttt{keepPolicies} and \texttt{dropPolicies}.}
 \label{note:policy-filter-semantics}
-Let $P=[c_1,\ldots,c_k]$ be the input list of currency identifiers.
+The first argument of both functions is list of currency identifiers, say $P=[c_1,\ldots,c_k]$.
 The results are the values defined by
 
 \[
@@ -102,8 +103,9 @@ The results are the values defined by
 \end{aligned}
 \]
 
+\noindent
 Both functions fail when $k>256$, even if $v$ is empty.
-Every list entry counts towards the limit, including duplicates, and identifiers longer than 32 bytes.
+Every list entry counts towards the limit, including duplicates and identifiers longer than 32 bytes.
 The list need not be sorted.
 Duplicate identifiers have the same effect as a single occurrence; identifiers longer than 32 bytes have no effect.
 Quantities under retained currencies are unchanged.
