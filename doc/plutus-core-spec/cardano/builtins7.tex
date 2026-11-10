@@ -91,7 +91,7 @@ Each distinct pair is counted once, regardless of the sign of its quantity.
 
 \note{Semantics of \texttt{keepPolicies} and \texttt{dropPolicies}.}
 \label{note:policy-filter-semantics}
-The first argument of both functions is list of currency identifiers, say $P=[c_1,\ldots,c_k]$.
+The first argument of both functions is a list of currency identifiers, say $P=[c_1,\ldots,c_k]$.
 The results are the values defined by
 
 \[
@@ -109,3 +109,8 @@ Every list entry counts towards the limit, including duplicates and identifiers 
 The list need not be sorted.
 Duplicate identifiers have the same effect as a single occurrence; identifiers longer than 32 bytes have no effect.
 Quantities under retained currencies are unchanged.
+
+For $k\leq 256$ we have
+\[
+  \mathsf{unionValue}(\mathsf{keepPolicies}(P,v),\mathsf{dropPolicies}(P,v)) = v.
+\]
