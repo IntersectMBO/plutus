@@ -38,11 +38,32 @@ This type constitutes the denotational semantics of the Cardano `BuiltinInteger`
 
 The inputs to `equalsInteger` are of the unrestricted `ℤ` type. The `expModInteger` function is not yet formalised and is left as future work.
 
+The bounds are `-2^(2^18-1)` and `2^(2^18-1) - 1`.
+
+The power is deliberately not written as `(+ 2) ^ (2 ℕ.^ 18 ∸ 1)`. The standard
+library defines `_^_` by structural recursion on the exponent
+(`x ^ suc n = x * x ^ n`), so normalising that expression takes 262143
+multiplications of ever larger numbers. This is harmless in compiled code,
+where GHC evaluates the constant once, but Agda's type checker does not cache
+the normal form of a definition between uses.
+
+`pow2pred n` instead computes `2^(2^n - 1)` by repeated squaring, using
+`2^(2^(n+1) - 1) = 2 · (2^(2^n - 1))²`, so `pow2pred 18` normalises in 18
+multiplications. The lemma `pow2pred-18` checks, by evaluating the direct
+definition once, that the two agree.
+
 ```
+pow2pred : ℕ → ℕ
+pow2pred ℕ.zero    = 1
+pow2pred (ℕ.suc n) = 2 ℕ.* pow2pred n ℕ.* pow2pred n
+
+pow2pred-18 : pow2pred 18 ≡ 2 ℕ.^ (2 ℕ.^ 18 ∸ 1)
+pow2pred-18 = refl
+
 minBound : ℤ
-minBound = - ((+ 2) ^ (2 ℕ.^ 18 ∸ 1))
+minBound = - (+ pow2pred 18)
 maxBound : ℤ
-maxBound = ((+ 2) ^ (2 ℕ.^ 18 ∸ 1)) - (+ 1)
+maxBound = (+ pow2pred 18) - (+ 1)
 
 data CInteger : Set where
   cInt

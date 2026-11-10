@@ -638,7 +638,7 @@ value which is zero or lies outside the range $[-2^{127}, 2^{127}-1]$.
 \subsection{Built-in functions}
 Built-in functions are represented by seven-bit integer tags and encoded and
 decoded using $\E_7$ and $\D_7$.  The tags are specified in
-Tables~\ref{table:builtin-tags-batch-1}--\ref{table:builtin-tags-batch-6}.  We
+Tables~\ref{table:builtin-tags-batch-1}--\ref{table:builtin-tags-batch-7}.  We
 assume that there are (partial) functions $\Tag$ and $\unTag$ which convert back
 and forth between builtin names and their tags.
 
@@ -798,6 +798,24 @@ and forth between builtin names and their tags.
 \end{tabular}
 \caption{Tags for built-in functions (Batch 6)}
 \label{table:builtin-tags-batch-6}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|}
+  \hline
+  \Strut
+  Builtin & Binary & Decimal\\
+  \hline
+  \TT{multiIndexArray}                 & $\bits{1100101}$  & 101 \\
+  \TT{policies}                        & $\bits{1100110}$  & 102 \\
+  \TT{assetCount}                      & $\bits{1100111}$  & 103 \\
+  \TT{keepPolicies}                    & $\bits{1101000}$  & 104 \\
+  \TT{dropPolicies}                    & $\bits{1101001}$  & 105 \\
+  \hline
+\end{tabular}
+\caption{Tags for built-in functions (Batch 7)}
+\label{table:builtin-tags-batch-7}
 \end{table}
 
 \subsection{Variable names}

@@ -160,7 +160,7 @@ instance (AgdaUnparse k, AgdaUnparse v) => AgdaUnparse (Map.Map k v) where
   agdaUnparse = agdaUnparse . Map.toList
 
 instance AgdaUnparse Value where
-  agdaUnparse v = "valueFromList ( " <> agdaUnparse v' <> ")"
+  agdaUnparse v = parens ("valueFromList" <+> agdaUnparse v')
     where
       -- Value converted to nested assocation lists
       v' :: [(ByteString, [(ByteString, Integer)])]
