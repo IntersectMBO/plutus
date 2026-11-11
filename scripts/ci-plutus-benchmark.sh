@@ -45,24 +45,12 @@ if [ -z "$(git merge-base HEAD origin/master)" ]; then
    exit 1
 fi
 
-# Build the benchmark with cabal, then run the bare executable pinned to a single core.
-# Only the benchmark is pinned: cabal, nix, bash and tee stay unpinned so they cannot preempt
-# it (criterion measures wall-clock time). Like `cabal bench`, the executable is run from its
-# package directory so relative paths to fixture data resolve.
-BENCH_CORE="${BENCH_CORE:-7}"
 run_bench() {
-   local log="$1"
-   local cabal_file pkg_dir bin
-   cabal_file="$(grep -liE "^benchmark[[:space:]]+$BENCHMARK_NAME[[:space:]]*$" ./*/*.cabal | head -n1)"
-   if [ -z "$cabal_file" ]; then
-      echo "[ci-plutus-benchmark]: no package defines benchmark '$BENCHMARK_NAME'"
-      exit 1
-   fi
-   pkg_dir="$(dirname "$cabal_file")"
+   local bin
    cabal build --enable-benchmarks "$BENCHMARK_NAME"
    bin="$(cabal list-bin --enable-benchmarks "$BENCHMARK_NAME")"
-   echo "[ci-plutus-benchmark]: Running $bin in $pkg_dir pinned to core $BENCH_CORE ..."
-   (cd "$pkg_dir" && taskset -c "$BENCH_CORE" "$bin") 2>&1 | tee "$log"
+   # Pin only the benchmark (not cabal/tee) to one core; run from the package dir like `cabal bench`.
+   (cd plutus-benchmark && taskset -c "${BENCH_CORE:-7}" "$bin") 2>&1 | tee "$1"
 }
 
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"

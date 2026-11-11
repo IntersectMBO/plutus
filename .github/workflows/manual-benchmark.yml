@@ -126,8 +126,6 @@ jobs:
             --no-warn-dirty \
             --accept-flake-config \
             --command bash ./scripts/ci-plutus-benchmark.sh
-            # The script pins only the benchmark executable to one CPU core (BENCH_CORE, default 7)
-            # to improve repeatability; cabal/nix/bash/tee run unpinned so they don't preempt it.
 
         env:
           BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
