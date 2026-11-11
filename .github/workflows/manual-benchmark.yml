@@ -125,8 +125,9 @@ jobs:
           nix develop .#${{ steps.extract-benchmark.outputs.ghc }} \
             --no-warn-dirty \
             --accept-flake-config \
-            --command taskset -c 7 bash ./scripts/ci-plutus-benchmark.sh 
-            # We use taskset to pin the benchmark to a single CPU core to improve repeatability
+            --command bash ./scripts/ci-plutus-benchmark.sh
+            # The script pins only the benchmark executable to one CPU core (BENCH_CORE, default 7)
+            # to improve repeatability; cabal/nix/bash/tee run unpinned so they don't preempt it.
 
         env:
           BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}

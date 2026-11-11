@@ -18,7 +18,7 @@
 # (see the curl command) meaning the script output has to be escaped first before we can insert it.
 # For consistent results, the benchmarks should be run on a CPU with a fixed frequency or a performance governor.
 
-set -e
+set -eo pipefail
 
 if [ -z "$BENCHMARK_NAME" ] ; then
    echo "[ci-plutus-benchmark]: 'BENCHMARK_NAME' is not set, exiting."
@@ -45,6 +45,26 @@ if [ -z "$(git merge-base HEAD origin/master)" ]; then
    exit 1
 fi
 
+# Build the benchmark with cabal, then run the bare executable pinned to a single core.
+# Only the benchmark is pinned: cabal, nix, bash and tee stay unpinned so they cannot preempt
+# it (criterion measures wall-clock time). Like `cabal bench`, the executable is run from its
+# package directory so relative paths to fixture data resolve.
+BENCH_CORE="${BENCH_CORE:-7}"
+run_bench() {
+   local log="$1"
+   local cabal_file pkg_dir bin
+   cabal_file="$(grep -liE "^benchmark[[:space:]]+$BENCHMARK_NAME[[:space:]]*$" ./*/*.cabal | head -n1)"
+   if [ -z "$cabal_file" ]; then
+      echo "[ci-plutus-benchmark]: no package defines benchmark '$BENCHMARK_NAME'"
+      exit 1
+   fi
+   pkg_dir="$(dirname "$cabal_file")"
+   cabal build --enable-benchmarks "$BENCHMARK_NAME"
+   bin="$(cabal list-bin --enable-benchmarks "$BENCHMARK_NAME")"
+   echo "[ci-plutus-benchmark]: Running $bin in $pkg_dir pinned to core $BENCH_CORE ..."
+   (cd "$pkg_dir" && taskset -c "$BENCH_CORE" "$bin") 2>&1 | tee "$log"
+}
+
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
 
 echo "[ci-plutus-benchmark]: Running as user:"
@@ -57,7 +77,7 @@ echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch at $PR_BRANCH_REF ..."
-2>&1 cabal bench "$BENCHMARK_NAME" | tee bench-PR.log
+run_bench bench-PR.log
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
 # merge-base finds the fork point, which is the true parent of the first PR commit.
@@ -68,7 +88,7 @@ echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch at $BASE_BRANCH_REF ..."
-2>&1 cabal bench "$BENCHMARK_NAME" | tee bench-base.log 
+run_bench bench-base.log
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
