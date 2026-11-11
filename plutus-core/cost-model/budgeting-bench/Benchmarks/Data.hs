@@ -5,7 +5,7 @@ module Benchmarks.Data (makeBenchmarks) where
 import Common
 import Generators
 
-import PlutusCore hiding (Constr)
+import PlutusCore hiding (Constr, List)
 import PlutusCore.Data
 
 import Criterion.Main

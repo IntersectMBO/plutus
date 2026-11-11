@@ -453,6 +453,7 @@ unitCostBuiltinCostModel =
     , paramPolicies = unitCostOneArgument
     , paramKeepPolicies = unitCostTwoArguments
     , paramDropPolicies = unitCostTwoArguments
+    , paramTermAppend = unitCostTwoArguments
     }
 
 unitCekParameters

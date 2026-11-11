@@ -88,6 +88,7 @@ convT (TyBuiltin ann (SomeTypeIn (DefaultUniApply f x))) =
 convT (TyBuiltin _ someUni) = convTyCon someUni
 convT (TyIFix _ a b) = RTyMu (convT a) (convT b)
 convT (TySOP _ xss) = RTySOP (map (map convT) xss)
+convT TyList {} = error "Structural list types are not supported by the Agda model"
 
 convTyCon :: SomeTypeIn DefaultUni -> RType
 convTyCon (SomeTypeIn DefaultUniInteger) = RTyCon (RTyConAtom ATyConInt)
@@ -118,6 +119,7 @@ conv (IWrap _ ty1 ty2 t) = RWrap (convT ty1) (convT ty2) (conv t)
 conv (Error _ _A) = RError (convT _A)
 conv (Constr _ _A i cs) = RConstr (convT _A) (toInteger i) (fmap conv cs)
 conv (Case _ _A arg cs) = RCase (convT _A) (conv arg) (fmap conv cs)
+conv List {} = error "Structural lists are not supported by the Agda model"
 
 varTm :: Int -> NamedDeBruijn
 varTm i = NamedDeBruijn (T.pack [tmnames !! i]) deBruijnInitIndex

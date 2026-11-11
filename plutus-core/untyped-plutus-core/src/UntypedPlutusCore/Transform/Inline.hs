@@ -550,6 +550,7 @@ isStrictIn name = go
       Constant {} -> False
       Builtin {} -> False
       Error {} -> False
+      List _ terms -> any go terms
       Constr _ann _idx terms -> any go terms
       Case _ann scrut _branches -> go scrut
 
@@ -605,6 +606,7 @@ costIsAcceptable = \case
       [] -> True
       [e] -> costIsAcceptable e
       _ -> False
+  List {} -> False
   -- Inlining a case means redoing the match at each use site
   Case {} -> False
   Force {} -> False
@@ -768,6 +770,7 @@ mkHints = go
           Constant {} -> CertifierHints.InlCon
           Builtin {} -> CertifierHints.InlBuiltin
           Error {} -> CertifierHints.InlError
+          List _ xs -> CertifierHints.InlList (go <$> xs)
           Constr _ _ args -> CertifierHints.InlConstr (go <$> args)
           Case _ scrut alts -> CertifierHints.InlCase (go scrut) (go <$> V.toList alts)
 

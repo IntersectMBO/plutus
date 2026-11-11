@@ -94,6 +94,7 @@ Parsable functions are  [ addInteger
                         , sndPair
                         , subtractInteger
                         , tailList
+                        , termAppend
                         , trace
                         , unBData
                         , unConstrData

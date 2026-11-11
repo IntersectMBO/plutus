@@ -266,6 +266,12 @@ instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (SomeConstant un
   type ToBinds uni acc (SomeConstant _ rep) = ToBinds uni acc rep
   typeAst = toTypeAst $ Proxy @rep
 
+instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (TermSnocList val rep) where
+  type IsBuiltin _ (TermSnocList val rep) = 'False
+  type ToHoles _ _ (TermSnocList _ rep) = '[RepHole rep]
+  type ToBinds uni acc (TermSnocList _ rep) = ToBinds uni acc rep
+  typeAst = TyList () $ toTypeAst $ Proxy @rep
+
 instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (Opaque val rep) where
   type IsBuiltin _ (Opaque val rep) = 'False
   type ToHoles _ _ (Opaque _ rep) = '[RepHole rep]

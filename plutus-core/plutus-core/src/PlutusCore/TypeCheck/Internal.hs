@@ -384,6 +384,10 @@ inferKindM (TyIFix ann pat arg) = do
   checkKindM ann pat $ toPatFuncKind k
   pure $ Type ()
 
+-- [check| G !- ty :: *]
+-- -----------------------------
+-- [infer| G !- list ty :: *]
+inferKindM (TyList ann ty) = checkKindM ann ty (Type ()) >> pure (Type ())
 -- s_0 = [p_0_0 ... p_0_m]   [check| G !- p_0_0 :: *] ... [check| G !- p_0_m :: *]
 -- ...
 -- s_n = [p_n_0 ... p_n_m]   [check| G !- p_n_0 :: *] ... [check| G !- p_n_m :: *]
@@ -535,6 +539,15 @@ inferTypeM (Unwrap ann term) = do
 inferTypeM (Error ann ty) = do
   checkKindM ann ty $ Type ()
   normalizeTypeM $ void ty
+
+-- [check| G !- ty :: *]    ty ~> vTy    [check| G !- t_i : vTy] for each i
+-- ----------------------------------------------------------------------
+-- [infer| G !- list ty t_0 ... t_n : list vTy]
+inferTypeM (List ann elemTy xs) = do
+  checkKindM ann elemTy (Type ())
+  elemTyN <- normalizeTypeM $ void elemTy
+  for_ xs $ \x -> checkTypeM ann x elemTyN
+  pure $ TyList () <$> elemTyN
 
 -- resTy ~> vResTy     vResTy = sop s_0 ... s_i ... s_n
 -- s_i = [p_i_0 ... p_i_m]   [check| G !- t_0 : p_i_0] ... [check| G !- t_m : p_i_m]

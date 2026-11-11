@@ -324,6 +324,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) =
         Error {} -> []
         IWrap {} -> []
         Unwrap {} -> []
+        PlutusIR.List {} -> []
         PlutusIR.Constr {} -> []
         Case {} -> []
 
@@ -417,6 +418,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) =
         Builtin {} -> []
         Case {} -> []
         TyAbs {} -> []
+        PlutusIR.List {} -> []
         PlutusIR.Constr {} -> []
 
 shrinkClosedTypedTerm

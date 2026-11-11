@@ -4,6 +4,8 @@ import Common
 import Generators
 
 import PlutusCore
+import PlutusCore.MkPlc (mkConstant, mkIterAppNoAnn)
+import UntypedPlutusCore qualified as UPLC
 
 import Criterion.Main
 import Data.ByteString (ByteString)
@@ -137,6 +139,21 @@ benchDropList gen =
         [bytestring]
         inputs
 
+benchTermAppend :: Benchmark
+benchTermAppend =
+  bgroup
+    "TermAppend"
+    [ bgroup
+        (show n)
+        [ benchDefault (show m) $
+            mkIterAppNoAnn
+              (UPLC.Force () $ UPLC.Builtin () TermAppend)
+              [UPLC.List () (map (mkConstant ()) [1 .. n]), mkConstant () [1 .. m]]
+        | m <- [0, 100, 10000 :: Integer]
+        ]
+    | n <- [0, 1, 10, 100, 1000 :: Integer]
+    ]
+
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
   [ benchChooseList gen
@@ -145,4 +162,5 @@ makeBenchmarks gen =
   , benchNonEmptyList gen TailList
   , benchNullList gen
   , benchDropList gen
+  , benchTermAppend
   ]

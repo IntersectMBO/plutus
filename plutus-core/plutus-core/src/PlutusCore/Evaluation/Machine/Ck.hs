@@ -33,6 +33,8 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Name.Unique
 import PlutusCore.Pretty
+import PlutusCore.SnocList (SnocList (..))
+import PlutusCore.SnocList qualified as SnocList
 import PlutusCore.Subst
 
 import Control.Lens ((^?))
@@ -62,6 +64,8 @@ data CkValue uni fun
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
   | VConstr (Type TyName uni ()) Word64 [CkValue uni fun]
+  | -- | Structural list element type and values accumulated with constant-time snoc.
+    VSnocList (Type TyName uni ()) !(SnocList (CkValue uni fun))
 
 deriving stock instance
   (GShow uni, Everywhere uni Show, Show fun, Closed uni)
@@ -74,6 +78,7 @@ ckValueToTerm = \case
   VLamAbs name ty body -> LamAbs () name ty body
   VIWrap ty1 ty2 val -> IWrap () ty1 ty2 $ ckValueToTerm val
   VBuiltin term _ -> term
+  VSnocList ty xs -> List () ty $ SnocList.toListWith ckValueToTerm xs
   VConstr ty i es -> Constr () ty i (fmap ckValueToTerm es)
 
 data CkEnv uni fun s = CkEnv
@@ -137,6 +142,9 @@ instance HasConstant (CkValue uni fun) where
 
   fromConstant = VCon
 
+  asSnocList (VSnocList _ xs) = pure xs
+  asSnocList _ = throwError $ structuralUnliftingError "Expected a structural list"
+
 data Frame uni fun
   = -- | @[V _]@
     FrameAwaitArg (CkValue uni fun)
@@ -151,6 +159,7 @@ data Frame uni fun
   | -- | @(iwrap A B _)@
     FrameIWrap (Type TyName uni ()) (Type TyName uni ())
   | FrameConstr (Type TyName uni ()) Word64 [Term TyName Name uni fun ()] [CkValue uni fun]
+  | FrameList (Type TyName uni ()) [Term TyName Name uni fun ()] !(SnocList (CkValue uni fun))
   | FrameCase [Term TyName Name uni fun ()]
 
 deriving stock instance
@@ -204,6 +213,9 @@ stack |> Builtin _ bn = do
   runtime <- lookupBuiltin bn . ckEnvRuntime <$> ask
   stack <| VBuiltin (Builtin () bn) runtime
 stack |> Constant _ val = stack <| VCon val
+stack |> List _ ty xs = case xs of
+  [] -> stack <| VSnocList ty SNil
+  t : ts -> FrameList ty ts SNil : stack |> t
 stack |> Constr _ ty i es = case es of
   [] -> stack <| VConstr ty i []
   t : ts -> FrameConstr ty i ts [] : stack |> t
@@ -240,6 +252,9 @@ FrameUnwrap : stack <| wrapped = case wrapped of
   VIWrap _ _ term -> stack <| term
   _ ->
     throwErrorWithCause (StructuralError NonWrapUnwrappedMachineError) $ ckValueToTerm wrapped
+FrameList ty todo done : stack <| e = case todo of
+  t : ts -> FrameList ty ts (Snoc done e) : stack |> t
+  [] -> stack <| VSnocList ty (Snoc done e)
 FrameConstr ty i todo done : stack <| e =
   let done' = e : done
    in case todo of

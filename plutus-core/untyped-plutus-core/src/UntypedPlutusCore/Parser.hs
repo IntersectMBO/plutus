@@ -86,6 +86,11 @@ constrTerm sp = do
   args <- many term
   pure $ UPLC.Constr sp (fromIntegral tag) args
 
+listTerm :: SrcSpan -> Parser PTerm
+listTerm sp = do
+  whenVersion (< plcVersion130) $ fail "'list' is not allowed before version 1.3.0"
+  UPLC.List sp <$> many term
+
 caseTerm :: SrcSpan -> Parser PTerm
 caseTerm sp = do
   res <- UPLC.Case sp <$> term <*> (V.fromList <$> many term)
@@ -125,8 +130,9 @@ term =
               , symbol "force" *> forceTerm sp
               , symbol "error" *> errorTerm sp
               , symbol "case" *> caseTerm sp
+              , symbol "list" *> listTerm sp
               ]
-              <?> "term keyword (builtin, lam, constr, con, delay, force, error, case)"
+              <?> "term keyword (builtin, lam, constr, con, delay, force, error, case, list)"
           )
 
 -- | Parser for UPLC programs.

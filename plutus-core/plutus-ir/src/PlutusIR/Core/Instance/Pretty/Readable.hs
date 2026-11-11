@@ -109,6 +109,7 @@ instance
             -- foo x y
             vsep $ [prettyLet r binds | (r, binds) <- lets] ++ [prettyBot body]
     Let {} -> error "Panic: 'Let' is not covered by 'viewLet'"
+    List _ ty xs -> iterAppDocM $ \_ prettyArg -> "list" :| [prettyArg ty, prettyArg xs]
     Constr _ ty i es ->
       iterAppDocM $ \_ prettyArg -> "constr" :| [prettyArg ty, prettyArg i, prettyArg es]
     Case _ ty arg cs ->

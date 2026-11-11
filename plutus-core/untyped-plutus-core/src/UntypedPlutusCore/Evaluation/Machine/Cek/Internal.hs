@@ -85,6 +85,8 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
+import PlutusCore.SnocList (SnocList (..))
+import PlutusCore.SnocList qualified as SnocList
 
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
   ( CekMachineCosts
@@ -215,6 +217,7 @@ data StepKind
   | BBuiltin -- Cost of evaluating a Builtin AST node, not the function itself
   | BConstr
   | BCase
+  | BList
   deriving stock (Show, Eq, Ord, Generic, Enum, Bounded)
   deriving anyclass (NFData, Hashable)
 
@@ -230,6 +233,7 @@ cekStepCost costs =
     BBuiltin -> cekBuiltinCost costs
     BConstr -> cekConstrCost costs
     BCase -> cekCaseCost costs
+    BList -> cekListCost costs
 
 data ExBudgetCategory fun
   = BStep StepKind
@@ -314,6 +318,8 @@ data CekValue uni fun ann
       Check the docs of 'BuiltinRuntime' for details.
       | A constructor value, including fully computed arguments and the tag. -}
   | VConstr {-# UNPACK #-} !Word64 !(EmptyOrMultiStack uni fun ann)
+  | -- | Structural list elements accumulated from left to right with constant-time snoc.
+    VSnocList !(SnocList (CekValue uni fun ann))
 
 deriving stock instance
   (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -669,6 +675,7 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
       -- machine, or (b) it's needed for an error message.
       -- @term@ is fully discharged, so we can return it directly without any further discharging.
       VBuiltin _ term _ -> term
+      VSnocList xs -> List () $ SnocList.toListWith goValue xs
       VConstr ind args -> Constr () ind . map goValue $ argStackToList args
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
@@ -700,6 +707,7 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
           Constant _ val -> Constant () val
           Builtin _ fun -> Builtin () fun
           Error _ -> Error ()
+          List _ xs -> List () $ map (go shift) xs
           Constr _ ind args -> Constr () ind $ map (go shift) args
           Case _ scrut alts -> Case () (go shift scrut) $ fmap (go shift) alts
 
@@ -715,6 +723,10 @@ instance HasConstant (CekValue uni fun ann) where
 
   fromConstant = VCon
   {-# INLINE fromConstant #-}
+
+  asSnocList (VSnocList xs) = pure xs
+  asSnocList _ = throwError $ structuralUnliftingError "Expected a structural list"
+  {-# INLINE asSnocList #-}
 
 {-|
 The context in which the machine operates.
@@ -740,6 +752,12 @@ data Context uni fun ann
       ![NTerm uni fun ann]
       !(ArgStack uni fun ann)
       !(Context uni fun ann)
+  | -- | @(list V0 ... Vj-1 _ Nj ... Nn)@
+    FrameList
+      !(CekValEnv uni fun ann)
+      ![NTerm uni fun ann]
+      !(SnocList (CekValue uni fun ann))
+      !(Context uni fun ann)
   | -- | @(case _ C0 .. Cn)@
     FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
   | NoFrame
@@ -756,6 +774,7 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue
     VLamAbs {} -> singletonRose 1
     VBuiltin {} -> singletonRose 1
     VConstr {} -> singletonRose 1
+    VSnocList {} -> singletonRose 1
   {-# INLINE memoryUsage #-}
 
 {- Note [ArgStack vs Spine]
@@ -860,6 +879,11 @@ enterComputeCek = computeCek
       let meaning = lookupBuiltin bn ?cekRuntime
       -- 'Builtin' is fully discharged.
       returnCek ctx (VBuiltin bn (Builtin () bn) meaning)
+    computeCek !ctx !env (List _ xs) = do
+      stepAndMaybeSpend BList
+      case xs of
+        t : rest -> computeCek (FrameList env rest SNil ctx) env t
+        [] -> returnCek ctx $ VSnocList SNil
     -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
     computeCek !ctx !env (Constr _ i es) = do
       stepAndMaybeSpend BConstr
@@ -919,6 +943,9 @@ enterComputeCek = computeCek
           applyEvaluate ctx fun arg
         ConsStackNonEmpty arg rest ->
           applyEvaluate (FrameAwaitFunValueN rest ctx) fun arg
+    returnCek (FrameList env todo done ctx) e = case todo of
+      next : rest -> computeCek (FrameList env rest (Snoc done e) ctx) env next
+      [] -> returnCek ctx $ VSnocList (Snoc done e)
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
       case todo of

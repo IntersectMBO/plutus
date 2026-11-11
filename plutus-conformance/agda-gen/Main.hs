@@ -180,6 +180,7 @@ builtinSupported = \case
   AssetCount -> False
   KeepPolicies -> False
   DropPolicies -> False
+  TermAppend -> False
   -- Postulated: BLS12-381.
   Bls12_381_G1_add -> False
   Bls12_381_G1_neg -> False
@@ -256,6 +257,12 @@ termBuiltins = \case
   UPLC.Builtin _ f -> [f]
   t -> concatMap termBuiltins (subterms t)
 
+termProblems :: Term -> [Problem]
+termProblems = \case
+  UPLC.List {} -> [Unprintable "structural list term"]
+  UPLC.Builtin _ TermAppend -> [Unprintable "termAppend builtin"]
+  t -> concatMap termProblems (subterms t)
+
 subterms :: Term -> [Term]
 subterms = \case
   UPLC.Var {} -> []
@@ -267,6 +274,7 @@ subterms = \case
   UPLC.Builtin {} -> []
   UPLC.Error {} -> []
   UPLC.Constr _ _ ts -> toList ts
+  UPLC.List _ ts -> ts
   UPLC.Case _ t ts -> t : toList ts
 
 -- * Test cases
@@ -330,7 +338,10 @@ readCase root dir = do
             Left err -> die $ rel <> ": cannot convert the expected result to de Bruijn form: " <> show err
             Right t -> pure (Just t)
         let terms = term : toList expectedTerm
-            problems = nub (concatMap constantProblems (concatMap termConstants terms))
+            problems =
+              nub $
+                concatMap constantProblems (concatMap termConstants terms)
+                  ++ concatMap termProblems terms
             unsupported = nub [f | f <- concatMap termBuiltins terms, not (builtinSupported f)]
             reasons =
               [reason | Postulated reason <- problems]

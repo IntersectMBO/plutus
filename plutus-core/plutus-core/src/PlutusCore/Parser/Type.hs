@@ -54,6 +54,9 @@ builtinType = withSpan $ \sp -> inParens $ do
   SomeTypeIn (Kinded uni) <- symbol "con" *> defaultUni
   pure $ TyBuiltin sp (SomeTypeIn uni)
 
+listType :: Parser PType
+listType = withSpan $ \sp -> inParens $ TyList sp <$> (symbol "list" *> pType)
+
 sopType :: Parser PType
 sopType = withSpan $ \sp -> inParens $ TySOP sp <$> (symbol "sop" *> many tyList)
   where
@@ -85,6 +88,7 @@ pType =
       , lamType
       , appType
       , varType
+      , listType
       , sopType
       ]
 

@@ -6,7 +6,7 @@ module PlutusCore.Examples.Data.Data
   , exampleData
   ) where
 
-import PlutusCore.Core
+import PlutusCore.Core hiding (List)
 import PlutusCore.Data as Data
 import PlutusCore.Default
 import PlutusCore.MkPlc
