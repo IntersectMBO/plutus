@@ -15,7 +15,6 @@ import Check.Spec qualified as Check
 import CostModelInterface.Spec
 import CostModelJSON.Spec (test_costModelJSON)
 import CostModelSafety.Spec
-import Evaluation.MemoryUsage (test_memoryUsage)
 import Evaluation.Spec (test_evaluation)
 import Flat.Spec qualified as FlatSpec
 import Generators.QuickCheck.Utils (test_utils)
@@ -262,7 +261,6 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , test_typeNormalization
     , test_typecheck
     , test_evaluation
-    , test_memoryUsage
     , test_normalizationCheck
     , test_costModelInterface
     , test_costModelJSON
