@@ -1,6 +1,10 @@
 # Compare the output from two runs of some Criterion benchmarks and produce a
 # markdown table showing the increase/decrease in execution time for each
-# benchmark.
+# benchmark.  Benchmarks are matched by name.  A change is marked "~" when the
+# two 95% confidence intervals overlap (i.e. it is probably noise), and results
+# with high outlier variance are flagged.  The summary includes a geometric
+# mean of the per-benchmark ratios, which, unlike the TOTAL, is not dominated
+# by a few long-running benchmarks.
 
 # Do something like
 #    `cabal bench plutus-benchmarks:validation >results1 2>&1`
@@ -31,61 +35,76 @@ if [[ ! -r "$INPUT2" ]]
 then echo "Error: can't open $INPUT2" && exit 1
 fi
 
+# Extract one line per benchmark: name, estimate, CI lower, CI upper (all in ps)
+# and the "variance introduced by outliers" percentage.  Criterion prints e.g.
+#   benchmarking semantics/abc
+#   time                 6.616 ms   (6.221 ms .. 6.973 ms)
+#   ...
+#   variance introduced by outliers: 80% (severely inflated)
+extract () {
+  awk '
+    BEGIN { ps["s"]=12; ps["ms"]=9; ps["µs"]=6; ps["μs"]=6; ps["ns"]=3; ps["ps"]=0 }
+    function flush() { if (name != "") printf ("%s %s %s %s %s\n", name, t, lo, hi, ov); name="" }
+    /^benchmarking/ { flush(); name=$2; t=lo=hi=0; ov=0 }
+    /^time/ {
+      u=$8; sub(/\)$/, "", u); l=$4; sub(/^\(/, "", l)
+      t  = $2 * 10^ps[$3]
+      lo = l  * 10^ps[$5]
+      hi = $7 * 10^ps[u]
+    }
+    /^variance introduced by outliers/ { ov=$5; sub(/%/, "", ov) }
+    END { flush() }' "$1"
+}
+
 TMP1=$(mktemp /tmp/bc1-XXXXXXX)
 TMP2=$(mktemp /tmp/bc2-XXXXXXX)
-
 trap 'rm -f "$TMP1" "$TMP2"' EXIT
 
-awk '/^bench/ {printf ("%-40s ", $2)}
-     /^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT1" > "$TMP1"  # %-2s to get the units properly aligned
-awk '/^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT2" > "$TMP2"
-paste -d " " "$TMP1" "$TMP2" |
-  awk -v hdr1="${3:-Old}" -v hdr2="${4:-New}" '
-      function normalise (t,    unit) { # Format a time with the most sensible units
-          unit = 0
-          for ( ;t > 1000; t /= 1000) unit += 3
-          # Make sure that the output has exactly four digits, like Criterion does
-          if (t < 10)  return (sprintf ("%.3f %s", t, ustr[unit]))
-          else if (t < 100) return (sprintf ("%.2f %s", t, ustr[unit]))
-          else return (sprintf ("%.1f %s", t, ustr[unit]))
-      }
-      function percentage_change (t1, t2,    d, sign) {
-          if (t1==0) return ("  -  ")  # Avoid division by zero, just in case
-          d = (t2-t1)/t1 * 100
-          sign = (d<0) ? "" : ((d==0) ? " " : "+")     # We get the "-" anyway if d<0
-          return (sprintf ("%s%.1f%%", sign, d))
-      }
+extract "$INPUT1" > "$TMP1"
+extract "$INPUT2" > "$TMP2"
 
-      BEGIN {
-          # Initialise array of unit conversion factors
-          ps["s"]  = 12  # 1 s = 10^12 ps
-          ps["ms"] = 9
-          ps["µs"] = 6   # 0xb5; Criterion uses this
-          ps["μs"] = 6   # 0x03bc
-          ps["ns"] = 3
-          ps["ps"] = 0
-
-          ustr[12] = "s "
-          ustr[9]  = "ms"
-          ustr[6]  = "µs"
-          ustr[3]  = "ns"
-          ustr[0]  = "ps"
-
-          # Print markdown table headers, attempting to make the output reasonably well aligned even in raw form.
-          printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", "Script", hdr1, hdr2, " Change")
-          printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", ":------", ":------:", ":------:", ":------:")
-      }
-      {
-          time1 = $2
-          time2 = $4 * 10^(ps[$5]-ps[$3]) # Adjust for different units
-          printf ("| %-40s |  %s %s  |  %s %s  |  %7s   |\n", $1, $2, $3, $4, $5, percentage_change(time1, time2))
-          total1 += $2 * 10^ps[$3] # Total time in ps, normalised later
-          total2 += $4 * 10^ps[$5]
-      }
-      END {
-          printf ("| %-41s|%12s|%12s|%12s|\n", "", "", "", "")
-          printf ("| %-41s|  %s  |  %s  |  %7s   |\n", "TOTAL",
-                  normalise(total1), normalise(total2),
-                  percentage_change(total1, total2))
-      }
-      '
+# Join on benchmark name (from file 2's point of view we match by name, not by position).
+awk -v hdr1="${3:-Old}" -v hdr2="${4:-New}" '
+  function normalise (t,    unit) { # Format a time (in ps) with the most sensible units
+      unit = 0
+      for ( ;t > 1000; t /= 1000) unit += 3
+      if (t < 10)  return (sprintf ("%.3f %s", t, ustr[unit]))
+      else if (t < 100) return (sprintf ("%.2f %s", t, ustr[unit]))
+      else return (sprintf ("%.1f %s", t, ustr[unit]))
+  }
+  function pct (r,    d, sign) {
+      d = (r - 1) * 100
+      sign = (d<0) ? "" : ((d==0) ? " " : "+")
+      return (sprintf ("%s%.1f%%", sign, d))
+  }
+  BEGIN {
+      ustr[12] = "s "; ustr[9] = "ms"; ustr[6] = "µs"; ustr[3] = "ns"; ustr[0] = "ps"
+      NOISY = 50   # outlier variance (%) at which we flag a result as unreliable
+      printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  | %s |\n", "Script", hdr1, hdr2, " Change", "Notes")
+      printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  | %s |\n", ":------", ":------:", ":------:", ":------:", ":-----")
+  }
+  NR == FNR { t1[$1]=$2; lo1[$1]=$3; hi1[$1]=$4; ov1[$1]=$5; next }
+  ($1 in t1) {
+      n = $1; t2 = $2; lo2 = $3; hi2 = $4; ov2 = $5
+      notes = ""
+      overlap = !(hi2 < lo1[n] || lo2 > hi1[n])
+      if (overlap) notes = "~ (CIs overlap)"
+      if (ov1[n] >= NOISY || ov2 >= NOISY)
+          notes = notes (notes == "" ? "" : ", ") sprintf ("⚠ noisy (%d%%/%d%% outlier var.)", ov1[n], ov2)
+      ratio = (t1[n] == 0) ? 1 : t2 / t1[n]
+      printf ("| %-40s |  %s  |  %s  |  %7s   | %s |\n", n, normalise(t1[n]), normalise(t2), (t1[n]==0) ? "  -  " : pct(ratio), notes)
+      total1 += t1[n]; total2 += t2
+      if (t1[n] > 0 && t2 > 0) { logsum += log(ratio); count++ }
+      if (!overlap) { if (ratio < 1) faster++; else slower++ }
+      if (ov1[n] >= NOISY || ov2 >= NOISY) noisy++
+  }
+  END {
+      printf ("| %-41s|%12s|%12s|%12s|\n", "", "", "", "")
+      printf ("| %-41s|  %s  |  %s  |  %7s   |\n", "TOTAL",
+              normalise(total1), normalise(total2), (total1==0) ? "  -  " : pct(total2/total1))
+      if (count > 0)
+          printf ("| %-41s|  %8s  |  %8s  |  %7s   |\n", "GEOMEAN of per-benchmark ratios", "", "", pct(exp(logsum/count)))
+      printf ("| %-41s|  %8s  |  %8s  |  %7s   |\n",
+              sprintf ("Non-overlapping CIs: %d faster, %d slower; %d noisy", faster, slower, noisy), "", "", "")
+  }
+  ' "$TMP1" "$TMP2"
