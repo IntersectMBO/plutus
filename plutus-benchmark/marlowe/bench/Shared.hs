@@ -20,49 +20,29 @@ import PlutusBenchmark.Marlowe.Types qualified as M
 import PlutusLedgerApi.V2 (scriptContextTxInfo, txInfoId)
 import System.FilePath
 
-{-| Build one Criterion benchmark per fixture file.
-
-The benchmark name is the transaction id stored inside the fixture, so we read
-every file once up front just to learn its name, forcing the name and dropping
-everything else.  The fixture itself is then reloaded inside Criterion's `env`
-only when (and if) that benchmark is selected, and a major GC is performed after
-loading.  This keeps the rest of the corpus out of the live heap while a
-benchmark is being measured; a large retained heap makes the cost of major
-collections inside the timed region highly variable (see
-https://github.com/IntersectMBO/plutus/issues/8024). -}
-mkBenchmarks
-  :: (Program -> Benchmarkable)
-  -> Program
-  -> FilePath
-  -> IO [Benchmark]
-mkBenchmarks benchmarker validator subfolder = do
-  dir <- getDataDir
-  let folder = dir </> subfolder
-  files <- sort . filter (isSuffixOf ".benchmark") <$> listDirectory folder
+-- | One benchmark per fixture. Each fixture is loaded only when its benchmark
+-- runs, so the rest of the corpus isn't in the heap during measurement (#8024).
+mkBenchmarks :: (Program -> Benchmarkable) -> Program -> FilePath -> IO [Benchmark]
+mkBenchmarks benchmarker validator folder = do
+  files <- map (folder </>) . sort . filter (isSuffixOf ".benchmark") <$> listDirectory folder
   forM files $ \file -> do
-    let path = folder </> file
-    name <- benchName <$> load path
-    _ <- evaluate (force name)
-    pure $
-      env (loadProgram path) $ \ ~prog ->
-        bench name (benchmarker prog)
+    name <- evaluate . force . benchName =<< load file
+    pure $ env (prepare file) $ \ ~prog -> bench name (benchmarker prog)
   where
-    load path = either error rescript <$> readBenchmark path
-    benchName M.Benchmark {..} = show $ txInfoId $ scriptContextTxInfo bScriptContext
-    loadProgram path = do
-      prog <- evaluate . force . benchmarkToUPLC validator =<< load path
-      performMajorGC
-      pure prog
+    load file = either error rescript <$> readBenchmark file
+    benchName = show . txInfoId . scriptContextTxInfo . M.bScriptContext
+    prepare file = (evaluate . force . benchmarkToUPLC validator =<< load file) <* performMajorGC
 
 runBenchmarks :: (Program -> Benchmarkable) -> IO ()
 runBenchmarks benchmarker = do
   dir <- getDataDir
 
-  marloweValidator <- readFlat $ dir </> "marlowe/scripts/semantics/validator/sop.flat"
-  rolePayoutValidator <- readFlat $ dir </> "marlowe/scripts/rolepayout/validator/sop.flat"
-
-  semanticsBench <- mkBenchmarks benchmarker marloweValidator "marlowe/scripts/semantics"
-  rolePayoutBench <- mkBenchmarks benchmarker rolePayoutValidator "marlowe/scripts/rolepayout"
+  let group name = do
+        let folder = dir </> "marlowe/scripts" </> name
+        validator <- readFlat $ folder </> "validator/sop.flat"
+        mkBenchmarks benchmarker validator folder
+  semanticsBench <- group "semantics"
+  rolePayoutBench <- group "rolepayout"
 
   -- Run each benchmark for 5 secs by default. This benchmark runs on the
   -- longitudinal benchmarking flow so we don't want to set it higher by
