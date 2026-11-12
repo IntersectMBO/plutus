@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Parser.Bytestring</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Parser.Bytestring</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/parser/bytestring</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="455" class="Keyword">module</a> <a id="462" href="Conformance.Builtin.Parser.Bytestring.html" class="Module">Conformance.Builtin.Parser.Bytestring</a> <a id="500" class="Keyword">where</a>
+
+<a id="507" class="Keyword">open</a> <a id="512" class="Keyword">import</a> <a id="519" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="bytestring-01">bytestring-01</h2>
+
+<pre class="Agda"><a id="563" class="Comment">-- builtin/parser/bytestring/bytestring-01</a>
+<a id="test-bytestring-01"></a><a id="606" href="Conformance.Builtin.Parser.Bytestring.html#606" class="Function">test-bytestring-01</a> <a id="625" class="Symbol">:</a> <a id="627" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="635" href="Conformance.Builtin.Parser.Bytestring.html#606" class="Function">test-bytestring-01</a> <a id="654" class="Symbol">=</a> <a id="656" class="Symbol">(</a><a id="657" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="662" class="Symbol">(</a><a id="663" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="670" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="681" class="Symbol">(</a><a id="682" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="695" class="String">&quot;\NUL\255&quot;</a><a id="705" class="Symbol">)))</a>
+
+<a id="expected-bytestring-01"></a><a id="710" href="Conformance.Builtin.Parser.Bytestring.html#710" class="Function">expected-bytestring-01</a> <a id="733" class="Symbol">:</a> <a id="735" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="742" href="Conformance.Builtin.Parser.Bytestring.html#710" class="Function">expected-bytestring-01</a> <a id="765" class="Symbol">=</a> <a id="767" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="775" class="Symbol">(</a><a id="776" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="781" class="Symbol">(</a><a id="782" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="789" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="800" class="Symbol">(</a><a id="801" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="814" class="String">&quot;\NUL\255&quot;</a><a id="824" class="Symbol">)))</a>
+
+<a id="829" class="Comment">-- Pending: bytestring constant.</a>
+<a id="pending-bytestring-01"></a><a id="862" href="Conformance.Builtin.Parser.Bytestring.html#862" class="Function">pending-bytestring-01</a> <a id="884" class="Symbol">:</a> <a id="886" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="890" href="Conformance.Builtin.Parser.Bytestring.html#862" class="Function">pending-bytestring-01</a> <a id="912" class="Symbol">=</a> <a id="914" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="922" class="Symbol">(</a><a id="923" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="931" href="Conformance.Builtin.Parser.Bytestring.html#606" class="Function">test-bytestring-01</a> <a id="950" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="952" href="Conformance.Builtin.Parser.Bytestring.html#710" class="Function">expected-bytestring-01</a><a id="974" class="Symbol">)</a>
+</pre>
+<h2 id="bytestring-02">bytestring-02</h2>
+
+<pre class="Agda"><a id="1003" class="Comment">-- builtin/parser/bytestring/bytestring-02</a>
+<a id="test-bytestring-02"></a><a id="1046" href="Conformance.Builtin.Parser.Bytestring.html#1046" class="Function">test-bytestring-02</a> <a id="1065" class="Symbol">:</a> <a id="1067" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1075" href="Conformance.Builtin.Parser.Bytestring.html#1046" class="Function">test-bytestring-02</a> <a id="1094" class="Symbol">=</a> <a id="1096" class="Symbol">(</a><a id="1097" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1102" class="Symbol">(</a><a id="1103" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1110" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1121" class="Symbol">(</a><a id="1122" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1135" class="String">&quot;TheCakeIsALie&quot;</a><a id="1150" class="Symbol">)))</a>
+
+<a id="expected-bytestring-02"></a><a id="1155" href="Conformance.Builtin.Parser.Bytestring.html#1155" class="Function">expected-bytestring-02</a> <a id="1178" class="Symbol">:</a> <a id="1180" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1187" href="Conformance.Builtin.Parser.Bytestring.html#1155" class="Function">expected-bytestring-02</a> <a id="1210" class="Symbol">=</a> <a id="1212" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1220" class="Symbol">(</a><a id="1221" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1226" class="Symbol">(</a><a id="1227" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1234" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1245" class="Symbol">(</a><a id="1246" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1259" class="String">&quot;TheCakeIsALie&quot;</a><a id="1274" class="Symbol">)))</a>
+
+<a id="1279" class="Comment">-- Pending: bytestring constant.</a>
+<a id="pending-bytestring-02"></a><a id="1312" href="Conformance.Builtin.Parser.Bytestring.html#1312" class="Function">pending-bytestring-02</a> <a id="1334" class="Symbol">:</a> <a id="1336" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1340" href="Conformance.Builtin.Parser.Bytestring.html#1312" class="Function">pending-bytestring-02</a> <a id="1362" class="Symbol">=</a> <a id="1364" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1372" class="Symbol">(</a><a id="1373" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1381" href="Conformance.Builtin.Parser.Bytestring.html#1046" class="Function">test-bytestring-02</a> <a id="1400" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1402" href="Conformance.Builtin.Parser.Bytestring.html#1155" class="Function">expected-bytestring-02</a><a id="1424" class="Symbol">)</a>
+</pre>
+<h2 id="bytestring-03">bytestring-03</h2>
+
+<pre class="Agda"><a id="1453" class="Comment">-- builtin/parser/bytestring/bytestring-03</a>
+<a id="test-bytestring-03"></a><a id="1496" href="Conformance.Builtin.Parser.Bytestring.html#1496" class="Function">test-bytestring-03</a> <a id="1515" class="Symbol">:</a> <a id="1517" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1525" href="Conformance.Builtin.Parser.Bytestring.html#1496" class="Function">test-bytestring-03</a> <a id="1544" class="Symbol">=</a> <a id="1546" class="Symbol">(</a><a id="1547" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1552" class="Symbol">(</a><a id="1553" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1560" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1571" class="Symbol">(</a><a id="1572" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1585" class="String">&quot;&quot;</a><a id="1587" class="Symbol">)))</a>
+
+<a id="expected-bytestring-03"></a><a id="1592" href="Conformance.Builtin.Parser.Bytestring.html#1592" class="Function">expected-bytestring-03</a> <a id="1615" class="Symbol">:</a> <a id="1617" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1624" href="Conformance.Builtin.Parser.Bytestring.html#1592" class="Function">expected-bytestring-03</a> <a id="1647" class="Symbol">=</a> <a id="1649" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1657" class="Symbol">(</a><a id="1658" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1663" class="Symbol">(</a><a id="1664" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1671" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1682" class="Symbol">(</a><a id="1683" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1696" class="String">&quot;&quot;</a><a id="1698" class="Symbol">)))</a>
+
+<a id="1703" class="Comment">-- Pending: bytestring constant.</a>
+<a id="pending-bytestring-03"></a><a id="1736" href="Conformance.Builtin.Parser.Bytestring.html#1736" class="Function">pending-bytestring-03</a> <a id="1758" class="Symbol">:</a> <a id="1760" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1764" href="Conformance.Builtin.Parser.Bytestring.html#1736" class="Function">pending-bytestring-03</a> <a id="1786" class="Symbol">=</a> <a id="1788" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1796" class="Symbol">(</a><a id="1797" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1805" href="Conformance.Builtin.Parser.Bytestring.html#1496" class="Function">test-bytestring-03</a> <a id="1824" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1826" href="Conformance.Builtin.Parser.Bytestring.html#1592" class="Function">expected-bytestring-03</a><a id="1848" class="Symbol">)</a>
+</pre>
+<h2 id="bytestring-04">bytestring-04</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+    </section>
+  </body>
+</html>

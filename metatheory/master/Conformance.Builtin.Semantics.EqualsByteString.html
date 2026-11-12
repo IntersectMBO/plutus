@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.EqualsByteString</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.EqualsByteString</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsByteString</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="473" class="Keyword">module</a> <a id="480" href="Conformance.Builtin.Semantics.EqualsByteString.html" class="Module">Conformance.Builtin.Semantics.EqualsByteString</a> <a id="527" class="Keyword">where</a>
+
+<a id="534" class="Keyword">open</a> <a id="539" class="Keyword">import</a> <a id="546" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="equalsbytestring">equalsByteString</h2>
+
+<pre class="Agda"><a id="593" class="Comment">-- builtin/semantics/equalsByteString/equalsByteString</a>
+<a id="test-equalsByteString"></a><a id="648" href="Conformance.Builtin.Semantics.EqualsByteString.html#648" class="Function">test-equalsByteString</a> <a id="670" class="Symbol">:</a> <a id="672" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="680" href="Conformance.Builtin.Semantics.EqualsByteString.html#648" class="Function">test-equalsByteString</a> <a id="702" class="Symbol">=</a> <a id="704" class="Symbol">(</a><a id="705" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="710" class="Symbol">(</a><a id="711" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="716" class="Symbol">(</a><a id="717" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="726" href="Builtin.html#2313" class="InductiveConstructor">equalsByteString</a><a id="742" class="Symbol">)</a> <a id="744" class="Symbol">(</a><a id="745" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="750" class="Symbol">(</a><a id="751" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="758" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="769" class="Symbol">(</a><a id="770" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="783" class="String">&quot;\NUL\255\170&quot;</a><a id="797" class="Symbol">))))</a> <a id="802" class="Symbol">(</a><a id="803" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="808" class="Symbol">(</a><a id="809" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="816" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="827" class="Symbol">(</a><a id="828" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="841" class="String">&quot;\NUL\255\170&quot;</a><a id="855" class="Symbol">))))</a>
+
+<a id="expected-equalsByteString"></a><a id="861" href="Conformance.Builtin.Semantics.EqualsByteString.html#861" class="Function">expected-equalsByteString</a> <a id="887" class="Symbol">:</a> <a id="889" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="896" href="Conformance.Builtin.Semantics.EqualsByteString.html#861" class="Function">expected-equalsByteString</a> <a id="922" class="Symbol">=</a> <a id="924" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="932" class="Symbol">(</a><a id="933" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="938" class="Symbol">(</a><a id="939" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="946" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="951" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="955" class="Symbol">))</a>
+
+<a id="959" class="Comment">-- Pending: bytestring constant; postulated builtin `equalsByteString`.</a>
+<a id="pending-equalsByteString"></a><a id="1031" href="Conformance.Builtin.Semantics.EqualsByteString.html#1031" class="Function">pending-equalsByteString</a> <a id="1056" class="Symbol">:</a> <a id="1058" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1062" href="Conformance.Builtin.Semantics.EqualsByteString.html#1031" class="Function">pending-equalsByteString</a> <a id="1087" class="Symbol">=</a> <a id="1089" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1097" class="Symbol">(</a><a id="1098" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1106" href="Conformance.Builtin.Semantics.EqualsByteString.html#648" class="Function">test-equalsByteString</a> <a id="1128" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1130" href="Conformance.Builtin.Semantics.EqualsByteString.html#861" class="Function">expected-equalsByteString</a><a id="1155" class="Symbol">)</a>
+</pre>
+<h2 id="equalsbytestring-01">equalsByteString-01</h2>
+
+<pre class="Agda"><a id="1190" class="Comment">-- builtin/semantics/equalsByteString/equalsByteString-01</a>
+<a id="test-equalsByteString-01"></a><a id="1248" href="Conformance.Builtin.Semantics.EqualsByteString.html#1248" class="Function">test-equalsByteString-01</a> <a id="1273" class="Symbol">:</a> <a id="1275" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1283" href="Conformance.Builtin.Semantics.EqualsByteString.html#1248" class="Function">test-equalsByteString-01</a> <a id="1308" class="Symbol">=</a> <a id="1310" class="Symbol">(</a><a id="1311" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1316" class="Symbol">(</a><a id="1317" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1326" href="Builtin.html#2225" class="InductiveConstructor">lengthOfByteString</a><a id="1344" class="Symbol">)</a> <a id="1346" class="Symbol">(</a><a id="1347" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1352" class="Symbol">(</a><a id="1353" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1360" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1371" class="Symbol">(</a><a id="1372" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1385" class="String">&quot;TheCakeIsALie&quot;</a><a id="1400" class="Symbol">))))</a>
+
+<a id="expected-equalsByteString-01"></a><a id="1406" href="Conformance.Builtin.Semantics.EqualsByteString.html#1406" class="Function">expected-equalsByteString-01</a> <a id="1435" class="Symbol">:</a> <a id="1437" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1444" href="Conformance.Builtin.Semantics.EqualsByteString.html#1406" class="Function">expected-equalsByteString-01</a> <a id="1473" class="Symbol">=</a> <a id="1475" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1483" class="Symbol">(</a><a id="1484" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1489" class="Symbol">(</a><a id="1490" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1497" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1505" class="Symbol">(</a><a id="1506" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1512" class="Number">13</a><a id="1514" class="Symbol">)))</a>
+
+<a id="1519" class="Comment">-- Pending: bytestring constant; postulated builtin `lengthOfByteString`.</a>
+<a id="pending-equalsByteString-01"></a><a id="1593" href="Conformance.Builtin.Semantics.EqualsByteString.html#1593" class="Function">pending-equalsByteString-01</a> <a id="1621" class="Symbol">:</a> <a id="1623" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1627" href="Conformance.Builtin.Semantics.EqualsByteString.html#1593" class="Function">pending-equalsByteString-01</a> <a id="1655" class="Symbol">=</a> <a id="1657" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1665" class="Symbol">(</a><a id="1666" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1674" href="Conformance.Builtin.Semantics.EqualsByteString.html#1248" class="Function">test-equalsByteString-01</a> <a id="1699" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1701" href="Conformance.Builtin.Semantics.EqualsByteString.html#1406" class="Function">expected-equalsByteString-01</a><a id="1729" class="Symbol">)</a>
+</pre>
+<h2 id="equalsbytestring-02">equalsByteString-02</h2>
+
+<pre class="Agda"><a id="1764" class="Comment">-- builtin/semantics/equalsByteString/equalsByteString-02</a>
+<a id="test-equalsByteString-02"></a><a id="1822" href="Conformance.Builtin.Semantics.EqualsByteString.html#1822" class="Function">test-equalsByteString-02</a> <a id="1847" class="Symbol">:</a> <a id="1849" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1857" href="Conformance.Builtin.Semantics.EqualsByteString.html#1822" class="Function">test-equalsByteString-02</a> <a id="1882" class="Symbol">=</a> <a id="1884" class="Symbol">(</a><a id="1885" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1890" class="Symbol">(</a><a id="1891" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1896" class="Symbol">(</a><a id="1897" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1906" href="Builtin.html#2313" class="InductiveConstructor">equalsByteString</a><a id="1922" class="Symbol">)</a> <a id="1924" class="Symbol">(</a><a id="1925" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1930" class="Symbol">(</a><a id="1931" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1938" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1949" class="Symbol">(</a><a id="1950" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1963" class="String">&quot;TheCakeIsALie&quot;</a><a id="1978" class="Symbol">))))</a> <a id="1983" class="Symbol">(</a><a id="1984" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1989" class="Symbol">(</a><a id="1990" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1997" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="2008" class="Symbol">(</a><a id="2009" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="2022" class="String">&quot;TheCakeIsAPie&quot;</a><a id="2037" class="Symbol">))))</a>
+
+<a id="expected-equalsByteString-02"></a><a id="2043" href="Conformance.Builtin.Semantics.EqualsByteString.html#2043" class="Function">expected-equalsByteString-02</a> <a id="2072" class="Symbol">:</a> <a id="2074" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="2081" href="Conformance.Builtin.Semantics.EqualsByteString.html#2043" class="Function">expected-equalsByteString-02</a> <a id="2110" class="Symbol">=</a> <a id="2112" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="2120" class="Symbol">(</a><a id="2121" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2126" class="Symbol">(</a><a id="2127" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2134" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="2139" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="2144" class="Symbol">))</a>
+
+<a id="2148" class="Comment">-- Pending: bytestring constant; postulated builtin `equalsByteString`.</a>
+<a id="pending-equalsByteString-02"></a><a id="2220" href="Conformance.Builtin.Semantics.EqualsByteString.html#2220" class="Function">pending-equalsByteString-02</a> <a id="2248" class="Symbol">:</a> <a id="2250" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="2254" href="Conformance.Builtin.Semantics.EqualsByteString.html#2220" class="Function">pending-equalsByteString-02</a> <a id="2282" class="Symbol">=</a> <a id="2284" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="2292" class="Symbol">(</a><a id="2293" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2301" href="Conformance.Builtin.Semantics.EqualsByteString.html#1822" class="Function">test-equalsByteString-02</a> <a id="2326" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2328" href="Conformance.Builtin.Semantics.EqualsByteString.html#2043" class="Function">expected-equalsByteString-02</a><a id="2356" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

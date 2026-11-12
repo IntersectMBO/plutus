@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.Ripemd160</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.Ripemd160</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/ripemd_160</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="460" class="Keyword">module</a> <a id="467" href="Conformance.Builtin.Semantics.Ripemd160.html" class="Module">Conformance.Builtin.Semantics.Ripemd160</a> <a id="507" class="Keyword">where</a>
+
+<a id="514" class="Keyword">open</a> <a id="519" class="Keyword">import</a> <a id="526" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="ripemd_160-empty">ripemd_160-empty</h2>
+
+<pre class="Agda"><a id="573" class="Comment">-- builtin/semantics/ripemd_160/ripemd_160-empty</a>
+<a id="622" class="Comment">-- Test vector (0-bit input) for Ripemd_160.</a>
+<a id="667" class="Comment">-- Output obtained using the online tool https://emn178.github.io/online-tools/ripemd_160.html</a>
+<a id="test-ripemd-160-empty"></a><a id="762" href="Conformance.Builtin.Semantics.Ripemd160.html#762" class="Function">test-ripemd-160-empty</a> <a id="784" class="Symbol">:</a> <a id="786" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="794" href="Conformance.Builtin.Semantics.Ripemd160.html#762" class="Function">test-ripemd-160-empty</a> <a id="816" class="Symbol">=</a> <a id="818" class="Symbol">(</a><a id="819" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="824" class="Symbol">(</a><a id="825" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="830" class="Symbol">(</a><a id="831" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="840" href="Builtin.html#2313" class="InductiveConstructor">equalsByteString</a><a id="856" class="Symbol">)</a> <a id="858" class="Symbol">(</a><a id="859" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="864" class="Symbol">(</a><a id="865" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="874" href="Builtin.html#6161" class="InductiveConstructor">ripemd-160</a><a id="884" class="Symbol">)</a> <a id="886" class="Symbol">(</a><a id="887" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="892" class="Symbol">(</a><a id="893" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="900" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="911" class="Symbol">(</a><a id="912" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="925" class="String">&quot;&quot;</a><a id="927" class="Symbol">)))))</a> <a id="933" class="Symbol">(</a><a id="934" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="939" class="Symbol">(</a><a id="940" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="947" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="958" class="Symbol">(</a><a id="959" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="972" class="String">&quot;\156\DC1\133\165\197\233\252Ta(\b\151~\232\245H\178%\141\&amp;1&quot;</a><a id="1033" class="Symbol">))))</a>
+
+<a id="expected-ripemd-160-empty"></a><a id="1039" href="Conformance.Builtin.Semantics.Ripemd160.html#1039" class="Function">expected-ripemd-160-empty</a> <a id="1065" class="Symbol">:</a> <a id="1067" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1074" href="Conformance.Builtin.Semantics.Ripemd160.html#1039" class="Function">expected-ripemd-160-empty</a> <a id="1100" class="Symbol">=</a> <a id="1102" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1110" class="Symbol">(</a><a id="1111" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1116" class="Symbol">(</a><a id="1117" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1124" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="1129" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="1133" class="Symbol">))</a>
+
+<a id="1137" class="Comment">-- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `ripemd-160`.</a>
+<a id="pending-ripemd-160-empty"></a><a id="1242" href="Conformance.Builtin.Semantics.Ripemd160.html#1242" class="Function">pending-ripemd-160-empty</a> <a id="1267" class="Symbol">:</a> <a id="1269" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1273" href="Conformance.Builtin.Semantics.Ripemd160.html#1242" class="Function">pending-ripemd-160-empty</a> <a id="1298" class="Symbol">=</a> <a id="1300" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1308" class="Symbol">(</a><a id="1309" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1317" href="Conformance.Builtin.Semantics.Ripemd160.html#762" class="Function">test-ripemd-160-empty</a> <a id="1339" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1341" href="Conformance.Builtin.Semantics.Ripemd160.html#1039" class="Function">expected-ripemd-160-empty</a><a id="1366" class="Symbol">)</a>
+</pre>
+<h2 id="ripemd_160-length-200">ripemd_160-length-200</h2>
+
+<pre class="Agda"><a id="1403" class="Comment">-- builtin/semantics/ripemd_160/ripemd_160-length-200</a>
+<a id="1457" class="Comment">-- Test vector (0-bit input) for Ripemd_160.</a>
+<a id="1502" class="Comment">-- Output obtained using the online tool https://emn178.github.io/online-tools/ripemd_160.html</a>
+<a id="test-ripemd-160-length-200"></a><a id="1597" href="Conformance.Builtin.Semantics.Ripemd160.html#1597" class="Function">test-ripemd-160-length-200</a> <a id="1624" class="Symbol">:</a> <a id="1626" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1634" href="Conformance.Builtin.Semantics.Ripemd160.html#1597" class="Function">test-ripemd-160-length-200</a> <a id="1661" class="Symbol">=</a> <a id="1663" class="Symbol">(</a><a id="1664" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1669" class="Symbol">(</a><a id="1670" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1675" class="Symbol">(</a><a id="1676" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1685" href="Builtin.html#2313" class="InductiveConstructor">equalsByteString</a><a id="1701" class="Symbol">)</a> <a id="1703" class="Symbol">(</a><a id="1704" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1709" class="Symbol">(</a><a id="1710" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1719" href="Builtin.html#6161" class="InductiveConstructor">ripemd-160</a><a id="1729" class="Symbol">)</a> <a id="1731" class="Symbol">(</a><a id="1732" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1737" class="Symbol">(</a><a id="1738" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1745" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1756" class="Symbol">(</a><a id="1757" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1770" class="String">&quot;.~\168M\164\188M|\251F&gt;?,\134G\ENQz\255\243\251\236\236\161\210\NUL&quot;</a><a id="1839" class="Symbol">)))))</a> <a id="1845" class="Symbol">(</a><a id="1846" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1851" class="Symbol">(</a><a id="1852" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1859" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1870" class="Symbol">(</a><a id="1871" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1884" class="String">&quot;\241\137!\DC1Sp\176I\233\157\253\212\159\201+7\GS\215\199\233&quot;</a><a id="1947" class="Symbol">))))</a>
+
+<a id="expected-ripemd-160-length-200"></a><a id="1953" href="Conformance.Builtin.Semantics.Ripemd160.html#1953" class="Function">expected-ripemd-160-length-200</a> <a id="1984" class="Symbol">:</a> <a id="1986" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1993" href="Conformance.Builtin.Semantics.Ripemd160.html#1953" class="Function">expected-ripemd-160-length-200</a> <a id="2024" class="Symbol">=</a> <a id="2026" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="2034" class="Symbol">(</a><a id="2035" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2040" class="Symbol">(</a><a id="2041" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2048" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="2053" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="2057" class="Symbol">))</a>
+
+<a id="2061" class="Comment">-- Pending: bytestring constant; postulated builtin `equalsByteString`; postulated builtin `ripemd-160`.</a>
+<a id="pending-ripemd-160-length-200"></a><a id="2166" href="Conformance.Builtin.Semantics.Ripemd160.html#2166" class="Function">pending-ripemd-160-length-200</a> <a id="2196" class="Symbol">:</a> <a id="2198" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="2202" href="Conformance.Builtin.Semantics.Ripemd160.html#2166" class="Function">pending-ripemd-160-length-200</a> <a id="2232" class="Symbol">=</a> <a id="2234" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="2242" class="Symbol">(</a><a id="2243" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2251" href="Conformance.Builtin.Semantics.Ripemd160.html#1597" class="Function">test-ripemd-160-length-200</a> <a id="2278" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2280" href="Conformance.Builtin.Semantics.Ripemd160.html#1953" class="Function">expected-ripemd-160-length-200</a><a id="2310" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

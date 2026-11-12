@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Parser.Unit</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Parser.Unit</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/parser/unit</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="443" class="Keyword">module</a> <a id="450" href="Conformance.Builtin.Parser.Unit.html" class="Module">Conformance.Builtin.Parser.Unit</a> <a id="482" class="Keyword">where</a>
+
+<a id="489" class="Keyword">open</a> <a id="494" class="Keyword">import</a> <a id="501" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="unit">unit</h2>
+
+<pre class="Agda"><a id="536" class="Comment">-- builtin/parser/unit/unit</a>
+<a id="test-unit"></a><a id="564" href="Conformance.Builtin.Parser.Unit.html#564" class="Function">test-unit</a> <a id="574" class="Symbol">:</a> <a id="576" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="584" href="Conformance.Builtin.Parser.Unit.html#564" class="Function">test-unit</a> <a id="594" class="Symbol">=</a> <a id="596" class="Symbol">(</a><a id="597" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="602" class="Symbol">(</a><a id="603" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="610" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="615" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="617" class="Symbol">))</a>
+
+<a id="expected-unit"></a><a id="621" href="Conformance.Builtin.Parser.Unit.html#621" class="Function">expected-unit</a> <a id="635" class="Symbol">:</a> <a id="637" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="644" href="Conformance.Builtin.Parser.Unit.html#621" class="Function">expected-unit</a> <a id="658" class="Symbol">=</a> <a id="660" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="668" class="Symbol">(</a><a id="669" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="674" class="Symbol">(</a><a id="675" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="682" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="687" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="689" class="Symbol">))</a>
+
+<a id="693" href="Conformance.Builtin.Parser.Unit.html#693" class="Function">_</a> <a id="695" class="Symbol">:</a> <a id="697" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="705" href="Conformance.Builtin.Parser.Unit.html#564" class="Function">test-unit</a> <a id="715" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="717" href="Conformance.Builtin.Parser.Unit.html#621" class="Function">expected-unit</a>
+<a id="731" class="Symbol">_</a> <a id="733" class="Symbol">=</a> <a id="735" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="unit-fail-1">unit-fail-1</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+<h2 id="unit-fail-2">unit-fail-2</h2>
+
+<p>Skipped: the program does not parse or has free variables (<code class="language-plaintext highlighter-rouge">parse/decode error</code>).</p>
+
+    </section>
+  </body>
+</html>

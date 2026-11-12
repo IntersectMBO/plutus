@@ -1,0 +1,138 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    3 </span>{-# OPTIONS_GHC -Wall #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module FFI.Opts where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import Data.Foldable (asum)
+<span class="lineno">    8 </span>import Options.Applicative hiding (asum)
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import PlutusCore.Executable.Common
+<span class="lineno">   11 </span>import PlutusCore.Executable.Parsers
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCostsForTesting)
+<span class="lineno">   14 </span>import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
+<span class="lineno">   15 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>-- the different budget modes of plc-agda
+<span class="lineno">   18 </span>data BudgetMode a
+<span class="lineno">   19 </span>  = Silent
+<span class="lineno">   20 </span>  | Counting a
+<span class="lineno">   21 </span>  | Tallying a
+<span class="lineno">   22 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>)
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>countingbudget :: Parser (BudgetMode ())
+<span class="lineno">   25 </span><span class="decl"><span class="istickedoff">countingbudget =</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="istickedoff">flag'</span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(Counting ())</span></span>
+<span class="lineno">   28 </span><span class="spaces">    </span><span class="istickedoff">( long <span class="nottickedoff">&quot;counting&quot;</span></span>
+<span class="lineno">   29 </span><span class="spaces">        </span><span class="istickedoff">&lt;&gt; short <span class="nottickedoff">'c'</span></span>
+<span class="lineno">   30 </span><span class="spaces">        </span><span class="istickedoff">&lt;&gt; help <span class="nottickedoff">&quot;Run machine in counting mode and report results&quot;</span></span>
+<span class="lineno">   31 </span><span class="spaces">    </span><span class="istickedoff">)</span></span>
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>tallyingbudget :: Parser (BudgetMode ())
+<span class="lineno">   34 </span><span class="decl"><span class="istickedoff">tallyingbudget =</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="istickedoff">flag'</span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(Tallying ())</span></span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="istickedoff">( long <span class="nottickedoff">&quot;tallying&quot;</span></span>
+<span class="lineno">   38 </span><span class="spaces">        </span><span class="istickedoff">&lt;&gt; short <span class="nottickedoff">'t'</span></span>
+<span class="lineno">   39 </span><span class="spaces">        </span><span class="istickedoff">&lt;&gt; help <span class="nottickedoff">&quot;Run machine in tallying mode and report results&quot;</span></span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">)</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>budgetmode :: Parser (BudgetMode ())
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">budgetmode =</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">asum</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="istickedoff">[ countingbudget</span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="istickedoff">, tallyingbudget</span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="istickedoff">, pure Silent</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="istickedoff">]</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>-- The different evaluation modes of plc-agda
+<span class="lineno">   51 </span>data EvalMode = U | TL | TCK | TCEK deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Read</span></span></span></span></span></span></span></span>)
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>data EvalOptions a = EvalOpts Input Format EvalMode (BudgetMode a)
+<span class="lineno">   54 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>)
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>evalMode :: Parser EvalMode
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">evalMode =</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">option</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">auto</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">( long &quot;mode&quot;</span>
+<span class="lineno">   61 </span><span class="spaces">        </span><span class="istickedoff">&lt;&gt; short 'm'</span>
+<span class="lineno">   62 </span><span class="spaces">        </span><span class="istickedoff">&lt;&gt; metavar <span class="nottickedoff">&quot;MODE&quot;</span></span>
+<span class="lineno">   63 </span><span class="spaces">        </span><span class="istickedoff">&lt;&gt; value TL</span>
+<span class="lineno">   64 </span><span class="spaces">        </span><span class="istickedoff">&lt;&gt; showDefault</span>
+<span class="lineno">   65 </span><span class="spaces">        </span><span class="istickedoff">&lt;&gt; help <span class="nottickedoff">&quot;Evaluation mode (U , TL, TCK, TCEK)&quot;</span></span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="istickedoff">)</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>evalOpts :: Parser (EvalOptions ())
+<span class="lineno">   69 </span><span class="decl"><span class="istickedoff">evalOpts = EvalOpts &lt;$&gt; input &lt;*&gt; inputformat &lt;*&gt; evalMode &lt;*&gt; budgetmode</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>data TypecheckOptions = TCOpts Input Format
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>typecheckOpts :: Parser TypecheckOptions
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">typecheckOpts = TCOpts &lt;$&gt; input &lt;*&gt; inputformat</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>data Command a
+<span class="lineno">   77 </span>  = Eval (EvalOptions a)
+<span class="lineno">   78 </span>  | Typecheck TypecheckOptions
+<span class="lineno">   79 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>)
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>commands :: Parser (Command ())
+<span class="lineno">   82 </span><span class="decl"><span class="istickedoff">commands =</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">hsubparser</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="istickedoff">( command</span>
+<span class="lineno">   85 </span><span class="spaces">        </span><span class="istickedoff">&quot;evaluate&quot;</span>
+<span class="lineno">   86 </span><span class="spaces">        </span><span class="istickedoff">( info</span>
+<span class="lineno">   87 </span><span class="spaces">            </span><span class="istickedoff">(Eval &lt;$&gt; evalOpts)</span>
+<span class="lineno">   88 </span><span class="spaces">            </span><span class="istickedoff">(fullDesc &lt;&gt; progDesc <span class="nottickedoff">&quot;run a Plutus Core program&quot;</span>)</span>
+<span class="lineno">   89 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">   90 </span><span class="spaces">        </span><span class="istickedoff">&lt;&gt; command</span>
+<span class="lineno">   91 </span><span class="spaces">          </span><span class="istickedoff">&quot;typecheck&quot;</span>
+<span class="lineno">   92 </span><span class="spaces">          </span><span class="istickedoff">( info</span>
+<span class="lineno">   93 </span><span class="spaces">              </span><span class="istickedoff">(Typecheck &lt;$&gt; typecheckOpts)</span>
+<span class="lineno">   94 </span><span class="spaces">              </span><span class="istickedoff">(fullDesc &lt;&gt; progDesc <span class="nottickedoff">&quot;typecheck a Plutus Core program&quot;</span>)</span>
+<span class="lineno">   95 </span><span class="spaces">          </span><span class="istickedoff">)</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="istickedoff">)</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>-- A CostModel has all the information to run the Agda machine
+<span class="lineno">   99 </span>-- with cost reporting
+<span class="lineno">  100 </span>type CostModel = (CekMachineCosts, BuiltinCostMap)
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>addJSONParameters :: Command a -&gt; Command CostModel
+<span class="lineno">  103 </span><span class="decl"><span class="istickedoff">addJSONParameters = fmap <span class="nottickedoff">(const (defaultCekMachineCostsForTesting, defaultSimpleBuiltinCostModel))</span></span></span>
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>execP :: IO (Command CostModel)
+<span class="lineno">  106 </span><span class="decl"><span class="istickedoff">execP =</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="istickedoff">addJSONParameters</span>
+<span class="lineno">  108 </span><span class="spaces">    </span><span class="istickedoff">&lt;$&gt; execParser</span>
+<span class="lineno">  109 </span><span class="spaces">      </span><span class="istickedoff">( info</span>
+<span class="lineno">  110 </span><span class="spaces">          </span><span class="istickedoff">(commands &lt;**&gt; helper)</span>
+<span class="lineno">  111 </span><span class="spaces">          </span><span class="istickedoff">( fullDesc</span>
+<span class="lineno">  112 </span><span class="spaces">              </span><span class="istickedoff">&lt;&gt; progDesc <span class="nottickedoff">&quot;Plutus Core tool&quot;</span></span>
+<span class="lineno">  113 </span><span class="spaces">              </span><span class="istickedoff">&lt;&gt; header <span class="nottickedoff">&quot;plc-agda - a Plutus Core implementation written in Agda&quot;</span></span>
+<span class="lineno">  114 </span><span class="spaces">          </span><span class="istickedoff">)</span>
+<span class="lineno">  115 </span><span class="spaces">      </span><span class="istickedoff">)</span></span>
+
+</pre>
+</body>
+</html>

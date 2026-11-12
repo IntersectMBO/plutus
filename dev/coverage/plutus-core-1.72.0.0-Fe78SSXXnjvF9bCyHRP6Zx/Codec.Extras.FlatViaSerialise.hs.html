@@ -1,0 +1,63 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>module Codec.Extras.FlatViaSerialise
+<span class="lineno">    2 </span>  ( FlatViaSerialise (..)
+<span class="lineno">    3 </span>  ) where
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
+<span class="lineno">    6 </span>import Data.ByteString.Lazy qualified as BSL (toStrict)
+<span class="lineno">    7 </span>import PlutusCore.Flat
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>{- Note [Flat serialisation for strict and lazy bytestrings]
+<span class="lineno">   10 </span>The `flat` serialisation of a bytestring consists of a sequence of chunks, with each chunk preceded
+<span class="lineno">   11 </span>by a single byte saying how long it is.  The end of a serialised bytestring is marked by a
+<span class="lineno">   12 </span>zero-length chunk.  In the Plutus Core specification we recommend that all bytestrings should be
+<span class="lineno">   13 </span>serialised in a canonical way as a sequence of zero or more 255-byte chunks followed by an optional
+<span class="lineno">   14 </span>final chunk of length less than 255 followed by a zero-length chunk (ie, a 0x00 byte). We do allow
+<span class="lineno">   15 </span>the decoder to accept non-canonical encodings.  The `flat` library always encodes strict Haskell
+<span class="lineno">   16 </span>bytestrings in this way, but lazy bytestrings, which are essentially lists of strict bytestrings,
+<span class="lineno">   17 </span>may be encoded non-canonically since it's more efficient just to emit a short chunk as is.  The
+<span class="lineno">   18 </span>Plutus Core `bytestring` type is strict so bytestring values are always encoded canonically.
+<span class="lineno">   19 </span>However, we serialise `Data` objects (and perhaps objects of other types as well) by encoding them
+<span class="lineno">   20 </span>to CBOR and then flat-serialising the resulting bytestring; but the `serialise` method from
+<span class="lineno">   21 </span>`Codec.Serialise` produces lazy bytestrings and if we were to serialise them directly then we could
+<span class="lineno">   22 </span>end up with non-canonical encodings, which would mean that identical `Data` objects might be
+<span class="lineno">   23 </span>serialised into different bytestrings.  To avoid this we convert the output of `serialise` into a
+<span class="lineno">   24 </span>strict bytestring before flat-encoding it.  This may lead to a small loss of efficiency during
+<span class="lineno">   25 </span>encoding, but this doesn't matter because we only ever do flat serialisation off the chain.  We can
+<span class="lineno">   26 </span>convert `Data` objects to bytestrings on the chain using the `serialiseData` builtin, but this
+<span class="lineno">   27 </span>performs CBOR serialisation and the result is always in a canonical form. -}
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>-- | For deriving 'Flat' instances via 'Serialize'.
+<span class="lineno">   30 </span>newtype FlatViaSerialise a = FlatViaSerialise {<span class="istickedoff"><span class="decl"><span class="istickedoff">unFlatViaSerialise</span></span></span> :: a}
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>instance Serialise a =&gt; Flat (FlatViaSerialise a) where
+<span class="lineno">   33 </span>  -- See Note [Flat serialisation for strict and lazy bytestrings]
+<span class="lineno">   34 </span>  <span class="decl"><span class="istickedoff">encode = encode . BSL.toStrict . serialise . unFlatViaSerialise</span></span>
+<span class="lineno">   35 </span>  <span class="decl"><span class="istickedoff">decode = do</span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="istickedoff">errOrX &lt;- deserialiseOrFail &lt;$&gt; decode</span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="istickedoff">case errOrX of</span>
+<span class="lineno">   38 </span><span class="spaces">      </span><span class="istickedoff">Left err -&gt; <span class="nottickedoff">fail $ show err</span> -- Here we embed a 'Serialise' error into a 'Flat' one.</span>
+<span class="lineno">   39 </span><span class="spaces">      </span><span class="istickedoff">Right x -&gt; pure $ FlatViaSerialise x</span></span>
+<span class="lineno">   40 </span>  <span class="decl"><span class="istickedoff">size = size . BSL.toStrict . serialise . unFlatViaSerialise</span></span>
+
+</pre>
+</body>
+</html>

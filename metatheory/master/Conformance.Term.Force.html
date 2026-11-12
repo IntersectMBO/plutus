@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Term.Force</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Term.Force</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/term/force</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="425" class="Keyword">module</a> <a id="432" href="Conformance.Term.Force.html" class="Module">Conformance.Term.Force</a> <a id="455" class="Keyword">where</a>
+
+<a id="462" class="Keyword">open</a> <a id="467" class="Keyword">import</a> <a id="474" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="force-1">force-1</h2>
+
+<pre class="Agda"><a id="512" class="Comment">-- term/force/force-1</a>
+<a id="534" class="Comment">-- can only force a delay or a forceable (polymorphic) builtin</a>
+<a id="test-force-1"></a><a id="597" href="Conformance.Term.Force.html#597" class="Function">test-force-1</a> <a id="610" class="Symbol">:</a> <a id="612" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="620" href="Conformance.Term.Force.html#597" class="Function">test-force-1</a> <a id="633" class="Symbol">=</a> <a id="635" class="Symbol">(</a><a id="636" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="643" class="Symbol">(</a><a id="644" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="649" class="Symbol">(</a><a id="650" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="657" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="665" class="Symbol">(</a><a id="666" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="672" class="Number">5</a><a id="673" class="Symbol">))))</a>
+
+<a id="expected-force-1"></a><a id="679" href="Conformance.Term.Force.html#679" class="Function">expected-force-1</a> <a id="696" class="Symbol">:</a> <a id="698" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="705" href="Conformance.Term.Force.html#679" class="Function">expected-force-1</a> <a id="722" class="Symbol">=</a> <a id="724" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="733" href="Conformance.Term.Force.html#733" class="Function">_</a> <a id="735" class="Symbol">:</a> <a id="737" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="745" href="Conformance.Term.Force.html#597" class="Function">test-force-1</a> <a id="758" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="760" href="Conformance.Term.Force.html#679" class="Function">expected-force-1</a>
+<a id="777" class="Symbol">_</a> <a id="779" class="Symbol">=</a> <a id="781" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="force-2">force-2</h2>
+
+<pre class="Agda"><a id="807" class="Comment">-- term/force/force-2</a>
+<a id="test-force-2"></a><a id="829" href="Conformance.Term.Force.html#829" class="Function">test-force-2</a> <a id="842" class="Symbol">:</a> <a id="844" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="852" href="Conformance.Term.Force.html#829" class="Function">test-force-2</a> <a id="865" class="Symbol">=</a> <a id="867" class="Symbol">(</a><a id="868" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="873" class="Symbol">(</a><a id="874" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="882" class="Symbol">(</a><a id="883" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="890" class="Symbol">(</a><a id="891" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="896" class="Number">0</a><a id="897" class="Symbol">)))</a> <a id="901" class="Symbol">(</a><a id="902" href="RawU.html#8450" class="InductiveConstructor">UDelay</a> <a id="909" class="Symbol">(</a><a id="910" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="915" class="Symbol">(</a><a id="916" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="923" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="931" class="Symbol">(</a><a id="932" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="938" class="Number">4</a><a id="939" class="Symbol">)))))</a>
+
+<a id="expected-force-2"></a><a id="946" href="Conformance.Term.Force.html#946" class="Function">expected-force-2</a> <a id="963" class="Symbol">:</a> <a id="965" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="972" href="Conformance.Term.Force.html#946" class="Function">expected-force-2</a> <a id="989" class="Symbol">=</a> <a id="991" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="999" class="Symbol">(</a><a id="1000" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1005" class="Symbol">(</a><a id="1006" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1013" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1021" class="Symbol">(</a><a id="1022" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1028" class="Number">4</a><a id="1029" class="Symbol">)))</a>
+
+<a id="1034" href="Conformance.Term.Force.html#1034" class="Function">_</a> <a id="1036" class="Symbol">:</a> <a id="1038" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1046" href="Conformance.Term.Force.html#829" class="Function">test-force-2</a> <a id="1059" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1061" href="Conformance.Term.Force.html#946" class="Function">expected-force-2</a>
+<a id="1078" class="Symbol">_</a> <a id="1080" class="Symbol">=</a> <a id="1082" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="force-3">force-3</h2>
+
+<pre class="Agda"><a id="1108" class="Comment">-- term/force/force-3</a>
+<a id="test-force-3"></a><a id="1130" href="Conformance.Term.Force.html#1130" class="Function">test-force-3</a> <a id="1143" class="Symbol">:</a> <a id="1145" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1153" href="Conformance.Term.Force.html#1130" class="Function">test-force-3</a> <a id="1166" class="Symbol">=</a> <a id="1168" class="Symbol">(</a><a id="1169" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1174" class="Symbol">(</a><a id="1175" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1183" class="Symbol">(</a><a id="1184" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="1191" class="Symbol">(</a><a id="1192" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1197" class="Symbol">(</a><a id="1198" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1206" class="Symbol">(</a><a id="1207" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="1212" class="Number">0</a><a id="1213" class="Symbol">))</a> <a id="1216" class="Symbol">(</a><a id="1217" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="1222" class="Number">0</a><a id="1223" class="Symbol">))))</a> <a id="1228" class="Symbol">(</a><a id="1229" href="RawU.html#8450" class="InductiveConstructor">UDelay</a> <a id="1236" class="Symbol">(</a><a id="1237" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1242" class="Symbol">(</a><a id="1243" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1250" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1258" class="Symbol">(</a><a id="1259" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1265" class="Number">4</a><a id="1266" class="Symbol">)))))</a>
+
+<a id="expected-force-3"></a><a id="1273" href="Conformance.Term.Force.html#1273" class="Function">expected-force-3</a> <a id="1290" class="Symbol">:</a> <a id="1292" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1299" href="Conformance.Term.Force.html#1273" class="Function">expected-force-3</a> <a id="1316" class="Symbol">=</a> <a id="1318" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1326" class="Symbol">(</a><a id="1327" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1332" class="Symbol">(</a><a id="1333" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1340" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1348" class="Symbol">(</a><a id="1349" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1355" class="Number">4</a><a id="1356" class="Symbol">)))</a>
+
+<a id="1361" href="Conformance.Term.Force.html#1361" class="Function">_</a> <a id="1363" class="Symbol">:</a> <a id="1365" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1373" href="Conformance.Term.Force.html#1130" class="Function">test-force-3</a> <a id="1386" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1388" href="Conformance.Term.Force.html#1273" class="Function">expected-force-3</a>
+<a id="1405" class="Symbol">_</a> <a id="1407" class="Symbol">=</a> <a id="1409" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="force-4">force-4</h2>
+
+<pre class="Agda"><a id="1435" class="Comment">-- term/force/force-4</a>
+<a id="test-force-4"></a><a id="1457" href="Conformance.Term.Force.html#1457" class="Function">test-force-4</a> <a id="1470" class="Symbol">:</a> <a id="1472" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1480" href="Conformance.Term.Force.html#1457" class="Function">test-force-4</a> <a id="1493" class="Symbol">=</a> <a id="1495" class="Symbol">(</a><a id="1496" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="1503" class="Symbol">(</a><a id="1504" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1512" class="Symbol">(</a><a id="1513" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="1518" class="Number">0</a><a id="1519" class="Symbol">)))</a>
+
+<a id="expected-force-4"></a><a id="1524" href="Conformance.Term.Force.html#1524" class="Function">expected-force-4</a> <a id="1541" class="Symbol">:</a> <a id="1543" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1550" href="Conformance.Term.Force.html#1524" class="Function">expected-force-4</a> <a id="1567" class="Symbol">=</a> <a id="1569" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1578" href="Conformance.Term.Force.html#1578" class="Function">_</a> <a id="1580" class="Symbol">:</a> <a id="1582" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1590" href="Conformance.Term.Force.html#1457" class="Function">test-force-4</a> <a id="1603" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1605" href="Conformance.Term.Force.html#1524" class="Function">expected-force-4</a>
+<a id="1622" class="Symbol">_</a> <a id="1624" class="Symbol">=</a> <a id="1626" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+
+    </section>
+  </body>
+</html>

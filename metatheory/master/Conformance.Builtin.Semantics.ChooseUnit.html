@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.ChooseUnit</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.ChooseUnit</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/chooseUnit</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="461" class="Keyword">module</a> <a id="468" href="Conformance.Builtin.Semantics.ChooseUnit.html" class="Module">Conformance.Builtin.Semantics.ChooseUnit</a> <a id="509" class="Keyword">where</a>
+
+<a id="516" class="Keyword">open</a> <a id="521" class="Keyword">import</a> <a id="528" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="chooseunit-01">chooseUnit-01</h2>
+
+<pre class="Agda"><a id="572" class="Comment">-- builtin/semantics/chooseUnit/chooseUnit-01</a>
+<a id="test-chooseUnit-01"></a><a id="618" href="Conformance.Builtin.Semantics.ChooseUnit.html#618" class="Function">test-chooseUnit-01</a> <a id="637" class="Symbol">:</a> <a id="639" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="647" href="Conformance.Builtin.Semantics.ChooseUnit.html#618" class="Function">test-chooseUnit-01</a> <a id="666" class="Symbol">=</a> <a id="668" class="Symbol">(</a><a id="669" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="674" class="Symbol">(</a><a id="675" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="680" class="Symbol">(</a><a id="681" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="688" class="Symbol">(</a><a id="689" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="698" href="Builtin.html#2990" class="InductiveConstructor">chooseUnit</a><a id="708" class="Symbol">))</a> <a id="711" class="Symbol">(</a><a id="712" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="717" class="Symbol">(</a><a id="718" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="725" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="730" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="732" class="Symbol">)))</a> <a id="736" class="Symbol">(</a><a id="737" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="742" class="Symbol">(</a><a id="743" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="750" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="758" class="Symbol">(</a><a id="759" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="765" class="Number">2</a><a id="766" class="Symbol">))))</a>
+
+<a id="expected-chooseUnit-01"></a><a id="772" href="Conformance.Builtin.Semantics.ChooseUnit.html#772" class="Function">expected-chooseUnit-01</a> <a id="795" class="Symbol">:</a> <a id="797" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="804" href="Conformance.Builtin.Semantics.ChooseUnit.html#772" class="Function">expected-chooseUnit-01</a> <a id="827" class="Symbol">=</a> <a id="829" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="837" class="Symbol">(</a><a id="838" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="843" class="Symbol">(</a><a id="844" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="851" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="859" class="Symbol">(</a><a id="860" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="866" class="Number">2</a><a id="867" class="Symbol">)))</a>
+
+<a id="872" href="Conformance.Builtin.Semantics.ChooseUnit.html#872" class="Function">_</a> <a id="874" class="Symbol">:</a> <a id="876" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="884" href="Conformance.Builtin.Semantics.ChooseUnit.html#618" class="Function">test-chooseUnit-01</a> <a id="903" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="905" href="Conformance.Builtin.Semantics.ChooseUnit.html#772" class="Function">expected-chooseUnit-01</a>
+<a id="928" class="Symbol">_</a> <a id="930" class="Symbol">=</a> <a id="932" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="chooseunit-02">chooseUnit-02</h2>
+
+<pre class="Agda"><a id="964" class="Comment">-- builtin/semantics/chooseUnit/chooseUnit-02</a>
+<a id="1010" class="Comment">-- chooseUnit should accept arbitrary terms for the second argument</a>
+<a id="test-chooseUnit-02"></a><a id="1078" href="Conformance.Builtin.Semantics.ChooseUnit.html#1078" class="Function">test-chooseUnit-02</a> <a id="1097" class="Symbol">:</a> <a id="1099" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1107" href="Conformance.Builtin.Semantics.ChooseUnit.html#1078" class="Function">test-chooseUnit-02</a> <a id="1126" class="Symbol">=</a> <a id="1128" class="Symbol">(</a><a id="1129" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1134" class="Symbol">(</a><a id="1135" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1140" class="Symbol">(</a><a id="1141" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="1148" class="Symbol">(</a><a id="1149" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1158" href="Builtin.html#2990" class="InductiveConstructor">chooseUnit</a><a id="1168" class="Symbol">))</a> <a id="1171" class="Symbol">(</a><a id="1172" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1177" class="Symbol">(</a><a id="1178" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1185" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="1190" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="1192" class="Symbol">)))</a> <a id="1196" class="Symbol">(</a><a id="1197" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1205" class="Symbol">(</a><a id="1206" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="1211" class="Number">0</a><a id="1212" class="Symbol">)))</a>
+
+<a id="expected-chooseUnit-02"></a><a id="1217" href="Conformance.Builtin.Semantics.ChooseUnit.html#1217" class="Function">expected-chooseUnit-02</a> <a id="1240" class="Symbol">:</a> <a id="1242" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1249" href="Conformance.Builtin.Semantics.ChooseUnit.html#1217" class="Function">expected-chooseUnit-02</a> <a id="1272" class="Symbol">=</a> <a id="1274" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1282" class="Symbol">(</a><a id="1283" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1291" class="Symbol">(</a><a id="1292" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="1297" class="Number">0</a><a id="1298" class="Symbol">))</a>
+
+<a id="1302" href="Conformance.Builtin.Semantics.ChooseUnit.html#1302" class="Function">_</a> <a id="1304" class="Symbol">:</a> <a id="1306" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1314" href="Conformance.Builtin.Semantics.ChooseUnit.html#1078" class="Function">test-chooseUnit-02</a> <a id="1333" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1335" href="Conformance.Builtin.Semantics.ChooseUnit.html#1217" class="Function">expected-chooseUnit-02</a>
+<a id="1358" class="Symbol">_</a> <a id="1360" class="Symbol">=</a> <a id="1362" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+
+    </section>
+  </body>
+</html>

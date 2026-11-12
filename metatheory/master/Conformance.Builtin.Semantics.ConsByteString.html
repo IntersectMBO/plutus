@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.ConsByteString</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.ConsByteString</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/consByteString</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="469" class="Keyword">module</a> <a id="476" href="Conformance.Builtin.Semantics.ConsByteString.html" class="Module">Conformance.Builtin.Semantics.ConsByteString</a> <a id="521" class="Keyword">where</a>
+
+<a id="528" class="Keyword">open</a> <a id="533" class="Keyword">import</a> <a id="540" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="consbytestring-01">consByteString-01</h2>
+
+<pre class="Agda"><a id="588" class="Comment">-- builtin/semantics/consByteString/consByteString-01</a>
+<a id="642" class="Comment">-- the arg overflow&#39;ed over the maxBound :: Word8</a>
+<a id="test-consByteString-01"></a><a id="692" href="Conformance.Builtin.Semantics.ConsByteString.html#692" class="Function">test-consByteString-01</a> <a id="715" class="Symbol">:</a> <a id="717" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="725" href="Conformance.Builtin.Semantics.ConsByteString.html#692" class="Function">test-consByteString-01</a> <a id="748" class="Symbol">=</a> <a id="750" class="Symbol">(</a><a id="751" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="756" class="Symbol">(</a><a id="757" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="762" class="Symbol">(</a><a id="763" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="772" href="Builtin.html#2137" class="InductiveConstructor">consByteString</a><a id="786" class="Symbol">)</a> <a id="788" class="Symbol">(</a><a id="789" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="794" class="Symbol">(</a><a id="795" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="802" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="810" class="Symbol">(</a><a id="811" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="817" class="Number">256</a><a id="820" class="Symbol">))))</a> <a id="825" class="Symbol">(</a><a id="826" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="831" class="Symbol">(</a><a id="832" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="839" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="850" class="Symbol">(</a><a id="851" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="864" class="String">&quot;&quot;</a><a id="866" class="Symbol">))))</a>
+
+<a id="expected-consByteString-01"></a><a id="872" href="Conformance.Builtin.Semantics.ConsByteString.html#872" class="Function">expected-consByteString-01</a> <a id="899" class="Symbol">:</a> <a id="901" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="908" href="Conformance.Builtin.Semantics.ConsByteString.html#872" class="Function">expected-consByteString-01</a> <a id="935" class="Symbol">=</a> <a id="937" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="946" class="Comment">-- Pending: bytestring constant; postulated builtin `consByteString`.</a>
+<a id="pending-consByteString-01"></a><a id="1016" href="Conformance.Builtin.Semantics.ConsByteString.html#1016" class="Function">pending-consByteString-01</a> <a id="1042" class="Symbol">:</a> <a id="1044" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1048" href="Conformance.Builtin.Semantics.ConsByteString.html#1016" class="Function">pending-consByteString-01</a> <a id="1074" class="Symbol">=</a> <a id="1076" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1084" class="Symbol">(</a><a id="1085" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1093" href="Conformance.Builtin.Semantics.ConsByteString.html#692" class="Function">test-consByteString-01</a> <a id="1116" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1118" href="Conformance.Builtin.Semantics.ConsByteString.html#872" class="Function">expected-consByteString-01</a><a id="1144" class="Symbol">)</a>
+</pre>
+<h2 id="consbytestring-02">consByteString-02</h2>
+
+<pre class="Agda"><a id="1177" class="Comment">-- builtin/semantics/consByteString/consByteString-02</a>
+<a id="test-consByteString-02"></a><a id="1231" href="Conformance.Builtin.Semantics.ConsByteString.html#1231" class="Function">test-consByteString-02</a> <a id="1254" class="Symbol">:</a> <a id="1256" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1264" href="Conformance.Builtin.Semantics.ConsByteString.html#1231" class="Function">test-consByteString-02</a> <a id="1287" class="Symbol">=</a> <a id="1289" class="Symbol">(</a><a id="1290" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1295" class="Symbol">(</a><a id="1296" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1301" class="Symbol">(</a><a id="1302" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1311" href="Builtin.html#2137" class="InductiveConstructor">consByteString</a><a id="1325" class="Symbol">)</a> <a id="1327" class="Symbol">(</a><a id="1328" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1333" class="Symbol">(</a><a id="1334" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1341" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1349" class="Symbol">(</a><a id="1350" href="Agda.Builtin.Int.html#290" class="InductiveConstructor">ℤ.negsuc</a> <a id="1359" class="Number">87</a><a id="1361" class="Symbol">))))</a> <a id="1366" class="Symbol">(</a><a id="1367" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1372" class="Symbol">(</a><a id="1373" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1380" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1391" class="Symbol">(</a><a id="1392" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1405" class="String">&quot;heCakeIsALie&quot;</a><a id="1419" class="Symbol">))))</a>
+
+<a id="expected-consByteString-02"></a><a id="1425" href="Conformance.Builtin.Semantics.ConsByteString.html#1425" class="Function">expected-consByteString-02</a> <a id="1452" class="Symbol">:</a> <a id="1454" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1461" href="Conformance.Builtin.Semantics.ConsByteString.html#1425" class="Function">expected-consByteString-02</a> <a id="1488" class="Symbol">=</a> <a id="1490" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1499" class="Comment">-- Pending: bytestring constant; postulated builtin `consByteString`.</a>
+<a id="pending-consByteString-02"></a><a id="1569" href="Conformance.Builtin.Semantics.ConsByteString.html#1569" class="Function">pending-consByteString-02</a> <a id="1595" class="Symbol">:</a> <a id="1597" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1601" href="Conformance.Builtin.Semantics.ConsByteString.html#1569" class="Function">pending-consByteString-02</a> <a id="1627" class="Symbol">=</a> <a id="1629" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1637" class="Symbol">(</a><a id="1638" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1646" href="Conformance.Builtin.Semantics.ConsByteString.html#1231" class="Function">test-consByteString-02</a> <a id="1669" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1671" href="Conformance.Builtin.Semantics.ConsByteString.html#1425" class="Function">expected-consByteString-02</a><a id="1697" class="Symbol">)</a>
+</pre>
+<h2 id="consbytestring-03">consByteString-03</h2>
+
+<pre class="Agda"><a id="1730" class="Comment">-- builtin/semantics/consByteString/consByteString-03</a>
+<a id="test-consByteString-03"></a><a id="1784" href="Conformance.Builtin.Semantics.ConsByteString.html#1784" class="Function">test-consByteString-03</a> <a id="1807" class="Symbol">:</a> <a id="1809" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1817" href="Conformance.Builtin.Semantics.ConsByteString.html#1784" class="Function">test-consByteString-03</a> <a id="1840" class="Symbol">=</a> <a id="1842" class="Symbol">(</a><a id="1843" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1848" class="Symbol">(</a><a id="1849" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1854" class="Symbol">(</a><a id="1855" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1864" href="Builtin.html#2137" class="InductiveConstructor">consByteString</a><a id="1878" class="Symbol">)</a> <a id="1880" class="Symbol">(</a><a id="1881" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1886" class="Symbol">(</a><a id="1887" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1894" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1902" class="Symbol">(</a><a id="1903" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1909" class="Number">84</a><a id="1911" class="Symbol">))))</a> <a id="1916" class="Symbol">(</a><a id="1917" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1922" class="Symbol">(</a><a id="1923" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1930" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1941" class="Symbol">(</a><a id="1942" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1955" class="String">&quot;heCakeIsALie&quot;</a><a id="1969" class="Symbol">))))</a>
+
+<a id="expected-consByteString-03"></a><a id="1975" href="Conformance.Builtin.Semantics.ConsByteString.html#1975" class="Function">expected-consByteString-03</a> <a id="2002" class="Symbol">:</a> <a id="2004" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="2011" href="Conformance.Builtin.Semantics.ConsByteString.html#1975" class="Function">expected-consByteString-03</a> <a id="2038" class="Symbol">=</a> <a id="2040" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="2048" class="Symbol">(</a><a id="2049" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2054" class="Symbol">(</a><a id="2055" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2062" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="2073" class="Symbol">(</a><a id="2074" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="2087" class="String">&quot;TheCakeIsALie&quot;</a><a id="2102" class="Symbol">)))</a>
+
+<a id="2107" class="Comment">-- Pending: bytestring constant; postulated builtin `consByteString`.</a>
+<a id="pending-consByteString-03"></a><a id="2177" href="Conformance.Builtin.Semantics.ConsByteString.html#2177" class="Function">pending-consByteString-03</a> <a id="2203" class="Symbol">:</a> <a id="2205" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="2209" href="Conformance.Builtin.Semantics.ConsByteString.html#2177" class="Function">pending-consByteString-03</a> <a id="2235" class="Symbol">=</a> <a id="2237" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="2245" class="Symbol">(</a><a id="2246" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2254" href="Conformance.Builtin.Semantics.ConsByteString.html#1784" class="Function">test-consByteString-03</a> <a id="2277" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2279" href="Conformance.Builtin.Semantics.ConsByteString.html#1975" class="Function">expected-consByteString-03</a><a id="2305" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

@@ -1,0 +1,645 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    4 </span>{-# LANGUAGE FunctionalDependencies #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>{-# LANGUAGE StrictData #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    8 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    9 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-| The internal module of the type checker that defines the actual algorithms,
+<span class="lineno">   12 </span>but not the user-facing API. -}
+<span class="lineno">   13 </span>module PlutusCore.TypeCheck.Internal
+<span class="lineno">   14 </span>  ( -- export all because a lot are used by the pir-typechecker
+<span class="lineno">   15 </span>    module PlutusCore.TypeCheck.Internal
+<span class="lineno">   16 </span>  , MonadNormalizeType
+<span class="lineno">   17 </span>  ) where
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import PlutusCore.Builtin
+<span class="lineno">   20 </span>import PlutusCore.Core.Type (Kind (..), Normalized (..), Term (..), Type (..), toPatFuncKind)
+<span class="lineno">   21 </span>import PlutusCore.Error (ExpectedShapeOr (ExpectedExact, ExpectedShape), TypeError (..))
+<span class="lineno">   22 </span>import PlutusCore.MkPlc (mkIterTyAppNoAnn, mkIterTyFun, mkTyBuiltinOf)
+<span class="lineno">   23 </span>import PlutusCore.Name.Unique
+<span class="lineno">   24 </span>  ( HasText (theText)
+<span class="lineno">   25 </span>  , Name (Name)
+<span class="lineno">   26 </span>  , Named (Named)
+<span class="lineno">   27 </span>  , TermUnique
+<span class="lineno">   28 </span>  , TyName (TyName)
+<span class="lineno">   29 </span>  , TypeUnique
+<span class="lineno">   30 </span>  , theUnique
+<span class="lineno">   31 </span>  )
+<span class="lineno">   32 </span>import PlutusCore.Name.UniqueMap (UniqueMap, insertNamed, lookupName)
+<span class="lineno">   33 </span>import PlutusCore.Normalize.Internal (MonadNormalizeType)
+<span class="lineno">   34 </span>import PlutusCore.Normalize.Internal qualified as Norm
+<span class="lineno">   35 </span>import PlutusCore.Quote (MonadQuote (liftQuote), freshTyName)
+<span class="lineno">   36 </span>import PlutusCore.Rename (Dupable, Rename (rename), dupable, liftDupable)
+<span class="lineno">   37 </span>import PlutusPrelude (Lens', lens, over, view, void, zipExact, (&lt;&lt;$&gt;&gt;), (&lt;&lt;*&gt;&gt;), (^.))
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>import Control.Lens (Ixed (ix), makeClassy, makeLenses, preview, (^?))
+<span class="lineno">   40 </span>import Control.Monad (when)
+<span class="lineno">   41 </span>import Control.Monad.Except (MonadError, throwError)
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>-- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
+<span class="lineno">   44 </span>-- on 'local'.
+<span class="lineno">   45 </span>import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, local)
+<span class="lineno">   46 </span>import Data.Array (Array, Ix)
+<span class="lineno">   47 </span>import Data.Foldable (for_)
+<span class="lineno">   48 </span>import Data.List.Extras (wix)
+<span class="lineno">   49 </span>import Data.Text qualified as Text
+<span class="lineno">   50 </span>import Universe.Core (GEq, Some (Some), SomeTypeIn (SomeTypeIn), ValueOf (ValueOf))
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>{- Note [Global uniqueness in the type checker]
+<span class="lineno">   53 </span>WARNING: type inference/checking works under the assumption that the global uniqueness condition
+<span class="lineno">   54 </span>is satisfied. The invariant is not checked, enforced or automatically fulfilled. So you must ensure
+<span class="lineno">   55 </span>that the global uniqueness condition is satisfied before calling 'inferTypeM' or 'checkTypeM'.
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>The invariant is preserved. In future we will enforce the invariant.
+<span class="lineno">   58 </span>-}
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span>{- Note [Typing rules]
+<span class="lineno">   61 </span>We write type rules in the bidirectional style.
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>[infer| G !- x : a] -- means that the inferred type of 'x' in the context 'G' is 'a'.
+<span class="lineno">   64 </span>'a' is not necessary a varible, e.g. [infer| G !- fun : dom -&gt; cod] is fine too.
+<span class="lineno">   65 </span>It reads as follows: &quot;infer the type of 'fun' in the context 'G', check that it's functional and
+<span class="lineno">   66 </span>bind the 'dom' variable to the domain and the 'cod' variable to the codomain of this type&quot;.
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>Analogously, [infer| G !- t :: k] means that the inferred kind of 't' in the context 'G' is 'k'.
+<span class="lineno">   69 </span>The [infer| G !- x : a] judgement appears in conclusions in the clauses of the 'inferTypeM'
+<span class="lineno">   70 </span>function.
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>[check| G !- x : a] -- check that the type of 'x' in the context 'G' is 'a'.
+<span class="lineno">   73 </span>Since Plutus Core is a fully elaborated language, this amounts to inferring the type of 'x' and
+<span class="lineno">   74 </span>checking that it's equal to 'a'.
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>Analogously, [check| G !- t :: k] means &quot;check that the kind of 't' in the context 'G' is 'k'&quot;.
+<span class="lineno">   77 </span>The [check| G !- x : a] judgement appears in the conclusion in the sole clause of
+<span class="lineno">   78 </span>the 'checkTypeM' function.
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>The equality check is denoted as &quot;a ~ b&quot;.
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>We use unified contexts in rules, i.e. a context can carry type variables as well as term variables.
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>The &quot;NORM a&quot; notation reads as &quot;normalize 'a'&quot;.
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>The &quot;a ~&gt; b&quot; notations reads as &quot;normalize 'a' to 'b'&quot;.
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>Functions that can fail start with either @infer@ or @check@ prefixes,
+<span class="lineno">   89 </span>functions that cannot fail look like this:
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>    kindOfBuiltinType
+<span class="lineno">   92 </span>    typeOfBuiltinFunction
+<span class="lineno">   93 </span>-}
+<span class="lineno">   94 </span>
+<span class="lineno">   95 </span>-- ######################
+<span class="lineno">   96 </span>-- ## Type definitions ##
+<span class="lineno">   97 </span>-- ######################
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>-- | Mapping from 'Builtin's to their 'Normalized' 'Type's.
+<span class="lineno">  100 </span>newtype BuiltinTypes uni fun = BuiltinTypes
+<span class="lineno">  101 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unBuiltinTypes</span></span></span> :: Array fun (Dupable (Normalized (Type TyName uni ())))
+<span class="lineno">  102 </span>  }
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>type TyVarKinds = UniqueMap TypeUnique (Named (Kind ()))
+<span class="lineno">  105 </span>type VarTypes uni = UniqueMap TermUnique (Named (Dupable (Normalized (Type TyName uni ()))))
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>{-| Decides what to do upon encountering a variable whose name doesn't match the name of the
+<span class="lineno">  108 </span>variable with the same unique that is currently in the scope. Consider for example this type:
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span>    \(a_0 :: *) (b_0 :: *) -&gt; a_0
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>here @b_0@ shadows @a_0@ and so any variable having the @0@th unique within the body of the
+<span class="lineno">  113 </span>lambda references @b_0@, but we have @a_0@ there and so there's a name mismatch. Technically,
+<span class="lineno">  114 </span>it's not a type error to have a name mismatch, because uniques are the single source of truth,
+<span class="lineno">  115 </span>however a name mismatch is deeply suspicious and is likely to be caused by a bug somewhere.
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span>We perform the same check for term-level variables too. -}
+<span class="lineno">  118 </span>data HandleNameMismatches
+<span class="lineno">  119 </span>  = -- | Throw upon encountering such a name.
+<span class="lineno">  120 </span>    DetectNameMismatches
+<span class="lineno">  121 </span>  | -- | Ignore it.
+<span class="lineno">  122 </span>    IgnoreNameMismatches
+<span class="lineno">  123 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  124 </span>
+<span class="lineno">  125 </span>{- Note [Alignment of kind and type checker configs]
+<span class="lineno">  126 </span>Kind checking is performed as a part of type checking meaning we always need a kind checking config
+<span class="lineno">  127 </span>whenever a type checking one is required. There are three ways we can align the two sorts of config:
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>1. store them separately and require the caller to provide both
+<span class="lineno">  130 </span>2. put the type checking config into the kind checking config
+<span class="lineno">  131 </span>3. put the kind checking config into the type checking config
+<span class="lineno">  132 </span>
+<span class="lineno">  133 </span>1 is straightforward, but makes the caller provide one config for kind checking and two configs for
+<span class="lineno">  134 </span>type checking, which is inconsistent boilerplate and so it's not really a good option.
+<span class="lineno">  135 </span>
+<span class="lineno">  136 </span>2 is better: it makes the caller provide only one config: the type checking config stored in the
+<span class="lineno">  137 </span>kind checking config. However that makes the type signatures unwieldy:
+<span class="lineno">  138 </span>
+<span class="lineno">  139 </span>    KindCheckConfig (TypeCheckConfig uni fun) =&gt; &lt;...&gt;
+<span class="lineno">  140 </span>
+<span class="lineno">  141 </span>plus it's kinda weird to put the type checking config inside the kind checking one.
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>3 is what we choose. It makes the caller only worry about the type checking config when doing type
+<span class="lineno">  144 </span>checking, hence no syntactical or semantical overhead, plus it makes the type signatures symmetric:
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>    (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg) =&gt; &lt;...&gt;
+<span class="lineno">  147 </span>
+<span class="lineno">  148 </span>vs
+<span class="lineno">  149 </span>
+<span class="lineno">  150 </span>    (MonadTypeCheck err term uni fun ann m, HasTypeCheckConfig cfg uni fun) =&gt; &lt;...&gt;
+<span class="lineno">  151 </span>
+<span class="lineno">  152 </span>This approach does require a bit of boilerplate at the definition site (see 'HasTypeCheckConfig'),
+<span class="lineno">  153 </span>but it's not much and it doesn't proliferate into user space unlike with the other approaches.
+<span class="lineno">  154 </span>-}
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span>-- | Configuration of the kind checker.
+<span class="lineno">  157 </span>newtype KindCheckConfig = KindCheckConfig
+<span class="lineno">  158 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_kccHandleNameMismatches</span></span></span> :: HandleNameMismatches
+<span class="lineno">  159 </span>  }
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff">makeClassy ''KindCheckConfig</span></span></span></span></span>
+<span class="lineno">  162 </span>
+<span class="lineno">  163 </span>-- | Configuration of the type checker.
+<span class="lineno">  164 </span>data TypeCheckConfig uni fun = TypeCheckConfig
+<span class="lineno">  165 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">_tccKindCheckConfig</span></span></span> :: KindCheckConfig
+<span class="lineno">  166 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_tccBuiltinTypes</span></span></span> :: BuiltinTypes uni fun
+<span class="lineno">  167 </span>  }
+<span class="lineno">  168 </span>
+<span class="lineno">  169 </span>{-| We want 'HasKindCheckConfig' to be a superclass of 'HasTypeCheckConfig' for being able to
+<span class="lineno">  170 </span>seamlessly call the kind checker from the type checker, hence we're rolling out our own
+<span class="lineno">  171 </span>'makeClassy' here just to add the constraint. -}
+<span class="lineno">  172 </span>class HasKindCheckConfig cfg =&gt; HasTypeCheckConfig cfg uni fun | cfg -&gt; uni fun where
+<span class="lineno">  173 </span>  typeCheckConfig :: Lens' cfg (TypeCheckConfig uni fun)
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>  tccKindCheckConfig :: Lens' cfg KindCheckConfig
+<span class="lineno">  176 </span>  <span class="decl"><span class="istickedoff">tccKindCheckConfig =</span>
+<span class="lineno">  177 </span><span class="spaces">    </span><span class="istickedoff">typeCheckConfig . lens _tccKindCheckConfig <span class="nottickedoff">(\s b -&gt; s {_tccKindCheckConfig = b})</span></span></span>
+<span class="lineno">  178 </span>
+<span class="lineno">  179 </span>  tccBuiltinTypes :: Lens' cfg (BuiltinTypes uni fun)
+<span class="lineno">  180 </span>  <span class="decl"><span class="istickedoff">tccBuiltinTypes =</span>
+<span class="lineno">  181 </span><span class="spaces">    </span><span class="istickedoff">typeCheckConfig . lens _tccBuiltinTypes <span class="nottickedoff">(\s b -&gt; s {_tccBuiltinTypes = b})</span></span></span>
+<span class="lineno">  182 </span>
+<span class="lineno">  183 </span>instance <span class="decl"><span class="istickedoff">HasKindCheckConfig (TypeCheckConfig uni fun)</span></span> where
+<span class="lineno">  184 </span>  <span class="decl"><span class="istickedoff">kindCheckConfig = tccKindCheckConfig</span></span>
+<span class="lineno">  185 </span>
+<span class="lineno">  186 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">HasTypeCheckConfig (TypeCheckConfig uni fun) uni fun</span></span></span></span> where
+<span class="lineno">  187 </span>  <span class="decl"><span class="istickedoff">typeCheckConfig = id</span></span>
+<span class="lineno">  188 </span>
+<span class="lineno">  189 </span>-- | The environment that the type checker runs in.
+<span class="lineno">  190 </span>data TypeCheckEnv uni fun cfg = TypeCheckEnv
+<span class="lineno">  191 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_tceTypeCheckConfig</span></span></span> :: cfg
+<span class="lineno">  192 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_tceTyVarKinds</span></span></span> :: TyVarKinds
+<span class="lineno">  193 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_tceVarTypes</span></span></span> :: VarTypes uni
+<span class="lineno">  194 </span>  }
+<span class="lineno">  195 </span>
+<span class="lineno">  196 </span><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">makeLenses ''TypeCheckEnv</span></span></span></span></span></span></span>
+<span class="lineno">  197 </span>
+<span class="lineno">  198 </span>{-| The type checking monad that the type checker runs in.
+<span class="lineno">  199 </span>In contains a 'TypeCheckEnv' and allows to throw 'TypeError's. -}
+<span class="lineno">  200 </span>type TypeCheckT uni fun cfg m = ReaderT (TypeCheckEnv uni fun cfg) m
+<span class="lineno">  201 </span>
+<span class="lineno">  202 </span>-- | The constraints that are required for kind checking.
+<span class="lineno">  203 </span>type MonadKindCheck err term uni fun ann m =
+<span class="lineno">  204 </span>  ( MonadError err m -- Kind/type checking can fail
+<span class="lineno">  205 </span>  , ToKind uni -- For getting the kind of a built-in type.
+<span class="lineno">  206 </span>  )
+<span class="lineno">  207 </span>
+<span class="lineno">  208 </span>-- | The general constraints that are required for type checking a Plutus AST.
+<span class="lineno">  209 </span>type MonadTypeCheck err term uni fun ann m =
+<span class="lineno">  210 </span>  ( MonadKindCheck err term uni fun ann m -- Kind checking is run during type checking (this
+<span class="lineno">  211 </span>  -- includes the constraint for throwing errors).
+<span class="lineno">  212 </span>  , Norm.MonadNormalizeType uni m -- Type lambdas open up type computation.
+<span class="lineno">  213 </span>  , AnnotateCaseBuiltin uni
+<span class="lineno">  214 </span>  , GEq uni -- For checking equality of built-in types.
+<span class="lineno">  215 </span>  , Ix fun -- For indexing into the precomputed array of
+<span class="lineno">  216 </span>  -- types of built-in functions.
+<span class="lineno">  217 </span>  )
+<span class="lineno">  218 </span>
+<span class="lineno">  219 </span>-- | The PLC type error type.
+<span class="lineno">  220 </span>type TypeErrorPlc uni fun ann = TypeError (Term TyName Name uni fun ()) uni fun ann
+<span class="lineno">  221 </span>
+<span class="lineno">  222 </span>-- | The constraints that are required for type checking Plutus Core.
+<span class="lineno">  223 </span>type MonadTypeCheckPlc uni fun ann m =
+<span class="lineno">  224 </span>  MonadTypeCheck
+<span class="lineno">  225 </span>    (TypeErrorPlc uni fun ann)
+<span class="lineno">  226 </span>    (Term TyName Name uni fun ())
+<span class="lineno">  227 </span>    uni
+<span class="lineno">  228 </span>    fun
+<span class="lineno">  229 </span>    ann
+<span class="lineno">  230 </span>    m
+<span class="lineno">  231 </span>
+<span class="lineno">  232 </span>-- #########################
+<span class="lineno">  233 </span>-- ## Auxiliary functions ##
+<span class="lineno">  234 </span>-- #########################
+<span class="lineno">  235 </span>
+<span class="lineno">  236 </span>{-| Run a 'TypeCheckM' computation by supplying a 'TypeCheckConfig' to it.
+<span class="lineno">  237 </span>
+<span class="lineno">  238 </span>Used for both type and kind checking, because we need to do kind checking during type checking
+<span class="lineno">  239 </span>and so it makes sense to keep a single monad. However type checking requires a 'TypeCheckConfig',
+<span class="lineno">  240 </span>while kind checking doesn't, hence we keep the kind checker fully polymorphic over the type of
+<span class="lineno">  241 </span>config, so that the kinder checker can be run with an empty config (such as @()@) and access to
+<span class="lineno">  242 </span>a 'TypeCheckConfig' is not needed. -}
+<span class="lineno">  243 </span>runTypeCheckM :: cfg -&gt; TypeCheckT uni fun cfg m a -&gt; m a
+<span class="lineno">  244 </span><span class="decl"><span class="istickedoff">runTypeCheckM config a = runReaderT a $ TypeCheckEnv config mempty mempty</span></span>
+<span class="lineno">  245 </span>
+<span class="lineno">  246 </span>-- | Extend the context of a 'TypeCheckM' computation with a kinded variable.
+<span class="lineno">  247 </span>withTyVar :: TyName -&gt; Kind () -&gt; TypeCheckT uni fun cfg m a -&gt; TypeCheckT uni fun cfg m a
+<span class="lineno">  248 </span><span class="decl"><span class="istickedoff">withTyVar name = local . over tceTyVarKinds . insertNamed name</span></span>
+<span class="lineno">  249 </span>
+<span class="lineno">  250 </span>-- | Look up the type of a built-in function.
+<span class="lineno">  251 </span>lookupBuiltinM
+<span class="lineno">  252 </span>  :: (MonadTypeCheck (TypeError term uni fun ann) term uni fun ann m, HasTypeCheckConfig cfg uni fun)
+<span class="lineno">  253 </span>  =&gt; ann -&gt; fun -&gt; TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
+<span class="lineno">  254 </span><span class="decl"><span class="istickedoff">lookupBuiltinM ann fun = do</span>
+<span class="lineno">  255 </span><span class="spaces">  </span><span class="istickedoff">BuiltinTypes arr &lt;- view $ tceTypeCheckConfig . tccBuiltinTypes</span>
+<span class="lineno">  256 </span><span class="spaces">  </span><span class="istickedoff">-- Believe it or not, but 'Data.Array' doesn't seem to expose any way of indexing into an array</span>
+<span class="lineno">  257 </span><span class="spaces">  </span><span class="istickedoff">-- safely.</span>
+<span class="lineno">  258 </span><span class="spaces">  </span><span class="istickedoff">case preview (ix fun) arr of</span>
+<span class="lineno">  259 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; <span class="nottickedoff">throwError $ UnknownBuiltinFunctionE ann fun</span></span>
+<span class="lineno">  260 </span><span class="spaces">    </span><span class="istickedoff">Just ty -&gt; liftDupable ty</span></span>
+<span class="lineno">  261 </span>
+<span class="lineno">  262 </span>-- | Extend the context of a 'TypeCheckM' computation with a typed variable.
+<span class="lineno">  263 </span>withVar
+<span class="lineno">  264 </span>  :: Name
+<span class="lineno">  265 </span>  -&gt; Normalized (Type TyName uni ())
+<span class="lineno">  266 </span>  -&gt; TypeCheckT uni fun cfg m a
+<span class="lineno">  267 </span>  -&gt; TypeCheckT uni fun cfg m a
+<span class="lineno">  268 </span><span class="decl"><span class="istickedoff">withVar name = local . over tceVarTypes . insertNamed name . dupable</span></span>
+<span class="lineno">  269 </span>
+<span class="lineno">  270 </span>-- | Look up a type variable in the current context.
+<span class="lineno">  271 </span>lookupTyVarM
+<span class="lineno">  272 </span>  :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, HasKindCheckConfig cfg)
+<span class="lineno">  273 </span>  =&gt; ann -&gt; TyName -&gt; TypeCheckT uni fun cfg m (Kind ())
+<span class="lineno">  274 </span><span class="decl"><span class="istickedoff">lookupTyVarM ann name = do</span>
+<span class="lineno">  275 </span><span class="spaces">  </span><span class="istickedoff">env &lt;- ask</span>
+<span class="lineno">  276 </span><span class="spaces">  </span><span class="istickedoff">let handleNameMismatches = env ^. tceTypeCheckConfig . kccHandleNameMismatches</span>
+<span class="lineno">  277 </span><span class="spaces">  </span><span class="istickedoff">case lookupName name $ _tceTyVarKinds env of</span>
+<span class="lineno">  278 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; throwError $ FreeTypeVariableE ann name</span>
+<span class="lineno">  279 </span><span class="spaces">    </span><span class="istickedoff">Just (Named nameOrig kind) -&gt;</span>
+<span class="lineno">  280 </span><span class="spaces">      </span><span class="istickedoff">if handleNameMismatches == IgnoreNameMismatches || view theText name == nameOrig</span>
+<span class="lineno">  281 </span><span class="spaces">        </span><span class="istickedoff">then pure kind</span>
+<span class="lineno">  282 </span><span class="spaces">        </span><span class="istickedoff">else</span>
+<span class="lineno">  283 </span><span class="spaces">          </span><span class="istickedoff">throwError $</span>
+<span class="lineno">  284 </span><span class="spaces">            </span><span class="istickedoff">TyNameMismatch ann (TyName . Name <span class="nottickedoff">nameOrig</span> $ <span class="nottickedoff">name ^. theUnique</span>) name</span></span>
+<span class="lineno">  285 </span>
+<span class="lineno">  286 </span>-- | Look up a term variable in the current context.
+<span class="lineno">  287 </span>lookupVarM
+<span class="lineno">  288 </span>  :: (MonadTypeCheck (TypeError term uni fun ann) term uni fun ann m, HasTypeCheckConfig cfg uni fun)
+<span class="lineno">  289 </span>  =&gt; ann -&gt; Name -&gt; TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
+<span class="lineno">  290 </span><span class="decl"><span class="istickedoff">lookupVarM ann name = do</span>
+<span class="lineno">  291 </span><span class="spaces">  </span><span class="istickedoff">env &lt;- ask</span>
+<span class="lineno">  292 </span><span class="spaces">  </span><span class="istickedoff">let handleNameMismatches =</span>
+<span class="lineno">  293 </span><span class="spaces">        </span><span class="istickedoff">env ^. tceTypeCheckConfig . tccKindCheckConfig . kccHandleNameMismatches</span>
+<span class="lineno">  294 </span><span class="spaces">  </span><span class="istickedoff">case lookupName name $ _tceVarTypes env of</span>
+<span class="lineno">  295 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; <span class="nottickedoff">throwError $ FreeVariableE ann name</span></span>
+<span class="lineno">  296 </span><span class="spaces">    </span><span class="istickedoff">Just (Named nameOrig ty) -&gt;</span>
+<span class="lineno">  297 </span><span class="spaces">      </span><span class="istickedoff">if handleNameMismatches == IgnoreNameMismatches || view theText name == nameOrig</span>
+<span class="lineno">  298 </span><span class="spaces">        </span><span class="istickedoff">then liftDupable ty</span>
+<span class="lineno">  299 </span><span class="spaces">        </span><span class="istickedoff">else</span>
+<span class="lineno">  300 </span><span class="spaces">          </span><span class="istickedoff">throwError $</span>
+<span class="lineno">  301 </span><span class="spaces">            </span><span class="istickedoff">NameMismatch ann (Name <span class="nottickedoff">nameOrig</span> $ <span class="nottickedoff">name ^. theUnique</span>) name</span></span>
+<span class="lineno">  302 </span>
+<span class="lineno">  303 </span>-- ########################
+<span class="lineno">  304 </span>-- ## Type normalization ##
+<span class="lineno">  305 </span>-- ########################
+<span class="lineno">  306 </span>
+<span class="lineno">  307 </span>-- | Normalize a 'Type'.
+<span class="lineno">  308 </span>normalizeTypeM
+<span class="lineno">  309 </span>  :: MonadNormalizeType uni m
+<span class="lineno">  310 </span>  =&gt; Type TyName uni ann
+<span class="lineno">  311 </span>  -&gt; TypeCheckT uni fun cfg m (Normalized (Type TyName uni ann))
+<span class="lineno">  312 </span><span class="decl"><span class="istickedoff">normalizeTypeM ty = Norm.runNormalizeTypeT $ Norm.normalizeTypeM ty</span></span>
+<span class="lineno">  313 </span>
+<span class="lineno">  314 </span>-- | Substitute a type for a variable in a type and normalize the result.
+<span class="lineno">  315 </span>substNormalizeTypeM
+<span class="lineno">  316 </span>  :: MonadNormalizeType uni m
+<span class="lineno">  317 </span>  =&gt; Normalized (Type TyName uni ())
+<span class="lineno">  318 </span>  -- ^ @ty@
+<span class="lineno">  319 </span>  -&gt; TyName
+<span class="lineno">  320 </span>  -- ^ @name@
+<span class="lineno">  321 </span>  -&gt; Type TyName uni ()
+<span class="lineno">  322 </span>  -- ^ @body@
+<span class="lineno">  323 </span>  -&gt; TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
+<span class="lineno">  324 </span><span class="decl"><span class="istickedoff">substNormalizeTypeM ty name body = Norm.runNormalizeTypeT $ Norm.substNormalizeTypeM ty name body</span></span>
+<span class="lineno">  325 </span>
+<span class="lineno">  326 </span>-- ###################
+<span class="lineno">  327 </span>-- ## Kind checking ##
+<span class="lineno">  328 </span>-- ###################
+<span class="lineno">  329 </span>
+<span class="lineno">  330 </span>-- | Infer the kind of a type.
+<span class="lineno">  331 </span>inferKindM
+<span class="lineno">  332 </span>  :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, HasKindCheckConfig cfg)
+<span class="lineno">  333 </span>  =&gt; Type TyName uni ann -&gt; TypeCheckT uni fun cfg m (Kind ())
+<span class="lineno">  334 </span>-- b :: k
+<span class="lineno">  335 </span>-- ------------------------
+<span class="lineno">  336 </span>-- [infer| G !- con b :: k]
+<span class="lineno">  337 </span><span class="decl"><span class="istickedoff">inferKindM (TyBuiltin _ (SomeTypeIn uni)) =</span>
+<span class="lineno">  338 </span><span class="spaces">  </span><span class="istickedoff">pure $ kindOfBuiltinType uni</span>
+<span class="lineno">  339 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- v :: k]</span>
+<span class="lineno">  340 </span><span class="spaces"></span><span class="istickedoff">-- ------------------------</span>
+<span class="lineno">  341 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- var v :: k]</span>
+<span class="lineno">  342 </span><span class="spaces"></span><span class="istickedoff">inferKindM (TyVar ann v) =</span>
+<span class="lineno">  343 </span><span class="spaces">  </span><span class="istickedoff">lookupTyVarM ann v</span>
+<span class="lineno">  344 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G , n :: dom !- body :: cod]</span>
+<span class="lineno">  345 </span><span class="spaces"></span><span class="istickedoff">-- -------------------------------------------------</span>
+<span class="lineno">  346 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- (\(n :: dom) -&gt; body) :: dom -&gt; cod]</span>
+<span class="lineno">  347 </span><span class="spaces"></span><span class="istickedoff">inferKindM (TyLam _ n dom body) = do</span>
+<span class="lineno">  348 </span><span class="spaces">  </span><span class="istickedoff">let dom_ = void dom</span>
+<span class="lineno">  349 </span><span class="spaces">  </span><span class="istickedoff">withTyVar n dom_ $ KindArrow () dom_ &lt;$&gt; inferKindM body</span>
+<span class="lineno">  350 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  351 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- fun :: dom -&gt; cod]    [check| G !- arg :: dom]</span>
+<span class="lineno">  352 </span><span class="spaces"></span><span class="istickedoff">-- -----------------------------------------------------------</span>
+<span class="lineno">  353 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- fun arg :: cod]</span>
+<span class="lineno">  354 </span><span class="spaces"></span><span class="istickedoff">inferKindM (TyApp ann fun arg) = do</span>
+<span class="lineno">  355 </span><span class="spaces">  </span><span class="istickedoff">funKind &lt;- inferKindM fun</span>
+<span class="lineno">  356 </span><span class="spaces">  </span><span class="istickedoff">case funKind of</span>
+<span class="lineno">  357 </span><span class="spaces">    </span><span class="istickedoff">KindArrow _ dom cod -&gt; do</span>
+<span class="lineno">  358 </span><span class="spaces">      </span><span class="istickedoff">checkKindM <span class="nottickedoff">ann</span> arg dom</span>
+<span class="lineno">  359 </span><span class="spaces">      </span><span class="istickedoff">pure cod</span>
+<span class="lineno">  360 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">do</span></span>
+<span class="lineno">  361 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">let expectedKindArrow = ExpectedShape &quot;fun k l&quot; [&quot;k&quot;, &quot;l&quot;]</span></span>
+<span class="lineno">  362 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">throwError $ KindMismatch ann (void fun) expectedKindArrow funKind</span></span>
+<span class="lineno">  363 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  364 </span><span class="spaces"></span><span class="istickedoff">-- [check| G !- a :: *]    [check| G !- b :: *]</span>
+<span class="lineno">  365 </span><span class="spaces"></span><span class="istickedoff">-- --------------------------------------------</span>
+<span class="lineno">  366 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- a -&gt; b :: *]</span>
+<span class="lineno">  367 </span><span class="spaces"></span><span class="istickedoff">inferKindM (TyFun ann dom cod) = do</span>
+<span class="lineno">  368 </span><span class="spaces">  </span><span class="istickedoff">checkKindM <span class="nottickedoff">ann</span> dom $ Type ()</span>
+<span class="lineno">  369 </span><span class="spaces">  </span><span class="istickedoff">checkKindM <span class="nottickedoff">ann</span> cod $ Type ()</span>
+<span class="lineno">  370 </span><span class="spaces">  </span><span class="istickedoff">pure $ Type ()</span>
+<span class="lineno">  371 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  372 </span><span class="spaces"></span><span class="istickedoff">-- [check| G , n :: k !- body :: *]</span>
+<span class="lineno">  373 </span><span class="spaces"></span><span class="istickedoff">-- ---------------------------------------</span>
+<span class="lineno">  374 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- (all (n :: k). body) :: *]</span>
+<span class="lineno">  375 </span><span class="spaces"></span><span class="istickedoff">inferKindM (TyForall ann n k body) = do</span>
+<span class="lineno">  376 </span><span class="spaces">  </span><span class="istickedoff">withTyVar n (void k) $ checkKindM <span class="nottickedoff">ann</span> body (Type ())</span>
+<span class="lineno">  377 </span><span class="spaces">  </span><span class="istickedoff">pure $ Type ()</span>
+<span class="lineno">  378 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  379 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- arg :: k]    [check| G !- pat :: (k -&gt; *) -&gt; k -&gt; *]</span>
+<span class="lineno">  380 </span><span class="spaces"></span><span class="istickedoff">-- -----------------------------------------------------------------</span>
+<span class="lineno">  381 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- ifix pat arg :: *]</span>
+<span class="lineno">  382 </span><span class="spaces"></span><span class="istickedoff">inferKindM (TyIFix ann pat arg) = do</span>
+<span class="lineno">  383 </span><span class="spaces">  </span><span class="istickedoff">k &lt;- inferKindM arg</span>
+<span class="lineno">  384 </span><span class="spaces">  </span><span class="istickedoff">checkKindM <span class="nottickedoff">ann</span> pat $ toPatFuncKind k</span>
+<span class="lineno">  385 </span><span class="spaces">  </span><span class="istickedoff">pure $ Type ()</span>
+<span class="lineno">  386 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  387 </span><span class="spaces"></span><span class="istickedoff">-- s_0 = [p_0_0 ... p_0_m]   [check| G !- p_0_0 :: *] ... [check| G !- p_0_m :: *]</span>
+<span class="lineno">  388 </span><span class="spaces"></span><span class="istickedoff">-- ...</span>
+<span class="lineno">  389 </span><span class="spaces"></span><span class="istickedoff">-- s_n = [p_n_0 ... p_n_m]   [check| G !- p_n_0 :: *] ... [check| G !- p_n_m :: *]</span>
+<span class="lineno">  390 </span><span class="spaces"></span><span class="istickedoff">-- -------------------------------------------------------------------------------</span>
+<span class="lineno">  391 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- sop s_0 ... s_n :: *]</span>
+<span class="lineno">  392 </span><span class="spaces"></span><span class="istickedoff">inferKindM (TySOP ann tyls) = do</span>
+<span class="lineno">  393 </span><span class="spaces">  </span><span class="istickedoff">for_ tyls $ \tyl -&gt; for_ tyl $ \ty -&gt; checkKindM <span class="nottickedoff">ann</span> ty (Type ())</span>
+<span class="lineno">  394 </span><span class="spaces">  </span><span class="istickedoff">pure $ Type ()</span></span>
+<span class="lineno">  395 </span>
+<span class="lineno">  396 </span>-- | Check a 'Type' against a 'Kind'.
+<span class="lineno">  397 </span>checkKindM
+<span class="lineno">  398 </span>  :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, HasKindCheckConfig cfg)
+<span class="lineno">  399 </span>  =&gt; ann -&gt; Type TyName uni ann -&gt; Kind () -&gt; TypeCheckT uni fun cfg m ()
+<span class="lineno">  400 </span>-- [infer| G !- ty : tyK]    tyK ~ k
+<span class="lineno">  401 </span>-- ---------------------------------
+<span class="lineno">  402 </span>-- [check| G !- ty : k]
+<span class="lineno">  403 </span><span class="decl"><span class="istickedoff">checkKindM ann ty k = do</span>
+<span class="lineno">  404 </span><span class="spaces">  </span><span class="istickedoff">tyK &lt;- inferKindM ty</span>
+<span class="lineno">  405 </span><span class="spaces">  </span><span class="istickedoff">when (tyK /= k) $ throwError (KindMismatch ann (void ty) (ExpectedExact k) tyK)</span></span>
+<span class="lineno">  406 </span>
+<span class="lineno">  407 </span>-- ###################
+<span class="lineno">  408 </span>-- ## Type checking ##
+<span class="lineno">  409 </span>-- ###################
+<span class="lineno">  410 </span>
+<span class="lineno">  411 </span>-- | @unfoldIFixOf pat arg k = NORM (vPat (\(a :: k) -&gt; ifix vPat a) arg)@
+<span class="lineno">  412 </span>unfoldIFixOf
+<span class="lineno">  413 </span>  :: MonadNormalizeType uni m
+<span class="lineno">  414 </span>  =&gt; Normalized (Type TyName uni ())
+<span class="lineno">  415 </span>  -- ^ @vPat@
+<span class="lineno">  416 </span>  -&gt; Normalized (Type TyName uni ())
+<span class="lineno">  417 </span>  -- ^ @vArg@
+<span class="lineno">  418 </span>  -&gt; Kind ()
+<span class="lineno">  419 </span>  -- ^ @k@
+<span class="lineno">  420 </span>  -&gt; TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
+<span class="lineno">  421 </span><span class="decl"><span class="istickedoff">unfoldIFixOf pat arg k = do</span>
+<span class="lineno">  422 </span><span class="spaces">  </span><span class="istickedoff">let vPat = unNormalized pat</span>
+<span class="lineno">  423 </span><span class="spaces">      </span><span class="istickedoff">vArg = unNormalized arg</span>
+<span class="lineno">  424 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- liftQuote $ freshTyName <span class="nottickedoff">&quot;a&quot;</span></span>
+<span class="lineno">  425 </span><span class="spaces">  </span><span class="istickedoff">-- We need to rename @vPat@, otherwise it would be used twice below, which would break global</span>
+<span class="lineno">  426 </span><span class="spaces">  </span><span class="istickedoff">-- uniqueness. Alternatively, we could use 'normalizeType' instead of 'normalizeTypeM' as the</span>
+<span class="lineno">  427 </span><span class="spaces">  </span><span class="istickedoff">-- former performs renaming before doing normalization, but renaming the entire type implicitly</span>
+<span class="lineno">  428 </span><span class="spaces">  </span><span class="istickedoff">-- would be less efficient than renaming a subpart of the type explicitly.</span>
+<span class="lineno">  429 </span><span class="spaces">  </span><span class="istickedoff">--</span>
+<span class="lineno">  430 </span><span class="spaces">  </span><span class="istickedoff">-- Note however that breaking global uniqueness here most likely would not result in buggy</span>
+<span class="lineno">  431 </span><span class="spaces">  </span><span class="istickedoff">-- behavior, see https://github.com/IntersectMBO/plutus/pull/2219#issuecomment-672815272</span>
+<span class="lineno">  432 </span><span class="spaces">  </span><span class="istickedoff">-- But breaking global uniqueness is a bad idea regardless.</span>
+<span class="lineno">  433 </span><span class="spaces">  </span><span class="istickedoff">vPat' &lt;- rename vPat</span>
+<span class="lineno">  434 </span><span class="spaces">  </span><span class="istickedoff">normalizeTypeM $</span>
+<span class="lineno">  435 </span><span class="spaces">    </span><span class="istickedoff">mkIterTyAppNoAnn</span>
+<span class="lineno">  436 </span><span class="spaces">      </span><span class="istickedoff">vPat'</span>
+<span class="lineno">  437 </span><span class="spaces">      </span><span class="istickedoff">[ TyLam <span class="nottickedoff">()</span> a <span class="nottickedoff">k</span> . TyIFix () vPat $ TyVar <span class="nottickedoff">()</span> a</span>
+<span class="lineno">  438 </span><span class="spaces">      </span><span class="istickedoff">, vArg</span>
+<span class="lineno">  439 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">  440 </span>
+<span class="lineno">  441 </span>-- See Note [Global uniqueness in the type checker].
+<span class="lineno">  442 </span>-- See Note [Typing rules].
+<span class="lineno">  443 </span>-- | Synthesize the type of a term, returning a normalized type.
+<span class="lineno">  444 </span>inferTypeM
+<span class="lineno">  445 </span>  :: (MonadTypeCheckPlc uni fun ann m, HasTypeCheckConfig cfg uni fun)
+<span class="lineno">  446 </span>  =&gt; Term TyName Name uni fun ann -&gt; TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
+<span class="lineno">  447 </span>-- c : vTy
+<span class="lineno">  448 </span>-- -------------------------
+<span class="lineno">  449 </span>-- [infer| G !- con c : vTy]
+<span class="lineno">  450 </span><span class="decl"><span class="istickedoff">inferTypeM (Constant _ (Some (ValueOf uni _))) =</span>
+<span class="lineno">  451 </span><span class="spaces">  </span><span class="istickedoff">-- See Note [Normalization of built-in types].</span>
+<span class="lineno">  452 </span><span class="spaces">  </span><span class="istickedoff">normalizeTypeM $ mkTyBuiltinOf () uni</span>
+<span class="lineno">  453 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- bi : vTy]</span>
+<span class="lineno">  454 </span><span class="spaces"></span><span class="istickedoff">-- ------------------------------</span>
+<span class="lineno">  455 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- builtin bi : vTy]</span>
+<span class="lineno">  456 </span><span class="spaces"></span><span class="istickedoff">inferTypeM (Builtin ann fun) =</span>
+<span class="lineno">  457 </span><span class="spaces">  </span><span class="istickedoff">lookupBuiltinM <span class="nottickedoff">ann</span> fun</span>
+<span class="lineno">  458 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- v : ty]    ty ~&gt; vTy</span>
+<span class="lineno">  459 </span><span class="spaces"></span><span class="istickedoff">-- ---------------------------------</span>
+<span class="lineno">  460 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- var v : vTy]</span>
+<span class="lineno">  461 </span><span class="spaces"></span><span class="istickedoff">inferTypeM (Var ann name) =</span>
+<span class="lineno">  462 </span><span class="spaces">  </span><span class="istickedoff">lookupVarM ann name</span>
+<span class="lineno">  463 </span><span class="spaces"></span><span class="istickedoff">-- [check| G !- dom :: *]    dom ~&gt; vDom    [infer| G , n : dom !- body : vCod]</span>
+<span class="lineno">  464 </span><span class="spaces"></span><span class="istickedoff">-- ----------------------------------------------------------------------------</span>
+<span class="lineno">  465 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- lam n dom body : vDom -&gt; vCod]</span>
+<span class="lineno">  466 </span><span class="spaces"></span><span class="istickedoff">inferTypeM (LamAbs ann n dom body) = do</span>
+<span class="lineno">  467 </span><span class="spaces">  </span><span class="istickedoff">checkKindM <span class="nottickedoff">ann</span> dom $ Type ()</span>
+<span class="lineno">  468 </span><span class="spaces">  </span><span class="istickedoff">vDom &lt;- normalizeTypeM $ void dom</span>
+<span class="lineno">  469 </span><span class="spaces">  </span><span class="istickedoff">TyFun () &lt;&lt;$&gt;&gt; pure vDom &lt;&lt;*&gt;&gt; withVar n vDom (inferTypeM body)</span>
+<span class="lineno">  470 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  471 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G , n :: nK !- body : vBodyTy]</span>
+<span class="lineno">  472 </span><span class="spaces"></span><span class="istickedoff">-- ---------------------------------------------------</span>
+<span class="lineno">  473 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- abs n nK body : all (n :: nK) vBodyTy]</span>
+<span class="lineno">  474 </span><span class="spaces"></span><span class="istickedoff">inferTypeM (TyAbs _ n nK body) = do</span>
+<span class="lineno">  475 </span><span class="spaces">  </span><span class="istickedoff">let nK_ = void nK</span>
+<span class="lineno">  476 </span><span class="spaces">  </span><span class="istickedoff">TyForall () n nK_ &lt;&lt;$&gt;&gt; withTyVar n nK_ (inferTypeM body)</span>
+<span class="lineno">  477 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  478 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- fun : vDom -&gt; vCod]    [check| G !- arg : vDom]</span>
+<span class="lineno">  479 </span><span class="spaces"></span><span class="istickedoff">-- ------------------------------------------------------------</span>
+<span class="lineno">  480 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- fun arg : vCod]</span>
+<span class="lineno">  481 </span><span class="spaces"></span><span class="istickedoff">inferTypeM (Apply ann fun arg) = do</span>
+<span class="lineno">  482 </span><span class="spaces">  </span><span class="istickedoff">vFunTy &lt;- inferTypeM fun</span>
+<span class="lineno">  483 </span><span class="spaces">  </span><span class="istickedoff">case unNormalized vFunTy of</span>
+<span class="lineno">  484 </span><span class="spaces">    </span><span class="istickedoff">TyFun _ vDom vCod -&gt; do</span>
+<span class="lineno">  485 </span><span class="spaces">      </span><span class="istickedoff">-- Subparts of a normalized type, so normalized.</span>
+<span class="lineno">  486 </span><span class="spaces">      </span><span class="istickedoff">checkTypeM ann arg $ Normalized vDom</span>
+<span class="lineno">  487 </span><span class="spaces">      </span><span class="istickedoff">pure $ Normalized vCod</span>
+<span class="lineno">  488 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; do</span>
+<span class="lineno">  489 </span><span class="spaces">      </span><span class="istickedoff">let expectedTyFun = ExpectedShape &quot;fun k l&quot; [&quot;k&quot;, &quot;l&quot;]</span>
+<span class="lineno">  490 </span><span class="spaces">      </span><span class="istickedoff">throwError (TypeMismatch ann (void fun) expectedTyFun vFunTy)</span>
+<span class="lineno">  491 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  492 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- body : all (n :: nK) vCod]    [check| G !- ty :: tyK]    ty ~&gt; vTy</span>
+<span class="lineno">  493 </span><span class="spaces"></span><span class="istickedoff">-- -------------------------------------------------------------------------------</span>
+<span class="lineno">  494 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- body {ty} : NORM ([vTy / n] vCod)]</span>
+<span class="lineno">  495 </span><span class="spaces"></span><span class="istickedoff">inferTypeM (TyInst ann body ty) = do</span>
+<span class="lineno">  496 </span><span class="spaces">  </span><span class="istickedoff">vBodyTy &lt;- inferTypeM body</span>
+<span class="lineno">  497 </span><span class="spaces">  </span><span class="istickedoff">case unNormalized vBodyTy of</span>
+<span class="lineno">  498 </span><span class="spaces">    </span><span class="istickedoff">TyForall _ n nK vCod -&gt; do</span>
+<span class="lineno">  499 </span><span class="spaces">      </span><span class="istickedoff">checkKindM ann ty nK</span>
+<span class="lineno">  500 </span><span class="spaces">      </span><span class="istickedoff">vTy &lt;- normalizeTypeM $ void ty</span>
+<span class="lineno">  501 </span><span class="spaces">      </span><span class="istickedoff">substNormalizeTypeM vTy n vCod</span>
+<span class="lineno">  502 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; do</span>
+<span class="lineno">  503 </span><span class="spaces">      </span><span class="istickedoff">let expectedTyForall = ExpectedShape &quot;all a kind body&quot; [&quot;a&quot;, &quot;kind&quot;, &quot;body&quot;]</span>
+<span class="lineno">  504 </span><span class="spaces">      </span><span class="istickedoff">throwError (TypeMismatch ann (void body) expectedTyForall vBodyTy)</span>
+<span class="lineno">  505 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  506 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- arg :: k]    [check| G !- pat :: (k -&gt; *) -&gt; k -&gt; *]    pat ~&gt; vPat    arg ~&gt; vArg</span>
+<span class="lineno">  507 </span><span class="spaces"></span><span class="istickedoff">-- [check| G !- term : NORM (vPat (\(a :: k) -&gt; ifix vPat a) vArg)]</span>
+<span class="lineno">  508 </span><span class="spaces"></span><span class="istickedoff">-- -----------------------------------------------------------------------------------------------</span>
+<span class="lineno">  509 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- iwrap pat arg term : ifix vPat vArg]</span>
+<span class="lineno">  510 </span><span class="spaces"></span><span class="istickedoff">inferTypeM (IWrap ann pat arg term) = do</span>
+<span class="lineno">  511 </span><span class="spaces">  </span><span class="istickedoff">k &lt;- inferKindM arg</span>
+<span class="lineno">  512 </span><span class="spaces">  </span><span class="istickedoff">checkKindM <span class="nottickedoff">ann</span> pat $ toPatFuncKind k</span>
+<span class="lineno">  513 </span><span class="spaces">  </span><span class="istickedoff">vPat &lt;- normalizeTypeM $ void pat</span>
+<span class="lineno">  514 </span><span class="spaces">  </span><span class="istickedoff">vArg &lt;- normalizeTypeM $ void arg</span>
+<span class="lineno">  515 </span><span class="spaces">  </span><span class="istickedoff">checkTypeM <span class="nottickedoff">ann</span> term =&lt;&lt; unfoldIFixOf vPat vArg <span class="nottickedoff">k</span></span>
+<span class="lineno">  516 </span><span class="spaces">  </span><span class="istickedoff">pure $ TyIFix () &lt;$&gt; vPat &lt;*&gt; vArg</span>
+<span class="lineno">  517 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  518 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- term : ifix vPat vArg]    [infer| G !- vArg :: k]</span>
+<span class="lineno">  519 </span><span class="spaces"></span><span class="istickedoff">-- -----------------------------------------------------------------------</span>
+<span class="lineno">  520 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- unwrap term : NORM (vPat (\(a :: k) -&gt; ifix vPat a) vArg)]</span>
+<span class="lineno">  521 </span><span class="spaces"></span><span class="istickedoff">inferTypeM (Unwrap ann term) = do</span>
+<span class="lineno">  522 </span><span class="spaces">  </span><span class="istickedoff">vTermTy &lt;- inferTypeM term</span>
+<span class="lineno">  523 </span><span class="spaces">  </span><span class="istickedoff">case unNormalized vTermTy of</span>
+<span class="lineno">  524 </span><span class="spaces">    </span><span class="istickedoff">TyIFix _ vPat vArg -&gt; do</span>
+<span class="lineno">  525 </span><span class="spaces">      </span><span class="istickedoff">k &lt;- inferKindM $ <span class="nottickedoff">ann</span> &lt;$ vArg</span>
+<span class="lineno">  526 </span><span class="spaces">      </span><span class="istickedoff">-- Subparts of a normalized type, so normalized.</span>
+<span class="lineno">  527 </span><span class="spaces">      </span><span class="istickedoff">unfoldIFixOf (Normalized vPat) (Normalized vArg) <span class="nottickedoff">k</span></span>
+<span class="lineno">  528 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; do</span>
+<span class="lineno">  529 </span><span class="spaces">      </span><span class="istickedoff">let expectedTyIFix = ExpectedShape &quot;ifix pat arg&quot; [&quot;pat&quot;, &quot;arg&quot;]</span>
+<span class="lineno">  530 </span><span class="spaces">      </span><span class="istickedoff">throwError (TypeMismatch ann (void term) expectedTyIFix vTermTy)</span>
+<span class="lineno">  531 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  532 </span><span class="spaces"></span><span class="istickedoff">-- [check| G !- ty :: *]    ty ~&gt; vTy</span>
+<span class="lineno">  533 </span><span class="spaces"></span><span class="istickedoff">-- ----------------------------------</span>
+<span class="lineno">  534 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- error ty : vTy]</span>
+<span class="lineno">  535 </span><span class="spaces"></span><span class="istickedoff">inferTypeM (Error ann ty) = do</span>
+<span class="lineno">  536 </span><span class="spaces">  </span><span class="istickedoff">checkKindM ann ty $ Type ()</span>
+<span class="lineno">  537 </span><span class="spaces">  </span><span class="istickedoff">normalizeTypeM $ void ty</span>
+<span class="lineno">  538 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  539 </span><span class="spaces"></span><span class="istickedoff">-- resTy ~&gt; vResTy     vResTy = sop s_0 ... s_i ... s_n</span>
+<span class="lineno">  540 </span><span class="spaces"></span><span class="istickedoff">-- s_i = [p_i_0 ... p_i_m]   [check| G !- t_0 : p_i_0] ... [check| G !- t_m : p_i_m]</span>
+<span class="lineno">  541 </span><span class="spaces"></span><span class="istickedoff">-- ---------------------------------------------------------------------------------</span>
+<span class="lineno">  542 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- constr resTy i t_0 ... t_m : vResTy]</span>
+<span class="lineno">  543 </span><span class="spaces"></span><span class="istickedoff">inferTypeM t@(Constr ann resTy i args) = do</span>
+<span class="lineno">  544 </span><span class="spaces">  </span><span class="istickedoff">vResTy &lt;- normalizeTypeM $ void resTy</span>
+<span class="lineno">  545 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  546 </span><span class="spaces">  </span><span class="istickedoff">-- We don't know exactly what to expect, we only know what the i-th sum should look like, so we</span>
+<span class="lineno">  547 </span><span class="spaces">  </span><span class="istickedoff">-- assert that we should have some types in the sum up to there, and then the known product type.</span>
+<span class="lineno">  548 </span><span class="spaces">  </span><span class="istickedoff">let</span>
+<span class="lineno">  549 </span><span class="spaces">    </span><span class="istickedoff">-- 'toInteger' is necessary, because @i@ is a @Word64@ and therefore @i - 1@ would be</span>
+<span class="lineno">  550 </span><span class="spaces">    </span><span class="istickedoff">-- @maxBound :: Word64@ for @i = 0@ if we didn't have 'toInteger'.</span>
+<span class="lineno">  551 </span><span class="spaces">    </span><span class="istickedoff">prodPrefix = map <span class="nottickedoff">(\j -&gt; &quot;prod_&quot; &lt;&gt; Text.pack (show j))</span> [0 .. toInteger i - 1]</span>
+<span class="lineno">  552 </span><span class="spaces">    </span><span class="istickedoff">fields = map (\k -&gt; &quot;field_&quot; &lt;&gt; Text.pack (show k)) [0 .. length args - 1]</span>
+<span class="lineno">  553 </span><span class="spaces">    </span><span class="istickedoff">prod_i = &quot;[&quot; &lt;&gt; Text.intercalate <span class="nottickedoff">&quot; &quot;</span> fields &lt;&gt; &quot;]&quot;</span>
+<span class="lineno">  554 </span><span class="spaces">    </span><span class="istickedoff">shape = &quot;sop &quot; &lt;&gt; foldMap <span class="nottickedoff">(&lt;&gt; &quot; &quot;)</span> prodPrefix &lt;&gt; prod_i &lt;&gt; &quot; ...&quot;</span>
+<span class="lineno">  555 </span><span class="spaces">    </span><span class="istickedoff">vars = prodPrefix ++ fields</span>
+<span class="lineno">  556 </span><span class="spaces">    </span><span class="istickedoff">expectedSop = ExpectedShape shape vars</span>
+<span class="lineno">  557 </span><span class="spaces">  </span><span class="istickedoff">case unNormalized vResTy of</span>
+<span class="lineno">  558 </span><span class="spaces">    </span><span class="istickedoff">TySOP _ vSTys -&gt; case vSTys ^? wix i of</span>
+<span class="lineno">  559 </span><span class="spaces">      </span><span class="istickedoff">Just pTys -&gt; case zipExact args pTys of</span>
+<span class="lineno">  560 </span><span class="spaces">        </span><span class="istickedoff">-- pTy is a sub-part of a normalized type, so normalized</span>
+<span class="lineno">  561 </span><span class="spaces">        </span><span class="istickedoff">Just ps -&gt; for_ ps $ \(arg, pTy) -&gt; checkTypeM <span class="nottickedoff">ann</span> arg (Normalized pTy)</span>
+<span class="lineno">  562 </span><span class="spaces">        </span><span class="istickedoff">-- the number of args does not match the number of types in the i'th SOP</span>
+<span class="lineno">  563 </span><span class="spaces">        </span><span class="istickedoff">-- alternative</span>
+<span class="lineno">  564 </span><span class="spaces">        </span><span class="istickedoff">Nothing -&gt; throwError (TypeMismatch ann (void t) expectedSop vResTy)</span>
+<span class="lineno">  565 </span><span class="spaces">      </span><span class="istickedoff">-- result type does not contain an i'th sum alternative</span>
+<span class="lineno">  566 </span><span class="spaces">      </span><span class="istickedoff">Nothing -&gt; <span class="nottickedoff">throwError (TypeMismatch ann (void t) expectedSop vResTy)</span></span>
+<span class="lineno">  567 </span><span class="spaces">    </span><span class="istickedoff">-- result type is not a SOP type</span>
+<span class="lineno">  568 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">throwError (TypeMismatch ann (void t) expectedSop vResTy)</span></span>
+<span class="lineno">  569 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  570 </span><span class="spaces">  </span><span class="istickedoff">pure vResTy</span>
+<span class="lineno">  571 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  572 </span><span class="spaces"></span><span class="istickedoff">-- resTy ~&gt; vResTy   [infer| G !- scrut : sop s_0 ... s_n]</span>
+<span class="lineno">  573 </span><span class="spaces"></span><span class="istickedoff">-- s_0 = [p_0_0 ... p_0_m]   [check| G !- c_0 : p_0_0 -&gt; ... -&gt; p_0_m -&gt; vResTy]</span>
+<span class="lineno">  574 </span><span class="spaces"></span><span class="istickedoff">-- ...</span>
+<span class="lineno">  575 </span><span class="spaces"></span><span class="istickedoff">-- s_n = [p_n_0 ... p_n_m]   [check| G !- c_n : p_n_0 -&gt; ... -&gt; p_n_m -&gt; vResTy]</span>
+<span class="lineno">  576 </span><span class="spaces"></span><span class="istickedoff">-- -----------------------------------------------------------------------------</span>
+<span class="lineno">  577 </span><span class="spaces"></span><span class="istickedoff">-- [infer| G !- case resTy scrut c_0 ... c_n : vResTy]</span>
+<span class="lineno">  578 </span><span class="spaces"></span><span class="istickedoff">inferTypeM (Case ann resTy scrut branches) = do</span>
+<span class="lineno">  579 </span><span class="spaces">  </span><span class="istickedoff">vResTy &lt;- normalizeTypeM $ void resTy</span>
+<span class="lineno">  580 </span><span class="spaces">  </span><span class="istickedoff">vScrutTy &lt;- inferTypeM scrut</span>
+<span class="lineno">  581 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  582 </span><span class="spaces">  </span><span class="istickedoff">-- We don't know exactly what to expect, we only know that it should</span>
+<span class="lineno">  583 </span><span class="spaces">  </span><span class="istickedoff">-- be a SOP with the right number of sum alternatives when type of scrutinee is SOP</span>
+<span class="lineno">  584 </span><span class="spaces">  </span><span class="istickedoff">let prods = map <span class="nottickedoff">(\j -&gt; &quot;prod_&quot; &lt;&gt; Text.pack (show j))</span> [0 .. length branches - 1]</span>
+<span class="lineno">  585 </span><span class="spaces">      </span><span class="istickedoff">expectedSop = ExpectedShape (Text.intercalate <span class="nottickedoff">&quot; &quot;</span> $ &quot;sop&quot; : prods) prods</span>
+<span class="lineno">  586 </span><span class="spaces">  </span><span class="istickedoff">case unNormalized vScrutTy of</span>
+<span class="lineno">  587 </span><span class="spaces">    </span><span class="istickedoff">TySOP _ sTys -&gt; case zipExact branches sTys of</span>
+<span class="lineno">  588 </span><span class="spaces">      </span><span class="istickedoff">Just branchesAndArgTypes -&gt; for_ branchesAndArgTypes $ \(c, argTypes) -&gt;</span>
+<span class="lineno">  589 </span><span class="spaces">        </span><span class="istickedoff">-- made of sub-parts of a normalized type, so normalized</span>
+<span class="lineno">  590 </span><span class="spaces">        </span><span class="istickedoff">checkTypeM <span class="nottickedoff">ann</span> c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))</span>
+<span class="lineno">  591 </span><span class="spaces">      </span><span class="istickedoff">-- scrutinee does not have a SOP type with the right number of alternatives</span>
+<span class="lineno">  592 </span><span class="spaces">      </span><span class="istickedoff">-- for the number of branches</span>
+<span class="lineno">  593 </span><span class="spaces">      </span><span class="istickedoff">Nothing -&gt; throwError (TypeMismatch ann (void scrut) expectedSop vScrutTy)</span>
+<span class="lineno">  594 </span><span class="spaces">    </span><span class="istickedoff">vTy -&gt; case annotateCaseBuiltin vTy branches of</span>
+<span class="lineno">  595 </span><span class="spaces">      </span><span class="istickedoff">Right branchesAndArgTypes -&gt; for_ branchesAndArgTypes $ \(c, argTypes) -&gt; do</span>
+<span class="lineno">  596 </span><span class="spaces">        </span><span class="istickedoff">vArgTypes &lt;- traverse (fmap unNormalized . normalizeTypeM) argTypes</span>
+<span class="lineno">  597 </span><span class="spaces">        </span><span class="istickedoff">-- made of sub-parts of a normalized type, so normalized</span>
+<span class="lineno">  598 </span><span class="spaces">        </span><span class="istickedoff">checkTypeM <span class="nottickedoff">ann</span> c (Normalized $ mkIterTyFun () vArgTypes (unNormalized vResTy))</span>
+<span class="lineno">  599 </span><span class="spaces">      </span><span class="istickedoff">Left err -&gt; throwError $ UnsupportedCaseBuiltin ann err</span>
+<span class="lineno">  600 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  601 </span><span class="spaces">  </span><span class="istickedoff">-- If we got through all that, then every case type is correct, including that</span>
+<span class="lineno">  602 </span><span class="spaces">  </span><span class="istickedoff">-- they all result in vResTy, so we can safely conclude that that is the type of the</span>
+<span class="lineno">  603 </span><span class="spaces">  </span><span class="istickedoff">-- whole expression.</span>
+<span class="lineno">  604 </span><span class="spaces">  </span><span class="istickedoff">pure vResTy</span></span>
+<span class="lineno">  605 </span>
+<span class="lineno">  606 </span>-- See Note [Global uniqueness in the type checker].
+<span class="lineno">  607 </span>-- See Note [Typing rules].
+<span class="lineno">  608 </span>-- | Check a 'Term' against a 'NormalizedType'.
+<span class="lineno">  609 </span>checkTypeM
+<span class="lineno">  610 </span>  :: (MonadTypeCheckPlc uni fun ann m, HasTypeCheckConfig cfg uni fun)
+<span class="lineno">  611 </span>  =&gt; ann
+<span class="lineno">  612 </span>  -&gt; Term TyName Name uni fun ann
+<span class="lineno">  613 </span>  -&gt; Normalized (Type TyName uni ())
+<span class="lineno">  614 </span>  -&gt; TypeCheckT uni fun cfg m ()
+<span class="lineno">  615 </span>-- [infer| G !- term : vTermTy]    vTermTy ~ vTy
+<span class="lineno">  616 </span>-- ---------------------------------------------
+<span class="lineno">  617 </span>-- [check| G !- term : vTy]
+<span class="lineno">  618 </span><span class="decl"><span class="istickedoff">checkTypeM ann term vTy = do</span>
+<span class="lineno">  619 </span><span class="spaces">  </span><span class="istickedoff">vTermTy &lt;- inferTypeM term</span>
+<span class="lineno">  620 </span><span class="spaces">  </span><span class="istickedoff">when (vTermTy /= vTy) $ do</span>
+<span class="lineno">  621 </span><span class="spaces">    </span><span class="istickedoff">let expectedVTy = ExpectedExact $ unNormalized vTy</span>
+<span class="lineno">  622 </span><span class="spaces">    </span><span class="istickedoff">throwError $ TypeMismatch ann (void term) expectedVTy vTermTy</span></span>
+
+</pre>
+</body>
+</html>

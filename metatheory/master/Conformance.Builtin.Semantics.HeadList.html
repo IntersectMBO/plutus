@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.HeadList</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.HeadList</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/headList</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="457" class="Keyword">module</a> <a id="464" href="Conformance.Builtin.Semantics.HeadList.html" class="Module">Conformance.Builtin.Semantics.HeadList</a> <a id="503" class="Keyword">where</a>
+
+<a id="510" class="Keyword">open</a> <a id="515" class="Keyword">import</a> <a id="522" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="headlist-01">headList-01</h2>
+
+<pre class="Agda"><a id="564" class="Comment">-- builtin/semantics/headList/headList-01</a>
+<a id="test-headList-01"></a><a id="606" href="Conformance.Builtin.Semantics.HeadList.html#606" class="Function">test-headList-01</a> <a id="623" class="Symbol">:</a> <a id="625" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="633" href="Conformance.Builtin.Semantics.HeadList.html#606" class="Function">test-headList-01</a> <a id="650" class="Symbol">=</a> <a id="652" class="Symbol">(</a><a id="653" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="658" class="Symbol">(</a><a id="659" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="666" class="Symbol">(</a><a id="667" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="676" href="Builtin.html#3289" class="InductiveConstructor">headList</a><a id="684" class="Symbol">))</a> <a id="687" class="Symbol">(</a><a id="688" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="693" class="Symbol">(</a><a id="694" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="701" class="Symbol">(</a><a id="702" href="RawU.html#2798" class="InductiveConstructor">list</a> <a id="707" href="RawU.html#2435" class="InductiveConstructor">integer</a><a id="714" class="Symbol">)</a> <a id="716" class="Symbol">((</a><a id="718" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="724" class="Number">1</a><a id="725" class="Symbol">)</a> <a id="727" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="729" class="Symbol">(</a><a id="730" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="736" class="Number">2</a><a id="737" class="Symbol">)</a> <a id="739" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="741" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="743" class="Symbol">))))</a>
+
+<a id="expected-headList-01"></a><a id="749" href="Conformance.Builtin.Semantics.HeadList.html#749" class="Function">expected-headList-01</a> <a id="770" class="Symbol">:</a> <a id="772" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="779" href="Conformance.Builtin.Semantics.HeadList.html#749" class="Function">expected-headList-01</a> <a id="800" class="Symbol">=</a> <a id="802" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="810" class="Symbol">(</a><a id="811" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="816" class="Symbol">(</a><a id="817" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="824" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="832" class="Symbol">(</a><a id="833" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="839" class="Number">1</a><a id="840" class="Symbol">)))</a>
+
+<a id="845" href="Conformance.Builtin.Semantics.HeadList.html#845" class="Function">_</a> <a id="847" class="Symbol">:</a> <a id="849" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="857" href="Conformance.Builtin.Semantics.HeadList.html#606" class="Function">test-headList-01</a> <a id="874" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="876" href="Conformance.Builtin.Semantics.HeadList.html#749" class="Function">expected-headList-01</a>
+<a id="897" class="Symbol">_</a> <a id="899" class="Symbol">=</a> <a id="901" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="headlist-02">headList-02</h2>
+
+<pre class="Agda"><a id="931" class="Comment">-- builtin/semantics/headList/headList-02</a>
+<a id="test-headList-02"></a><a id="973" href="Conformance.Builtin.Semantics.HeadList.html#973" class="Function">test-headList-02</a> <a id="990" class="Symbol">:</a> <a id="992" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1000" href="Conformance.Builtin.Semantics.HeadList.html#973" class="Function">test-headList-02</a> <a id="1017" class="Symbol">=</a> <a id="1019" class="Symbol">(</a><a id="1020" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1025" class="Symbol">(</a><a id="1026" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="1033" class="Symbol">(</a><a id="1034" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1043" href="Builtin.html#3289" class="InductiveConstructor">headList</a><a id="1051" class="Symbol">))</a> <a id="1054" class="Symbol">(</a><a id="1055" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1060" class="Symbol">(</a><a id="1061" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1068" class="Symbol">(</a><a id="1069" href="RawU.html#2798" class="InductiveConstructor">list</a> <a id="1074" href="RawU.html#2435" class="InductiveConstructor">integer</a><a id="1081" class="Symbol">)</a> <a id="1083" class="Symbol">(</a><a id="1084" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1086" class="Symbol">))))</a>
+
+<a id="expected-headList-02"></a><a id="1092" href="Conformance.Builtin.Semantics.HeadList.html#1092" class="Function">expected-headList-02</a> <a id="1113" class="Symbol">:</a> <a id="1115" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1122" href="Conformance.Builtin.Semantics.HeadList.html#1092" class="Function">expected-headList-02</a> <a id="1143" class="Symbol">=</a> <a id="1145" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1154" href="Conformance.Builtin.Semantics.HeadList.html#1154" class="Function">_</a> <a id="1156" class="Symbol">:</a> <a id="1158" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1166" href="Conformance.Builtin.Semantics.HeadList.html#973" class="Function">test-headList-02</a> <a id="1183" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1185" href="Conformance.Builtin.Semantics.HeadList.html#1092" class="Function">expected-headList-02</a>
+<a id="1206" class="Symbol">_</a> <a id="1208" class="Symbol">=</a> <a id="1210" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="headlist-03">headList-03</h2>
+
+<pre class="Agda"><a id="1240" class="Comment">-- builtin/semantics/headList/headList-03</a>
+<a id="test-headList-03"></a><a id="1282" href="Conformance.Builtin.Semantics.HeadList.html#1282" class="Function">test-headList-03</a> <a id="1299" class="Symbol">:</a> <a id="1301" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1309" href="Conformance.Builtin.Semantics.HeadList.html#1282" class="Function">test-headList-03</a> <a id="1326" class="Symbol">=</a> <a id="1328" class="Symbol">(</a><a id="1329" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1334" class="Symbol">(</a><a id="1335" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="1342" class="Symbol">(</a><a id="1343" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1352" href="Builtin.html#3289" class="InductiveConstructor">headList</a><a id="1360" class="Symbol">))</a> <a id="1363" class="Symbol">(</a><a id="1364" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1369" class="Symbol">(</a><a id="1370" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1377" class="Symbol">(</a><a id="1378" href="RawU.html#2798" class="InductiveConstructor">list</a> <a id="1383" href="RawU.html#2435" class="InductiveConstructor">integer</a><a id="1390" class="Symbol">)</a> <a id="1392" class="Symbol">((</a><a id="1394" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1400" class="Number">1</a><a id="1401" class="Symbol">)</a> <a id="1403" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1405" class="Symbol">(</a><a id="1406" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1412" class="Number">2</a><a id="1413" class="Symbol">)</a> <a id="1415" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1417" class="Symbol">(</a><a id="1418" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1424" class="Number">3</a><a id="1425" class="Symbol">)</a> <a id="1427" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1429" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1431" class="Symbol">))))</a>
+
+<a id="expected-headList-03"></a><a id="1437" href="Conformance.Builtin.Semantics.HeadList.html#1437" class="Function">expected-headList-03</a> <a id="1458" class="Symbol">:</a> <a id="1460" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1467" href="Conformance.Builtin.Semantics.HeadList.html#1437" class="Function">expected-headList-03</a> <a id="1488" class="Symbol">=</a> <a id="1490" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1498" class="Symbol">(</a><a id="1499" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1504" class="Symbol">(</a><a id="1505" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1512" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1520" class="Symbol">(</a><a id="1521" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1527" class="Number">1</a><a id="1528" class="Symbol">)))</a>
+
+<a id="1533" href="Conformance.Builtin.Semantics.HeadList.html#1533" class="Function">_</a> <a id="1535" class="Symbol">:</a> <a id="1537" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1545" href="Conformance.Builtin.Semantics.HeadList.html#1282" class="Function">test-headList-03</a> <a id="1562" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1564" href="Conformance.Builtin.Semantics.HeadList.html#1437" class="Function">expected-headList-03</a>
+<a id="1585" class="Symbol">_</a> <a id="1587" class="Symbol">=</a> <a id="1589" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="headpartial">headPartial</h2>
+
+<pre class="Agda"><a id="1619" class="Comment">-- builtin/semantics/headList/headPartial</a>
+<a id="1661" class="Comment">-- head is partial like haskell&#39;s and blows up when given an empty list</a>
+<a id="test-headPartial"></a><a id="1733" href="Conformance.Builtin.Semantics.HeadList.html#1733" class="Function">test-headPartial</a> <a id="1750" class="Symbol">:</a> <a id="1752" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1760" href="Conformance.Builtin.Semantics.HeadList.html#1733" class="Function">test-headPartial</a> <a id="1777" class="Symbol">=</a> <a id="1779" class="Symbol">(</a><a id="1780" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1785" class="Symbol">(</a><a id="1786" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="1793" class="Symbol">(</a><a id="1794" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1803" href="Builtin.html#3289" class="InductiveConstructor">headList</a><a id="1811" class="Symbol">))</a> <a id="1814" class="Symbol">(</a><a id="1815" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1820" class="Symbol">(</a><a id="1821" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1830" href="Builtin.html#4533" class="InductiveConstructor">mkNilData</a><a id="1839" class="Symbol">)</a> <a id="1841" class="Symbol">(</a><a id="1842" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1847" class="Symbol">(</a><a id="1848" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1855" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="1860" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="1862" class="Symbol">))))</a>
+
+<a id="expected-headPartial"></a><a id="1868" href="Conformance.Builtin.Semantics.HeadList.html#1868" class="Function">expected-headPartial</a> <a id="1889" class="Symbol">:</a> <a id="1891" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1898" href="Conformance.Builtin.Semantics.HeadList.html#1868" class="Function">expected-headPartial</a> <a id="1919" class="Symbol">=</a> <a id="1921" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1930" href="Conformance.Builtin.Semantics.HeadList.html#1930" class="Function">_</a> <a id="1932" class="Symbol">:</a> <a id="1934" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1942" href="Conformance.Builtin.Semantics.HeadList.html#1733" class="Function">test-headPartial</a> <a id="1959" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1961" href="Conformance.Builtin.Semantics.HeadList.html#1868" class="Function">expected-headPartial</a>
+<a id="1982" class="Symbol">_</a> <a id="1984" class="Symbol">=</a> <a id="1986" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+
+    </section>
+  </body>
+</html>

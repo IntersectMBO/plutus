@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.EqualsInteger</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.EqualsInteger</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsInteger</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="467" class="Keyword">module</a> <a id="474" href="Conformance.Builtin.Semantics.EqualsInteger.html" class="Module">Conformance.Builtin.Semantics.EqualsInteger</a> <a id="518" class="Keyword">where</a>
+
+<a id="525" class="Keyword">open</a> <a id="530" class="Keyword">import</a> <a id="537" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="equalsinteger-01">equalsInteger-01</h2>
+
+<pre class="Agda"><a id="584" class="Comment">-- builtin/semantics/equalsInteger/equalsInteger-01</a>
+<a id="test-equalsInteger-01"></a><a id="636" href="Conformance.Builtin.Semantics.EqualsInteger.html#636" class="Function">test-equalsInteger-01</a> <a id="658" class="Symbol">:</a> <a id="660" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="668" href="Conformance.Builtin.Semantics.EqualsInteger.html#636" class="Function">test-equalsInteger-01</a> <a id="690" class="Symbol">=</a> <a id="692" class="Symbol">(</a><a id="693" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="698" class="Symbol">(</a><a id="699" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="704" class="Symbol">(</a><a id="705" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="714" href="Builtin.html#1944" class="InductiveConstructor">equalsInteger</a><a id="727" class="Symbol">)</a> <a id="729" class="Symbol">(</a><a id="730" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="735" class="Symbol">(</a><a id="736" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="743" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="751" class="Symbol">(</a><a id="752" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="758" class="Number">1</a><a id="759" class="Symbol">))))</a> <a id="764" class="Symbol">(</a><a id="765" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="770" class="Symbol">(</a><a id="771" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="778" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="786" class="Symbol">(</a><a id="787" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="793" class="Number">2</a><a id="794" class="Symbol">))))</a>
+
+<a id="expected-equalsInteger-01"></a><a id="800" href="Conformance.Builtin.Semantics.EqualsInteger.html#800" class="Function">expected-equalsInteger-01</a> <a id="826" class="Symbol">:</a> <a id="828" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="835" href="Conformance.Builtin.Semantics.EqualsInteger.html#800" class="Function">expected-equalsInteger-01</a> <a id="861" class="Symbol">=</a> <a id="863" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="871" class="Symbol">(</a><a id="872" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="877" class="Symbol">(</a><a id="878" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="885" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="890" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="895" class="Symbol">))</a>
+
+<a id="899" href="Conformance.Builtin.Semantics.EqualsInteger.html#899" class="Function">_</a> <a id="901" class="Symbol">:</a> <a id="903" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="911" href="Conformance.Builtin.Semantics.EqualsInteger.html#636" class="Function">test-equalsInteger-01</a> <a id="933" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="935" href="Conformance.Builtin.Semantics.EqualsInteger.html#800" class="Function">expected-equalsInteger-01</a>
+<a id="961" class="Symbol">_</a> <a id="963" class="Symbol">=</a> <a id="965" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="equalsinteger-02">equalsInteger-02</h2>
+
+<pre class="Agda"><a id="1000" class="Comment">-- builtin/semantics/equalsInteger/equalsInteger-02</a>
+<a id="test-equalsInteger-02"></a><a id="1052" href="Conformance.Builtin.Semantics.EqualsInteger.html#1052" class="Function">test-equalsInteger-02</a> <a id="1074" class="Symbol">:</a> <a id="1076" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1084" href="Conformance.Builtin.Semantics.EqualsInteger.html#1052" class="Function">test-equalsInteger-02</a> <a id="1106" class="Symbol">=</a> <a id="1108" class="Symbol">(</a><a id="1109" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1114" class="Symbol">(</a><a id="1115" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1120" class="Symbol">(</a><a id="1121" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1130" href="Builtin.html#1944" class="InductiveConstructor">equalsInteger</a><a id="1143" class="Symbol">)</a> <a id="1145" class="Symbol">(</a><a id="1146" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1151" class="Symbol">(</a><a id="1152" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1159" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1167" class="Symbol">(</a><a id="1168" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1174" class="Number">45723452347050234588234852993485827934</a><a id="1212" class="Symbol">))))</a> <a id="1217" class="Symbol">(</a><a id="1218" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1223" class="Symbol">(</a><a id="1224" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1231" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1239" class="Symbol">(</a><a id="1240" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1246" class="Number">45723452347050234588234852993485827933</a><a id="1284" class="Symbol">))))</a>
+
+<a id="expected-equalsInteger-02"></a><a id="1290" href="Conformance.Builtin.Semantics.EqualsInteger.html#1290" class="Function">expected-equalsInteger-02</a> <a id="1316" class="Symbol">:</a> <a id="1318" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1325" href="Conformance.Builtin.Semantics.EqualsInteger.html#1290" class="Function">expected-equalsInteger-02</a> <a id="1351" class="Symbol">=</a> <a id="1353" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1361" class="Symbol">(</a><a id="1362" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1367" class="Symbol">(</a><a id="1368" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1375" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="1380" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="1385" class="Symbol">))</a>
+
+<a id="1389" href="Conformance.Builtin.Semantics.EqualsInteger.html#1389" class="Function">_</a> <a id="1391" class="Symbol">:</a> <a id="1393" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1401" href="Conformance.Builtin.Semantics.EqualsInteger.html#1052" class="Function">test-equalsInteger-02</a> <a id="1423" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1425" href="Conformance.Builtin.Semantics.EqualsInteger.html#1290" class="Function">expected-equalsInteger-02</a>
+<a id="1451" class="Symbol">_</a> <a id="1453" class="Symbol">=</a> <a id="1455" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="equalsinteger-03">equalsInteger-03</h2>
+
+<pre class="Agda"><a id="1490" class="Comment">-- builtin/semantics/equalsInteger/equalsInteger-03</a>
+<a id="test-equalsInteger-03"></a><a id="1542" href="Conformance.Builtin.Semantics.EqualsInteger.html#1542" class="Function">test-equalsInteger-03</a> <a id="1564" class="Symbol">:</a> <a id="1566" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1574" href="Conformance.Builtin.Semantics.EqualsInteger.html#1542" class="Function">test-equalsInteger-03</a> <a id="1596" class="Symbol">=</a> <a id="1598" class="Symbol">(</a><a id="1599" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1604" class="Symbol">(</a><a id="1605" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1610" class="Symbol">(</a><a id="1611" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1620" href="Builtin.html#1944" class="InductiveConstructor">equalsInteger</a><a id="1633" class="Symbol">)</a> <a id="1635" class="Symbol">(</a><a id="1636" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1641" class="Symbol">(</a><a id="1642" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1649" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1657" class="Symbol">(</a><a id="1658" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1664" class="Number">45723452347050234588234852993485827934</a><a id="1702" class="Symbol">))))</a> <a id="1707" class="Symbol">(</a><a id="1708" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1713" class="Symbol">(</a><a id="1714" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1721" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1729" class="Symbol">(</a><a id="1730" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1736" class="Number">45723452347050234588234852993485827934</a><a id="1774" class="Symbol">))))</a>
+
+<a id="expected-equalsInteger-03"></a><a id="1780" href="Conformance.Builtin.Semantics.EqualsInteger.html#1780" class="Function">expected-equalsInteger-03</a> <a id="1806" class="Symbol">:</a> <a id="1808" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1815" href="Conformance.Builtin.Semantics.EqualsInteger.html#1780" class="Function">expected-equalsInteger-03</a> <a id="1841" class="Symbol">=</a> <a id="1843" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1851" class="Symbol">(</a><a id="1852" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1857" class="Symbol">(</a><a id="1858" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1865" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="1870" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="1874" class="Symbol">))</a>
+
+<a id="1878" href="Conformance.Builtin.Semantics.EqualsInteger.html#1878" class="Function">_</a> <a id="1880" class="Symbol">:</a> <a id="1882" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1890" href="Conformance.Builtin.Semantics.EqualsInteger.html#1542" class="Function">test-equalsInteger-03</a> <a id="1912" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1914" href="Conformance.Builtin.Semantics.EqualsInteger.html#1780" class="Function">expected-equalsInteger-03</a>
+<a id="1940" class="Symbol">_</a> <a id="1942" class="Symbol">=</a> <a id="1944" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+
+    </section>
+  </body>
+</html>

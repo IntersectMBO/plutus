@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.UnBData</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.UnBData</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unBData</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="455" class="Keyword">module</a> <a id="462" href="Conformance.Builtin.Semantics.UnBData.html" class="Module">Conformance.Builtin.Semantics.UnBData</a> <a id="500" class="Keyword">where</a>
+
+<a id="507" class="Keyword">open</a> <a id="512" class="Keyword">import</a> <a id="519" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="unbdata-01">unBData-01</h2>
+
+<pre class="Agda"><a id="560" class="Comment">-- builtin/semantics/unBData/unBData-01</a>
+<a id="test-unBData-01"></a><a id="600" href="Conformance.Builtin.Semantics.UnBData.html#600" class="Function">test-unBData-01</a> <a id="616" class="Symbol">:</a> <a id="618" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="626" href="Conformance.Builtin.Semantics.UnBData.html#600" class="Function">test-unBData-01</a> <a id="642" class="Symbol">=</a> <a id="644" class="Symbol">(</a><a id="645" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="650" class="Symbol">(</a><a id="651" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="660" href="Builtin.html#4015" class="InductiveConstructor">unBData</a><a id="667" class="Symbol">)</a> <a id="669" class="Symbol">(</a><a id="670" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="675" class="Symbol">(</a><a id="676" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="683" href="RawU.html#2637" class="InductiveConstructor">pdata</a> <a id="689" class="Symbol">(</a><a id="690" href="Utils.html#7988" class="InductiveConstructor">bDATA</a> <a id="696" class="Symbol">(</a><a id="697" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="710" class="String">&quot;\175\NUL&quot;</a><a id="720" class="Symbol">)))))</a>
+
+<a id="expected-unBData-01"></a><a id="727" href="Conformance.Builtin.Semantics.UnBData.html#727" class="Function">expected-unBData-01</a> <a id="747" class="Symbol">:</a> <a id="749" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="756" href="Conformance.Builtin.Semantics.UnBData.html#727" class="Function">expected-unBData-01</a> <a id="776" class="Symbol">=</a> <a id="778" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="786" class="Symbol">(</a><a id="787" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="792" class="Symbol">(</a><a id="793" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="800" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="811" class="Symbol">(</a><a id="812" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="825" class="String">&quot;\175\NUL&quot;</a><a id="835" class="Symbol">)))</a>
+
+<a id="840" class="Comment">-- Pending: bytestring inside a `data` constant; bytestring constant.</a>
+<a id="pending-unBData-01"></a><a id="910" href="Conformance.Builtin.Semantics.UnBData.html#910" class="Function">pending-unBData-01</a> <a id="929" class="Symbol">:</a> <a id="931" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="935" href="Conformance.Builtin.Semantics.UnBData.html#910" class="Function">pending-unBData-01</a> <a id="954" class="Symbol">=</a> <a id="956" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="964" class="Symbol">(</a><a id="965" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="973" href="Conformance.Builtin.Semantics.UnBData.html#600" class="Function">test-unBData-01</a> <a id="989" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="991" href="Conformance.Builtin.Semantics.UnBData.html#727" class="Function">expected-unBData-01</a><a id="1010" class="Symbol">)</a>
+</pre>
+<h2 id="unbdata-fail">unBData-fail</h2>
+
+<pre class="Agda"><a id="1038" class="Comment">-- builtin/semantics/unBData/unBData-fail</a>
+<a id="test-unBData-fail"></a><a id="1080" href="Conformance.Builtin.Semantics.UnBData.html#1080" class="Function">test-unBData-fail</a> <a id="1098" class="Symbol">:</a> <a id="1100" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1108" href="Conformance.Builtin.Semantics.UnBData.html#1080" class="Function">test-unBData-fail</a> <a id="1126" class="Symbol">=</a> <a id="1128" class="Symbol">(</a><a id="1129" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1134" class="Symbol">(</a><a id="1135" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1144" href="Builtin.html#4015" class="InductiveConstructor">unBData</a><a id="1151" class="Symbol">)</a> <a id="1153" class="Symbol">(</a><a id="1154" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1159" class="Symbol">(</a><a id="1160" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1167" href="RawU.html#2637" class="InductiveConstructor">pdata</a> <a id="1173" class="Symbol">(</a><a id="1174" href="Utils.html#7967" class="InductiveConstructor">iDATA</a> <a id="1180" class="Symbol">(</a><a id="1181" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1187" class="Number">0</a><a id="1188" class="Symbol">)))))</a>
+
+<a id="expected-unBData-fail"></a><a id="1195" href="Conformance.Builtin.Semantics.UnBData.html#1195" class="Function">expected-unBData-fail</a> <a id="1217" class="Symbol">:</a> <a id="1219" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1226" href="Conformance.Builtin.Semantics.UnBData.html#1195" class="Function">expected-unBData-fail</a> <a id="1248" class="Symbol">=</a> <a id="1250" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1259" href="Conformance.Builtin.Semantics.UnBData.html#1259" class="Function">_</a> <a id="1261" class="Symbol">:</a> <a id="1263" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1271" href="Conformance.Builtin.Semantics.UnBData.html#1080" class="Function">test-unBData-fail</a> <a id="1289" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1291" href="Conformance.Builtin.Semantics.UnBData.html#1195" class="Function">expected-unBData-fail</a>
+<a id="1313" class="Symbol">_</a> <a id="1315" class="Symbol">=</a> <a id="1317" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+
+    </section>
+  </body>
+</html>

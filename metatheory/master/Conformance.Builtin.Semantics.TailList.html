@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.TailList</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.TailList</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/tailList</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="457" class="Keyword">module</a> <a id="464" href="Conformance.Builtin.Semantics.TailList.html" class="Module">Conformance.Builtin.Semantics.TailList</a> <a id="503" class="Keyword">where</a>
+
+<a id="510" class="Keyword">open</a> <a id="515" class="Keyword">import</a> <a id="522" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="taillist-01">tailList-01</h2>
+
+<pre class="Agda"><a id="564" class="Comment">-- builtin/semantics/tailList/tailList-01</a>
+<a id="test-tailList-01"></a><a id="606" href="Conformance.Builtin.Semantics.TailList.html#606" class="Function">test-tailList-01</a> <a id="623" class="Symbol">:</a> <a id="625" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="633" href="Conformance.Builtin.Semantics.TailList.html#606" class="Function">test-tailList-01</a> <a id="650" class="Symbol">=</a> <a id="652" class="Symbol">(</a><a id="653" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="658" class="Symbol">(</a><a id="659" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="666" class="Symbol">(</a><a id="667" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="676" href="Builtin.html#3333" class="InductiveConstructor">tailList</a><a id="684" class="Symbol">))</a> <a id="687" class="Symbol">(</a><a id="688" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="693" class="Symbol">(</a><a id="694" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="701" class="Symbol">(</a><a id="702" href="RawU.html#2798" class="InductiveConstructor">list</a> <a id="707" href="RawU.html#2435" class="InductiveConstructor">integer</a><a id="714" class="Symbol">)</a> <a id="716" class="Symbol">(</a><a id="717" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="719" class="Symbol">))))</a>
+
+<a id="expected-tailList-01"></a><a id="725" href="Conformance.Builtin.Semantics.TailList.html#725" class="Function">expected-tailList-01</a> <a id="746" class="Symbol">:</a> <a id="748" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="755" href="Conformance.Builtin.Semantics.TailList.html#725" class="Function">expected-tailList-01</a> <a id="776" class="Symbol">=</a> <a id="778" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="787" href="Conformance.Builtin.Semantics.TailList.html#787" class="Function">_</a> <a id="789" class="Symbol">:</a> <a id="791" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="799" href="Conformance.Builtin.Semantics.TailList.html#606" class="Function">test-tailList-01</a> <a id="816" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="818" href="Conformance.Builtin.Semantics.TailList.html#725" class="Function">expected-tailList-01</a>
+<a id="839" class="Symbol">_</a> <a id="841" class="Symbol">=</a> <a id="843" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="taillist-partial">tailList-partial</h2>
+
+<pre class="Agda"><a id="878" class="Comment">-- builtin/semantics/tailList/tailList-partial</a>
+<a id="925" class="Comment">-- tail is partial like haskell&#39;s and blows up when given an empty list</a>
+<a id="test-tailList-partial"></a><a id="997" href="Conformance.Builtin.Semantics.TailList.html#997" class="Function">test-tailList-partial</a> <a id="1019" class="Symbol">:</a> <a id="1021" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1029" href="Conformance.Builtin.Semantics.TailList.html#997" class="Function">test-tailList-partial</a> <a id="1051" class="Symbol">=</a> <a id="1053" class="Symbol">(</a><a id="1054" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1059" class="Symbol">(</a><a id="1060" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="1067" class="Symbol">(</a><a id="1068" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1077" href="Builtin.html#3333" class="InductiveConstructor">tailList</a><a id="1085" class="Symbol">))</a> <a id="1088" class="Symbol">(</a><a id="1089" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1094" class="Symbol">(</a><a id="1095" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1104" href="Builtin.html#4533" class="InductiveConstructor">mkNilData</a><a id="1113" class="Symbol">)</a> <a id="1115" class="Symbol">(</a><a id="1116" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1121" class="Symbol">(</a><a id="1122" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1129" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="1134" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="1136" class="Symbol">))))</a>
+
+<a id="expected-tailList-partial"></a><a id="1142" href="Conformance.Builtin.Semantics.TailList.html#1142" class="Function">expected-tailList-partial</a> <a id="1168" class="Symbol">:</a> <a id="1170" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1177" href="Conformance.Builtin.Semantics.TailList.html#1142" class="Function">expected-tailList-partial</a> <a id="1203" class="Symbol">=</a> <a id="1205" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1214" href="Conformance.Builtin.Semantics.TailList.html#1214" class="Function">_</a> <a id="1216" class="Symbol">:</a> <a id="1218" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1226" href="Conformance.Builtin.Semantics.TailList.html#997" class="Function">test-tailList-partial</a> <a id="1248" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1250" href="Conformance.Builtin.Semantics.TailList.html#1142" class="Function">expected-tailList-partial</a>
+<a id="1276" class="Symbol">_</a> <a id="1278" class="Symbol">=</a> <a id="1280" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+
+    </section>
+  </body>
+</html>

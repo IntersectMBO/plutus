@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.ByteStringToInteger</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.ByteStringToInteger</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="479" class="Keyword">module</a> <a id="486" href="Conformance.Builtin.Semantics.ByteStringToInteger.html" class="Module">Conformance.Builtin.Semantics.ByteStringToInteger</a> <a id="536" class="Keyword">where</a>
+
+<a id="543" class="Keyword">open</a> <a id="548" class="Keyword">import</a> <a id="555" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="both-endian">both-endian</h2>
+
+<pre class="Agda"><a id="597" class="Comment">-- builtin/semantics/byteStringToInteger/both-endian</a>
+<a id="650" class="Comment">-- Check that the big-endian decoding of a bytestring is the same as the</a>
+<a id="723" class="Comment">-- little-endian decoding of its reverse.</a>
+<a id="test-both-endian"></a><a id="765" href="Conformance.Builtin.Semantics.ByteStringToInteger.html#765" class="Function">test-both-endian</a> <a id="782" class="Symbol">:</a> <a id="784" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="792" href="Conformance.Builtin.Semantics.ByteStringToInteger.html#765" class="Function">test-both-endian</a> <a id="809" class="Symbol">=</a> <a id="811" class="Symbol">(</a><a id="812" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="817" class="Symbol">(</a><a id="818" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="823" class="Symbol">(</a><a id="824" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="833" href="Builtin.html#1944" class="InductiveConstructor">equalsInteger</a><a id="846" class="Symbol">)</a> <a id="848" class="Symbol">(</a><a id="849" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="854" class="Symbol">(</a><a id="855" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="860" class="Symbol">(</a><a id="861" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="870" href="Builtin.html#5573" class="InductiveConstructor">byteStringToInteger</a><a id="889" class="Symbol">)</a> <a id="891" class="Symbol">(</a><a id="892" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="897" class="Symbol">(</a><a id="898" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="905" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="910" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="915" class="Symbol">)))</a> <a id="919" class="Symbol">(</a><a id="920" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="925" class="Symbol">(</a><a id="926" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="933" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="944" class="Symbol">(</a><a id="945" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="958" class="String">&quot;\146\130\139\157\158\tz#\239\&amp;4\186U\&quot;\238g&quot;</a><a id="1003" class="Symbol">)))))</a> <a id="1009" class="Symbol">(</a><a id="1010" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1015" class="Symbol">(</a><a id="1016" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1021" class="Symbol">(</a><a id="1022" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1031" href="Builtin.html#5573" class="InductiveConstructor">byteStringToInteger</a><a id="1050" class="Symbol">)</a> <a id="1052" class="Symbol">(</a><a id="1053" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1058" class="Symbol">(</a><a id="1059" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1066" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="1071" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="1075" class="Symbol">)))</a> <a id="1079" class="Symbol">(</a><a id="1080" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1085" class="Symbol">(</a><a id="1086" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1093" href="RawU.html#2472" class="InductiveConstructor">bytestring</a> <a id="1104" class="Symbol">(</a><a id="1105" href="Utils.html#5583" class="Postulate">mkByteString</a> <a id="1118" class="String">&quot;g\238\&quot;U\186\&amp;4\239#z\t\158\157\139\130\146&quot;</a><a id="1163" class="Symbol">)))))</a>
+
+<a id="expected-both-endian"></a><a id="1170" href="Conformance.Builtin.Semantics.ByteStringToInteger.html#1170" class="Function">expected-both-endian</a> <a id="1191" class="Symbol">:</a> <a id="1193" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1200" href="Conformance.Builtin.Semantics.ByteStringToInteger.html#1170" class="Function">expected-both-endian</a> <a id="1221" class="Symbol">=</a> <a id="1223" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1231" class="Symbol">(</a><a id="1232" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1237" class="Symbol">(</a><a id="1238" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1245" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="1250" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="1254" class="Symbol">))</a>
+
+<a id="1258" class="Comment">-- Pending: bytestring constant; postulated builtin `byteStringToInteger`.</a>
+<a id="pending-both-endian"></a><a id="1333" href="Conformance.Builtin.Semantics.ByteStringToInteger.html#1333" class="Function">pending-both-endian</a> <a id="1353" class="Symbol">:</a> <a id="1355" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1359" href="Conformance.Builtin.Semantics.ByteStringToInteger.html#1333" class="Function">pending-both-endian</a> <a id="1379" class="Symbol">=</a> <a id="1381" href="Conformance.Eval.html#2674" class="Function">Pending</a> <a id="1389" class="Symbol">(</a><a id="1390" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1398" href="Conformance.Builtin.Semantics.ByteStringToInteger.html#765" class="Function">test-both-endian</a> <a id="1415" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1417" href="Conformance.Builtin.Semantics.ByteStringToInteger.html#1170" class="Function">expected-both-endian</a><a id="1437" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

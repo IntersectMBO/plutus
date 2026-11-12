@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Term.ConstantCase.Pair</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Term.ConstantCase.Pair</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/term/constant-case/pair</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="450" class="Keyword">module</a> <a id="457" href="Conformance.Term.ConstantCase.Pair.html" class="Module">Conformance.Term.ConstantCase.Pair</a> <a id="492" class="Keyword">where</a>
+
+<a id="499" class="Keyword">open</a> <a id="504" class="Keyword">import</a> <a id="511" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="pair-01">pair-01</h2>
+
+<pre class="Agda"><a id="549" class="Comment">-- term/constant-case/pair/pair-01</a>
+<a id="test-pair-01"></a><a id="584" href="Conformance.Term.ConstantCase.Pair.html#584" class="Function">test-pair-01</a> <a id="597" class="Symbol">:</a> <a id="599" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="607" href="Conformance.Term.ConstantCase.Pair.html#584" class="Function">test-pair-01</a> <a id="620" class="Symbol">=</a> <a id="622" class="Symbol">(</a><a id="623" href="RawU.html#8547" class="InductiveConstructor">UCase</a> <a id="629" class="Symbol">(</a><a id="630" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="635" class="Symbol">(</a><a id="636" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="643" class="Symbol">(</a><a id="644" href="RawU.html#2718" class="InductiveConstructor">pair</a> <a id="649" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="657" href="RawU.html#2560" class="InductiveConstructor">bool</a><a id="661" class="Symbol">)</a> <a id="663" class="Symbol">((</a><a id="665" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="671" class="Number">42</a><a id="673" class="Symbol">)</a> <a id="675" href="Utils.html#5967" class="InductiveConstructor Operator">,</a> <a id="677" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="682" class="Symbol">)))</a> <a id="686" class="Symbol">((</a><a id="688" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="696" class="Symbol">(</a><a id="697" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="705" class="Symbol">(</a><a id="706" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="711" class="Number">1</a><a id="712" class="Symbol">)))</a> <a id="716" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="718" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="720" class="Symbol">))</a>
+
+<a id="expected-pair-01"></a><a id="724" href="Conformance.Term.ConstantCase.Pair.html#724" class="Function">expected-pair-01</a> <a id="741" class="Symbol">:</a> <a id="743" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="750" href="Conformance.Term.ConstantCase.Pair.html#724" class="Function">expected-pair-01</a> <a id="767" class="Symbol">=</a> <a id="769" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="777" class="Symbol">(</a><a id="778" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="783" class="Symbol">(</a><a id="784" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="791" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="799" class="Symbol">(</a><a id="800" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="806" class="Number">42</a><a id="808" class="Symbol">)))</a>
+
+<a id="813" href="Conformance.Term.ConstantCase.Pair.html#813" class="Function">_</a> <a id="815" class="Symbol">:</a> <a id="817" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="825" href="Conformance.Term.ConstantCase.Pair.html#584" class="Function">test-pair-01</a> <a id="838" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="840" href="Conformance.Term.ConstantCase.Pair.html#724" class="Function">expected-pair-01</a>
+<a id="857" class="Symbol">_</a> <a id="859" class="Symbol">=</a> <a id="861" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="pair-02">pair-02</h2>
+
+<pre class="Agda"><a id="887" class="Comment">-- term/constant-case/pair/pair-02</a>
+<a id="test-pair-02"></a><a id="922" href="Conformance.Term.ConstantCase.Pair.html#922" class="Function">test-pair-02</a> <a id="935" class="Symbol">:</a> <a id="937" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="945" href="Conformance.Term.ConstantCase.Pair.html#922" class="Function">test-pair-02</a> <a id="958" class="Symbol">=</a> <a id="960" class="Symbol">(</a><a id="961" href="RawU.html#8547" class="InductiveConstructor">UCase</a> <a id="967" class="Symbol">(</a><a id="968" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="973" class="Symbol">(</a><a id="974" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="981" class="Symbol">(</a><a id="982" href="RawU.html#2718" class="InductiveConstructor">pair</a> <a id="987" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="995" href="RawU.html#2560" class="InductiveConstructor">bool</a><a id="999" class="Symbol">)</a> <a id="1001" class="Symbol">((</a><a id="1003" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1009" class="Number">42</a><a id="1011" class="Symbol">)</a> <a id="1013" href="Utils.html#5967" class="InductiveConstructor Operator">,</a> <a id="1015" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="1020" class="Symbol">)))</a> <a id="1024" class="Symbol">((</a><a id="1026" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1034" class="Symbol">(</a><a id="1035" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1043" class="Symbol">(</a><a id="1044" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="1049" class="Number">0</a><a id="1050" class="Symbol">)))</a> <a id="1054" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1056" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1058" class="Symbol">))</a>
+
+<a id="expected-pair-02"></a><a id="1062" href="Conformance.Term.ConstantCase.Pair.html#1062" class="Function">expected-pair-02</a> <a id="1079" class="Symbol">:</a> <a id="1081" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1088" href="Conformance.Term.ConstantCase.Pair.html#1062" class="Function">expected-pair-02</a> <a id="1105" class="Symbol">=</a> <a id="1107" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1115" class="Symbol">(</a><a id="1116" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1121" class="Symbol">(</a><a id="1122" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1129" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="1134" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="1139" class="Symbol">))</a>
+
+<a id="1143" href="Conformance.Term.ConstantCase.Pair.html#1143" class="Function">_</a> <a id="1145" class="Symbol">:</a> <a id="1147" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1155" href="Conformance.Term.ConstantCase.Pair.html#922" class="Function">test-pair-02</a> <a id="1168" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1170" href="Conformance.Term.ConstantCase.Pair.html#1062" class="Function">expected-pair-02</a>
+<a id="1187" class="Symbol">_</a> <a id="1189" class="Symbol">=</a> <a id="1191" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="pair-03">pair-03</h2>
+
+<pre class="Agda"><a id="1217" class="Comment">-- term/constant-case/pair/pair-03</a>
+<a id="1252" class="Comment">-- Casing on pair expects exactly one branch</a>
+<a id="test-pair-03"></a><a id="1297" href="Conformance.Term.ConstantCase.Pair.html#1297" class="Function">test-pair-03</a> <a id="1310" class="Symbol">:</a> <a id="1312" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1320" href="Conformance.Term.ConstantCase.Pair.html#1297" class="Function">test-pair-03</a> <a id="1333" class="Symbol">=</a> <a id="1335" class="Symbol">(</a><a id="1336" href="RawU.html#8547" class="InductiveConstructor">UCase</a> <a id="1342" class="Symbol">(</a><a id="1343" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1348" class="Symbol">(</a><a id="1349" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1356" class="Symbol">(</a><a id="1357" href="RawU.html#2718" class="InductiveConstructor">pair</a> <a id="1362" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1370" href="RawU.html#2560" class="InductiveConstructor">bool</a><a id="1374" class="Symbol">)</a> <a id="1376" class="Symbol">((</a><a id="1378" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1384" class="Number">42</a><a id="1386" class="Symbol">)</a> <a id="1388" href="Utils.html#5967" class="InductiveConstructor Operator">,</a> <a id="1390" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="1395" class="Symbol">)))</a> <a id="1399" class="Symbol">(</a><a id="1400" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1402" class="Symbol">))</a>
+
+<a id="expected-pair-03"></a><a id="1406" href="Conformance.Term.ConstantCase.Pair.html#1406" class="Function">expected-pair-03</a> <a id="1423" class="Symbol">:</a> <a id="1425" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1432" href="Conformance.Term.ConstantCase.Pair.html#1406" class="Function">expected-pair-03</a> <a id="1449" class="Symbol">=</a> <a id="1451" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1460" href="Conformance.Term.ConstantCase.Pair.html#1460" class="Function">_</a> <a id="1462" class="Symbol">:</a> <a id="1464" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1472" href="Conformance.Term.ConstantCase.Pair.html#1297" class="Function">test-pair-03</a> <a id="1485" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1487" href="Conformance.Term.ConstantCase.Pair.html#1406" class="Function">expected-pair-03</a>
+<a id="1504" class="Symbol">_</a> <a id="1506" class="Symbol">=</a> <a id="1508" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="pair-04">pair-04</h2>
+
+<pre class="Agda"><a id="1534" class="Comment">-- term/constant-case/pair/pair-04</a>
+<a id="1569" class="Comment">-- Casing on pair expects exactly one branch</a>
+<a id="test-pair-04"></a><a id="1614" href="Conformance.Term.ConstantCase.Pair.html#1614" class="Function">test-pair-04</a> <a id="1627" class="Symbol">:</a> <a id="1629" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1637" href="Conformance.Term.ConstantCase.Pair.html#1614" class="Function">test-pair-04</a> <a id="1650" class="Symbol">=</a> <a id="1652" class="Symbol">(</a><a id="1653" href="RawU.html#8547" class="InductiveConstructor">UCase</a> <a id="1659" class="Symbol">(</a><a id="1660" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1665" class="Symbol">(</a><a id="1666" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1673" class="Symbol">(</a><a id="1674" href="RawU.html#2718" class="InductiveConstructor">pair</a> <a id="1679" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1687" href="RawU.html#2560" class="InductiveConstructor">bool</a><a id="1691" class="Symbol">)</a> <a id="1693" class="Symbol">((</a><a id="1695" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1701" class="Number">42</a><a id="1703" class="Symbol">)</a> <a id="1705" href="Utils.html#5967" class="InductiveConstructor Operator">,</a> <a id="1707" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="1712" class="Symbol">)))</a> <a id="1716" class="Symbol">((</a><a id="1718" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1726" class="Symbol">(</a><a id="1727" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1735" class="Symbol">(</a><a id="1736" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="1741" class="Number">0</a><a id="1742" class="Symbol">)))</a> <a id="1746" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1748" class="Symbol">(</a><a id="1749" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1757" class="Symbol">(</a><a id="1758" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1766" class="Symbol">(</a><a id="1767" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="1772" class="Number">0</a><a id="1773" class="Symbol">)))</a> <a id="1777" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="1779" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="1781" class="Symbol">))</a>
+
+<a id="expected-pair-04"></a><a id="1785" href="Conformance.Term.ConstantCase.Pair.html#1785" class="Function">expected-pair-04</a> <a id="1802" class="Symbol">:</a> <a id="1804" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1811" href="Conformance.Term.ConstantCase.Pair.html#1785" class="Function">expected-pair-04</a> <a id="1828" class="Symbol">=</a> <a id="1830" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1839" href="Conformance.Term.ConstantCase.Pair.html#1839" class="Function">_</a> <a id="1841" class="Symbol">:</a> <a id="1843" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1851" href="Conformance.Term.ConstantCase.Pair.html#1614" class="Function">test-pair-04</a> <a id="1864" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1866" href="Conformance.Term.ConstantCase.Pair.html#1785" class="Function">expected-pair-04</a>
+<a id="1883" class="Symbol">_</a> <a id="1885" class="Symbol">=</a> <a id="1887" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="pair-05">pair-05</h2>
+
+<pre class="Agda"><a id="1913" class="Comment">-- term/constant-case/pair/pair-05</a>
+<a id="1948" class="Comment">-- Casing on pair expects branch to take two arguments</a>
+<a id="test-pair-05"></a><a id="2003" href="Conformance.Term.ConstantCase.Pair.html#2003" class="Function">test-pair-05</a> <a id="2016" class="Symbol">:</a> <a id="2018" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="2026" href="Conformance.Term.ConstantCase.Pair.html#2003" class="Function">test-pair-05</a> <a id="2039" class="Symbol">=</a> <a id="2041" class="Symbol">(</a><a id="2042" href="RawU.html#8547" class="InductiveConstructor">UCase</a> <a id="2048" class="Symbol">(</a><a id="2049" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2054" class="Symbol">(</a><a id="2055" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2062" class="Symbol">(</a><a id="2063" href="RawU.html#2718" class="InductiveConstructor">pair</a> <a id="2068" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="2076" href="RawU.html#2560" class="InductiveConstructor">bool</a><a id="2080" class="Symbol">)</a> <a id="2082" class="Symbol">((</a><a id="2084" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="2090" class="Number">42</a><a id="2092" class="Symbol">)</a> <a id="2094" href="Utils.html#5967" class="InductiveConstructor Operator">,</a> <a id="2096" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="2101" class="Symbol">)))</a> <a id="2105" class="Symbol">((</a><a id="2107" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="2115" class="Symbol">(</a><a id="2116" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="2121" class="Number">0</a><a id="2122" class="Symbol">))</a> <a id="2125" href="Utils.html#6205" class="InductiveConstructor Operator">∷</a> <a id="2127" href="Utils.html#6190" class="InductiveConstructor">[]</a><a id="2129" class="Symbol">))</a>
+
+<a id="expected-pair-05"></a><a id="2133" href="Conformance.Term.ConstantCase.Pair.html#2133" class="Function">expected-pair-05</a> <a id="2150" class="Symbol">:</a> <a id="2152" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="2159" href="Conformance.Term.ConstantCase.Pair.html#2133" class="Function">expected-pair-05</a> <a id="2176" class="Symbol">=</a> <a id="2178" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="2187" href="Conformance.Term.ConstantCase.Pair.html#2187" class="Function">_</a> <a id="2189" class="Symbol">:</a> <a id="2191" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2199" href="Conformance.Term.ConstantCase.Pair.html#2003" class="Function">test-pair-05</a> <a id="2212" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2214" href="Conformance.Term.ConstantCase.Pair.html#2133" class="Function">expected-pair-05</a>
+<a id="2231" class="Symbol">_</a> <a id="2233" class="Symbol">=</a> <a id="2235" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+
+    </section>
+  </body>
+</html>

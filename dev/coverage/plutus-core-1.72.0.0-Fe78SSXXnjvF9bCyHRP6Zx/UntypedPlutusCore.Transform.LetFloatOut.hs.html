@@ -1,0 +1,74 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    2 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>{-| Floats immediately-applied lambdas (&quot;let bindings&quot;) outwards, as long as doing so
+<span class="lineno">    5 </span>cannot cause any expression to be evaluated more than before.
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>This can unlock further optimizations, such as case-constr and force-delay cancellation.
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>Specifically, it floats bindings from the following positions: @case@ scrutinee,
+<span class="lineno">   10 </span>@force@ body, and the function of @apply@.
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>If we don't care about the order of effects, we can also float bindings from @apply@
+<span class="lineno">   13 </span>arguments and @constr@ arguments, but there's no evidence that doing so is beneficial,
+<span class="lineno">   14 </span>so we don't do it.
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>This pass only floats one bindings from each location. Since the pass runs once per
+<span class="lineno">   17 </span>simplifier iteration, this should be sufficient. Floating out multi-lets at once would
+<span class="lineno">   18 </span>complicate things, since we'd need to consider both @(\a b. M) A B@ and
+<span class="lineno">   19 </span>@(\a. (\b -&gt; M) B) A@. -}
+<span class="lineno">   20 </span>module UntypedPlutusCore.Transform.LetFloatOut (letFloatOut) where
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import PlutusCore qualified as PLC
+<span class="lineno">   23 </span>import UntypedPlutusCore.Core
+<span class="lineno">   24 </span>import UntypedPlutusCore.Transform.Optimizer
+<span class="lineno">   25 </span>  ( OptimizerT
+<span class="lineno">   26 </span>  , recordOptimization
+<span class="lineno">   27 </span>  , pattern LetFloatOutStage
+<span class="lineno">   28 </span>  )
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>import Control.Lens (transformOf)
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>letFloatOut
+<span class="lineno">   33 </span>  :: ( PLC.MonadQuote m
+<span class="lineno">   34 </span>     , PLC.Rename (Term name uni fun a)
+<span class="lineno">   35 </span>     )
+<span class="lineno">   36 </span>  =&gt; Term name uni fun a
+<span class="lineno">   37 </span>  -&gt; OptimizerT name uni fun a m (Term name uni fun a)
+<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">letFloatOut term = do</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">result &lt;- transformOf termSubterms processTerm &lt;$&gt; PLC.rename term</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">recordOptimization term LetFloatOutStage <span class="nottickedoff">result</span></span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="istickedoff">pure result</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>processTerm :: Term name uni fun a -&gt; Term name uni fun a
+<span class="lineno">   44 </span><span class="decl"><span class="istickedoff">processTerm = \case</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">Case ca (Apply aa (LamAbs la x body) rhs) branches -&gt;</span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="istickedoff">Apply aa (LamAbs la x (Case ca body branches)) rhs</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">Force fa (Apply aa (LamAbs la x body) rhs) -&gt;</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="istickedoff">Apply aa (LamAbs la x (Force fa body)) rhs</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">Apply aa (Apply aa' (LamAbs la x body) rhs) arg -&gt;</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">Apply aa' (LamAbs la x (Apply aa body arg)) rhs</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">other -&gt; other</span></span>
+
+</pre>
+</body>
+</html>
