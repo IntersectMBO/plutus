@@ -219,12 +219,14 @@ instance ExMemoryUsage (a, b) where
  programming (see Note [Static loop unrolling] in PlutusCore.Unroll). This
  avoids the overhead of 'splitAt' which allocates a tuple and a new list for
  the prefix. The statically unrolled pattern matching is significantly faster. -}
+-- See Note [Global local functions].
+memoryUsageList :: [a] -> CostRose
+memoryUsageList xs = case dropN @100 xs of
+  Nothing -> singletonRose (fromIntegral (length xs))
+  Just rest -> CostRose 100 [memoryUsageList rest]
+
 instance ExMemoryUsage [a] where
-  memoryUsage = go
-    where
-      go xs = case dropN @100 xs of
-        Just rest -> CostRose 100 [go rest]
-        Nothing -> singletonRose (fromIntegral (length xs))
+  memoryUsage = memoryUsageList
   {-# INLINE memoryUsage #-}
 
 {- Note that the `memoryUsage` of an empty array is zero.  This shouldn't cause any
