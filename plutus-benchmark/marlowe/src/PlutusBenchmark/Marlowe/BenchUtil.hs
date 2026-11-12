@@ -15,6 +15,7 @@ module PlutusBenchmark.Marlowe.BenchUtil
   , writeFlatUPLC
   , writeFlatUPLCs
   , updateScriptHash
+  , rescript
   , semanticsBenchmarks
   , rolePayoutBenchmarks
   ) where
