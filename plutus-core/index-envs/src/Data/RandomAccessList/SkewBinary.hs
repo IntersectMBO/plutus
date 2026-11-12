@@ -3,6 +3,8 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UnboxedSums #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -92,21 +94,30 @@ uncons = \case
 Bangs in the local definitions of 'contIndexZero' are needed to tell GHC that the functions are
 strict in the 'Word64' argument, so that GHC produces workers operating on @Word64#@.
 
-The function itself is CPS-ed, so that the arguments force the local definitions to be retained
+The function itself is CPS-ed, so that the argument forces the local definitions to be retained
 within 'contIndexZero' instead of being pulled out via full-laziness or some other optimization
 pass. This ensures that when 'contIndexZero' gets inlined, the local definitions appear directly
-in the GHC Core, allowing GHC to inline the arguments of 'contIndexZero' and transform the whole
+in the GHC Core, allowing GHC to inline the argument of 'contIndexZero' and transform the whole
 thing into a beautiful recursive join point full of @Word64#@s, i.e. allocating very little if
 anything at all.
+
+The continuation accepts an unboxed sum so that callers can construct their failure
+result inside its failure branch. Passing the failure result as a separate argument
+can let GHC allocate its components before the lookup, even on success. In the CEK
+machine, this caused the error and its cause to be constructed on every successful
+variable lookup. The single continuation puts those allocations on the failure path.
+The unboxed sum avoids allocating a 'Just' wrapper on success while preserving the
+CPS structure needed for the recursive join points described above. The sum itself
+disappears from the optimized CEK Core.
 -}
 
 -- See Note [Optimizations of contIndexZero].
-contIndexZero :: forall a b. b -> (a -> b) -> RAList a -> Word64 -> b
-contIndexZero z f = findTree
+contIndexZero :: forall a b. ((# (# #) | a #) -> b) -> RAList a -> Word64 -> b
+contIndexZero k = findTree
   where
     findTree :: RAList a -> Word64 -> b
     -- See Note [Optimizations of contIndexZero].
-    findTree Nil !_ = z
+    findTree Nil !_ = k (# (# #) | #)
     findTree (BHead w t ts) i =
       if i < w
         then indexTree w i t
@@ -115,9 +126,9 @@ contIndexZero z f = findTree
     indexTree :: Word64 -> Word64 -> Tree a -> b
     -- See Note [Optimizations of contIndexZero].
     indexTree !w 0 t = case t of
-      Node x _ _ -> f x
-      Leaf x -> if w == 1 then f x else z
-    indexTree _ _ (Leaf _) = z
+      Node x _ _ -> k (# | x #)
+      Leaf x -> if w == 1 then k (# | x #) else k (# (# #) | #)
+    indexTree _ _ (Leaf _) = k (# (# #) | #)
     indexTree treeSize offset (Node _ t1 t2) =
       let halfSize = unsafeShiftR treeSize 1 -- probably faster than `div w 2`
        in if offset <= halfSize
@@ -125,29 +136,37 @@ contIndexZero z f = findTree
             else indexTree halfSize (offset - 1 - halfSize) t2
 {-# INLINE contIndexZero #-}
 
-contIndexOne :: forall a b. b -> (a -> b) -> RAList a -> Word64 -> b
-contIndexOne z _ _ 0 = z
-contIndexOne z f t n = contIndexZero z f t (n - 1)
+contIndexOne :: forall a b. ((# (# #) | a #) -> b) -> RAList a -> Word64 -> b
+contIndexOne k _ 0 = k (# (# #) | #)
+contIndexOne k t n = contIndexZero k t (n - 1)
 {-# INLINE contIndexOne #-}
 
 -- 0-based
 unsafeIndexZero :: RAList a -> Word64 -> a
-unsafeIndexZero = contIndexZero (error "out of bounds") id
+unsafeIndexZero = contIndexZero $ \case
+  (# (# #) | #) -> error "out of bounds"
+  (# | x #) -> x
 {-# INLINE unsafeIndexZero #-}
 
 -- 0-based
 safeIndexZero :: RAList a -> Word64 -> Maybe a
-safeIndexZero = contIndexZero Nothing Just
+safeIndexZero = contIndexZero $ \case
+  (# (# #) | #) -> Nothing
+  (# | x #) -> Just x
 {-# INLINE safeIndexZero #-}
 
 -- 1-based
 unsafeIndexOne :: RAList a -> Word64 -> a
-unsafeIndexOne = contIndexOne (error "out of bounds") id
+unsafeIndexOne = contIndexOne $ \case
+  (# (# #) | #) -> error "out of bounds"
+  (# | x #) -> x
 {-# INLINE unsafeIndexOne #-}
 
 -- 1-based
 safeIndexOne :: RAList a -> Word64 -> Maybe a
-safeIndexOne = contIndexOne Nothing Just
+safeIndexOne = contIndexOne $ \case
+  (# (# #) | #) -> Nothing
+  (# | x #) -> Just x
 {-# INLINE safeIndexOne #-}
 
 instance RAL.RandomAccessList (RAList a) where
