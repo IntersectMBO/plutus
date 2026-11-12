@@ -4,7 +4,8 @@ module Shared where
 import Control.DeepSeq (force)
 import Control.Exception (evaluate)
 import Control.Monad (forM)
-import Criterion.Main (Benchmark, Benchmarkable, bench, bgroup, defaultMainWith, env)
+import Criterion.Main (Benchmark, bench, bgroup, defaultMainWith, env)
+import Criterion.Measurement.Types (Benchmarkable (..))
 import Data.List (isSuffixOf, sort)
 import System.Directory (listDirectory)
 import System.Mem (performMajorGC)
@@ -27,11 +28,17 @@ mkBenchmarks benchmarker validator folder = do
   files <- map (folder </>) . sort . filter (isSuffixOf ".benchmark") <$> listDirectory folder
   forM files $ \file -> do
     name <- evaluate . force . benchName =<< load file
-    pure $ env (prepare file) $ \ ~prog -> bench name (benchmarker prog)
+    pure $ env (prepare file) $ \ ~prog -> bench name (majorGCFirst (benchmarker prog))
   where
     load file = either error rescript <$> readBenchmark file
     benchName = show . txInfoId . scriptContextTxInfo . M.bScriptContext
     prepare file = (evaluate . force . benchmarkToUPLC validator =<< load file) <* performMajorGC
+
+-- | Criterion only does minor GCs between batches, so old-generation garbage
+-- builds up and a major GC lands in a random batch. Start each batch clean.
+majorGCFirst :: Benchmarkable -> Benchmarkable
+majorGCFirst (Benchmarkable alloc clean run perRun) =
+  Benchmarkable (\n -> alloc n <* performMajorGC) clean run perRun
 
 runBenchmarks :: (Program -> Benchmarkable) -> IO ()
 runBenchmarks benchmarker = do
