@@ -19,6 +19,7 @@ import Data.Sign as S
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Maybe.Base using (Maybe; just; nothing; map)
 open import Relation.Nullary.Decidable using (yes; no)
+open import Data.Bool using (Bool)
 ```
 
 ## Quotient and remainder
@@ -103,4 +104,12 @@ Haskell's `quot`/`rem`/`div`/`mod` (see the `test-integer-division` suite).
 {-# COMPILE GHC remMaybe as agdaRemainderInteger #-}
 {-# COMPILE GHC divMaybe as agdaDivideInteger #-}
 {-# COMPILE GHC modMaybe as agdaModInteger #-}
+```
+
+## Other operations
+
+```
+-- TODO: properties
+_<ᵇ_ : ℤ → ℤ → Bool
+n <ᵇ m = n ≤ᵇ m - 1ℤ
 ```
