@@ -18,7 +18,7 @@
 # (see the curl command) meaning the script output has to be escaped first before we can insert it.
 # For consistent results, the benchmarks should be run on a CPU with a fixed frequency or a performance governor.
 
-set -e
+set -eo pipefail
 
 if [ -z "$BENCHMARK_NAME" ] ; then
    echo "[ci-plutus-benchmark]: 'BENCHMARK_NAME' is not set, exiting."
@@ -45,6 +45,14 @@ if [ -z "$(git merge-base HEAD origin/master)" ]; then
    exit 1
 fi
 
+run_bench() {
+   local bin
+   cabal build --enable-benchmarks "$BENCHMARK_NAME"
+   bin="$(cabal list-bin --enable-benchmarks "$BENCHMARK_NAME")"
+   # Pin only the benchmark (not cabal/tee) to one core; run from the package dir like `cabal bench`.
+   (cd plutus-benchmark && taskset -c "${BENCH_CORE:-7}" "$bin") 2>&1 | tee "$1"
+}
+
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
 
 echo "[ci-plutus-benchmark]: Running as user:"
@@ -57,7 +65,7 @@ echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch at $PR_BRANCH_REF ..."
-2>&1 cabal bench "$BENCHMARK_NAME" | tee bench-PR.log
+run_bench bench-PR.log
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
 # merge-base finds the fork point, which is the true parent of the first PR commit.
@@ -68,7 +76,7 @@ echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch at $BASE_BRANCH_REF ..."
-2>&1 cabal bench "$BENCHMARK_NAME" | tee bench-base.log 
+run_bench bench-base.log
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
