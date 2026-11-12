@@ -68,7 +68,7 @@ import Data.Text (Text)
 A wrapper around the internal runCek to debruijn input and undebruijn output.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 runCek
-  :: ThrowableBuiltins uni fun
+  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
   => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
   -> ExBudgetMode cost uni fun
   -> EmitterMode uni fun
@@ -80,7 +80,7 @@ runCek = Common.runCek S.runCekDeBruijn
 keep track of costing.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 runCekNoEmit
-  :: ThrowableBuiltins uni fun
+  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
   => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
   -> ExBudgetMode cost uni fun
   -> Term Name uni fun ann
@@ -90,7 +90,7 @@ runCekNoEmit = Common.runCekNoEmit S.runCekDeBruijn
 {-| Evaluate a term using the Steppable CEK machine with logging enabled.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 evaluateCek
-  :: ThrowableBuiltins uni fun
+  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
   => EmitterMode uni fun
   -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
   -> Term Name uni fun ann
@@ -100,7 +100,7 @@ evaluateCek = Common.evaluateCek S.runCekDeBruijn
 {-| Evaluate a term using the Steppable CEK machine with logging disabled.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 evaluateCekNoEmit
-  :: ThrowableBuiltins uni fun
+  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
   => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
   -> Term Name uni fun ann
   -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
@@ -109,7 +109,7 @@ evaluateCekNoEmit = Common.evaluateCekNoEmit S.runCekDeBruijn
 {-| Unlift a value using the Steppable CEK machine.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 readKnownCek
-  :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a)
+  :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a, ann ~ ClosureAnn)
   => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
   -> Term Name uni fun ann
   -> Either (CekEvaluationException Name uni fun) a

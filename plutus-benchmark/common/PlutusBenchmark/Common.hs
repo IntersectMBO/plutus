@@ -52,6 +52,7 @@ import PlutusTx.Test.Util.Compiled
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (conv)
 
 import Control.DeepSeq (force)
 import Criterion.Main
@@ -87,7 +88,7 @@ getConfig limit = do
 -- | Evaluate a script and return the CPU and memory costs (according to the cost model)
 getCostsCek :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
 getCostsCek (UPLC.Program _ _ prog) =
-  case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter prog of
+  case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter (conv prog) of
     Cek.CekReport _res (Cek.TallyingSt _ budget) _logs ->
       let ExBudget (ExCPU cpu) (ExMemory mem) = budget
        in (fromSatInt cpu, fromSatInt mem)
@@ -124,7 +125,7 @@ mkMostRecentEvalCtx = mkEvalCtx maxBound maxBound
 -- | Evaluate a term as it would be evaluated using the on-chain evaluator.
 evaluateCekLikeInProd
   :: LedgerApi.EvaluationContext
-  -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ClosureAnn
   -> Either
        (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
        (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
@@ -140,16 +141,22 @@ evaluateCekLikeInProd evalCtx term =
 Useful for benchmarking. -}
 evaluateCekForBench
   :: LedgerApi.EvaluationContext
-  -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ClosureAnn
   -> ()
 evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
 
-benchTermCek :: LedgerApi.EvaluationContext -> Term -> Benchmarkable
+benchTermCek
+  :: LedgerApi.EvaluationContext
+  -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ClosureAnn
+  -> Benchmarkable
 benchTermCek evalCtx term =
   let !term' = force term
    in whnf (evaluateCekForBench evalCtx) term'
 
-benchProgramCek :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
+benchProgramCek
+  :: LedgerApi.EvaluationContext
+  -> UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun ClosureAnn
+  -> Benchmarkable
 benchProgramCek evalCtx (UPLC.Program _ _ term) =
   benchTermCek evalCtx term
 

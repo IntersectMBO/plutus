@@ -29,6 +29,7 @@ import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
   ( CekMachineCosts
   , EvaluationResult (..)
+  , conv
   , evaluateCek
   , noEmitter
   , unsafeSplitStructuralOperational
@@ -105,7 +106,7 @@ evalCaseOfCase term = evalOptimizer $ caseOfCase term
 evaluateUplc
   :: UPLC.Term Name DefaultUni DefaultFun ()
   -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
-evaluateUplc = unsafeSplitStructuralOperational . fst <$> evaluateCek noEmitter machineParameters
+evaluateUplc = unsafeSplitStructuralOperational . fst <$> (evaluateCek noEmitter machineParameters . conv)
   where
     costModel :: CostModel CekMachineCosts BuiltinCostModel
     costModel =

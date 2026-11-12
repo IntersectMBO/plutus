@@ -5,6 +5,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -67,6 +68,18 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
   , defaultSlippage
   , NTerm
   , runCekM
+  , conv
+  , Env (..)
+  , emptyEnv
+  , ValueArray (..)
+  , emptyValueArray
+  , ClosureAnn (..)
+  , Projection (..)
+  , project
+  , lam
+  , var
+  , delay
+  , lookupEnv
   )
 where
 
@@ -112,6 +125,14 @@ import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
 import Universe
+
+import Data.GADT.Show
+import Data.List qualified as List
+import Data.Map (Map)
+import Data.Map qualified as Map
+import Data.Primitive.PrimArray as Prim
+import Data.Primitive.SmallArray
+import Data.Set as Set (Set, insert, singleton, union)
 
 {- Note [Compilation peculiarities]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -289,8 +310,8 @@ deriving stock instance
 data CekValue uni fun ann
   = -- This bang gave us a 1-2% speed-up at the time of writing.
     VCon !(Some (ValueOf uni))
-  | VDelay !(NTerm uni fun ann) !(CekValEnv uni fun ann)
-  | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
+  | VDelay !(NTerm uni fun ann) !(ValueArray uni fun ann)
+  | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(ValueArray uni fun ann)
   | {-| A partial builtin application, accumulating arguments for eventual full application.
     We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
     values always store their corresponding 'Term's fully discharged, see the comments at
@@ -320,6 +341,172 @@ deriving stock instance
   => Show (CekValue uni fun ann)
 
 type CekValEnv uni fun ann = Env.RAList (CekValue uni fun ann)
+
+shift :: Index -> Index
+shift (Index n) = Index (n + 1)
+
+unshift :: Index -> Index
+unshift (Index n) = Index (n - 1)
+
+-- Free variables
+-- TODO, check case Var _ (NamedDeBruijn _ i) where i <= 0
+annotateFV :: NTerm uni fun ann -> NTerm uni fun (Set Index)
+annotateFV (Var _ x@(NamedDeBruijn _ i)) = Var (singleton i) x
+annotateFV (LamAbs _ x t) = LamAbs fvs x t'
+  where
+    t' = annotateFV t
+    fvs = foldr unshiftOrDrop mempty (getAnn t')
+
+    unshiftOrDrop :: Index -> Set Index -> Set Index
+    unshiftOrDrop (Index 1) xs = xs
+    unshiftOrDrop n xs = Set.insert (unshift n) xs
+annotateFV (Apply _ s t) = Apply (getAnn s' <> getAnn t') s' t'
+  where
+    s' = annotateFV s
+    t' = annotateFV t
+annotateFV (Force _ t) = Force (getAnn t') t'
+  where
+    t' = annotateFV t
+annotateFV (Delay _ t) = Delay (getAnn t') t'
+  where
+    t' = annotateFV t
+annotateFV (Constant _ c) = Constant mempty c
+annotateFV (Builtin _ b) = Builtin mempty b
+annotateFV (Case _ t ts) = Case fvs t' ts'
+  where
+    t' = annotateFV t
+    ts' = V.map annotateFV ts
+    fvs = V.foldr union (getAnn t') (V.map getAnn ts')
+annotateFV (Constr _ i ts) = Constr fvs i ts'
+  where
+    ts' = map annotateFV ts
+    fvs = foldr union mempty (map getAnn ts')
+annotateFV (Error _) = Error mempty
+
+-- Testing
+
+lam :: NTerm uni () () -> NTerm uni () ()
+lam = LamAbs () (NamedDeBruijn "" 0)
+
+var :: Word64 -> NTerm uni () ()
+var x = Var () (NamedDeBruijn "" (Index x))
+
+delay :: NTerm uni () () -> NTerm uni () ()
+delay t = Delay () t
+
+-- Which elements to project out of the CEK environment into the closure's
+-- environment
+newtype Projection = Projection (PrimArray Int)
+  deriving stock (Generic)
+  deriving anyclass (NFData)
+
+data ClosureAnn
+  = AnnNone
+  | AnnProjection !Projection
+  | AnnIx {-# UNPACK #-} !Int
+  deriving stock (Generic)
+  deriving anyclass (NFData)
+
+-- TODO: could all of this be faster when using named Uniques in variables?
+-- Would require no shifting
+
+-- For each variable in the closure, get the position in the surrounding layout
+mkProjection :: Map Index Int -> Map Index Int -> Projection
+mkProjection closure surrounding = Projection . primArrayFromList $ map varSlot (Map.keys closure)
+  where
+    -- Each `Index n` is a free variable of the closure,
+    -- and we return its index in the surrounding layout
+    varSlot :: Index -> Int
+    varSlot db =
+      fromMaybe
+        -- This should be impossible if the term is well-scoped
+        (error $ "conv: variable " <> show db <> "not in layout" <> show surrounding)
+        (Map.lookup db surrounding)
+
+fvsToLayout :: Set Index -> Map Index Int
+fvsToLayout fvs = Map.fromAscList (zip (toList fvs) [1 ..])
+
+-- Closure conversion: annotate variables with their index in the environment and lambdas with a
+-- projection to construct closure environments at run-time. `layout` maps
+-- original de Bruijn indices to their slot index in the run-time `Env`.
+
+annotateClosure :: NTerm uni fun (Set Index) -> NTerm uni fun ClosureAnn
+annotateClosure = go Map.empty
+  where
+    go :: Map Index Int -> NTerm uni fun (Set Index) -> NTerm uni fun ClosureAnn
+    go layout (Var _ x@(NamedDeBruijn _ db)) =
+      case Map.lookup db layout of
+        Nothing -> error "go: impossible: variable that is not in layout (free variables)"
+        Just ix -> Var (AnnIx ix) x
+    go layout (LamAbs fvs x t) = LamAbs ann x (go bodyLayout t)
+      where
+        ann = AnnProjection $ mkProjection closureLayout layout
+        closureLayout = fvsToLayout fvs
+        bodyLayout = Map.insert (Index 1) 0 (Map.mapKeysMonotonic shift closureLayout)
+    go layout (Apply _ s t) = Apply AnnNone (go layout s) (go layout t)
+    go layout (Force _ t) = Force AnnNone (go layout t)
+    go layout (Delay fvs t) = Delay ann (go closureLayout t)
+      where
+        ann = AnnProjection $ mkProjection closureLayout layout
+        closureLayout = fvsToLayout fvs
+    go _ (Constant _ c) = Constant AnnNone c
+    go _ (Builtin _ b) = Builtin AnnNone b
+    go layout (Case _ t ts) = Case AnnNone (go layout t) (V.map (go layout) ts)
+    go layout (Constr _ i ts) = Constr AnnNone i (map (go layout) ts)
+    go _ (Error _) = Error AnnNone
+
+conv :: NTerm uni fun ann -> NTerm uni fun ClosureAnn
+conv t = annotateClosure (annotateFV t)
+
+-- Array-based environment
+
+-- | Array containing `CekValue`s
+newtype ValueArray uni fun ann = ValueArray (SmallArray (CekValue uni fun ann))
+
+emptyValueArray :: ValueArray uni fun ann
+emptyValueArray = ValueArray emptySmallArray
+
+deriving stock instance
+  (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+  => Show (ValueArray uni fun ann)
+
+-- | Environment with optional first element
+data Env uni fun ann = Env (Maybe (CekValue uni fun ann)) (ValueArray uni fun ann)
+
+emptyEnv :: Env uni fun ann
+emptyEnv = Env Nothing emptyValueArray
+
+deriving stock instance
+  (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+  => Show (Env uni fun ann)
+
+lookupEnvST :: Int -> Env uni fun ann -> ST s (CekValue uni fun ann)
+lookupEnvST 0 (Env Nothing _) = error "lookupEnvST: impossible (slot index 0, without value in env)"
+lookupEnvST 0 (Env (Just v) _) = pure v
+lookupEnvST n (Env _ (ValueArray vs)) = indexSmallArrayM vs (n - 1)
+{-# INLINE lookupEnvST #-}
+
+lookupEnv :: Int -> Env uni fun ann -> CekValue uni fun ann
+lookupEnv n env = runST $ lookupEnvST n env
+{-# INLINE lookupEnv #-}
+
+project :: Projection -> Env uni fun ann -> ValueArray uni fun ann
+project (Projection ixs) env =
+  ValueArray
+    $ createSmallArray
+      len
+      (error "project: uninitialized array")
+    $ \arr ->
+      let go !i
+            | i >= len = pure ()
+            | otherwise = do
+                let !slot = indexPrimArray ixs i
+                v <- lookupEnvST slot env
+                writeSmallArray arr i v
+                go (i + 1)
+       in go 0
+  where
+    len = Prim.sizeofPrimArray ixs
 
 {-| The CEK machine is parameterized over a @spendBudget@ function. This makes the budgeting machinery extensible
 and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
@@ -553,7 +740,7 @@ But in our case this is okay, because:
 {-| Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 'throwErrorWithCause' as the cause of the failure. -}
 throwErrorDischarged
-  :: ThrowableBuiltins uni fun
+  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
   => EvaluationError (MachineError fun) CekUserError
   -> CekValue uni fun ann
   -> CekM uni fun s x
@@ -654,13 +841,15 @@ dischargeResultToTerm (DischargeNonConstant term) = term
 
 {-| Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
 they're bound to (which themselves have to be obtained by recursively discharging values). -}
-dischargeCekValue :: forall uni fun ann. CekValue uni fun ann -> DischargeResult uni fun
+dischargeCekValue
+  :: forall uni fun ann. ann ~ ClosureAnn => CekValue uni fun ann -> DischargeResult uni fun
 dischargeCekValue (VCon val) = DischargeConstant val
 dischargeCekValue value0 = DischargeNonConstant $ goValue value0
   where
     goValue :: CekValue uni fun ann -> NTerm uni fun ()
     goValue = \case
       VCon val -> Constant () val
+      -- _ -> error "dischargeCekValue: Not implemented"
       VDelay body env -> Delay () $ goValEnv env 0 body
       VLamAbs (NamedDeBruijn n _ix) body env ->
         -- The index on the binder is meaningless, we put @0@ by convention, see 'Binder'.
@@ -673,27 +862,22 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
     -- Mutually recursive with @goValue@.
-    goValEnv :: CekValEnv uni fun ann -> Word64 -> NTerm uni fun ann -> NTerm uni fun ()
-    goValEnv env = go
+    goValEnv :: ValueArray uni fun ann -> Word64 -> NTerm uni fun ClosureAnn -> NTerm uni fun ()
+    goValEnv (ValueArray vs) = go
       where
         -- @shift@ is just a counter that measures how many lambda-abstractions we have descended
         -- into so far.
         go :: Word64 -> NTerm uni fun ann -> NTerm uni fun ()
         go !shift = \case
           LamAbs _ name body -> LamAbs () name $ go (shift + 1) body
-          Var _ named@(NamedDeBruijn _ (coerce -> idx)) ->
+          Var ann named@(NamedDeBruijn _ (coerce -> idx)) ->
             if shift >= idx
               -- the index n is less-than-or-equal than the number of lambdas we have descended
               -- this means that n points to a bound variable, so we don't discharge it.
               then Var () named
-              else
-                maybe
-                  -- var is free, leave it alone
-                  (Var () named)
-                  -- var is in the env, discharge its value
-                  goValue
-                  -- index relative to (as seen from the point of view of) the environment
-                  (Env.indexOne env $ idx - shift)
+              else case ann of
+                AnnIx i -> goValue (indexSmallArray vs (i - 1))
+                _ -> error "dischargeCekValue: wrong index in annotation"
           Apply _ fun arg -> Apply () (go shift fun) $ go shift arg
           Delay _ term -> Delay () $ go shift term
           Force _ term -> Force () $ go shift term
@@ -703,7 +887,7 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
           Constr _ ind args -> Constr () ind $ map (go shift) args
           Case _ scrut alts -> Case () (go shift scrut) $ fmap (go shift) alts
 
-instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
+instance (PrettyUni uni, Pretty fun, ann ~ ClosureAnn) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
   prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue
 
 type instance UniOf (CekValue uni fun ann) = uni
@@ -725,7 +909,7 @@ data Context uni fun ann
   = -- | @[V _]@
     FrameAwaitArg !(CekValue uni fun ann) !(Context uni fun ann)
   | -- | @[_ N]@
-    FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
+    FrameAwaitFunTerm !(Env uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
   | -- | @[_ V]@
     FrameAwaitFunConN !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
   | -- | @[_ V1 .. Vn]@
@@ -735,13 +919,13 @@ data Context uni fun ann
     FrameForce !(Context uni fun ann)
   | -- | @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     FrameConstr
-      !(CekValEnv uni fun ann)
+      !(Env uni fun ann)
       {-# UNPACK #-} !Word64
       ![NTerm uni fun ann]
       !(ArgStack uni fun ann)
       !(Context uni fun ann)
   | -- | @(case _ C0 .. Cn)@
-    FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+    FrameCases !(Env uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
   | NoFrame
 
 deriving stock instance
@@ -811,9 +995,9 @@ runCekM
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
   :: forall uni fun ann s
-   . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
+   . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s, ann ~ ClosureAnn)
   => Context uni fun ann
-  -> CekValEnv uni fun ann
+  -> Env uni fun ann
   -> NTerm uni fun ann
   -> CekM uni fun s (DischargeResult uni fun)
 enterComputeCek = computeCek
@@ -826,26 +1010,38 @@ enterComputeCek = computeCek
     -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
     computeCek
       :: Context uni fun ann
-      -> CekValEnv uni fun ann
+      -> Env uni fun ann
       -> NTerm uni fun ann
       -> CekM uni fun s (DischargeResult uni fun)
     -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
-    computeCek !ctx !env (Var _ varName) = do
+    computeCek !ctx !env (Var ann _) = do
       stepAndMaybeSpend BVar
-      val <- lookupVarName varName env
-      returnCek ctx val
+      case ann of
+        AnnIx i -> do
+          let !val = lookupEnv i env
+          returnCek ctx val
+        _ -> error "computeCEK: Wrong annotation on variable"
     -- s ; ρ ▻ con c  ↦  s ◅ con c
     computeCek !ctx !_ (Constant _ val) = do
       stepAndMaybeSpend BConst
       returnCek ctx (VCon val)
     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
-    computeCek !ctx !env (LamAbs _ name body) = do
+    computeCek !ctx !env (LamAbs ann name body) = do
       stepAndMaybeSpend BLamAbs
-      returnCek ctx (VLamAbs name body env)
+      case ann of
+        AnnProjection p ->
+          let !lamEnv = project p env
+           in returnCek ctx (VLamAbs name body lamEnv)
+        _ -> error "computeCek: wrong annotation on lambda"
     -- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)
-    computeCek !ctx !env (Delay _ body) = do
+    computeCek !ctx !env (Delay ann body) = do
       stepAndMaybeSpend BDelay
-      returnCek ctx (VDelay body env)
+      case ann of
+        AnnProjection p ->
+          let !delayEnv = project p env
+           in returnCek ctx (VDelay body delayEnv)
+        _ -> error "computeCek: wrong annotation on delay"
+
     -- s ; ρ ▻ force T  ↦  s , force _ ; ρ ▻ L
     computeCek !ctx !env (Force _ body) = do
       stepAndMaybeSpend BForce
@@ -959,7 +1155,7 @@ enterComputeCek = computeCek
       :: Context uni fun ann
       -> CekValue uni fun ann
       -> CekM uni fun s (DischargeResult uni fun)
-    forceEvaluate !ctx (VDelay body env) = computeCek ctx env body
+    forceEvaluate !ctx (VDelay body env) = computeCek ctx (Env Nothing env) body
     forceEvaluate !ctx (VBuiltin fun term runtime) = do
       -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
       let term' = Force () term
@@ -989,7 +1185,8 @@ enterComputeCek = computeCek
       -> CekValue uni fun ann -- rhs of application
       -> CekM uni fun s (DischargeResult uni fun)
     applyEvaluate !ctx (VLamAbs _ body env) arg =
-      computeCek ctx (Env.cons arg env) body
+      -- computeCek ctx (Env.cons arg env) body
+      computeCek ctx (Env (Just arg) env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
     applyEvaluate !ctx (VBuiltin fun funTerm runtime) arg = do
@@ -1079,7 +1276,8 @@ enterComputeCek = computeCek
     {-# INLINE spendBudget #-}
 
     -- \| Look up a variable name in the environment.
-    lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+    lookupVarName
+      :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
     lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
       Env.contIndexOne
         (throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName)
@@ -1091,7 +1289,7 @@ enterComputeCek = computeCek
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
-  :: ThrowableBuiltins uni fun
+  :: (ThrowableBuiltins uni fun, ann ~ ClosureAnn)
   => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
   -> ExBudgetMode cost uni fun
   -> EmitterMode uni fun
@@ -1100,7 +1298,7 @@ runCekDeBruijn
 runCekDeBruijn params mode emitMode term =
   runCekM params mode emitMode $ do
     unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts
-    enterComputeCek NoFrame Env.empty term
+    enterComputeCek NoFrame (Env Nothing (ValueArray empty)) term
 
 {- Note [Accumulators for terms]
 At a couple of points in the CEK machine (notably building the arguments to a constructor value)
