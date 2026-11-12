@@ -48,7 +48,7 @@ fi
 run_bench() {
    local bin
    cabal build --enable-benchmarks "$BENCHMARK_NAME"
-   bin="$(cabal list-bin --enable-benchmarks "$BENCHMARK_NAME")"
+   bin="$(cabal list-bin --enable-benchmarks "$BENCHMARK_NAME" | tail -n 1)"
    # Pin only the benchmark (not cabal/tee) to one core; run from the package dir like `cabal bench`.
    (cd plutus-benchmark && taskset -c "${BENCH_CORE:-7}" "$bin") 2>&1 | tee "$1"
 }
