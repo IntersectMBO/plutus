@@ -252,9 +252,9 @@ keep this special case for the time being though. -}
 memoryUsageInteger 0 = 1
 -- Assume 64-bit words
 memoryUsageInteger i = fromIntegral (integerLog2 (abs i) `div` 64 + 1)
--- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
--- function anyway.
-{-# OPAQUE memoryUsageInteger #-}
+-- NOINLINE avoids duplicating this function at each call site, while allowing an unboxed result.
+-- OPAQUE prevents worker/wrapper, so the result gets boxed and then immediately unboxed by callers.
+{-# NOINLINE memoryUsageInteger #-}
 
 instance ExMemoryUsage Integer where
   memoryUsage i = singletonRose $ memoryUsageInteger i
