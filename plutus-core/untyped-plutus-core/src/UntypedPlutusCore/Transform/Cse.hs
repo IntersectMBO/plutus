@@ -256,6 +256,7 @@ annotate = flip evalState 0 . flip runReaderT [] . go
             <*> go arg
         Apply ann fun arg -> Apply (path, ann) <$> go fun <*> go arg
         Force ann body -> Force (path, ann) <$> go body
+        List ann xs -> List (path, ann) <$> traverse go xs
         Constr ann i args -> Constr (path, ann) i <$> traverse go args
         Constant ann val -> pure $ Constant (path, ann) val
         Error ann -> pure $ Error (path, ann)
@@ -408,6 +409,7 @@ applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
           Constant ann val -> Constant ann val
           Builtin ann fun -> Builtin ann fun
           Error ann -> Error ann
+          List ann xs -> List ann (mkLamApp <$> xs)
           Constr ann i ts -> Constr ann i (mkLamApp <$> ts)
           Case ann scrut branches -> Case ann (mkLamApp scrut) (mkLamApp <$> branches)
       | otherwise = t
@@ -461,6 +463,7 @@ occursIn n = go
       Apply _ fun arg -> go fun || go arg
       Force _ t -> go t
       Delay _ t -> go t
+      List _ xs -> any go xs
       Constr _ _ ts -> any go ts
       Case _ scrut branches -> go scrut || any go branches
       _ -> False

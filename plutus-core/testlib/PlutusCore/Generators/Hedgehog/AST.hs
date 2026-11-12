@@ -88,7 +88,7 @@ regenConstantsUntil p =
 -- enough to support everything. That gives us less coverage of parsing versions, but
 -- that's not likely to be the place where things go wrong
 genVersion :: MonadGen m => m Version
-genVersion = Version <$> intFrom 1 <*> intFrom 1 <*> intFrom 0
+genVersion = Version <$> intFrom 1 <*> intFrom 3 <*> intFrom 0
   where
     intFrom x = Gen.integral_ $ Range.linear x 20
 
@@ -148,7 +148,7 @@ genType = simpleRecursive nonRecursive recursive
     applyGen = TyApp () <$> genType <*> genType
     sopGen = TySOP () <$> (Gen.list (Range.linear 0 10) (Gen.list (Range.linear 0 10) genType))
     tyBuiltinGen = TyBuiltin () <$> genSomeTypeIn
-    recursive = [funGen, applyGen, sopGen]
+    recursive = [funGen, applyGen, sopGen, TyList () <$> genType]
     nonRecursive = [varGen, lamGen, forallGen, tyBuiltinGen]
 
 genTerm :: forall fun. (Bounded fun, Enum fun) => AstGen (Term TyName Name DefaultUni fun ())
@@ -164,7 +164,9 @@ genTerm = simpleRecursive nonRecursive recursive
     errorGen = Error () <$> genType
     constrGen = Constr () <$> genType <*> Gen.word64 (Range.linear 0 10) <*> Gen.list (Range.linear 0 10) genTerm
     caseGen = Case () <$> genType <*> genTerm <*> Gen.list (Range.linear 0 10) genTerm
-    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, constrGen, caseGen]
+    listGen = List () <$> genType <*> Gen.list (Range.linear 0 10) genTerm
+    recursive =
+      [listGen, absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, constrGen, caseGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
 genProgram :: forall fun. (Bounded fun, Enum fun) => AstGen (Program TyName Name DefaultUni fun ())

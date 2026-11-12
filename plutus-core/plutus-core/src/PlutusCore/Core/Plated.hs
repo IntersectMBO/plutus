@@ -32,7 +32,7 @@ import PlutusPrelude ((<^>))
 import PlutusCore.Core.Type
 import PlutusCore.Name.Unique
 
-import Control.Lens
+import Control.Lens hiding (List)
 import Universe
 
 kindSubkinds :: Traversal' (Kind ann) (Kind ann)
@@ -58,6 +58,7 @@ typeTyBinds f ty0 = case ty0 of
   TyFun {} -> pure ty0
   TyBuiltin {} -> pure ty0
   TyVar {} -> pure ty0
+  TyList {} -> pure ty0
   TySOP {} -> pure ty0
 
 -- | Get all the direct child 'tyname a's of the given 'Type' from 'TyVar's.
@@ -70,6 +71,7 @@ typeTyVars f ty0 = case ty0 of
   TyIFix {} -> pure ty0
   TyFun {} -> pure ty0
   TyBuiltin {} -> pure ty0
+  TyList {} -> pure ty0
   TySOP {} -> pure ty0
 
 -- | Get all the direct child 'Unique's of the given 'Type' from binders 'TyVar's.
@@ -82,6 +84,7 @@ typeUniques f ty0 = case ty0 of
   TyIFix {} -> pure ty0
   TyFun {} -> pure ty0
   TyBuiltin {} -> pure ty0
+  TyList {} -> pure ty0
   TySOP {} -> pure ty0
 
 -- | Get all the direct child 'Kind's of the given 'Type'.
@@ -94,6 +97,7 @@ typeSubkinds f ty0 = case ty0 of
   TyFun {} -> pure ty0
   TyBuiltin {} -> pure ty0
   TyVar {} -> pure ty0
+  TyList {} -> pure ty0
   TySOP {} -> pure ty0
 {-# INLINE typeSubkinds #-}
 
@@ -105,6 +109,7 @@ typeSubtypes f ty0 = case ty0 of
   TyForall ann tn k ty -> TyForall ann tn k <$> f ty
   TyLam ann tn k ty -> TyLam ann tn k <$> f ty
   TyApp ann ty1 ty2 -> TyApp ann <$> f ty1 <*> f ty2
+  TyList ann ty -> TyList ann <$> f ty
   TySOP ann tyls -> TySOP ann <$> (traverse . traverse) f tyls
   TyBuiltin {} -> pure ty0
   TyVar {} -> pure ty0
@@ -132,6 +137,7 @@ termConstants f term0 = case term0 of
   Apply {} -> pure term0
   Unwrap {} -> pure term0
   Builtin {} -> pure term0
+  List {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 
@@ -148,6 +154,7 @@ termTyBinds f term0 = case term0 of
   Unwrap {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  List {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 
@@ -164,6 +171,7 @@ termBinds f term0 = case term0 of
   Unwrap {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  List {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 
@@ -180,6 +188,7 @@ termVars f term0 = case term0 of
   Unwrap {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  List {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 
@@ -197,6 +206,7 @@ termUniques f term0 = case term0 of
   Unwrap {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  List {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 
@@ -213,6 +223,7 @@ termSubkinds f term0 = case term0 of
   Unwrap {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  List {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 {-# INLINE termSubkinds #-}
@@ -224,6 +235,7 @@ termSubtypes f term0 = case term0 of
   TyInst ann t ty -> TyInst ann t <$> f ty
   IWrap ann ty1 ty2 t -> IWrap ann <$> f ty1 <*> f ty2 <*> pure t
   Error ann ty -> Error ann <$> f ty
+  List ann ty xs -> List ann <$> f ty <*> pure xs
   Constr ann ty i es -> Constr ann <$> f ty <*> pure i <*> pure es
   Case ann ty arg cs -> Case ann <$> f ty <*> pure arg <*> pure cs
   TyAbs {} -> pure term0
@@ -251,6 +263,7 @@ termSubterms f term0 = case term0 of
   TyAbs ann n k t -> TyAbs ann n k <$> f t
   Apply ann t1 t2 -> Apply ann <$> f t1 <*> f t2
   Unwrap ann t -> Unwrap ann <$> f t
+  List ann ty xs -> List ann ty <$> traverse f xs
   Constr ann ty i es -> Constr ann ty i <$> traverse f es
   Case ann ty arg cs -> Case ann ty <$> f arg <*> traverse f cs
   Error {} -> pure term0

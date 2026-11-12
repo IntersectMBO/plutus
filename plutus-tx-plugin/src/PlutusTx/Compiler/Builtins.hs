@@ -849,6 +849,8 @@ defineBuiltinTerms = do
           PLC.AssetCount -> defineBuiltinInl 'Builtins.assetCount
           PLC.KeepPolicies -> defineBuiltinInl 'Builtins.keepPolicies
           PLC.DropPolicies -> defineBuiltinInl 'Builtins.dropPolicies
+          -- Structural lists do not yet have a Plinth surface type.
+          PLC.TermAppend -> pure ()
 
 defineBuiltinTypes :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTypes = do

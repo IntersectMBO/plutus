@@ -30,6 +30,7 @@ renameTermM err@Error {} = pure err
 renameTermM (Var ann name) = Var ann <$> renameNameM name
 renameTermM (Delay ann term) = Delay ann <$> renameTermM term
 renameTermM (Force ann term) = Force ann <$> renameTermM term
+renameTermM (List ann xs) = List ann <$> traverse renameTermM xs
 renameTermM (Constr ann i es) = Constr ann i <$> traverse renameTermM es
 renameTermM (Case ann arg cs) = Case ann <$> renameTermM arg <*> traverse renameTermM cs
 renameTermM con@Constant {} = pure con

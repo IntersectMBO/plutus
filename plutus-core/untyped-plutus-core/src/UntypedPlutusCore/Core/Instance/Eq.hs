@@ -109,6 +109,11 @@ eqTermM (Constr ann1 i1 args1) (Constr ann2 i2 args2) = do
   case zipExact args1 args2 of
     Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
     Nothing -> empty
+eqTermM (List ann1 xs1) (List ann2 xs2) = do
+  eqM ann1 ann2
+  case zipExact xs1 xs2 of
+    Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
+    Nothing -> empty
 eqTermM (Case ann1 a1 cs1) (Case ann2 a2 cs2) = do
   eqM ann1 ann2
   eqTermM a1 a2
@@ -125,3 +130,4 @@ eqTermM Force {} _ = empty
 eqTermM Error {} _ = empty
 eqTermM Constr {} _ = empty
 eqTermM Case {} _ = empty
+eqTermM List {} _ = empty

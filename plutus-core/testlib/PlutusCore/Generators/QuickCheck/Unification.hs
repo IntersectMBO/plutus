@@ -180,6 +180,7 @@ unifyType ctx flex a0 b0 =
       -- See Note [Renaming during unification].
       let z = freshenTyNameWith (locals <> Map.keysSet ctx) x
       local (Set.insert z) $ goType (renameVar x z a') (renameVar y z b')
+    goType (TyList _ a) (TyList _ b) = goType a b
     goType (TySOP _ sum1) (TySOP _ sum2)
       -- Sums must be of the same arity.
       | Just sum12 <- zipExact sum1 sum2 =

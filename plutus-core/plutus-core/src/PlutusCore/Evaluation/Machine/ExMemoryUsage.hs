@@ -26,7 +26,9 @@ import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
-import PlutusCore.Unroll (dropN)
+import PlutusCore.SnocList (SnocList)
+import PlutusCore.SnocList qualified as SnocList
+import PlutusCore.Unroll (dropN, dropSnocN)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
 
@@ -225,6 +227,15 @@ instance ExMemoryUsage [a] where
       go xs = case dropN @100 xs of
         Just rest -> CostRose 100 [go rest]
         Nothing -> singletonRose (fromIntegral (length xs))
+  {-# INLINE memoryUsage #-}
+
+-- Like ordinary lists, structural lists are costed by length in lazy chunks of 100.
+instance ExMemoryUsage (SnocList a) where
+  memoryUsage = go
+    where
+      go xs = case dropSnocN @100 xs of
+        Just rest -> CostRose 100 [go rest]
+        Nothing -> singletonRose (fromIntegral (SnocList.length xs))
   {-# INLINE memoryUsage #-}
 
 {- Note that the `memoryUsage` of an empty array is zero.  This shouldn't cause any

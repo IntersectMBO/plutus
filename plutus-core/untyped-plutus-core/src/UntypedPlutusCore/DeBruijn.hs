@@ -33,7 +33,7 @@ import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import UntypedPlutusCore.Core
 
-import Control.Lens hiding (Index, Level, index)
+import Control.Lens hiding (Index, Level, List, index)
 import Control.Monad.Except
 import Control.Monad.Reader
 
@@ -89,6 +89,7 @@ deBruijnTermWithM h = go
       Apply ann t1 t2 -> Apply ann <$> go t1 <*> go t2
       Delay ann t -> Delay ann <$> go t
       Force ann t -> Force ann <$> go t
+      List ann xs -> List ann <$> traverse go xs
       Constr ann i es -> Constr ann i <$> traverse go es
       Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
       -- boring non-recursive cases
@@ -117,6 +118,7 @@ unDeBruijnTermWithM h = go
       Apply ann t1 t2 -> Apply ann <$> go t1 <*> go t2
       Delay ann t -> Delay ann <$> go t
       Force ann t -> Force ann <$> go t
+      List ann xs -> List ann <$> traverse go xs
       Constr ann i es -> Constr ann i <$> traverse go es
       Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
       -- boring non-recursive cases

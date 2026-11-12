@@ -291,7 +291,6 @@ evaluation anyway, hence we care much more about optimizing the happy path.
 instance
   ( Typeable arg
   , KnownTypeAst TyName (UniOf val) arg
-  , MakeKnown val arg
   , ReadKnown val arg
   , KnownMonotype val args res
   )

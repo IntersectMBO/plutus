@@ -141,6 +141,7 @@ instance
     TyBuiltin _ someUni -> lmap _pcrRenderContext $ prettyM someUni
     (viewTyLam -> Just (args, body)) -> iterLamAbsPrettyM args body
     TyLam {} -> error "Panic: 'TyLam' is not covered by 'viewTyLam'"
+    TyList _ ty -> iterAppDocM $ \_ prettyArg -> "List" :| [prettyArg ty]
     TySOP _ tls -> iterAppDocM $ \_ prettyArg -> "sop" :| fmap prettyArg tls
 
 instance
@@ -167,6 +168,7 @@ instance
       iterAppDocM $ \_ prettyArg ->
         "iwrap" :| [prettyArg pat, prettyArg arg, prettyArg term]
     Error _ ty -> iterAppDocM $ \_ prettyArg -> "error" :| [prettyArg $ inBraces ty]
+    List _ ty xs -> iterAppDocM $ \_ prettyArg -> "list" :| [prettyArg ty, prettyArg xs]
     Constr _ ty i es ->
       iterAppDocM $ \_ prettyArg -> "constr" :| [prettyArg ty, prettyArg i, prettyArg es]
     Case _ ty arg cs ->

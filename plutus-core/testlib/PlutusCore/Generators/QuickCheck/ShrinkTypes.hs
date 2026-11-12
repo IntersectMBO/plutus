@@ -125,6 +125,7 @@ fixKind ctx ty k
       TyFun {} -> error "Internal error: unreachable clause."
       TyIFix {} -> error "Internal error: unreachable clause."
       TyForall {} -> error "Internal error: unreachable clause."
+      TyList {} -> error "Internal error: unreachable clause."
       TySOP {} -> error "Internal error: unreachable clause."
   where
     origK = unsafeInferKind ctx ty
@@ -274,6 +275,8 @@ shrinkKindAndType ctx (k0, ty) =
                   ]
               where
                 kArg = unsafeInferKind ctx arg
+            TyList _ elemTy ->
+              map (Type (),) $ elemTy : map (TyList ()) (shrinkType ctx elemTy)
             TySOP _ tyls ->
               map (Type (),) $
                 concat

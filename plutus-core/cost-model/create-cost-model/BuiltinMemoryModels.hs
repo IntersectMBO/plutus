@@ -426,6 +426,7 @@ builtinMemoryModels =
       -- depth. The slopes are those words per level, worst at a depth of one, rounded up.
       paramKeepPolicies = Id $ ModelTwoArgumentsMultipliedSizes $ OneVariableLinearFunction 32 32
     , paramDropPolicies = Id $ ModelTwoArgumentsMultipliedSizes $ OneVariableLinearFunction 32 36
+    , paramTermAppend = Id $ ModelTwoArgumentsLinearInX $ OneVariableLinearFunction 1 3
     }
   where
     identityFunction = OneVariableLinearFunction 0 1

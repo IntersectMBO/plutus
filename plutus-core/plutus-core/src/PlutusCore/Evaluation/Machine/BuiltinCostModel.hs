@@ -203,6 +203,8 @@ data BuiltinCostModelBase f
   , paramPolicies :: f ModelOneArgument
   , paramKeepPolicies :: f ModelTwoArguments
   , paramDropPolicies :: f ModelTwoArguments
+  , paramTermAppend :: f ModelTwoArguments
+  -- ^ Linear in the structural prefix length. Default coefficients await calibration.
   }
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)

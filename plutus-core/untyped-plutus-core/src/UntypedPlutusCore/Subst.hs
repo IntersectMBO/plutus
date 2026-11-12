@@ -21,7 +21,7 @@ import PlutusPrelude
 
 import UntypedPlutusCore.Core
 
-import Control.Lens
+import Control.Lens hiding (List)
 import Universe
 
 -- | Applicatively replace a variable using the given function.
@@ -71,6 +71,7 @@ termMapNames f = go
       Apply ann t1 t2 -> Apply ann (go t1) (go t2)
       Delay ann t -> Delay ann (go t)
       Force ann t -> Force ann (go t)
+      List ann xs -> List ann (fmap go xs)
       Constr ann i es -> Constr ann i (fmap go es)
       Case ann arg cs -> Case ann (go arg) (fmap go cs)
       Constant ann c -> Constant ann c

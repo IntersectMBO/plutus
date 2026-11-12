@@ -19,7 +19,7 @@ import PlutusPrelude
 import UntypedPlutusCore.Core.Instance.Pretty ()
 import UntypedPlutusCore.Core.Type
 
-import Control.Lens
+import Control.Lens hiding (List)
 import Control.Monad
 import Data.Proxy
 import Data.Vector qualified as V
@@ -69,7 +69,7 @@ tags and their used/available encoding possibilities.
 \| Data type        | Function          | Bit Width | Total | Used | Remaining |
 \|------------------|-------------------|-----------|-------|------|-----------|
 \| default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
-\| Terms            | encodeTerm        | 4         | 16    | 10   | 6         |
+\| Terms            | encodeTerm        | 4         | 16    | 11   | 5         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
@@ -126,6 +126,7 @@ encodeTerm = \case
   Force ann t -> encodeTermTag 5 <> encode ann <> encodeTerm t
   Error ann -> encodeTermTag 6 <> encode ann
   Builtin ann bn -> encodeTermTag 7 <> encode ann <> encode bn
+  List ann xs -> encodeTermTag 10 <> encode ann <> encodeListWith encodeTerm xs
   Constr ann i es -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm es
   Case ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm (V.toList cs)
 
@@ -183,6 +184,10 @@ decodeTerm decodeValue version constantPred builtinPred constrPred = go
         fail $
           "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
       Case <$> decode <*> go <*> (V.fromList <$> decodeListWith go)
+    handleTerm 10 = do
+      unless (version >= PLC.plcVersion130) $
+        fail "'list' is not allowed before version 1.3.0"
+      List <$> decode <*> decodeListWith go
     handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -210,6 +215,7 @@ sizeTerm tm sz =
       Force ann t -> size ann $ sizeTerm t sz'
       Error ann -> size ann sz'
       Builtin ann bn -> size ann $ size bn sz'
+      List ann xs -> size ann $ sizeListWith sizeTerm xs sz'
       Constr ann i es -> size ann $ size i $ sizeListWith sizeTerm es sz'
       Case ann arg cs -> size ann $ sizeTerm arg $ sizeListWith sizeTerm (V.toList cs) sz'
 

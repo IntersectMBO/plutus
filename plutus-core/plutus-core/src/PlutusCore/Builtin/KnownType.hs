@@ -489,6 +489,10 @@ instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) whe
   readKnown = fmap SomeConstant #. asConstant
   {-# INLINE readKnown #-}
 
+instance HasConstantIn uni val => ReadKnownIn uni val (TermSnocList val rep) where
+  readKnown = fmap TermSnocList #. asSnocList
+  {-# INLINE readKnown #-}
+
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
   makeKnown = coerceArg pure
   {-# INLINE makeKnown #-}

@@ -35,7 +35,7 @@ import PlutusPrelude
 
 import PlutusCore.Core
 
-import Control.Lens
+import Control.Lens hiding (List)
 import Control.Lens.Unsound qualified as Unsound
 import PlutusCore.Name.Unique (HasUnique)
 import PlutusCore.Name.UniqueSet (UniqueSet)
@@ -191,6 +191,7 @@ typeMapNames f = go
       TyBuiltin ann s -> TyBuiltin ann s
       TyLam ann tn k ty -> TyLam ann (f tn) k (go ty)
       TyApp ann ty1 ty2 -> TyApp ann (go ty1) (go ty2)
+      TyList ann ty -> TyList ann (go ty)
       TySOP ann tyls -> TySOP ann ((fmap . fmap) go tyls)
 
 -- termMapNames requires two function arguments: one (called f) to modify type names
@@ -214,6 +215,7 @@ termMapNames f g = go
       TyInst ann body ty -> TyInst ann (go body) (typeMapNames f ty)
       Unwrap ann body -> Unwrap ann (go body)
       IWrap ann ty1 ty2 body -> IWrap ann (typeMapNames f ty1) (typeMapNames f ty2) (go body)
+      List ann ty xs -> List ann (typeMapNames f ty) (fmap go xs)
       Constr ann ty i es -> Constr ann (typeMapNames f ty) i (fmap go es)
       Case ann ty arg cs -> Case ann (typeMapNames f ty) (go arg) (fmap go cs)
       Error ann ty -> Error ann (typeMapNames f ty)

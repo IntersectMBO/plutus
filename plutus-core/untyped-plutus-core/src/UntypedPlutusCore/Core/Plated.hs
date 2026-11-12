@@ -18,7 +18,7 @@ import PlutusCore.Core (HasUniques)
 import PlutusCore.Name.Unique
 import UntypedPlutusCore.Core.Type
 
-import Control.Lens
+import Control.Lens hiding (List)
 import Universe
 
 -- | Get all the direct constants of the given 'Term' from 'Constant's.
@@ -32,6 +32,7 @@ termConstants f term0 = case term0 of
   Force {} -> pure term0
   Delay {} -> pure term0
   Builtin {} -> pure term0
+  List {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 
@@ -61,6 +62,7 @@ termSubterms f = \case
   Apply ann t1 t2 -> Apply ann <$> f t1 <*> f t2
   Delay ann t -> Delay ann <$> f t
   Force ann t -> Force ann <$> f t
+  List ann xs -> List ann <$> traverse f xs
   Constr ann i args -> Constr ann i <$> traverse f args
   Case ann arg cs -> Case ann <$> f arg <*> traverse f cs
   e@Error {} -> pure e

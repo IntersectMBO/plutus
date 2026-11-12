@@ -29,5 +29,6 @@ lowerTerm = \case
   Error x ty -> pure $ PLC.Error x ty
   IWrap x tn ty t -> PLC.IWrap x tn ty <$> lowerTerm t
   Unwrap x t -> PLC.Unwrap x <$> lowerTerm t
+  List x ty xs -> PLC.List x ty <$> traverse lowerTerm xs
   Constr x ty i es -> PLC.Constr x ty i <$> traverse lowerTerm es
   Case x ty arg cs -> PLC.Case x ty <$> lowerTerm arg <*> traverse lowerTerm cs

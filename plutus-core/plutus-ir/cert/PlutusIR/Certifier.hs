@@ -82,6 +82,7 @@ glueTerm = \case
   P.IWrap _ ty1 ty2 t -> E.IWrap (glueType ty1) (glueType ty2) (glueTerm t)
   P.Error _ ty -> E.Error (glueType ty)
   P.Case _ _ _ _ -> error "glueTerm: Case not supported"
+  P.List {} -> error "glueTerm: List not supported by the certifier"
   P.Constr _ _ _ _ -> error "glueTerm: Constr not supported"
 
 glueRecursivity :: P.Recursivity -> E.Recursivity
@@ -228,6 +229,7 @@ glueType (P.TyBuiltin _ b) = E.Ty_Builtin (glueBuiltinType b)
 glueType (P.TyLam _ tyname k t) = E.Ty_Lam (glueTyName tyname) (glueKind k) (glueType t)
 glueType (P.TyApp _ t t') = E.Ty_App (glueType t) (glueType t')
 -- TODO: Support TySOP
+glueType (P.TyList _ _) = error "glueType: TyList not supported by the certifier"
 glueType (P.TySOP _ _) = error "glueType: TySOP not supported"
 
 glueKind :: Kind a -> EKind

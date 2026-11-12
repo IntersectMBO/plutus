@@ -43,7 +43,7 @@ import PlutusCore.Core.Type
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
-import Control.Lens hiding (Index, Level, index)
+import Control.Lens hiding (Index, Level, List, index)
 import Control.Monad.Except
 import Control.Monad.Reader
 
@@ -142,6 +142,7 @@ deBruijnTyWithM h = go
       TyFun ann i o -> TyFun ann <$> go i <*> go o
       TyApp ann fun arg -> TyApp ann <$> go fun <*> go arg
       TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
+      TyList ann ty -> TyList ann <$> go ty
       TySOP ann tyls -> TySOP ann <$> (traverse . traverse) go tyls
       -- boring non-recursive cases
       TyBuiltin ann someUni -> pure $ TyBuiltin ann someUni
@@ -174,6 +175,7 @@ deBruijnTermWithM h = go
       Unwrap ann t -> Unwrap ann <$> go t
       IWrap ann pat arg t -> IWrap ann <$> goT pat <*> goT arg <*> go t
       Error ann ty -> Error ann <$> goT ty
+      List ann ty xs -> List ann <$> goT ty <*> traverse go xs
       Constr ann ty i es -> Constr ann <$> goT ty <*> pure i <*> traverse go es
       Case ann ty arg cs -> Case ann <$> goT ty <*> go arg <*> traverse go cs
       -- boring non-recursive cases
@@ -208,6 +210,7 @@ unDeBruijnTyWithM h = go
       TyFun ann i o -> TyFun ann <$> go i <*> go o
       TyApp ann fun arg -> TyApp ann <$> go fun <*> go arg
       TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
+      TyList ann ty -> TyList ann <$> go ty
       TySOP ann tyls -> TySOP ann <$> (traverse . traverse) go tyls
       -- boring non-recursive cases
       TyBuiltin ann someUni -> pure $ TyBuiltin ann someUni
@@ -245,6 +248,7 @@ unDeBruijnTermWithM h = go
       Unwrap ann t -> Unwrap ann <$> go t
       IWrap ann pat arg t -> IWrap ann <$> goT pat <*> goT arg <*> go t
       Error ann ty -> Error ann <$> goT ty
+      List ann ty xs -> List ann <$> goT ty <*> traverse go xs
       Constr ann ty i es -> Constr ann <$> goT ty <*> pure i <*> traverse go es
       Case ann ty arg cs -> Case ann <$> goT ty <*> go arg <*> traverse go cs
       -- boring non-recursive cases

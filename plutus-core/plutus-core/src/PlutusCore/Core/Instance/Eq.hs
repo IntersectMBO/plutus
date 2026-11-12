@@ -119,6 +119,7 @@ eqTypeM (TyFun ann1 dom1 cod1) (TyFun ann2 dom2 cod2) = do
 eqTypeM (TyBuiltin ann1 someUni1) (TyBuiltin ann2 someUni2) = do
   eqM ann1 ann2
   eqM someUni1 someUni2
+eqTypeM (TyList ann1 ty1) (TyList ann2 ty2) = eqM ann1 ann2 >> eqTypeM ty1 ty2
 eqTypeM (TySOP ann1 tyls1) (TySOP ann2 tyls2) = do
   eqM ann1 ann2
   case zipExact tyls1 tyls2 of
@@ -133,6 +134,7 @@ eqTypeM TyIFix {} _ = empty
 eqTypeM TyApp {} _ = empty
 eqTypeM TyFun {} _ = empty
 eqTypeM TyBuiltin {} _ = empty
+eqTypeM TyList {} _ = empty
 eqTypeM TySOP {} _ = empty
 
 -- See Note [Modulo alpha].
@@ -179,6 +181,12 @@ eqTermM (Constant ann1 con1) (Constant ann2 con2) = do
 eqTermM (Builtin ann1 bi1) (Builtin ann2 bi2) = do
   eqM ann1 ann2
   eqM bi1 bi2
+eqTermM (List ann1 ty1 xs1) (List ann2 ty2 xs2) = do
+  eqM ann1 ann2
+  eqTypeM ty1 ty2
+  case zipExact xs1 xs2 of
+    Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
+    Nothing -> empty
 eqTermM (Constr ann1 ty1 i1 args1) (Constr ann2 ty2 i2 args2) = do
   eqM ann1 ann2
   eqTypeM ty1 ty2
@@ -203,5 +211,6 @@ eqTermM TyInst {} _ = empty
 eqTermM Var {} _ = empty
 eqTermM Constant {} _ = empty
 eqTermM Builtin {} _ = empty
+eqTermM List {} _ = empty
 eqTermM Constr {} _ = empty
 eqTermM Case {} _ = empty

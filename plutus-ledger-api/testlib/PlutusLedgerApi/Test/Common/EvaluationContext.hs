@@ -53,7 +53,12 @@ extractCostModelParamsLedgerOrder =
   extractInAlphaOrder
     >=> toLedgerOrder
   where
-    extractInAlphaOrder = extractCostModelParams
+    -- Structural lists have no ledger activation or ledger parameter names yet.
+    extractInAlphaOrder (CostModel machine builtin) =
+      extractCostModelParams $
+        CostModel
+          (machine {cekListCost = Nothing})
+          (builtin {paramTermAppend = mempty})
     toLedgerOrder = mapKeysM readParamName
 
     mapKeysM :: (Monad m, Ord k2) => (k1 -> m k2) -> Map.Map k1 a -> m (Map.Map k2 a)

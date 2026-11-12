@@ -63,6 +63,7 @@ tzipWith f term1 term2 = do
     go (Apply a1 t1a t1b) (Apply a2 t2a t2b) = Apply (f a1 a2) <$> go t1a t2a <*> go t1b t2b
     go (Force a1 t1) (Force a2 t2) = Force (f a1 a2) <$> go t1 t2
     go (Delay a1 t1) (Delay a2 t2) = Delay (f a1 a2) <$> go t1 t2
+    go (List a1 xs1) (List a2 xs2) = List (f a1 a2) <$> zipExactWithM go xs1 xs2
     go (Constr a1 i1 ts1) (Constr a2 _i2 ts2) = Constr (f a1 a2) i1 <$> zipExactWithM go ts1 ts2
     go (Case a1 t1 vs1) (Case a2 t2 vs2) =
       Case (f a1 a2) <$> go t1 t2 <*> (fromList <$> zipExactWithM go (toList vs1) (toList vs2))
