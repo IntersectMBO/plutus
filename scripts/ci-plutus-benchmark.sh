@@ -50,7 +50,7 @@ run_bench() {
    cabal build --enable-benchmarks "$BENCHMARK_NAME"
    bin="$(cabal list-bin --enable-benchmarks "$BENCHMARK_NAME" | tail -n 1)"
    # Pin only the benchmark (not cabal/tee) to one core; run from the package dir like `cabal bench`.
-   (cd plutus-benchmark && taskset -c "${BENCH_CORE:-7}" "$bin") 2>&1 | tee "$1"
+   (cd plutus-benchmark && plutus_benchmark_datadir="$PWD" taskset -c "${BENCH_CORE:-7}" "$bin") 2>&1 | tee "$1"
 }
 
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
