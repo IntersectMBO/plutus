@@ -7,7 +7,7 @@ module Main where
 import Data.HashMap.Monoidal qualified as H
 import Text.Printf (printf)
 
-import PlutusBenchmark.Common (Term)
+import PlutusBenchmark.Common (Term, toAnonDeBruijnTerm)
 import PlutusBenchmark.Lists.Sort
 
 import Data.SatInt
@@ -20,7 +20,11 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 getBudgetUsage :: Term -> Maybe Integer
 getBudgetUsage term =
   case (\(Cek.CekReport fstT sndT _) -> (Cek.cekResultToEither fstT, sndT)) $
-    Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.counting Cek.noEmitter term of
+    Cek.runCekDeBruijn
+      PLC.defaultCekParametersForTesting
+      Cek.counting
+      Cek.noEmitter
+      (toAnonDeBruijnTerm term) of
     (Left _, _) -> Nothing
     (Right _, Cek.CountingSt c) ->
       let ExCPU cpu = exBudgetCPU c in Just $ fromSatInt cpu
@@ -28,7 +32,7 @@ getBudgetUsage term =
 getCekSteps :: Term -> Maybe Integer
 getCekSteps term =
   case (\(Cek.CekReport fstT sndT _) -> (Cek.cekResultToEither fstT, sndT)) $
-    Cek.runCekDeBruijn PLC.unitCekParameters Cek.tallying Cek.noEmitter term of
+    Cek.runCekDeBruijn PLC.unitCekParameters Cek.tallying Cek.noEmitter (toAnonDeBruijnTerm term) of
     (Left _, _) -> Nothing
     (Right _, Cek.TallyingSt (Cek.CekExTally counts) _) ->
       let getCount k =
