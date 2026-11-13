@@ -208,3 +208,11 @@ d_modMaybe_178 v0 v1
       MAlonzo.Code.Data.Maybe.Base.du_map_64
       (\ v2 -> MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30 (coe v2))
       (d_divModMaybe_146 (coe v0) (coe v1))
+-- Builtin.Integer.Base._<ᵇ_
+d__'60''7495'__184 :: Integer -> Integer -> Bool
+d__'60''7495'__184 v0 v1
+  = coe
+      MAlonzo.Code.Data.Integer.Base.d__'8804''7495'__110 (coe v0)
+      (coe
+         MAlonzo.Code.Data.Integer.Base.d__'45'__302 (coe v1)
+         (coe MAlonzo.Code.Data.Integer.Base.d_1ℤ_16))

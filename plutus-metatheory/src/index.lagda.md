@@ -114,6 +114,16 @@ import Builtin.Array.Base
 import Builtin.Array.Properties
 ```
 
+A ByteString library together with the Cardano-specific builtins
+on ByteStrings.
+
+```
+import Builtin.ByteString.Base
+import Builtin.ByteString.Byte
+import Builtin.ByteString.Properties
+import Builtin.ByteString
+```
+
 The types of the built-in operations are defined by a signature.
 These types are abstract, and they can be made concrete to obtain the different
 notions of type used in the formalisation.
