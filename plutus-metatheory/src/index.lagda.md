@@ -119,6 +119,7 @@ on ByteStrings.
 
 ```
 import Builtin.ByteString.Base
+import Builtin.ByteString.Byte
 import Builtin.ByteString.Properties
 import Builtin.ByteString
 ```
