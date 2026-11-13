@@ -12,12 +12,22 @@ module PlutusTx.Blueprint.Definition.Derive where
 
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
 import PlutusTx.Blueprint.Definition.Internal (Definition (..), Definitions (..), addDefinition)
-import PlutusTx.Blueprint.Definition.Unroll (HasBlueprintDefinition (definitionId), UnrollAll)
+import PlutusTx.Blueprint.Definition.Unroll
+  ( HasBlueprintDefinition (definitionId)
+  , RecursiveDefinitions
+  , UnrollAll
+  )
 import PlutusTx.Blueprint.Schema (Schema (..))
 
 -- | Derive a 'Definitions' value for a list of types.
 deriveDefinitions :: forall ts. DefinitionsFor (UnrollAll ts) => Definitions (UnrollAll ts)
 deriveDefinitions = definitionsFor @(UnrollAll ts)
+
+{-| Derive a finite definition graph from generic recursive datatypes. Unlike
+'deriveDefinitions', this traversal carries a visited set across type boundaries. -}
+deriveRecursiveDefinitions
+  :: forall ts. DefinitionsFor (RecursiveDefinitions ts) => Definitions (RecursiveDefinitions ts)
+deriveRecursiveDefinitions = definitionsFor @(RecursiveDefinitions ts)
 
 -- | Construct a 'Schema' that is a reference to a schema definition.
 definitionRef :: forall t ts. HasBlueprintDefinition t => Schema ts

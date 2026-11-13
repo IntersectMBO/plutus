@@ -1,0 +1,7 @@
+{
+  "format": "illustrative-unpinned-environment",
+  "requiredImports": [
+    "PlutusCore.UPLC.BlueprintEncoding.Assurance"
+  ],
+  "description": "Capture the actual checking environment before execution. This snapshot carries no evidence."
+}

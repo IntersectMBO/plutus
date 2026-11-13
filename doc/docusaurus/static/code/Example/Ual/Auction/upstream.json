@@ -1,0 +1,22 @@
+{
+  "repository": "https://github.com/input-output-hk/CardanoLedgerApiBlaster",
+  "directory": "Tests/Scripts/Auction",
+  "branch": "main",
+  "commit": "9938562fd452351655fe2f6b63e583c62422687c",
+  "previousSourceCommit": "7bff1f69c5827a97128b177b65ce84159dd4ca48",
+  "files": {
+    "Tests/Scripts/Auction/Auction.lean": {
+      "sha256": "2684834984d3177f31fc6fc5ec23dd7f6e437af574ad41ea84aee7c7c63fd972",
+      "identicalToPreviousPin": true
+    },
+    "Tests/Scripts/Auction/Properties.lean": {
+      "sha256": "e51ee3888e4baa1818ef84e0993ed3b27c1da8abe9d444ac767a81618fe3cd70",
+      "identicalToPreviousPin": true
+    },
+    "Tests/Scripts/Auction/auction.cbor_hex": {
+      "sha256": "98f91eeb5a95036e96969fecbb7db2ad5745847363807447341ee4d965f7f925",
+      "identicalToPreviousPin": true
+    }
+  },
+  "note": "The upstream Lean sources and CBOR are byte-identical at both commits. The local detached example recompiles the current Plinth validator and covers a subset of the upstream audit; it does not claim byte identity with the upstream CBOR."
+}

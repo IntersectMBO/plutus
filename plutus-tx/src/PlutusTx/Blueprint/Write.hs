@@ -28,6 +28,7 @@ encodeBlueprint =
             , "preamble"
             , "validators"
             , "definitions"
+            , "id"
             , "title"
             , "description"
             , "version"
@@ -36,7 +37,10 @@ encodeBlueprint =
             , "redeemer"
             , "datum"
             , "parameters"
+            , "arguments"
+            , "budget"
             , "purpose"
+            , "encoding"
             , "schema"
             ]
       , Pretty.confNumFormat = Pretty.Generic

@@ -83,11 +83,13 @@
     "Bool": {
       "oneOf": [
         {
+          "title": "False",
           "dataType": "constructor",
           "fields": [],
           "index": 0
         },
         {
+          "title": "True",
           "dataType": "constructor",
           "fields": [],
           "index": 1
@@ -133,9 +135,11 @@
       "dataType": "constructor",
       "fields": [
         {
+          "title": "datum2integer",
           "$ref": "#/definitions/Integer"
         },
         {
+          "title": "datum2bool",
           "$ref": "#/definitions/Bool"
         }
       ],
@@ -146,9 +150,11 @@
       "dataType": "constructor",
       "fields": [
         {
+          "title": "myAwesomeDatum1",
           "$ref": "#/definitions/Integer"
         },
         {
+          "title": "myAwesomeDatum2",
           "$ref": "#/definitions/Bytes_Void"
         }
       ],
@@ -185,21 +191,27 @@
       "dataType": "constructor",
       "fields": [
         {
+          "title": "myUnit",
           "$ref": "#/definitions/Unit"
         },
         {
+          "title": "myBool",
           "$ref": "#/definitions/Bool"
         },
         {
+          "title": "myInteger",
           "$ref": "#/definitions/Integer"
         },
         {
+          "title": "myListOfInts",
           "$ref": "#/definitions/List_Integer"
         },
         {
+          "title": "myBuiltinData",
           "$ref": "#/definitions/BuiltinData"
         },
         {
+          "title": "myBuiltinByteString",
           "$ref": "#/definitions/BuiltinByteString"
         }
       ],
