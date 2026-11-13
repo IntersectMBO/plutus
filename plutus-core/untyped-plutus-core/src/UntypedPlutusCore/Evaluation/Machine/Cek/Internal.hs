@@ -8,6 +8,7 @@
 {-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NPlusKPatterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -104,10 +105,11 @@ import Data.DList qualified as DList
 import Data.Functor.Identity
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
+import Data.Primitive.Array (Array (..))
 import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
-import Data.Vector qualified as V
+import GHC.Exts (Int (I#), indexArray#, sizeofArray#)
 import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
@@ -741,7 +743,10 @@ data Context uni fun ann
       !(ArgStack uni fun ann)
       !(Context uni fun ann)
   | -- | @(case _ C0 .. Cn)@
-    FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+    FrameCases
+      !(CekValEnv uni fun ann)
+      {-# UNPACK #-} !(Array (NTerm uni fun ann))
+      !(Context uni fun ann)
   | NoFrame
 
 deriving stock instance
@@ -867,9 +872,9 @@ enterComputeCek = computeCek
         (t : rest) -> computeCek (FrameConstr env i rest NilStack ctx) env t
         [] -> returnCek ctx $ VConstr i EmptyStack
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
-    computeCek !ctx !env (Case _ scrut cs) = do
+    computeCek !ctx !env (Case _ scrut (Array cs)) = do
       stepAndMaybeSpend BCase
-      computeCek (FrameCases env cs ctx) env scrut
+      computeCek (FrameCases env (Array cs) ctx) env scrut
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
       throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
@@ -928,20 +933,17 @@ enterComputeCek = computeCek
               go acc (ConsStack x xs) = go (ConsStackNonEmpty x acc) xs
            in returnCek ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
-    returnCek (FrameCases env cs ctx) e = case e of
-      -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
-      -- As it happens, this will currently never trigger, since i is a Word64, and the largest
-      -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
-      -- "apparently good" value.
-      (VConstr i _)
-        | i > fromIntegral @Int @Word64 maxBound ->
-            throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
-      -- Otherwise, we can safely convert the index to an Int and use it.
-      (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
-        Just t -> case args of
-          EmptyStack -> computeCek ctx env t
-          MultiStack rest -> computeCek (FrameAwaitFunValueN rest ctx) env t
-        Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+    returnCek (FrameCases env (Array cs) ctx) e = case e of
+      VConstr i args
+        -- Comparing before conversion keeps large Word64 tags out of the Int index.
+        | i < fromIntegral (I# (sizeofArray# cs)) ->
+            -- The unboxed result avoids an indexing thunk without forcing branch contents.
+            case fromIntegral i of
+              I# j -> case indexArray# cs j of
+                (# t #) -> case args of
+                  EmptyStack -> computeCek ctx env t
+                  MultiStack rest -> computeCek (FrameAwaitFunValueN rest ctx) env t
+        | otherwise -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
       -- Proceed with caser when expression given is not Constr.
       VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
         HeadError err -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
