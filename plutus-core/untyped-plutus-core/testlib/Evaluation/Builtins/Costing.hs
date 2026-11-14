@@ -15,6 +15,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Generators.QuickCheck.Builtin (magnitudesPositive)
 import PlutusCore.Generators.QuickCheck.Utils
 
+import Control.Monad (forM_)
 import Data.Bifunctor
 import Data.Int
 import Data.List
@@ -24,6 +25,7 @@ import Data.SatInt
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck.Gen
 import Test.Tasty
+import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.QuickCheck hiding (Some (..))
 
 deriving newtype instance Foldable NonEmptyList -- QuickCheck...
@@ -459,6 +461,19 @@ test_costsAreNeverNegative =
     BaseQC.withNumTests 1000 $ \(val :: Some (ValueOf DefaultUni)) ->
       all (>= 0) . toCostList . flattenCostRose $ memoryUsage val
 
+test_listMemoryUsage :: TestTree
+test_listMemoryUsage =
+  testGroup
+    "list memory usage"
+    [ testCase "counts spine elements across batch boundaries without forcing elements" $
+        forM_ [0, 1, 99, 100, 101, 199, 200, 201] $ \n ->
+          sumCostStream (flattenCostRose (memoryUsage (replicate n undefined :: [Int])))
+            @?= fromIntegral n
+    , testCase "the first batch does not force the remaining spine" $
+        case memoryUsage (replicate 100 undefined ++ undefined :: [Int]) of
+          CostRose cost _ -> cost @?= 100
+    ]
+
 test_costing :: TestTree
 test_costing =
   testGroup
@@ -487,4 +502,5 @@ test_costing =
     , test_flattenCostRoseSound
     , test_flattenCostRoseHandlesBottom
     , test_costsAreNeverNegative
+    , test_listMemoryUsage
     ]
