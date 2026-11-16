@@ -333,6 +333,9 @@ benchmark force-delay
   type:           exitcode-stdio-1.0
   main-is:        BenchCek.hs
   hs-source-dirs: force-delay/bench
+  if os(linux) && arch(x86_64)
+    -- Sorting input sections exposes benchmark sensitivity to the linked code layout.
+    ghc-options: -optl-Wl,--sort-section=name
   build-depends:
     , base                     >=4.9   && <5
     , force-delay-internal
