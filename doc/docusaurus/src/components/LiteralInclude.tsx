@@ -1,4 +1,4 @@
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import useBaseUrl from "@docusaurus/useBaseUrl";
 import CodeBlock from "@theme/CodeBlock";
 import { useEffect, useState } from "react";
 const LiteralInclude = ({
@@ -14,7 +14,7 @@ const LiteralInclude = ({
   end: string;
   language: string;
 }) => {
-  const { siteConfig } = useDocusaurusContext();
+  const codeUrl = useBaseUrl(`/code/${file}`);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -26,12 +26,18 @@ const LiteralInclude = ({
 
     async function loadCode() {
       // Fetch the raw code from the file
-      const res = await fetch(`/docs/code/${file}`);
+      const res = await fetch(codeUrl);
       const rawCode = await res.text();
 
       // If the component is unmounted, don't set the state
       if (!isActive) return;
       setLoading(false);
+
+      // A missing file returns the server's error page, not code
+      if (!res.ok) {
+        setError("Code block not found");
+        return;
+      }
 
       // If the code block is not found, set the error
       if (!rawCode) {
