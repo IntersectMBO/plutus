@@ -387,6 +387,66 @@ We keep the counters for each step in the first indices, so we can index them si
 the 'Enum' instance of 'StepKind', and the total counter in the last index.
 -}
 
+{- Note [Spending accumulated budgets]
+The CEK machine counts steps as it runs and charges for them in batches.
+'spendAccumulatedBudget' does this by calling 'spend' for each counter and then resetting
+the counters. The pragmas on 'spend', 'scaleBudget' and 'spendAccumulatedBudget' affect how
+GHC compiles this code, and choosing them makes a noticeable difference to evaluation speed.
+
+The counters are visited by 'iforCounter_', which uses 'upwardsM'. The number of counters
+is known at compile time, so GHC can replace the loop with a separate call for each counter.
+This is called unrolling the loop. Once that has happened, each call has a known counter
+index, and GHC can simplify the code for that particular kind of step.
+
+An ordinary INLINE pragma on 'spend' gets in the way of this. GHC inlines 'spend' into the
+function passed to the loop before the loop has been unrolled. That function then becomes
+too large for GHC to inline at each call. Instead, GHC allocates a closure for it each time
+we spend the accumulated budget. The closure holds the counter array, the budget spender
+and all the step costs. With GHC 9.6.7 on a 64-bit platform, this costs 168 bytes per batch.
+The array itself is not copied when it is frozen; these bytes are for the closure.
+
+Using NOINLINE on 'spend' avoids that allocation, but GHC still has to call a general
+function for each counter. That function works out the kind of step from the counter index
+and looks up its cost every time it is called.
+
+INLINE [0] on 'spend' gives us both improvements. It delays inlining until GHC's final
+simplifier phase, by which point the loop has been unrolled. GHC now knows which counter
+each call is for, so it can work out the step kind and select its CPU and memory costs at
+compile time. It can also use a 'BStep' value created once rather than build one at runtime,
+and remove the call for the total counter, which is not charged separately.
+
+There is another benefit here because the budget calculations are lazy. Each calculation
+only needs to hold onto the CPU cost, the memory cost and the counter value for its step.
+It no longer needs to hold onto all the step costs and work out which ones to use later.
+We still charge the individual step counters in the same order, including counters that
+are zero.
+
+We use a separate NOINLINE function, 'scaleBudget', to multiply a step's cost by its count.
+Without it, inlining 'spend' would also inline 'stimes' at every call. That would give us
+many copies of the multiplication code and its overflow checks. Keeping this arithmetic
+in 'scaleBudget' lets the calls share it while GHC still simplifies the choice of step
+kind and cost in 'spend'. The arithmetic saturates on overflow, just as 'stimes' does.
+
+The way 'scaleBudget' is written matters too. Its 'Word8' argument type lets GHC simplify
+the numeric conversion in 'stimes'. Its explicit, strict arguments let GHC generate a worker
+that takes the count and both costs as unboxed numbers and returns two unboxed costs:
+
+    Word8# -> Int64# -> Int64# -> (# Int64#, Int64# #)
+
+Writing @scaleBudget = stimes@ instead left the count boxed in the generated code.
+The budget spender still needs a boxed 'ExBudget', so we still construct that value.
+
+'spendAccumulatedBudget' itself is NOINLINE because inlining it puts a copy of the whole
+unrolled loop in each CEK function that calls it. This has caused performance regressions
+in the past. OPAQUE also prevents inlining, but it stops GHC from making another useful
+change: the generated worker does not need to return '()' because the caller never uses it.
+With NOINLINE, GHC can return just the state token, which it uses to keep state changes in
+order. With OPAQUE, it returns an unboxed pair containing the state token and '()'.
+Removing the unused result saves instructions in the function and its callers. It does
+not save any heap allocation, since neither the unboxed pair nor the static '()' value
+requires an allocation.
+-}
+
 -- So that we don't need to update 'NumberOfStepCounters' manually, which would be extremely
 -- error-prone and has caused a bug in the past.
 type CountConstructorsEnum :: (GHC.Type -> GHC.Type) -> Nat
@@ -1008,6 +1068,7 @@ enterComputeCek = computeCek
       throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
 
     -- \| Spend the budget that has been accumulated for a number of machine steps.
+    -- See Note [Spending accumulated budgets].
     spendAccumulatedBudget :: CekM uni fun s ()
     spendAccumulatedBudget = do
       let ctr = ?cekStepCounter
@@ -1015,16 +1076,21 @@ enterComputeCek = computeCek
       resetCounter ctr
     -- It's very important for this definition not to get inlined. Inlining it caused performance to
     -- degrade by 16+%: https://github.com/IntersectMBO/plutus/pull/5931
-    {-# OPAQUE spendAccumulatedBudget #-}
+    {-# NOINLINE spendAccumulatedBudget #-}
 
-    -- Making this a definition of its own causes it to inline better than actually writing it inline, for
-    -- some reason.
-    -- Skip index 7, that's the total counter!
+    -- The total counter is not charged separately.
     -- See Note [Structure of the step counter]
+    -- See Note [Spending accumulated budgets].
     spend !i !w =
       unless (i == (fromIntegral $ natVal $ Proxy @TotalCountIndex)) $
-        let kind = toEnum i in spendBudget (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
-    {-# INLINE spend #-}
+        let kind = toEnum i
+         in spendBudget (BStep kind) (scaleBudget w (cekStepCost ?cekCosts kind))
+    {-# INLINE [0] spend #-}
+
+    -- See Note [Spending accumulated budgets].
+    scaleBudget :: Word8 -> ExBudget -> ExBudget
+    scaleBudget !w !budget = stimes w budget
+    {-# NOINLINE scaleBudget #-}
 
     -- \| Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
     stepAndMaybeSpend :: StepKind -> CekM uni fun s ()
