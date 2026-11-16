@@ -43,7 +43,8 @@ Bits n = Vec Bool n
 ## Representing Natural Numbers in Binary
 
 The bits are in little endian order. `natToBits len n` pads with `false` bits when `len` is
-larger than the minimum required to represent `n`, and truncates when it is smaller.
+larger than the minimum required to represent `n`, and truncates when it is smaller. For this
+reason, it is private and one should use the smart constructor `binaryOf` instead.
 
 ```
 bitVal : Bool → ℕ
@@ -54,9 +55,10 @@ bitsToNat : ∀ {n} → Bits n → ℕ
 bitsToNat []       = 0
 bitsToNat (b ∷ bs) = bitVal b + 2 * bitsToNat bs
 
-natToBits : (len : ℕ) → ℕ → Bits len
-natToBits zero      _ = []
-natToBits (suc len) k = (k % 2 ≡ᵇ 1) ∷ natToBits len (k / 2)
+private
+  natToBits : (len : ℕ) → ℕ → Bits len
+  natToBits zero      _ = []
+  natToBits (suc len) k = (k % 2 ≡ᵇ 1) ∷ natToBits len (k / 2)
 ```
 
 For a natural number `n`, `BinaryOf n` is a representation of `n` in binary notation.
@@ -225,7 +227,7 @@ n<2^suc⌊log₂n⌋ : ∀ n → n < 2 ^ suc ⌊log₂ n ⌋
 n<2^suc⌊log₂n⌋ n = <2^suc⌊log2⌋ n _
 ```
 
-## Smart Constructor for BinaryOf
+## Smart Constructor for `BinaryOf`
 
 ```
 binaryOf : (n : ℕ) → BinaryOf n

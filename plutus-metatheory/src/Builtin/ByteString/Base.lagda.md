@@ -28,7 +28,7 @@ import Data.Vec as Vec
 import Data.Nat as ℕ
 import Builtin.Binary as Byte
 
-open import Builtin.Binary using (Byte; byteToNat; natToByte)
+open import Builtin.Binary using (Byte; Bits; bitsToByte; byteToNat; natToByte; BinaryOf; binaryOf)
 ```
 
 ## ByteString
@@ -80,11 +80,47 @@ index _       []       = nothing
 index zero    (x ∷ _)  = just x
 index (suc i) (_ ∷ xs) = index i xs
 
-natToByteStringBE : (n : ℕ) → .(n < 2 ^ 65536) → ByteString
-natToByteStringBE n p = {!   !}
+reverse : ByteString → ByteString
+reverse = go []
+  where
+    go : ByteString → ByteString → ByteString
+    go acc []       = acc
+    go acc (x ∷ xs) = go (x ∷ acc) xs
+```
 
+### Converting bits to ByteStrings
+
+`padTo m bs` takes the first `m` bits of `bs`, padding with `false` (i.e. high zero bits,
+since bits are little endian) when there are fewer than `m`.
+
+```
+padTo : (m : ℕ) → ∀ {k} → Bits k → Bits m
+padTo zero    _        = []
+padTo (suc m) []       = false ∷ padTo m []
+padTo (suc m) (b ∷ bs) = b ∷ padTo m bs
+```
+
+Fold little-endian bits into a little-endian ByteString, 8 bits at a time. The first byte
+holds the least significant bits; the last byte is padded with zeros if `len` is not a
+multiple of 8.
+
+```
+bitsToByteStringLE : ∀ {len} → Bits len → ByteString
+bitsToByteStringLE [] = []
+bitsToByteStringLE (b₁ ∷ b₂ ∷ b₃ ∷ b₄ ∷ b₅ ∷ b₆ ∷ b₇ ∷ b₈ ∷ bs) =
+  bitsToByte (b₁ ∷ b₂ ∷ b₃ ∷ b₄ ∷ b₅ ∷ b₆ ∷ b₇ ∷ b₈ ∷ []) ∷ bitsToByteStringLE bs
+bitsToByteStringLE bs = bitsToByte (padTo 8 bs) ∷ []
+  -- ^ fewer than 8 bits left
+```
+
+Represent a natural number as a little-endian or big-endian ByteString.
+
+```
 natToByteStringLE : (n : ℕ) → .(n < 2 ^ 65536) → ByteString
-natToByteStringLE n p = {!   !}
+natToByteStringLE n _ = bitsToByteStringLE (BinaryOf.bits (binaryOf n))
+
+natToByteStringBE : (n : ℕ) → .(n < 2 ^ 65536) → ByteString
+natToByteStringBE n p = reverse (natToByteStringLE n p)
 ```
 
 ### Ordering
