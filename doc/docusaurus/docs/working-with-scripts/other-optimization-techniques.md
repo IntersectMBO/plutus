@@ -132,6 +132,10 @@ Traces can be removed via the `remove-trace` plugin flag.
 
 For optimizing multiple index-based lookups, see the upcoming [Builtin Arrays](../upcoming-features/builtin-arrays.md) feature.
 
+## Using `BuiltinValue` for multi-asset checks
+
+For checking the tokens and policies of a value without walking its `Data` encoding, see the upcoming [Builtin Values](../upcoming-features/builtin-values.md) feature.
+
 
 ## Using `error` for faster failure
 
