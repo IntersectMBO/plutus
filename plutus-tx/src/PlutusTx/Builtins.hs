@@ -161,6 +161,7 @@ module PlutusTx.Builtins
   , findFirstSetBit
 
     -- * Value
+  , BI.BuiltinValue
   , BI.insertCoin
   , BI.lookupCoin
   , BI.unionValue

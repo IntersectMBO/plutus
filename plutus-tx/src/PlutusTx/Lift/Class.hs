@@ -39,7 +39,6 @@ import PlutusTx.Builtins.Internal
   , BuiltinList
   , BuiltinPair
   , BuiltinUnit
-  , BuiltinValue
   )
 
 import Language.Haskell.TH qualified as TH hiding (newName)
