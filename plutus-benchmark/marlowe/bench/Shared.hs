@@ -1,55 +1,50 @@
 -- | Plutus benchmarks based on some Marlowe examples.
 module Shared where
 
-import Control.DeepSeq (force)
-import Control.Exception (evaluate)
-import Control.Monad (forM)
-import Criterion.Main (Benchmark, bench, bgroup, defaultMainWith, env)
-import Criterion.Measurement.Types (Benchmarkable (..))
-import Data.List (isSuffixOf, sort)
-import System.Directory (listDirectory)
-import System.Mem (performMajorGC)
+import Criterion.Main (Benchmark, Benchmarkable, bench, bgroup, defaultMainWith)
 
 import PlutusBenchmark.Common (Program, getConfig, getDataDir)
 import PlutusBenchmark.Marlowe.BenchUtil
   ( benchmarkToUPLC
-  , readBenchmark
   , readFlat
-  , rescript
+  , rolePayoutBenchmarks
+  , semanticsBenchmarks
   )
 import PlutusBenchmark.Marlowe.Types qualified as M
 import PlutusLedgerApi.V2 (scriptContextTxInfo, txInfoId)
 import System.FilePath
 
--- | One benchmark per fixture. Each fixture is loaded only when its benchmark
--- runs, so the rest of the corpus isn't in the heap during measurement (#8024).
-mkBenchmarks :: (Program -> Benchmarkable) -> Program -> FilePath -> IO [Benchmark]
-mkBenchmarks benchmarker validator folder = do
-  files <- map (folder </>) . sort . filter (isSuffixOf ".benchmark") <$> listDirectory folder
-  forM files $ \file -> do
-    name <- evaluate . force . benchName =<< load file
-    pure $ env (prepare file) $ \ ~prog -> bench name (majorGCFirst (benchmarker prog))
-  where
-    load file = either error rescript <$> readBenchmark file
-    benchName = show . txInfoId . scriptContextTxInfo . M.bScriptContext
-    prepare file = (evaluate . force . benchmarkToUPLC validator =<< load file) <* performMajorGC
-
--- | Criterion only does minor GCs between batches, so old-generation garbage
--- builds up and a major GC lands in a random batch. Start each batch clean.
-majorGCFirst :: Benchmarkable -> Benchmarkable
-majorGCFirst (Benchmarkable alloc clean run perRun) =
-  Benchmarkable (\n -> alloc n <* performMajorGC) clean run perRun
+mkBenchmarkable
+  :: (Program -> Benchmarkable)
+  -> Program
+  -> M.Benchmark
+  -> (String, Benchmarkable)
+mkBenchmarkable benchmarker validator bm@M.Benchmark {..} =
+  let benchName = show $ txInfoId $ scriptContextTxInfo bScriptContext
+   in (benchName, benchmarker $ benchmarkToUPLC validator bm)
 
 runBenchmarks :: (Program -> Benchmarkable) -> IO ()
 runBenchmarks benchmarker = do
   dir <- getDataDir
 
-  let group name = do
-        let folder = dir </> "marlowe/scripts" </> name
-        validator <- readFlat $ folder </> "validator/sop.flat"
-        mkBenchmarks benchmarker validator folder
-  semanticsBench <- group "semantics"
-  rolePayoutBench <- group "rolepayout"
+  -- Read the semantics benchmark files.
+  marloweValidator <- readFlat $ dir </> "marlowe/scripts/semantics/validator/sop.flat"
+  semanticsMBench <- either error id <$> semanticsBenchmarks
+
+  -- Read the role payout benchmark files.
+  rolePayoutValidator <- readFlat $ dir </> "marlowe/scripts/rolepayout/validator/sop.flat"
+  rolePayoutMBench <- either error id <$> rolePayoutBenchmarks
+
+  let
+    uncurriedBench :: (String, Benchmarkable) -> Benchmark
+    uncurriedBench = uncurry bench
+
+    semanticsBench :: [Benchmark] -- list of criterion semantics Benchmarks
+    semanticsBench =
+      fmap (uncurriedBench . mkBenchmarkable benchmarker marloweValidator) semanticsMBench
+    rolePayoutBench :: [Benchmark] -- list of criterion role payout Benchmarks
+    rolePayoutBench =
+      fmap (uncurriedBench . mkBenchmarkable benchmarker rolePayoutValidator) rolePayoutMBench
 
   -- Run each benchmark for 5 secs by default. This benchmark runs on the
   -- longitudinal benchmarking flow so we don't want to set it higher by
