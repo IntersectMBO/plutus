@@ -238,6 +238,7 @@ test-suite plutus-tx-test
     Rational.Laws.Ring
     Rational.Laws.Serialization
     Show.Spec
+    Value.Spec
 
   hs-source-dirs: test
   build-depends:
