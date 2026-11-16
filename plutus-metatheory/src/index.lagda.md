@@ -118,9 +118,8 @@ A ByteString library together with the Cardano-specific builtins
 on ByteStrings.
 
 ```
+import Builtin.Binary
 import Builtin.ByteString.Base
-import Builtin.ByteString.Byte
-import Builtin.ByteString.Properties
 import Builtin.ByteString
 ```
 

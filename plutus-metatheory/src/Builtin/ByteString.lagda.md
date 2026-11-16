@@ -12,12 +12,12 @@ module Builtin.ByteString where
 
 ```
 open import Builtin.ByteString.Base
-open import Builtin.ByteString.Byte hiding (_≟_)
+open import Builtin.Binary hiding (_≟_)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Integer using (ℤ; +_)
 open import Data.Nat using (ℕ; _^_)
 open import Relation.Nullary.Decidable using (yes; no; does)
-open import Data.Bool using (Bool; true; false; not; _∧_)
+open import Data.Bool using (Bool; true; false; not; _∧_; if_then_else_)
 open import Function.Base using (_∘_; _$_)
 open import Utils using (List)
 
@@ -70,7 +70,17 @@ lessThanEqualsByteString bs₁ bs₂ = bs₁ ≤ᵇ bs₂
 
 ```
 integerToByteString : Bool → ℤ → ℤ → Maybe ByteString
-integerToByteString = {!   !}
+integerToByteString endianness (ℤ.pos 0) (ℤ.pos n) with n ℕ.<? 2 ^ 65536
+... | no _ = nothing
+... | yes p = just $
+  if endianness
+    then natToByteStringBE n p
+    else natToByteStringLE n p
+integerToByteString endianness (ℤ.pos w) (ℤ.pos n) with w ℕ.≤? 8192 | n ℕ.<? 2 ^ 65536
+... | yes _ | yes _ = {!   !}
+... | no _  | _     = nothing
+... | _     | no _  = nothing
+integerToByteString _ _ _ = nothing
 
 byteStringToInteger : Bool → ByteString → ℤ
 byteStringToInteger = {!   !}

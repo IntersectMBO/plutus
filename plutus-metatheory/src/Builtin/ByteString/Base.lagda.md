@@ -4,6 +4,7 @@ layout: page
 ---
 
 ```
+{-# OPTIONS --allow-unsolved-metas #-}
 module Builtin.ByteString.Base where
 ```
 
@@ -25,9 +26,9 @@ import Data.Fin as Fin
 import Data.Fin.Properties as Fin
 import Data.Vec as Vec
 import Data.Nat as ℕ
-import Builtin.ByteString.Byte as Byte
+import Builtin.Binary as Byte
 
-open import Builtin.ByteString.Byte using (Byte; byteToNat; natToByte)
+open import Builtin.Binary using (Byte; byteToNat; natToByte)
 ```
 
 ## ByteString
@@ -78,6 +79,12 @@ index : ℕ → ByteString → Maybe Byte
 index _       []       = nothing
 index zero    (x ∷ _)  = just x
 index (suc i) (_ ∷ xs) = index i xs
+
+natToByteStringBE : (n : ℕ) → .(n < 2 ^ 65536) → ByteString
+natToByteStringBE n p = {!   !}
+
+natToByteStringLE : (n : ℕ) → .(n < 2 ^ 65536) → ByteString
+natToByteStringLE n p = {!   !}
 ```
 
 ### Ordering
