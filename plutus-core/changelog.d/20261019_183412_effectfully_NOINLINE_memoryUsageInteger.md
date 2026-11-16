@@ -1,3 +1,4 @@
 ### Changed
 
-- Reduced allocations and instruction counts in integer memory accounting and CEK budget spending.
+- Sped up evaluation (-5% for `validation` and -7% for `nofib`) by adjusting GHC pragmas
+  in the CEK machine
