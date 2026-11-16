@@ -108,6 +108,9 @@ measures : (b : Builtin) → Vec (Value → CostingNat) (arity b)
 measures insertCoin          = defaultValueMeasure ∷ defaultValueMeasure ∷ defaultValueMeasure ∷ valueMaxDepthMeasure ∷ []
 measures lookupCoin          = defaultValueMeasure ∷ defaultValueMeasure ∷ valueMaxDepthMeasure ∷ []
 measures unValueData         = dataNodeCountMeasure ∷ []
+measures policies            = valueOuterSizeMeasure ∷ []
+measures keepPolicies        = defaultValueMeasure ∷ valueOuterDepthMeasure ∷ []
+measures dropPolicies        = defaultValueMeasure ∷ valueOuterDepthMeasure ∷ []
 measures integerToByteString = defaultValueMeasure ∷ numBytesAsWords ∷ defaultValueMeasure ∷ []
 measures _                   = replicate _ defaultValueMeasure
 ```
