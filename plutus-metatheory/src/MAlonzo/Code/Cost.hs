@@ -369,50 +369,71 @@ d_measures_96 v0
           = coe
               MAlonzo.Code.Data.Vec.Base.du_replicate_444
               (coe MAlonzo.Code.Builtin.d_arity_328 (coe v0))
-              (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_86) in
+              (coe MAlonzo.Code.Cost.Size.d_defaultValueMeasure_90) in
     coe
       (case coe v0 of
          MAlonzo.Code.Builtin.C_insertCoin_112
            -> coe
                 MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_86
+                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_90
                 (coe
                    MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                   MAlonzo.Code.Cost.Size.d_defaultValueMeasure_86
+                   MAlonzo.Code.Cost.Size.d_defaultValueMeasure_90
                    (coe
                       MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                      MAlonzo.Code.Cost.Size.d_defaultValueMeasure_86
+                      MAlonzo.Code.Cost.Size.d_defaultValueMeasure_90
                       (coe
                          MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                         MAlonzo.Code.Cost.Size.d_valueMaxDepthMeasure_92
+                         MAlonzo.Code.Cost.Size.d_valueMaxDepthMeasure_96
                          (coe MAlonzo.Code.Data.Vec.Base.C_'91''93'_32))))
          MAlonzo.Code.Builtin.C_lookupCoin_114
            -> coe
                 MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_86
+                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_90
                 (coe
                    MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                   MAlonzo.Code.Cost.Size.d_defaultValueMeasure_86
+                   MAlonzo.Code.Cost.Size.d_defaultValueMeasure_90
                    (coe
                       MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                      MAlonzo.Code.Cost.Size.d_valueMaxDepthMeasure_92
+                      MAlonzo.Code.Cost.Size.d_valueMaxDepthMeasure_96
                       (coe MAlonzo.Code.Data.Vec.Base.C_'91''93'_32)))
          MAlonzo.Code.Builtin.C_unValueData_124
            -> coe
                 MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                MAlonzo.Code.Cost.Size.d_dataNodeCountMeasure_96
+                MAlonzo.Code.Cost.Size.d_dataNodeCountMeasure_108
                 (coe MAlonzo.Code.Data.Vec.Base.C_'91''93'_32)
          MAlonzo.Code.Builtin.C_integerToByteString_172
            -> coe
                 MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_86
+                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_90
                 (coe
                    MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                   MAlonzo.Code.Cost.Size.d_numBytesAsWords_100
+                   MAlonzo.Code.Cost.Size.d_numBytesAsWords_112
                    (coe
                       MAlonzo.Code.Data.Vec.Base.C__'8759'__38
-                      MAlonzo.Code.Cost.Size.d_defaultValueMeasure_86
+                      MAlonzo.Code.Cost.Size.d_defaultValueMeasure_90
                       (coe MAlonzo.Code.Data.Vec.Base.C_'91''93'_32)))
+         MAlonzo.Code.Builtin.C_policies_208
+           -> coe
+                MAlonzo.Code.Data.Vec.Base.C__'8759'__38
+                MAlonzo.Code.Cost.Size.d_valueOuterSizeMeasure_100
+                (coe MAlonzo.Code.Data.Vec.Base.C_'91''93'_32)
+         MAlonzo.Code.Builtin.C_keepPolicies_212
+           -> coe
+                MAlonzo.Code.Data.Vec.Base.C__'8759'__38
+                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_90
+                (coe
+                   MAlonzo.Code.Data.Vec.Base.C__'8759'__38
+                   MAlonzo.Code.Cost.Size.d_valueOuterDepthMeasure_104
+                   (coe MAlonzo.Code.Data.Vec.Base.C_'91''93'_32))
+         MAlonzo.Code.Builtin.C_dropPolicies_214
+           -> coe
+                MAlonzo.Code.Data.Vec.Base.C__'8759'__38
+                MAlonzo.Code.Cost.Size.d_defaultValueMeasure_90
+                (coe
+                   MAlonzo.Code.Data.Vec.Base.C__'8759'__38
+                   MAlonzo.Code.Cost.Size.d_valueOuterDepthMeasure_104
+                   (coe MAlonzo.Code.Data.Vec.Base.C_'91''93'_32))
          _ -> coe v1)
 -- Cost.builtinCost
 d_builtinCost_100 ::
