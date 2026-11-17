@@ -1,6 +1,7 @@
 # Compare the output from two runs of some Criterion benchmarks and produce a
 # markdown table showing the increase/decrease in execution time for each
-# benchmark.
+# benchmark.  "~" marks changes whose confidence intervals overlap (probably
+# noise).  GEOMEAN, unlike TOTAL, isn't dominated by a few slow benchmarks.
 
 # Do something like
 #    `cabal bench plutus-benchmarks:validation >results1 2>&1`
@@ -31,61 +32,33 @@ if [[ ! -r "$INPUT2" ]]
 then echo "Error: can't open $INPUT2" && exit 1
 fi
 
-TMP1=$(mktemp /tmp/bc1-XXXXXXX)
-TMP2=$(mktemp /tmp/bc2-XXXXXXX)
+# Print "name estimate lower upper" (in ps) for each benchmark in a Criterion log.
+extract () {
+  awk 'BEGIN { ps["s"]=12; ps["ms"]=9; ps["µs"]=6; ps["μs"]=6; ps["ns"]=3; ps["ps"]=0 }
+       /^benchmarking/ { name = $2 }
+       /^time/ { gsub(/[()]/, ""); print name, $2*10^ps[$3], $4*10^ps[$5], $7*10^ps[$8] }' "$1"
+}
 
-trap 'rm -f "$TMP1" "$TMP2"' EXIT
-
-awk '/^bench/ {printf ("%-40s ", $2)}
-     /^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT1" > "$TMP1"  # %-2s to get the units properly aligned
-awk '/^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT2" > "$TMP2"
-paste -d " " "$TMP1" "$TMP2" |
-  awk -v hdr1="${3:-Old}" -v hdr2="${4:-New}" '
-      function normalise (t,    unit) { # Format a time with the most sensible units
-          unit = 0
-          for ( ;t > 1000; t /= 1000) unit += 3
-          # Make sure that the output has exactly four digits, like Criterion does
-          if (t < 10)  return (sprintf ("%.3f %s", t, ustr[unit]))
-          else if (t < 100) return (sprintf ("%.2f %s", t, ustr[unit]))
-          else return (sprintf ("%.1f %s", t, ustr[unit]))
-      }
-      function percentage_change (t1, t2,    d, sign) {
-          if (t1==0) return ("  -  ")  # Avoid division by zero, just in case
-          d = (t2-t1)/t1 * 100
-          sign = (d<0) ? "" : ((d==0) ? " " : "+")     # We get the "-" anyway if d<0
-          return (sprintf ("%s%.1f%%", sign, d))
-      }
-
-      BEGIN {
-          # Initialise array of unit conversion factors
-          ps["s"]  = 12  # 1 s = 10^12 ps
-          ps["ms"] = 9
-          ps["µs"] = 6   # 0xb5; Criterion uses this
-          ps["μs"] = 6   # 0x03bc
-          ps["ns"] = 3
-          ps["ps"] = 0
-
-          ustr[12] = "s "
-          ustr[9]  = "ms"
-          ustr[6]  = "µs"
-          ustr[3]  = "ns"
-          ustr[0]  = "ps"
-
-          # Print markdown table headers, attempting to make the output reasonably well aligned even in raw form.
-          printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", "Script", hdr1, hdr2, " Change")
-          printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", ":------", ":------:", ":------:", ":------:")
-      }
-      {
-          time1 = $2
-          time2 = $4 * 10^(ps[$5]-ps[$3]) # Adjust for different units
-          printf ("| %-40s |  %s %s  |  %s %s  |  %7s   |\n", $1, $2, $3, $4, $5, percentage_change(time1, time2))
-          total1 += $2 * 10^ps[$3] # Total time in ps, normalised later
-          total2 += $4 * 10^ps[$5]
-      }
-      END {
-          printf ("| %-41s|%12s|%12s|%12s|\n", "", "", "", "")
-          printf ("| %-41s|  %s  |  %s  |  %7s   |\n", "TOTAL",
-                  normalise(total1), normalise(total2),
-                  percentage_change(total1, total2))
-      }
-      '
+awk -v hdr1="${3:-Old}" -v hdr2="${4:-New}" '
+  function fmt (t,    u) {
+      for (u = 0; t > 1000; t /= 1000) u += 3
+      return sprintf (t < 10 ? "%.3f %s" : t < 100 ? "%.2f %s" : "%.1f %s", t, unit[u])
+  }
+  function pct (r) { return sprintf ("%+.1f%%", (r - 1) * 100) }
+  BEGIN {
+      unit[12] = "s "; unit[9] = "ms"; unit[6] = "µs"; unit[3] = "ns"; unit[0] = "ps"
+      printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", "Script", hdr1, hdr2, " Change")
+      printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", ":------", ":------:", ":------:", ":------:")
+  }
+  NR == FNR { t[$1] = $2; lo[$1] = $3; hi[$1] = $4; next }
+  $1 in t && t[$1] > 0 {
+      r = $2 / t[$1]
+      noise = ($4 >= lo[$1] && $3 <= hi[$1]) ? " ~" : ""   # CIs overlap: probably noise
+      printf ("| %-40s |  %s  |  %s  |  %7s%-2s |\n", $1, fmt(t[$1]), fmt($2), pct(r), noise)
+      total1 += t[$1]; total2 += $2; logsum += log(r); n++
+  }
+  END {
+      printf ("| %-41s|%12s|%12s|%12s|\n", "", "", "", "")
+      printf ("| %-41s|  %s  |  %s  |  %7s   |\n", "TOTAL", fmt(total1), fmt(total2), pct(total2/total1))
+      printf ("| %-41s|  %8s  |  %8s  |  %7s   |\n", "GEOMEAN", "", "", pct(exp(logsum/n)))
+  }' <(extract "$INPUT1") <(extract "$INPUT2")
