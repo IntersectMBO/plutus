@@ -4,7 +4,6 @@ layout: page
 ---
 
 ```
-{-# OPTIONS --allow-unsolved-metas #-}
 module Builtin.ByteString where
 ```
 
@@ -15,12 +14,16 @@ open import Builtin.ByteString.Base
 open import Builtin.Binary hiding (_≟_)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Integer using (ℤ; +_)
-open import Data.Nat using (ℕ; _*_; _^_)
+open import Data.Nat using (ℕ; suc; _*_; _^_; _<ᵇ_)
 open import Relation.Nullary.Decidable using (yes; no; does)
-open import Data.Bool using (Bool; true; false; not; _∧_; if_then_else_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Data.Bool using (Bool; true; false; not; T; _∧_; _∨_; _xor_; if_then_else_)
 open import Function.Base using (_∘_; _$_)
-open import Utils using (List)
+open import Utils using (List; []; _∷_; toList; mapM; MaybeMonad; intToFin)
 
+import Data.Fin as Fin
+import Data.Maybe as Maybe
+import Data.Vec as Vec
 import Data.Nat.Properties as ℕ
 import Data.Integer as ℤ
 import Builtin.Integer.Base as ℤ
@@ -94,35 +97,145 @@ byteStringToInteger endianness bs =
 
 ```
 andByteString : Bool → ByteString → ByteString → ByteString
-andByteString = {!   !}
+andByteString extend = zipWithExtend (zipWithByte _∧_) extend (fillByte true)
 
 orByteString : Bool → ByteString → ByteString → ByteString
-orByteString = {!   !}
+orByteString extend = zipWithExtend (zipWithByte _∨_) extend (fillByte false)
 
 xorByteString : Bool → ByteString → ByteString → ByteString
-xorByteString = {!   !}
+xorByteString extend = zipWithExtend (zipWithByte _xor_) extend (fillByte false)
 
 complementByteString : ByteString → ByteString
-complementByteString = {!   !}
+complementByteString = map (mapByte not)
+```
 
+Shifts and rotations: a positive amount moves bits towards higher indices (to the left, in
+the specification's notation), a negative one towards lower indices.
+
+```
 shiftByteString : ByteString → ℤ → ByteString
-shiftByteString = {!   !}
+shiftByteString bs (ℤ.pos k)    = onBits (shiftLeft k) bs
+shiftByteString bs (ℤ.negsuc k) = onBits (shiftRight (suc k)) bs
 
 rotateByteString : ByteString → ℤ → ByteString
-rotateByteString = {!   !}
+rotateByteString bs (ℤ.pos k)    = onBits (rotateLeft k) bs
+rotateByteString bs (ℤ.negsuc k) = onBits (rotateRight (suc k)) bs
 
 countSetBits : ByteString → ℤ
-countSetBits = {!   !}
+countSetBits bs = + popCount (toBits bs)
 
 findFirstSetBit : ByteString → ℤ
-findFirstSetBit = {!   !}
+findFirstSetBit bs with findFirstSet (toBits bs)
+... | just i  = + Fin.toℕ i
+... | nothing = ℤ.-[1+ 0 ]
+```
 
+Bit indices arrive as integers; they are valid if they are in `[0, n)`.
+
+```
 readBit : ByteString → ℤ → Maybe Bool
-readBit = {!   !}
+readBit bs j = Maybe.map (Vec.lookup (toBits bs)) (intToFin j)
+```
 
+`writeBits` fails if any index is out of bounds.
+
+```
 writeBits : ByteString → List ℤ → Bool → Maybe ByteString
-writeBits = {!   !}
+writeBits bs js u =
+  Maybe.map (λ is → fromBits (length bs) (setBits (toList is) u (toBits bs)))
+            (mapM intToFin js)
 
 replicateByte : ℤ → ℤ → Maybe ByteString
-replicateByte = {!   !}
+replicateByte (ℤ.pos l) (ℤ.pos b) with l ℕ.≤? 8192 | b ℕ.<? 2 ^ 8
+... | yes _ | yes p = just (replicate l (natToByte b p))
+... | _     | _     = nothing
+replicateByte _ _ = nothing
+```
+
+Some tests, including the examples from CIP-122 and CIP-123:
+
+```
+private
+  -- A byte literal; the bound is checked by computation.
+  w : (n : ℕ) → {T (n <ᵇ 2 ^ 8)} → Byte
+  w n {p} = natToByte n (ℕ.<ᵇ⇒< n (2 ^ 8) p)
+
+  bsEBFC : ByteString
+  bsEBFC = w 0xEB ∷ w 0xFC ∷ []
+
+  -- Logical operations: truncation vs. extension.
+  _ : andByteString false (w 0xF0 ∷ w 0xFF ∷ []) (w 0x0F ∷ []) ≡ w 0x00 ∷ []
+  _ = refl
+
+  _ : andByteString true (w 0xF0 ∷ w 0xFF ∷ []) (w 0x0F ∷ []) ≡ w 0x00 ∷ w 0xFF ∷ []
+  _ = refl
+
+  _ : orByteString true (w 0x0F ∷ []) (w 0xF0 ∷ w 0x12 ∷ []) ≡ w 0xFF ∷ w 0x12 ∷ []
+  _ = refl
+
+  _ : xorByteString false (w 0xFF ∷ w 0x12 ∷ []) (w 0x0F ∷ []) ≡ w 0xF0 ∷ []
+  _ = refl
+
+  _ : complementByteString (w 0xF0 ∷ w 0x00 ∷ []) ≡ w 0x0F ∷ w 0xFF ∷ []
+  _ = refl
+
+  -- Shifts.
+  _ : shiftByteString bsEBFC (+ 5) ≡ w 0x7F ∷ w 0x80 ∷ []
+  _ = refl
+
+  _ : shiftByteString bsEBFC ℤ.-[1+ 4 ] ≡ w 0x07 ∷ w 0x5F ∷ []
+  _ = refl
+
+  _ : shiftByteString bsEBFC (+ 16) ≡ w 0x00 ∷ w 0x00 ∷ []
+  _ = refl
+
+  _ : shiftByteString bsEBFC (+ 0) ≡ bsEBFC
+  _ = refl
+
+  -- Rotations.
+  _ : rotateByteString bsEBFC (+ 5) ≡ w 0x7F ∷ w 0x9D ∷ []
+  _ = refl
+
+  _ : rotateByteString bsEBFC ℤ.-[1+ 4 ] ≡ w 0xE7 ∷ w 0x5F ∷ []
+  _ = refl
+
+  _ : rotateByteString bsEBFC (+ 21) ≡ w 0x7F ∷ w 0x9D ∷ []
+  _ = refl
+
+  _ : rotateByteString bsEBFC (+ 16) ≡ bsEBFC
+  _ = refl
+
+  -- Counting and searching.
+  _ : countSetBits bsEBFC ≡ + 12
+  _ = refl
+
+  _ : findFirstSetBit bsEBFC ≡ + 2
+  _ = refl
+
+  _ : findFirstSetBit (w 0x00 ∷ w 0x00 ∷ []) ≡ ℤ.-[1+ 0 ]
+  _ = refl
+
+  -- Reading and writing bits; bit 0 is in the last byte.
+  _ : readBit bsEBFC (+ 2) ≡ just true
+  _ = refl
+
+  _ : readBit bsEBFC (+ 15) ≡ just true
+  _ = refl
+
+  _ : readBit bsEBFC (+ 16) ≡ nothing
+  _ = refl
+
+  _ : writeBits (w 0x00 ∷ w 0x00 ∷ []) (+ 0 ∷ + 15 ∷ []) true
+    ≡ just (w 0x80 ∷ w 0x01 ∷ [])
+  _ = refl
+
+  _ : writeBits bsEBFC (+ 2 ∷ + 16 ∷ []) false ≡ nothing
+  _ = refl
+
+  -- Replicating bytes.
+  _ : replicateByte (+ 2) (+ 255) ≡ just (w 0xFF ∷ w 0xFF ∷ [])
+  _ = refl
+
+  _ : replicateByte (+ 2) (+ 256) ≡ nothing
+  _ = refl
 ```

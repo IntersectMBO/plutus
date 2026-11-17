@@ -100,6 +100,21 @@ byteToNat : Byte → ℕ
 byteToNat = bitsToNat ∘ byteToBits
 ```
 
+Bit-wise operations on bytes.
+
+```
+fillByte : Bool → Byte
+fillByte b = byte b b b b b b b b
+
+mapByte : (Bool → Bool) → Byte → Byte
+mapByte f (byte b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈) =
+  byte (f b₁) (f b₂) (f b₃) (f b₄) (f b₅) (f b₆) (f b₇) (f b₈)
+
+zipWithByte : (Bool → Bool → Bool) → Byte → Byte → Byte
+zipWithByte f (byte a₁ a₂ a₃ a₄ a₅ a₆ a₇ a₈) (byte b₁ b₂ b₃ b₄ b₅ b₆ b₇ b₈) =
+  byte (f a₁ b₁) (f a₂ b₂) (f a₃ b₃) (f a₄ b₄) (f a₅ b₅) (f a₆ b₆) (f a₇ b₇) (f a₈ b₈)
+```
+
 ### Decidable Equality for Byte
 
 ```

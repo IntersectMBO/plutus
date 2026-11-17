@@ -4,19 +4,18 @@ layout: page
 ---
 
 ```
-{-# OPTIONS --allow-unsolved-metas #-}
 module Builtin.ByteString.Base where
 ```
 
 ## Imports
 
 ```
-open import Data.Bool using (Bool; true; false; T; _∧_; _∨_)
+open import Data.Bool using (Bool; true; false; T; _∧_; _∨_; if_then_else_)
 open import Data.Fin using (Fin)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Vec using (Vec; _∷_; [])
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _^_; _<_; _/_; _%_; _≡ᵇ_; z≤n; s≤s)
-open import Data.Nat.Properties using (*-comm; <ᵇ⇒<)
+open import Data.Nat using (ℕ; zero; suc; _+_; _∸_; _*_; _^_; _<_; _/_; _%_; _≡ᵇ_; z≤n; s≤s)
+open import Data.Nat.Properties using (*-comm; <ᵇ⇒<; m∸n≤m; ≤-<-trans)
 open import Data.Nat.DivMod using (m<n*o⇒m/o<n; m%n<n; m≡m%n+[m/n]*n)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst; cong)
 open import Function.Base using (_∘_; _$_)
@@ -26,9 +25,12 @@ import Data.Fin as Fin
 import Data.Fin.Properties as Fin
 import Data.Vec as Vec
 import Data.Nat as ℕ
+import Data.List as L
 import Builtin.Binary as Byte
 
-open import Builtin.Binary using (Byte; Bits; bitsToByte; byteToNat; natToByte; BinaryOf; binaryOf; binaryOfLen)
+open import Builtin.Binary
+  using (Byte; Bits; bitVal; bitsToByte; byteToBits; byteToNat; natToByte;
+         BinaryOf; binaryOf; binaryOfLen)
 ```
 
 ## ByteString
@@ -86,6 +88,14 @@ reverseAcc acc (x ∷ xs) = reverseAcc (x ∷ acc) xs
 
 reverse : ByteString → ByteString
 reverse = reverseAcc []
+
+map : (Byte → Byte) → ByteString → ByteString
+map f []       = []
+map f (x ∷ xs) = f x ∷ map f xs
+
+replicate : ℕ → Byte → ByteString
+replicate zero    _ = []
+replicate (suc n) b = b ∷ replicate n b
 ```
 
 ### Converting bits to ByteStrings
@@ -135,6 +145,117 @@ byteStringToNatLE (b ∷ bs) = byteToNat b + 256 * byteStringToNatLE bs
 
 byteStringToNatBE : ByteString → ℕ
 byteStringToNatBE = byteStringToNatLE ∘ reverse
+```
+
+### Bit-level View
+
+The Plutus specification numbers the bits of a ByteString of length `k` as
+`b₈ₖ₋₁ ⋯ b₀`: bit `0` is the least significant bit of the *last* byte. `toBits` produces
+the bits in that order, so position `i` of the vector holds `bᵢ`. `fromBits` is its inverse.
+
+```
+toVec : (bs : ByteString) → Vec Byte (length bs)
+toVec []       = []
+toVec (b ∷ bs) = b ∷ toVec bs
+
+fromVec : ∀ {n} → Vec Byte n → ByteString
+fromVec []       = []
+fromVec (b ∷ bs) = b ∷ fromVec bs
+
+toBits : (bs : ByteString) → Bits (length bs * 8)
+toBits bs = Vec.concat (Vec.map byteToBits (Vec.reverse (toVec bs)))
+
+groupBytes : ∀ n → Bits (n * 8) → Vec Byte n
+groupBytes zero    []                                    = []
+groupBytes (suc n) (b₁ ∷ b₂ ∷ b₃ ∷ b₄ ∷ b₅ ∷ b₆ ∷ b₇ ∷ b₈ ∷ bs) =
+  bitsToByte (b₁ ∷ b₂ ∷ b₃ ∷ b₄ ∷ b₅ ∷ b₆ ∷ b₇ ∷ b₈ ∷ []) ∷ groupBytes n bs
+
+fromBits : ∀ n → Bits (n * 8) → ByteString
+fromBits n bs = fromVec (Vec.reverse (groupBytes n bs))
+```
+
+Apply a length-preserving operation on bits to a ByteString.
+
+```
+onBits : (∀ {n} → Bits n → Bits n) → ByteString → ByteString
+onBits f bs = fromBits (length bs) (f (toBits bs))
+```
+
+### Operations on Bits
+
+These follow the specification's denotations index by index; `dᵢ` is bit `i` of the result.
+
+Shifts fill vacated positions with `0`. `shiftLeft k` has `dᵢ = bᵢ₋ₖ` and `shiftRight k` has
+`dᵢ = bᵢ₊ₖ`.
+
+```
+shiftLeft : ∀ {n} → ℕ → Bits n → Bits n
+shiftLeft k bs = Vec.tabulate λ i →
+  if k ℕ.≤ᵇ Fin.toℕ i
+    then
+      Vec.lookup
+        bs
+        (Fin.fromℕ<
+          (≤-<-trans (m∸n≤m (Fin.toℕ i) k) (Fin.toℕ<n i))
+        )
+    else false
+
+shiftRightAt : ∀ {n} → ℕ → Bits n → Fin n → Bool
+shiftRightAt {n} k bs i with Fin.toℕ i + k ℕ.<? n
+... | yes p = Vec.lookup bs (Fin.fromℕ< p)
+... | no _  = false
+
+shiftRight : ∀ {n} → ℕ → Bits n → Bits n
+shiftRight k bs = Vec.tabulate (shiftRightAt k bs)
+```
+
+Rotations: `rotateRight m` has `dᵢ = b₍ᵢ₊ₘ₎ mod n` and `rotateLeft k` has
+`dᵢ = b₍ᵢ₋ₖ₎ mod n`, which is a right rotation by `n ∸ k % n`.
+
+```
+rotateRight : ∀ {n} → ℕ → Bits n → Bits n
+rotateRight {zero}      _ bs = bs
+rotateRight {n@(suc _)} m bs =
+  Vec.tabulate λ i →
+    Vec.lookup bs (Fin.fromℕ< (m%n<n (Fin.toℕ i + m) n))
+
+rotateLeft : ∀ {n} → ℕ → Bits n → Bits n
+rotateLeft {zero}      _ bs = bs
+rotateLeft {n@(suc _)} k bs = rotateRight (n ∸ k % n) bs
+```
+
+Counting, searching and writing bits.
+
+```
+popCount : ∀ {n} → Bits n → ℕ
+popCount []       = 0
+popCount (b ∷ bs) = bitVal b + popCount bs
+
+findFirstSet : ∀ {n} → Bits n → Maybe (Fin n)
+findFirstSet []           = nothing
+findFirstSet (true  ∷ _)  = just Fin.zero
+findFirstSet (false ∷ bs) with findFirstSet bs
+... | just i  = just (Fin.suc i)
+... | nothing = nothing
+
+setBits : ∀ {n} → L.List (Fin n) → Bool → Bits n → Bits n
+setBits is u bs = L.foldr (λ i acc → acc Vec.[ i ]≔ u) bs is
+```
+
+Combine two ByteStrings byte by byte, aligned at the first byte. If `extend` is `false` the
+result is as long as the shorter input; if it is `true`, the shorter input is extended with
+`padByte` to the length of the longer one.
+
+```
+zipWithExtend
+  : (Byte → Byte → Byte) → (extend : Bool) → (padByte : Byte)
+  → ByteString → ByteString → ByteString
+zipWithExtend f e     p []       []       = []
+zipWithExtend f e     p (x ∷ xs) (y ∷ ys) = f x y ∷ zipWithExtend f e p xs ys
+zipWithExtend f false p []       (_ ∷ _)  = []
+zipWithExtend f false p (_ ∷ _)  []       = []
+zipWithExtend f true  p []       (y ∷ ys) = f p y ∷ zipWithExtend f true p [] ys
+zipWithExtend f true  p (x ∷ xs) []       = f x p ∷ zipWithExtend f true p xs []
 ```
 
 ### Ordering
