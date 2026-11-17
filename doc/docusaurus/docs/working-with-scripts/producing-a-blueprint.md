@@ -191,12 +191,38 @@ These annotations result in the following JSON schema definition:
   "description": "Description for the MyParams definition",
   "dataType": "constructor",
   "fields": [
-    { "$ref": "#/definitions/Bool" },
-    { "$ref": "#/definitions/Integer" }
+    { "title": "myBool", "$ref": "#/definitions/Bool" },
+    { "title": "myInteger", "$ref": "#/definitions/Integer" }
   ],
   "index": 0
 }
 ```
+
+### Constructor and field names
+
+Two `title` keywords are filled in for you, with no annotation needed.
+
+Each field of a **record** constructor carries its Haskell field name, as
+`myBool` and `myInteger` do above. A constructor declared positionally — `data
+Pair = MkPair Integer Integer` — has no names to report, and its fields carry no
+`title`; CIP-0057 makes the keyword optional.
+
+Each **constructor** carries its own name. So a sum type's variants are
+distinguishable:
+
+``` json
+{
+  "oneOf": [
+    { "title": "False", "dataType": "constructor", "fields": [], "index": 0 },
+    { "title": "True",  "dataType": "constructor", "fields": [], "index": 1 }
+  ]
+}
+```
+
+An explicit `SchemaTitle` annotation on a constructor overrides this default.
+Note that it applies to the *constructor*, not the type: annotating every
+constructor of a type with the same title makes its variants indistinguishable
+again.
 
 For sum-types, it's possible to annotate constructors:
 

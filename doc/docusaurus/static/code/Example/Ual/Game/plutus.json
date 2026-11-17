@@ -1,0 +1,62 @@
+{
+    "$id": "ual-game",
+    "$schema": "https://cips.cardano.org/cips/cip57/extensions/compiled-interface/v1/schema.json",
+    "$vocabulary": {
+        "https://cips.cardano.org/cips/cip57": true,
+        "https://cips.cardano.org/cips/cip57/extensions/compiled-interface/v1/vocabulary": true,
+        "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+        "https://json-schema.org/draft/2020-12/vocab/core": true,
+        "https://json-schema.org/draft/2020-12/vocab/validation": true
+    },
+    "definitions": {
+        "BuiltinData": {}
+    },
+    "preamble": {
+        "description": "Current-Plinth port of the Game.isGoodGuess on-chain rule.",
+        "license": "Apache-2.0",
+        "plutusVersion": "v2",
+        "title": "Guessing game — plutus-apps rule",
+        "version": "1.0.0"
+    },
+    "validators": [
+        {
+            "compiledCode": "5828010000332222253330053371e6eb800cdc91bae00214984c98cc01124103505435004995cd2b9c01",
+            "datum": {
+                "purpose": "spend",
+                "schema": {
+                    "$ref": "#/definitions/BuiltinData"
+                }
+            },
+            "hash": "5a17e32e7323dff337601b761aa246fc2707f237b98cbefa1df7ecfd",
+            "id": "gameValidator",
+            "interface": {
+                "callingConvention": "ledger-v2",
+                "invocations": [
+                    {
+                        "arguments": [
+                            {
+                                "role": "datum",
+                                "source": "/datum"
+                            },
+                            {
+                                "role": "redeemer",
+                                "source": "/redeemer"
+                            },
+                            {
+                                "role": "context"
+                            }
+                        ],
+                        "purpose": "spend"
+                    }
+                ]
+            },
+            "redeemer": {
+                "purpose": "spend",
+                "schema": {
+                    "$ref": "#/definitions/BuiltinData"
+                }
+            },
+            "title": "Guess the secret"
+        }
+    ]
+}

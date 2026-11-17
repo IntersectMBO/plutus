@@ -1,0 +1,55 @@
+{
+  "$id": "ual-example",
+  "$schema": "https://cips.cardano.org/cips/cip57/schemas/plutus-blueprint.json",
+  "$vocabulary": {
+    "https://cips.cardano.org/cips/cip57": true,
+    "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+    "https://json-schema.org/draft/2020-12/vocab/core": true,
+    "https://json-schema.org/draft/2020-12/vocab/validation": true
+  },
+  "preamble": {
+    "title": "UAL Example",
+    "description": null,
+    "version": "1.0.0",
+    "plutusVersion": "v3",
+    "license": null
+  },
+  "validators": [
+    {
+      "id": "ticket-spend",
+      "title": "ticketSpend",
+      "redeemer": {
+        "purpose": "spend",
+        "schema": {
+          "$ref": "#/definitions/Ticket"
+        }
+      },
+      "arguments": [
+        {
+          "encoding": "asData",
+          "schema": {
+            "$ref": "#/definitions/Ticket"
+          }
+        },
+        {
+          "encoding": "asScott",
+          "schema": {
+            "$ref": "#/definitions/Integer"
+          }
+        }
+      ],
+      "budget": {
+        "exCPU": 1883313,
+        "exMem": 12342
+      }
+    }
+  ],
+  "definitions": {
+    "Integer": {
+      "dataType": "integer"
+    },
+    "Ticket": {
+      "dataType": "#integer"
+    }
+  }
+}

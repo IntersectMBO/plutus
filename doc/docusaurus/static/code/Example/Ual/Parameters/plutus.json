@@ -1,0 +1,106 @@
+{
+    "$id": "parameter-encodings",
+    "$schema": "https://cips.cardano.org/cips/cip57/extensions/compiled-interface/v1/schema.json",
+    "$vocabulary": {
+        "https://cips.cardano.org/cips/cip57": true,
+        "https://cips.cardano.org/cips/cip57/extensions/compiled-interface/v1/vocabulary": true,
+        "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+        "https://json-schema.org/draft/2020-12/vocab/core": true,
+        "https://json-schema.org/draft/2020-12/vocab/validation": true
+    },
+    "definitions": {
+        "BuiltinData": {},
+        "Integer": {
+            "dataType": "integer"
+        }
+    },
+    "preamble": {
+        "plutusVersion": "v2",
+        "title": "Parameter encodings",
+        "version": "1.0.0"
+    },
+    "validators": [
+        {
+            "compiledCode": "5825010000332222253330053370e90071bad00314984c98cc01124103505435004995cd2b9c01",
+            "hash": "3130609f0b839fe98a245741a496b436927dcc9c7d8887a2a73d1bc7",
+            "id": "dataParameter",
+            "interface": {
+                "callingConvention": "ledger-v2",
+                "invocations": [
+                    {
+                        "arguments": [
+                            {
+                                "role": "parameter",
+                                "source": "/parameters/0"
+                            },
+                            {
+                                "role": "redeemer",
+                                "source": "/redeemer"
+                            },
+                            {
+                                "role": "context"
+                            }
+                        ],
+                        "purpose": "mint"
+                    }
+                ]
+            },
+            "parameters": [
+                {
+                    "purpose": "mint",
+                    "schema": {
+                        "$ref": "#/definitions/Integer"
+                    }
+                }
+            ],
+            "redeemer": {
+                "purpose": "mint",
+                "schema": {
+                    "$ref": "#/definitions/BuiltinData"
+                }
+            },
+            "title": "Data parameter"
+        },
+        {
+            "compiledCode": "5823010000332222253330053370e90070018a4c264c6600892103505435004995cd2b9c01",
+            "hash": "f2f512a4fa46ce019de4c9b7e865d3b048f69c1d0eef7d63b8087671",
+            "id": "nativeParameter",
+            "interface": {
+                "callingConvention": "ledger-v2",
+                "invocations": [
+                    {
+                        "arguments": [
+                            {
+                                "role": "parameter",
+                                "source": "/parameters/0"
+                            },
+                            {
+                                "role": "redeemer",
+                                "source": "/redeemer"
+                            },
+                            {
+                                "role": "context"
+                            }
+                        ],
+                        "purpose": "mint"
+                    }
+                ]
+            },
+            "parameters": [
+                {
+                    "purpose": "mint",
+                    "schema": {
+                        "dataType": "#integer"
+                    }
+                }
+            ],
+            "redeemer": {
+                "purpose": "mint",
+                "schema": {
+                    "$ref": "#/definitions/BuiltinData"
+                }
+            },
+            "title": "Native parameter"
+        }
+    ]
+}

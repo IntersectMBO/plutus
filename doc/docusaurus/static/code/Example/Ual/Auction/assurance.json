@@ -1,0 +1,867 @@
+{
+    "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance-v2.json",
+    "blueprint": {
+        "hash": {
+            "alg": "sha256",
+            "digest": "076c0a12aae7792e35e828975a2bd992e7cfc908fa3af9f8425ba6a420a712b8"
+        },
+        "uri": "plutus.json"
+    },
+    "checkingContexts": {
+        "audit_demo_valid_bid_accepted": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_demo_valid_bid_accepted.json"
+        },
+        "audit_nb_datum_hash_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_nb_datum_hash_rejected.json"
+        },
+        "audit_nb_datum_missing_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_nb_datum_missing_rejected.json"
+        },
+        "audit_nb_datum_wrong_bid_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_nb_datum_wrong_bid_rejected.json"
+        },
+        "audit_nb_other_redeemer_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_nb_other_redeemer_rejected.json"
+        },
+        "audit_nb_wrong_policy_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_nb_wrong_policy_rejected.json"
+        },
+        "audit_nb_wrong_token_name_rejected": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_nb_wrong_token_name_rejected.json"
+        },
+        "audit_newBid_accepts_dust_tokens": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_newBid_accepts_dust_tokens.json"
+        },
+        "audit_newBid_accepts_minimal_increment": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_newBid_accepts_minimal_increment.json"
+        },
+        "audit_newBid_ignores_minting": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_newBid_ignores_minting.json"
+        },
+        "audit_newBid_success_positive_bid": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_newBid_success_positive_bid.json"
+        },
+        "audit_newBid_success_requires_before_deadline": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_newBid_success_requires_before_deadline.json"
+        },
+        "audit_newBid_success_requires_bigger_bid": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_newBid_success_requires_bigger_bid.json"
+        },
+        "audit_newBid_success_requires_output_locks_bid": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_newBid_success_requires_output_locks_bid.json"
+        },
+        "audit_newBid_success_requires_single_nft": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_newBid_success_requires_single_nft.json"
+        },
+        "audit_newBid_success_requires_sufficient_bid": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_newBid_success_requires_sufficient_bid.json"
+        },
+        "audit_payout_double_satisfaction": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_payout_double_satisfaction.json"
+        },
+        "audit_payout_staked_outputs_accepted": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_payout_staked_outputs_accepted.json"
+        },
+        "audit_payout_success_pays_seller_highest_bid": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_payout_success_pays_seller_highest_bid.json"
+        },
+        "audit_payout_success_positive_asset": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_payout_success_positive_asset.json"
+        },
+        "audit_payout_success_positive_seller_payment": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_payout_success_positive_seller_payment.json"
+        },
+        "audit_payout_success_requires_after_deadline": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_payout_success_requires_after_deadline.json"
+        },
+        "audit_payout_success_transfers_asset": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_payout_success_transfers_asset.json"
+        },
+        "audit_valid_newBid_succeeds": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_valid_newBid_succeeds.json"
+        },
+        "audit_valid_payout_no_bid_succeeds": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_valid_payout_no_bid_succeeds.json"
+        },
+        "audit_valid_payout_with_bid_succeeds": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-audit_valid_payout_with_bid_succeeds.json"
+        },
+        "existing_bid_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-existing_bid_exact.json"
+        },
+        "first_bid_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-first_bid_exact.json"
+        },
+        "malformed_context": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-malformed_context.json"
+        },
+        "outbids_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "74a025a4d41f1395a8da0fe71e4aa65e4c1a4a175694e3db1e2aaa8a6e984e34"
+            },
+            "uri": "checking-outbids_exact.json"
+        },
+        "payout_exact": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "98e64458ea12aa82b0f8a2e9fc1c434ef72cc504571df850dc34e52602ee7c9a"
+            },
+            "uri": "checking-payout_exact.json"
+        }
+    },
+    "definitions": {
+        "BuiltinData": {}
+    },
+    "formalFragments": [
+        {
+            "id": "Example.Ual.Auction.FormalSpec",
+            "language": "ual",
+            "source": "def bakedMinBid : Integer := 100\n  def bakedEndTime : Integer := 1725227091000\n  def policyId : CurrencySymbol := ⟨String.mk (List.replicate 28 (Char.ofNat 0))⟩\n  def nftName : TokenName := \"MY_TOKEN\"\n  def sellerPKH : PubKeyHash := ⟨String.mk (List.replicate 40 (Char.ofNat 0))⟩\n  def scriptAddr : Address := ⟨.ScriptCredential \"aa\", none⟩\n  def ownRef : TxOutRef := ⟨\"bb\", 0⟩\n  def ownRef2 : TxOutRef := ⟨\"bb\", 1⟩\n  def oldBidAddr : ByteString := \"oldAddr\"\n  def oldBidPubKeyHash : PubKeyHash := \"oldPKH\"\n  def junkPolicy : CurrencySymbol := \"junkcs\"\n  def junkName : TokenName := \"JUNK\"\n\n  def bidData (addr pkh : ByteString) (amount : Integer) : Data :=\n    Data.Constr 0 [Data.B addr, Data.B pkh, Data.I amount]\n  def datumData (old : Integer) : Data :=\n    if old ≤ 0 then Data.Constr 1 []\n    else Data.Constr 0 [bidData oldBidAddr oldBidPubKeyHash old]\n  def newBidRed (amount : Integer) : Data :=\n    Data.Constr 0 [bidData \"cc\" \"dd\" amount]\n  def payoutRed : Data := Data.Constr 1 []\n  def adaE (n : Integer) : Data × Data :=\n    (Data.B \"\", Data.Map [(Data.B \"\", Data.I n)])\n  def tokE (pol : CurrencySymbol) (tn : TokenName) (n : Integer) : Data × Data :=\n    (Data.B pol, Data.Map [(Data.B tn, Data.I n)])\n  def scriptInput : TxInInfo :=\n    ⟨ownRef, ⟨scriptAddr, [], .NoOutputDatum, none⟩⟩\n  def contOut (value : Value) (datum : OutputDatum) : TxOut :=\n    ⟨scriptAddr, value, datum, none⟩\n  def upperRange (hi : Integer) : Data :=\n    Data.Constr 0 [Data.Constr 0 [Data.Constr 0 [], Data.Constr 1 []],\n                   Data.Constr 0 [Data.Constr 1 [Data.I hi], Data.Constr 1 []]]\n  def lowerRange (lo : Integer) : Data :=\n    Data.Constr 0 [Data.Constr 0 [Data.Constr 1 [Data.I lo], Data.Constr 1 []],\n                   Data.Constr 0 [Data.Constr 2 [], Data.Constr 1 []]]\n\n  def scenarioCtx (inputs : List TxInInfo) (outputs : List TxOut)\n      (mint : Value) (red range datum : Data) : ScriptContext :=\n    ⟨{ txInfoInputs := inputs, txInfoReferenceInputs := [], txInfoOutputs := outputs,\n       txInfoFee := 0, txInfoMint := mint, txInfoTxCerts := [], txInfoWdrl := [],\n       txInfoValidRange := range, txInfoSignatories := [], txInfoRedeemers := [],\n       txInfoData := [], txInfoId := \"\", txInfoVotes := [],\n       txInfoProposalProcedures := [],\n       txInfoCurrentTreasuryAmount := Data.Constr 1 [],\n       txInfoTreasuryDonation := Data.Constr 1 [] },\n     red, ScriptInfo.SpendingScript ownRef (some datum)⟩\n\n  def newBidContext (old proposed locked refund tokens hi : Integer) : ScriptContext :=\n    let continuing := contOut [adaE locked, tokE policyId nftName tokens]\n      (.OutputDatum (Data.Constr 0 [bidData \"cc\" \"dd\" proposed]))\n    let refundOutput : TxOut :=\n      ⟨⟨.PubKeyCredential oldBidPubKeyHash, none⟩, [adaE refund], .NoOutputDatum, none⟩\n    let outputs := if refund > 0 then [refundOutput, continuing] else [continuing]\n    scenarioCtx [scriptInput] outputs [] (newBidRed proposed) (upperRange hi) (datumData old)\n\n  def payoutContext (bid paid tokens lo : Integer) : ScriptContext :=\n    let winner : PubKeyHash := if 0 < bid then oldBidPubKeyHash else sellerPKH\n    let sellerOutput : TxOut :=\n      ⟨⟨.PubKeyCredential sellerPKH, none⟩, [adaE paid], .NoOutputDatum, none⟩\n    let assetOutput : TxOut :=\n      ⟨⟨.PubKeyCredential winner, none⟩, [tokE policyId nftName tokens], .NoOutputDatum, none⟩\n    let outputs := if 0 < bid then [sellerOutput, assetOutput] else [assetOutput]\n    scenarioCtx [scriptInput] outputs [] payoutRed (lowerRange lo) (datumData bid)\n\n  def newBidAttackContext (old proposed locked refund tokens hi junk minted : Integer) : ScriptContext :=\n    let continuing := contOut [adaE locked, tokE policyId nftName tokens,\n                               tokE junkPolicy junkName junk]\n      (.OutputDatum (Data.Constr 0 [bidData \"cc\" \"dd\" proposed]))\n    let refundOutput : TxOut :=\n      ⟨⟨.PubKeyCredential oldBidPubKeyHash, none⟩, [adaE refund], .NoOutputDatum, none⟩\n    let outputs := if refund > 0 then [refundOutput, continuing] else [continuing]\n    scenarioCtx [scriptInput] outputs [tokE junkPolicy junkName minted]\n      (newBidRed proposed) (upperRange hi) (datumData old)\n\n  def payoutDoubleSatContext (bid paid tokens lo : Integer) : ScriptContext :=\n    let winner : PubKeyHash := if 0 < bid then oldBidPubKeyHash else sellerPKH\n    let sellerOutput : TxOut :=\n      ⟨⟨.PubKeyCredential sellerPKH, none⟩, [adaE paid], .NoOutputDatum, none⟩\n    let assetOutput : TxOut :=\n      ⟨⟨.PubKeyCredential winner, none⟩, [tokE policyId nftName tokens], .NoOutputDatum, none⟩\n    let outputs := if 0 < bid then [sellerOutput, assetOutput] else [assetOutput]\n    scenarioCtx [scriptInput, ⟨ownRef2, ⟨scriptAddr, [], .NoOutputDatum, none⟩⟩]\n      outputs [] payoutRed (lowerRange lo) (datumData bid)\n\n  def demoCtx (outputs : List TxOut) (red : Data) (datum : Data) : ScriptContext :=\n    scenarioCtx [scriptInput] outputs [] red (upperRange 1000) datum\n  def demoBid : Data := bidData \"cc\" \"dd\" 200\n  def demoDatum : OutputDatum := .OutputDatum (Data.Constr 0 [demoBid])\n  def demoOutput : TxOut := contOut [adaE 200, tokE policyId nftName 1] demoDatum\n  def demoValidCtx : ScriptContext :=\n    demoCtx [demoOutput] (newBidRed 200) (datumData 0)\n  def demoWrongTnCtx : ScriptContext :=\n    demoCtx [contOut [adaE 200, tokE policyId junkName 1] demoDatum]\n      (newBidRed 200) (datumData 0)\n  def demoWrongPolicyCtx : ScriptContext :=\n    demoCtx [contOut [adaE 200, tokE junkPolicy nftName 1] demoDatum]\n      (newBidRed 200) (datumData 0)\n  def demoDatumHashCtx : ScriptContext :=\n    demoCtx [contOut [adaE 200, tokE policyId nftName 1] (.OutputDatumHash \"h\")]\n      (newBidRed 200) (datumData 0)\n  def demoNoDatumCtx : ScriptContext :=\n    demoCtx [contOut [adaE 200, tokE policyId nftName 1] .NoOutputDatum]\n      (newBidRed 200) (datumData 0)\n  def demoWrongDatumCtx : ScriptContext :=\n    demoCtx [contOut [adaE 200, tokE policyId nftName 1]\n      (.OutputDatum (Data.Constr 0 [bidData \"cc\" \"dd\" 201]))]\n      (newBidRed 200) (datumData 0)\n  def demoOtherRedeemerCtx : ScriptContext :=\n    demoCtx [demoOutput] (Data.Constr 2 []) (datumData 0)\n  def demoPayoutStakedCtx : ScriptContext :=\n    let stake : Option StakingCredential := some (.StakingHash (.PubKeyCredential \"st\"))\n    let sellerOutput : TxOut :=\n      ⟨⟨.PubKeyCredential sellerPKH, stake⟩, [adaE 200], .NoOutputDatum, none⟩\n    let assetOutput : TxOut :=\n      ⟨⟨.PubKeyCredential oldBidPubKeyHash, stake⟩,\n       [tokE policyId nftName 1], .NoOutputDatum, none⟩\n    scenarioCtx [scriptInput] [sellerOutput, assetOutput] [] payoutRed\n      (lowerRange bakedEndTime) (datumData 200)\n\ndef typedAuction (validator : Data → State) (ctx : CardanoLedgerApi.V3.Contexts.ScriptContext) :=\n    validator (CardanoLedgerApi.IsData.Class.IsData.toData ctx)\n\n  def bidScenario (validator : Data → State) (old proposed locked refund tokens hi : Integer) :=\n    typedAuction validator (newBidContext old proposed locked refund tokens hi)\n\n  def payoutScenario (validator : Data → State) (bid paid tokens lo : Integer) :=\n    typedAuction validator (payoutContext bid paid tokens lo)\n\ndef auditBid (validator : Data → State) (old proposed locked refund tokens hi : Integer) : Prop :=\n    isSuccessful (bidScenario validator old proposed locked refund tokens hi)\n  def auditPayout (validator : Data → State) (bid paid tokens lo : Integer) : Prop :=\n    isSuccessful (payoutScenario validator bid paid tokens lo)\n  def auditAttack (validator : Data → State) (old proposed locked refund tokens hi junk minted : Integer) : Prop :=\n    isSuccessful (typedAuction validator (newBidAttackContext old proposed locked refund tokens hi junk minted))\n  def auditDouble (validator : Data → State) (bid paid tokens lo : Integer) : Prop :=\n    isSuccessful (typedAuction validator (payoutDoubleSatContext bid paid tokens lo))\n  def auditAccepts (validator : Data → State) (ctx : CardanoLedgerApi.V3.Contexts.ScriptContext) : Prop :=\n    isSuccessful (typedAuction validator ctx)"
+        }
+    ],
+    "functions": {
+        "outbids": {
+            "arguments": [
+                {
+                    "dataType": "#integer"
+                },
+                {
+                    "dataType": "#integer"
+                }
+            ],
+            "compiledCode": "4a01010022337100040021",
+            "hash": {
+                "alg": "sha256",
+                "digest": "264d481d68647619542971000e727b145b21600e612476ea09841dce094752a8"
+            },
+            "plutusVersion": "v3",
+            "result": {
+                "dataType": "#boolean"
+            },
+            "serialization": "cbor-flat"
+        }
+    },
+    "languages": {
+        "ual": {
+            "name": "Universal Annotation Language",
+            "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage",
+            "version": "1.0"
+        }
+    },
+    "preamble": {
+        "authors": [
+            "Plutus contributors"
+        ],
+        "created": "2026-10-06",
+        "title": "Auction with detached specification",
+        "version": "1.0.0"
+    },
+    "properties": [
+        {
+            "checkingContext": "outbids_exact",
+            "id": "outbids_exact",
+            "scope": {
+                "functions": [
+                    "outbids"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (old proposed : Integer), outbids_returns old proposed (decide (old < proposed))",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "The separately compiled helper returns the native comparison result."
+            }
+        },
+        {
+            "checkingContext": "first_bid_exact",
+            "id": "first_bid_exact",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (proposed locked tokens hi : Integer),\n      isSuccessful (bidScenario auction 0 proposed locked 0 tokens hi) ↔\n        100 ≤ proposed ∧ hi ≤ 1725227091000 ∧ locked = proposed ∧ tokens = 1",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "For the upstream no-previous-bid scenario, the minimum, deadline, locked Ada and NFT quantity characterize success."
+            }
+        },
+        {
+            "checkingContext": "existing_bid_exact",
+            "id": "existing_bid_exact",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (old proposed locked refund tokens hi : Integer), 0 < old →\n      (isSuccessful (bidScenario auction old proposed locked refund tokens hi) ↔\n        old < proposed ∧ hi ≤ 1725227091000 ∧ locked = proposed ∧ refund = old ∧ tokens = 1)",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "For a positive previous bid, success requires a strictly larger bid, exact refund, correct continuing value and the deadline."
+            }
+        },
+        {
+            "checkingContext": "payout_exact",
+            "id": "payout_exact",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bid paid tokens lo : Integer),\n      isSuccessful (payoutScenario auction bid paid tokens lo) ↔\n        1725227091000 ≤ lo ∧ tokens = 1 ∧ (0 < bid → paid = bid)",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "For the upstream payout scenario, the deadline, NFT and seller payment characterize success."
+            }
+        },
+        {
+            "checkingContext": "malformed_context",
+            "id": "malformed_context",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (n : Integer), isUnsuccessful (auction (Data.I n))",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "An integer is not a V3 ScriptContext and is rejected."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_requires_sufficient_bid",
+            "id": "audit_newBid_success_requires_sufficient_bid",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (newBidAmt outAda outTok hi : Integer),\n    auditBid auction 0 newBidAmt outAda 0 outTok hi\n    → bakedMinBid ≤ newBidAmt",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_requires_sufficient_bid. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_requires_bigger_bid",
+            "id": "audit_newBid_success_requires_bigger_bid",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → oldBidAmt < newBidAmt",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_requires_bigger_bid. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_requires_before_deadline",
+            "id": "audit_newBid_success_requires_before_deadline",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → hi ≤ bakedEndTime",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_requires_before_deadline. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_requires_output_locks_bid",
+            "id": "audit_newBid_success_requires_output_locks_bid",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → outAda = newBidAmt",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_requires_output_locks_bid. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_requires_single_nft",
+            "id": "audit_newBid_success_requires_single_nft",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → outTok = 1",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_requires_single_nft. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_valid_newBid_succeeds",
+            "id": "audit_valid_newBid_succeeds",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: valid_newBid_succeeds. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_accepts_minimal_increment",
+            "id": "audit_newBid_accepts_minimal_increment",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt outAda refundAda outTok hi : Integer),\n    bakedMinBid ≤ oldBidAmt + 1 →\n    hi ≤ bakedEndTime          →\n    outAda = oldBidAmt + 1     →\n    refundAda = oldBidAmt      →\n    outTok = 1\n    → auditBid auction oldBidAmt (oldBidAmt + 1) outAda refundAda outTok hi",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_accepts_minimal_increment. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_success_requires_after_deadline",
+            "id": "audit_payout_success_requires_after_deadline",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo\n    → bakedEndTime ≤ lo",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_success_requires_after_deadline. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_success_pays_seller_highest_bid",
+            "id": "audit_payout_success_pays_seller_highest_bid",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo →\n    0 < bidAmt\n    → sellerAda = bidAmt",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_success_pays_seller_highest_bid. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_success_transfers_asset",
+            "id": "audit_payout_success_transfers_asset",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo\n    → assetTok = 1",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_success_transfers_asset. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_valid_payout_with_bid_succeeds",
+            "id": "audit_valid_payout_with_bid_succeeds",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    0 < bidAmt         →\n    bakedEndTime ≤ lo  →\n    sellerAda = bidAmt →\n    assetTok = 1\n    → auditPayout auction bidAmt sellerAda assetTok lo",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: valid_payout_with_bid_succeeds. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_valid_payout_no_bid_succeeds",
+            "id": "audit_valid_payout_no_bid_succeeds",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (sellerAda assetTok lo : Integer),\n    bakedEndTime ≤ lo →\n    assetTok = 1\n    → auditPayout auction 0 sellerAda assetTok lo",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: valid_payout_no_bid_succeeds. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_accepts_dust_tokens",
+            "id": "audit_newBid_accepts_dust_tokens",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi junkTok : Integer),\n    bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditAttack auction oldBidAmt newBidAmt outAda refundAda outTok hi junkTok 0",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_accepts_dust_tokens. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_ignores_minting",
+            "id": "audit_newBid_ignores_minting",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi mintTok : Integer),\n    bakedMinBid ≤ newBidAmt →\n    oldBidAmt < newBidAmt   →\n    hi ≤ bakedEndTime       →\n    outAda = newBidAmt      →\n    refundAda = oldBidAmt   →\n    outTok = 1\n    → auditAttack auction oldBidAmt newBidAmt outAda refundAda outTok hi 0 mintTok",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_ignores_minting. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_double_satisfaction",
+            "id": "audit_payout_double_satisfaction",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    0 < bidAmt         →\n    bakedEndTime ≤ lo  →\n    sellerAda = bidAmt →\n    assetTok = 1\n    → auditDouble auction bidAmt sellerAda assetTok lo",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_double_satisfaction. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_newBid_success_positive_bid",
+            "id": "audit_newBid_success_positive_bid",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (oldBidAmt newBidAmt outAda refundAda outTok hi : Integer),\n    auditBid auction oldBidAmt newBidAmt outAda refundAda outTok hi\n    → 0 < newBidAmt",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: newBid_success_positive_bid. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_success_positive_asset",
+            "id": "audit_payout_success_positive_asset",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo\n    → 0 < assetTok",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_success_positive_asset. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_success_positive_seller_payment",
+            "id": "audit_payout_success_positive_seller_payment",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (bidAmt sellerAda assetTok lo : Integer),\n    auditPayout auction bidAmt sellerAda assetTok lo →\n    0 < bidAmt\n    → 0 < sellerAda",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_success_positive_seller_payment. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_demo_valid_bid_accepted",
+            "id": "audit_demo_valid_bid_accepted",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "auditAccepts auction demoValidCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: demo_valid_bid_accepted. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_wrong_token_name_rejected",
+            "id": "audit_nb_wrong_token_name_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction demoWrongTnCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_wrong_token_name_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_wrong_policy_rejected",
+            "id": "audit_nb_wrong_policy_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction demoWrongPolicyCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_wrong_policy_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_datum_hash_rejected",
+            "id": "audit_nb_datum_hash_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction demoDatumHashCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_datum_hash_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_datum_missing_rejected",
+            "id": "audit_nb_datum_missing_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction demoNoDatumCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_datum_missing_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_datum_wrong_bid_rejected",
+            "id": "audit_nb_datum_wrong_bid_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction demoWrongDatumCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_datum_wrong_bid_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_nb_other_redeemer_rejected",
+            "id": "audit_nb_other_redeemer_rejected",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "¬ auditAccepts auction demoOtherRedeemerCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: nb_other_redeemer_rejected. Checked against this freshly compiled program."
+            }
+        },
+        {
+            "checkingContext": "audit_payout_staked_outputs_accepted",
+            "id": "audit_payout_staked_outputs_accepted",
+            "scope": {
+                "validators": [
+                    "auction"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "auditAccepts auction demoPayoutStakedCtx",
+                    "uses": [
+                        "Example.Ual.Auction.FormalSpec"
+                    ]
+                },
+                "text": "Upstream Auction audit: payout_staked_outputs_accepted. Checked against this freshly compiled program."
+            }
+        }
+    ]
+}

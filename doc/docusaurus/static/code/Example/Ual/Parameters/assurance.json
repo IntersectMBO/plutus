@@ -1,0 +1,174 @@
+{
+    "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance-v2.json",
+    "blueprint": {
+        "hash": {
+            "alg": "sha256",
+            "digest": "ec67f0c0b69c274e2ad4f899af61d43b4c16f22864bd663c11e579e90e060b8c"
+        },
+        "uri": "plutus.json"
+    },
+    "checkingContexts": {
+        "data_applied_eight": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "8541b8965491de6e1132810354ec88566127bcc551bf59fac310521e9f144780"
+            },
+            "uri": "checking-data_applied_eight.json"
+        },
+        "data_applied_seven": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "6b64f29b431ddda1ed195dda02dc265ed3a03e54a7d9d5289cc523afa75f2a8b"
+            },
+            "uri": "checking-data_applied_seven.json"
+        },
+        "data_seven": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "dca036019b24d0cff10d00bc309442942634256b6e5bbfec606c2f2404398cda"
+            },
+            "uri": "checking-data_seven.json"
+        },
+        "native_applied_eight": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "84defc03909972469de10eb20e84dd26b1006f5a3f194ee8fc9dda12b432a0f3"
+            },
+            "uri": "checking-native_applied_eight.json"
+        },
+        "native_applied_seven": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "4d0a7bd71b80531e6a9d5c39408228130c08e57ec12d31f063a38a71055e0516"
+            },
+            "uri": "checking-native_applied_seven.json"
+        },
+        "native_seven": {
+            "hash": {
+                "alg": "sha256",
+                "digest": "c53380eb62556f4910839e832f106d12ef4e86c50c020cc23c2610e2dc009604"
+            },
+            "uri": "checking-native_seven.json"
+        }
+    },
+    "definitions": {
+        "BuiltinData": {},
+        "Integer": {
+            "dataType": "integer"
+        }
+    },
+    "functions": {},
+    "languages": {
+        "ual": {
+            "name": "Universal Annotation Language",
+            "uri": "https://github.com/input-output-hk/UniversalAnnotationLanguage",
+            "version": "1.0"
+        }
+    },
+    "preamble": {
+        "authors": [
+            "Plutus contributors"
+        ],
+        "created": "2026-09-30",
+        "title": "Parameter encoding assurance",
+        "version": "1.0.0"
+    },
+    "properties": [
+        {
+            "checkingContext": "native_seven",
+            "id": "native_seven",
+            "scope": {
+                "validators": [
+                    "nativeParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (n : Integer) (r ctx : Data), isSuccessful (nativeParameter n r ctx) ↔ n = 7"
+                },
+                "text": "The native parameter succeeds exactly for seven, for any runtime inputs."
+            }
+        },
+        {
+            "checkingContext": "data_seven",
+            "id": "data_seven",
+            "scope": {
+                "validators": [
+                    "dataParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (n : Integer) (r ctx : Data), isSuccessful (dataParameter n r ctx) ↔ n = 7"
+                },
+                "text": "The Data parameter succeeds exactly for seven, for any runtime inputs."
+            }
+        },
+        {
+            "checkingContext": "native_applied_seven",
+            "id": "native_applied_seven",
+            "scope": {
+                "validators": [
+                    "nativeParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (r ctx : Data), isSuccessful (nativeParameter r ctx)"
+                },
+                "text": "The specialized program with parameter 7 has the stated outcome for every runtime input."
+            }
+        },
+        {
+            "checkingContext": "native_applied_eight",
+            "id": "native_applied_eight",
+            "scope": {
+                "validators": [
+                    "nativeParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (r ctx : Data), isUnsuccessful (nativeParameter r ctx)"
+                },
+                "text": "The specialized program with parameter 8 has the stated outcome for every runtime input."
+            }
+        },
+        {
+            "checkingContext": "data_applied_seven",
+            "id": "data_applied_seven",
+            "scope": {
+                "validators": [
+                    "dataParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (r ctx : Data), isSuccessful (dataParameter r ctx)"
+                },
+                "text": "The specialized program with parameter 7 has the stated outcome for every runtime input."
+            }
+        },
+        {
+            "checkingContext": "data_applied_eight",
+            "id": "data_applied_eight",
+            "scope": {
+                "validators": [
+                    "dataParameter"
+                ]
+            },
+            "statement": {
+                "formal": {
+                    "language": "ual",
+                    "source": "∀ (r ctx : Data), isUnsuccessful (dataParameter r ctx)"
+                },
+                "text": "The specialized program with parameter 8 has the stated outcome for every runtime input."
+            }
+        }
+    ]
+}

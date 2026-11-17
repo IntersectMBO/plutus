@@ -46,7 +46,7 @@ import GHC.Generics (Generic)
 import Prettyprinter (Pretty (pretty), comma, (<+>))
 import Prelude qualified as Haskell
 
-import PlutusTx.Blueprint (ConstructorSchema (..), Schema (..))
+import PlutusTx.Blueprint (ConstructorSchema (..), FieldSchema (..), Schema (..))
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (schema))
 import PlutusTx.Blueprint.Definition
   ( HasBlueprintDefinition (..)
@@ -102,8 +102,8 @@ instance
       (MkSchemaInfo Nothing Nothing Nothing)
       ( MkConstructorSchema
           0
-          [ definitionRef @(LowerBound a) @referencedTypes
-          , definitionRef @(UpperBound a) @referencedTypes
+          [ MkFieldSchema Nothing (definitionRef @(LowerBound a) @referencedTypes)
+          , MkFieldSchema Nothing (definitionRef @(UpperBound a) @referencedTypes)
           ]
       )
 
@@ -159,8 +159,8 @@ instance
       emptySchemaInfo {title = Just "UpperBound"}
       ( MkConstructorSchema
           0
-          [ definitionRef @(Extended a) @referencedTypes
-          , definitionRef @Closure @referencedTypes
+          [ MkFieldSchema Nothing (definitionRef @(Extended a) @referencedTypes)
+          , MkFieldSchema Nothing (definitionRef @Closure @referencedTypes)
           ]
       )
 
@@ -211,8 +211,8 @@ instance
       emptySchemaInfo {title = Just "LowerBound"}
       ( MkConstructorSchema
           0
-          [ definitionRef @(Extended a) @referencedTypes
-          , definitionRef @Closure @referencedTypes
+          [ MkFieldSchema Nothing (definitionRef @(Extended a) @referencedTypes)
+          , MkFieldSchema Nothing (definitionRef @Closure @referencedTypes)
           ]
       )
 
