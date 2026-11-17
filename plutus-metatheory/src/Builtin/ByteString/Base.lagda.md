@@ -28,7 +28,7 @@ import Data.Vec as Vec
 import Data.Nat as ℕ
 import Builtin.Binary as Byte
 
-open import Builtin.Binary using (Byte; Bits; bitsToByte; byteToNat; natToByte; BinaryOf; binaryOf)
+open import Builtin.Binary using (Byte; Bits; bitsToByte; byteToNat; natToByte; BinaryOf; binaryOf; binaryOfLen)
 ```
 
 ## ByteString
@@ -80,12 +80,12 @@ index _       []       = nothing
 index zero    (x ∷ _)  = just x
 index (suc i) (_ ∷ xs) = index i xs
 
+reverseAcc : ByteString → ByteString → ByteString
+reverseAcc acc []       = acc
+reverseAcc acc (x ∷ xs) = reverseAcc (x ∷ acc) xs
+
 reverse : ByteString → ByteString
-reverse = go []
-  where
-    go : ByteString → ByteString → ByteString
-    go acc []       = acc
-    go acc (x ∷ xs) = go (x ∷ acc) xs
+reverse = reverseAcc []
 ```
 
 ### Converting bits to ByteStrings
@@ -119,8 +119,22 @@ Represent a natural number as a little-endian or big-endian ByteString.
 natToByteStringLE : (n : ℕ) → .(n < 2 ^ 65536) → ByteString
 natToByteStringLE n _ = bitsToByteStringLE (BinaryOf.bits (binaryOf n))
 
+natToByteStringLenLE : (w n : ℕ) → .(n < 2 ^ (8 * w)) → ByteString
+natToByteStringLenLE w n n< =
+  bitsToByteStringLE (BinaryOf.bits (binaryOfLen (8 * w) n n<))
+
 natToByteStringBE : (n : ℕ) → .(n < 2 ^ 65536) → ByteString
 natToByteStringBE n p = reverse (natToByteStringLE n p)
+
+natToByteStringLenBE : (w n : ℕ) → .(n < 2 ^ (8 * w)) → ByteString
+natToByteStringLenBE w n p = reverse (natToByteStringLenLE w n p)
+
+byteStringToNatLE : ByteString → ℕ
+byteStringToNatLE []       = 0
+byteStringToNatLE (b ∷ bs) = byteToNat b + 256 * byteStringToNatLE bs
+
+byteStringToNatBE : ByteString → ℕ
+byteStringToNatBE = byteStringToNatLE ∘ reverse
 ```
 
 ### Ordering
@@ -173,6 +187,22 @@ private
   _ = refl
 
   _ : (w 0 ∷ []) ≤ᵇ [] ≡ false
+  _ = refl
+
+  -- byteStringToNat: endianness, leading zeros, empty input.
+  _ : byteStringToNatLE (w 1 ∷ w 2 ∷ []) ≡ 513
+  _ = refl
+
+  _ : byteStringToNatBE (w 1 ∷ w 2 ∷ []) ≡ 258
+  _ = refl
+
+  _ : byteStringToNatBE (w 0 ∷ w 0 ∷ w 7 ∷ []) ≡ 7
+  _ = refl
+
+  _ : byteStringToNatLE (w 7 ∷ w 0 ∷ []) ≡ 7
+  _ = refl
+
+  _ : byteStringToNatBE [] ≡ 0
   _ = refl
 
 ```

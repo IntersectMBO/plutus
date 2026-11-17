@@ -121,6 +121,7 @@ on ByteStrings.
 import Builtin.Binary
 import Builtin.ByteString.Base
 import Builtin.ByteString
+import Builtin.ByteString.Properties
 ```
 
 The types of the built-in operations are defined by a signature.

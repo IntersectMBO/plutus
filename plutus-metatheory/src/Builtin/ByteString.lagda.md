@@ -15,7 +15,7 @@ open import Builtin.ByteString.Base
 open import Builtin.Binary hiding (_≟_)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Integer using (ℤ; +_)
-open import Data.Nat using (ℕ; _^_)
+open import Data.Nat using (ℕ; _*_; _^_)
 open import Relation.Nullary.Decidable using (yes; no; does)
 open import Data.Bool using (Bool; true; false; not; _∧_; if_then_else_)
 open import Function.Base using (_∘_; _$_)
@@ -76,14 +76,18 @@ integerToByteString endianness (ℤ.pos 0) (ℤ.pos n) with n ℕ.<? 2 ^ 65536
   if endianness
     then natToByteStringBE n p
     else natToByteStringLE n p
-integerToByteString endianness (ℤ.pos w) (ℤ.pos n) with w ℕ.≤? 8192 | n ℕ.<? 2 ^ 65536
-... | yes _ | yes _ = {!   !}
-... | no _  | _     = nothing
-... | _     | no _  = nothing
-integerToByteString _ _ _ = nothing
+integerToByteString endianness (ℤ.pos w) (ℤ.pos n)
+  with w ℕ.≤? 8192 | n ℕ.<? 2 ^ (8 * w)
+... | yes _ | yes p = just $
+  if endianness
+    then natToByteStringLenBE w n p
+    else natToByteStringLenLE w n p
+... | _     | _     = nothing
+integerToByteString _ _ _   = nothing
 
 byteStringToInteger : Bool → ByteString → ℤ
-byteStringToInteger = {!   !}
+byteStringToInteger endianness bs =
+  + (if endianness then byteStringToNatBE bs else byteStringToNatLE bs)
 ```
 
 ### Batch 5

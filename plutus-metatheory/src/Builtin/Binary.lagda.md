@@ -227,13 +227,13 @@ n<2^suc⌊log₂n⌋ : ∀ n → n < 2 ^ suc ⌊log₂ n ⌋
 n<2^suc⌊log₂n⌋ n = <2^suc⌊log2⌋ n _
 ```
 
-## Smart Constructor for `BinaryOf`
+## Smart Constructors for `BinaryOf`
 
 ```
+binaryOfLen : (len k : ℕ) → .(k < 2 ^ len) → BinaryOf k
+binaryOfLen len k k< =
+  binary len (natToBits len k) (bitsToNat-natToBits len k k<)
+
 binaryOf : (n : ℕ) → BinaryOf n
-binaryOf n = toBinary (suc ⌊log₂ n ⌋) n (n<2^suc⌊log₂n⌋ n)
-  where
-    toBinary : (len k : ℕ) → .(k < 2 ^ len) → BinaryOf k
-    toBinary len k k< =
-      binary len (natToBits len k) (bitsToNat-natToBits len k k<)
+binaryOf n = binaryOfLen (suc ⌊log₂ n ⌋) n (n<2^suc⌊log₂n⌋ n)
 ```
