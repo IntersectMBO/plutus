@@ -119,6 +119,19 @@ executable example-builtin-value
     -fno-spec-constr -fno-specialise -fno-strictness
     -fno-unbox-small-strict-fields -fno-unbox-strict-fields
 
+test-suite docusaurus-examples-test
+  import:             lang, ghc-version-support, os-support
+  type:               exitcode-stdio-1.0
+  main-is:            Spec.hs
+  hs-source-dirs:     test
+  build-depends:
+    , base         ^>=4.18
+    , process
+    , tasty
+    , tasty-hunit
+
+  build-tool-depends: docusaurus-examples:example-builtin-value
+
 executable quickstart
   import:           lang, ghc-version-support, os-support
   main-is:          QuickStart.hs
