@@ -19,7 +19,6 @@ import Data.Sign as S
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Maybe.Base using (Maybe; just; nothing; map)
 open import Relation.Nullary.Decidable using (yes; no)
-open import Data.Bool using (Bool)
 ```
 
 ## Quotient and remainder
