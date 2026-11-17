@@ -105,11 +105,3 @@ Haskell's `quot`/`rem`/`div`/`mod` (see the `test-integer-division` suite).
 {-# COMPILE GHC divMaybe as agdaDivideInteger #-}
 {-# COMPILE GHC modMaybe as agdaModInteger #-}
 ```
-
-## Other operations
-
-```
--- TODO: properties
-_<ᵇ_ : ℤ → ℤ → Bool
-n <ᵇ m = n ≤ᵇ m - 1ℤ
-```

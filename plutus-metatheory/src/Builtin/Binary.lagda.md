@@ -3,6 +3,15 @@ title: Builtin.Binary
 layout: page
 ---
 
+This module defines bits, bytes and binary representations of natural numbers. They
+underpin the ByteString library in `Builtin.ByteString.Base`, and with it the conversions
+between integers and ByteStrings performed by the Cardano builtins.
+
+Bytes are the natural numbers from 0 to 255, and bits are 𝟶 and 𝟷. Every byte `c` can be
+written uniquely as `c = b₀ + 2b₁ + 4b₂ + ⋯ + 128b₇` with bits `b₀, …, b₇`. We take this
+decomposition as the definition: a `Byte` consists of eight bits, and its numeric value is
+computed from them.
+
 ```
 module Builtin.Binary where
 ```
@@ -10,7 +19,6 @@ module Builtin.Binary where
 ## Imports
 
 ```
-open import Data.Fin using (Fin)
 open import Data.Bool using (Bool; true; false)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _^_; _<_; _≤_; _/_; _%_; _≡ᵇ_; z≤n; s≤s; s≤s⁻¹; ⌊_/2⌋)
 open import Data.Nat.DivMod
@@ -23,17 +31,20 @@ open import Induction.WellFounded using (Acc; acc)
 open import Data.Vec using (Vec; []; _∷_)
 open import Function.Base using (_∘_; _$′_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; subst; cong; cong₂)
-open import Relation.Nullary using (Dec; yes; no)
+open import Relation.Nullary using (Dec)
 open import Relation.Nullary.Decidable using (recompute)
 
 import Data.Bool as 𝔹
-import Data.Fin as Fin
-import Data.Fin.Properties as Fin
 import Data.Vec.Properties as Vec
 import Relation.Nullary.Decidable as Dec
 ```
 
 ## Bits
+
+A bit is a boolean: `true` stands for 𝟷 and `false` for 𝟶. `Bits n` is a vector of `n`
+bits. Bit vectors are little endian: position `i` holds the bit `bᵢ`, of weight `2ⁱ`. When
+writing a bitstring we put the most significant bit on the left, as in `bₙ₋₁ ⋯ b₀`, so a
+vector stores the bits in the reverse of their written order.
 
 ```
 Bits : ℕ → Set
@@ -42,9 +53,11 @@ Bits n = Vec Bool n
 
 ## Representing Natural Numbers in Binary
 
-The bits are in little endian order. `natToBits len n` pads with `false` bits when `len` is
-larger than the minimum required to represent `n`, and truncates when it is smaller. For this
-reason, it is private and one should use the smart constructor `binaryOf` instead.
+`bitsToNat` computes the value `b₀ + 2b₁ + ⋯ + 2ⁿ⁻¹bₙ₋₁` of a little-endian bit vector.
+Its inverse, `natToBits len n`, produces exactly `len` bits: it pads with `false` bits
+when `len` is larger than the minimum required to represent `n`, and truncates when it is
+smaller. For this reason, it is private and one should use the smart constructors
+`binaryOf` and `binaryOfLen` instead.
 
 ```
 bitVal : Bool → ℕ
@@ -79,6 +92,12 @@ record BinaryOf (n : ℕ) : Set where
 
 ## Byte
 
+A byte is a record of eight bits, from the least significant `b₁` to the most significant
+`b₈`, so that its value is `b₁ + 2b₂ + ⋯ + 128b₈`. Representing bytes by their bits,
+rather than as numbers below 256, makes the bit-level operations needed by the bitwise
+builtins structural. `natToByte` and `byteToNat` convert between bytes and the numbers
+from 0 to 255.
+
 ```
 record Byte : Set where
   constructor byte
@@ -100,7 +119,11 @@ byteToNat : Byte → ℕ
 byteToNat = bitsToNat ∘ byteToBits
 ```
 
-Bit-wise operations on bytes.
+Bitwise operations on bytes act on each of the eight bits independently. They are the
+building blocks of the logical builtins: `fillByte b` is the byte whose bits are all `b`
+(that is, `0xFF` or `0x00`), `mapByte f` applies `f` to every bit (as in
+`complementByteString`), and `zipWithByte f` combines corresponding bits of two bytes (as
+in `andByteString`, `orByteString` and `xorByteString`).
 
 ```
 fillByte : Bool → Byte
@@ -243,6 +266,10 @@ n<2^suc⌊log₂n⌋ n = <2^suc⌊log2⌋ n _
 ```
 
 ## Smart Constructors for `BinaryOf`
+
+`binaryOfLen len k` represents `k` using exactly `len` bits; the bound `k < 2 ^ len`
+guarantees that no bits are truncated. `binaryOf n` uses the minimal number of bits,
+`suc ⌊log₂ n ⌋`, so `0` is represented by a single `false` bit.
 
 ```
 binaryOfLen : (len k : ℕ) → .(k < 2 ^ len) → BinaryOf k

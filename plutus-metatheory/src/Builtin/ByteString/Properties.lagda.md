@@ -7,6 +7,18 @@ layout: page
 module Builtin.ByteString.Properties where
 ```
 
+Properties of the ByteString library and of the ByteString builtins:
+
+* round trips between natural numbers and their little- and big-endian ByteString
+  encodings, which justify `integerToByteString` and `byteStringToInteger` being mutually
+  inverse;
+* algebraic laws of the logical builtins, such as commutativity and De Morgan's laws;
+* laws for shifts, rotations, counting and searching, first on bit vectors and then for
+  the builtins themselves.
+
+The laws are stated for the pure definitions in `Builtin.ByteString.Base`, and for those
+builtins of `Builtin.ByteString` that cannot fail.
+
 ## Imports
 
 ```
@@ -61,6 +73,9 @@ open import Builtin.ByteString
 
 ## Concatenation and Reversal
 
+Standard list lemmas for ByteStrings. `reverse-involutive` is used to transfer results
+about little-endian encodings to big-endian ones.
+
 ```
 ++-identityʳ : ∀ xs → xs ++ [] ≡ xs
 ++-identityʳ []       = refl
@@ -90,6 +105,8 @@ reverse-involutive = reverse-reverseAcc []
 ```
 
 ## Bits
+
+Lemmas about the value `bitsToNat` of a bit vector.
 
 `bitsToNat` of a concatenation: the bits of the second part are shifted by the length of
 the first.
@@ -138,8 +155,8 @@ bitsToNat-bits (binary _ bs p) = recompute (bitsToNat bs ℕ.≟ _) p
 
 ## Bits to ByteString and back
 
-Reading back the little-endian ByteString built from some bits yields the number those bits
-denote, including when the last byte is padded.
+Reading back the little-endian ByteString built from some bits yields the number those
+bits denote, including when the last byte is padded.
 
 ```
 private
@@ -178,6 +195,10 @@ byteStringToNatLE-bitsToByteStringLE bs@(_ ∷ _ ∷ _ ∷ _ ∷ _ ∷ _ ∷ _ �
 
 ## Round Trips: Natural Number → ByteString → Natural Number
 
+Decoding the encoding of a natural number gives back that number, for both byte orders.
+These are the facts behind `byteStringToInteger e (integerToByteString e w n) ≡ n` for the
+inputs on which `integerToByteString` succeeds.
+
 Minimal-width encoding:
 
 ```
@@ -215,6 +236,9 @@ byteStringToNatBE-natToByteStringLenBE w n p =
 Properties of the pure building blocks behind the bitwise builtins.
 
 ### Bytes
+
+Bitwise operations on single bytes inherit the laws of the corresponding operations on
+booleans, bit by bit.
 
 ```
 private
@@ -255,6 +279,8 @@ mapByte-zipWithByte h (byte a₁ a₂ a₃ a₄ a₅ a₆ a₇ a₈) (byte b₁ 
 
 ### Byte-wise Operations on ByteStrings
 
+Laws for `map` and `zipWithExtend`, from which the laws of the logical builtins follow.
+
 ```
 length-map : ∀ f bs → length (map f bs) ≡ length bs
 length-map f []       = refl
@@ -278,8 +304,8 @@ zipWithExtend-comm c true  p (x ∷ xs) []       =
   cong₂ _∷_ (c x p) (zipWithExtend-comm c true p xs [])
 ```
 
-Without extension the result is as long as the shorter input, with extension as long as the
-longer one.
+Without extension the result is as long as the shorter input, with extension as long as
+the longer one.
 
 ```
 length-zipWithExtend-false
@@ -322,8 +348,8 @@ map-zipWithExtend h true  p (x ∷ xs) []       =
 
 #### The Logical Builtins
 
-The logical builtins are commutative, complement is an involution, and De Morgan's laws hold
-for both truncation and extension (the padding bytes are swapped as well).
+The logical builtins are commutative, complement is an involution, and De Morgan's laws
+hold for both truncation and extension (the padding bytes are swapped as well).
 
 ```
 private
@@ -376,6 +402,10 @@ complement-orByteString e =
 ```
 
 ### Bit-level View
+
+`toBits` and `fromBits` are inverse, in the sense that converting a ByteString to its bits
+and back gives the original ByteString. The other direction holds only up to the length
+index, so it is stated through `onBits`.
 
 ```
 fromVec-toVec : ∀ bs → fromVec (toVec bs) ≡ bs
@@ -454,6 +484,8 @@ onBits-∘ f g bs =
 
 ### Shifts
 
+Shifting by zero is the identity.
+
 ```
 private
   fromℕ<-cong
@@ -513,6 +545,9 @@ shiftRight-overflow k bs n≤k =
 ```
 
 ### Rotations
+
+Rotations by `a` and then `b` compose to a rotation by `a + b`, and rotating by a multiple
+of the length is the identity. Both follow from modular arithmetic on the indices.
 
 ```
 private
@@ -596,6 +631,8 @@ rotateRight-rotateLeft {suc n} k bs =
 
 ### Counting, Searching and Writing Bits
 
+There are at most `n` set bits in a vector of length `n`.
+
 ```
 popCount-≤ : ∀ {n} (bs : Bits n) → popCount bs ≤ n
 popCount-≤ []           = z≤n
@@ -632,7 +669,8 @@ findFirstSet-nothing (false ∷ bs) _  Fin.zero    | nothing = refl
 findFirstSet-nothing (false ∷ bs) _  (Fin.suc i) | nothing = findFirstSet-nothing bs e i
 ```
 
-After `setBits is u`, the bits at the indices in `is` are `u` and all others are unchanged.
+After `setBits is u`, the bits at the indices in `is` are `u` and all others are
+unchanged.
 
 ```
 lookup-setBits-∈
@@ -654,6 +692,8 @@ lookup-setBits-∉ (j L.∷ is) u bs i∉ =
 ```
 
 ## Properties of the Bit-level Builtins
+
+The laws for bit vectors carry over to the builtins through `onBits`.
 
 ### Shifts
 
@@ -705,7 +745,8 @@ shiftByteString-overflow bs -[1+ k ] n≤k =
 
 ### Rotations
 
-Rotating by zero is the identity, and rotating by `k` and then by `- k` gets back the input.
+Rotating by zero is the identity, and rotating by `k` and then by `- k` gets back the
+input.
 
 ```
 length-rotateByteString : ∀ bs k → length (rotateByteString bs k) ≡ length bs
