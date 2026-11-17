@@ -166,28 +166,6 @@ Finally, it's important to put bang patterns on any 'Int' arguments to ensure th
 this can make a surprisingly large difference.
 -}
 
-{- Note [Inlining budgeting modes]
-When a caller chooses a budgeting mode, we want GHC to inline that mode's spending function
-into the CEK machine's spending loops. This lets GHC optimize the budget checks together with
-the machine, while we keep a single source definition of the machine.
-
-The INLINE pragmas on 'runCekDeBruijn' and 'runCekM' expose the machine call to the caller.
-The budgeting mode constructors, including 'restrictingEnormous', are also INLINE so that GHC
-can see which spending function the caller supplies (see the ExBudgetMode module).
-
-We mark 'enterComputeCek' INLINE [1] so that GHC inlines the wrappers before expanding the
-large recursive machine. Until phase 1, their INLINE unfoldings contain a call to
-'enterComputeCek' rather than its body. Once the caller's budgeting mode is visible, the
-machine can expand and its spending calls can inline. This avoids explicit 'inline' calls
-in the ledger API.
-
-The spending function has an INLINE pragma, but we don't force it to inline when constructing
-'CekBudgetSpender'. This allows GHC to inline it later, at the spending calls inside the
-machine. We tried 'CekBudgetSpender (inline spend)', but inspecting Core showed that GHC
-expanded 'spend' there and then extracted a helper that wasn't inlined into the spending
-loops. The loops called that helper instead of containing the spending arithmetic directly.
--}
-
 {-| The 'Term's that CEK can execute must have DeBruijn binders
 'Name' is not necessary but we leave it here for simplicity and debuggability. -}
 type NTerm uni fun = Term NamedDeBruijn uni fun
@@ -849,8 +827,17 @@ Likewise, completing a constructor passes its tag and argument stack to its retu
 The known-value workers preserve the strict fields of 'CekValue'. This prevents thunks from
 being allocated for fields that the next step immediately inspects. The discharged term of
 a builtin remains lazy: successful saturated applications do not need to discharge arguments.
-Their phased NOINLINE pragmas permit later constructor specialization, including unboxing a
-constructor tag. The generic computing and returning workers retain permanent barriers.
+
+All recursive workers use NOINLINE [0]. This keeps them from inlining before phase 0, then
+permits ordinary heuristic inlining. Unlike permanent NOINLINE, it also leaves them eligible
+for SpecConstr. This matters even for generic workers: an unknown returned value can still
+have a known context, and a computing transition can have a known term constructor.
+The known-value workers can specialize further on their fields, including unboxing a
+constructor tag.
+
+Phase 0 conservatively delays unfolding until after the surrounding transition machinery
+has simplified. NOINLINE [2] would permit earlier unfolding; it is not needed merely to
+enable SpecConstr. This choice does not establish that phase 0 gives the best performance.
 
 The assembled returning step exposes forcing, while application remains a shared operation
 that GHC can specialize for the known function and argument constructors. This bounds code
@@ -921,7 +908,6 @@ enterComputeCek
   -> CekValEnv uni fun ann
   -> NTerm uni fun ann
   -> CekM uni fun s (DischargeResult uni fun)
-{-# INLINE [1] enterComputeCek #-}
 enterComputeCek =
   computeStep
     computeCekRec
@@ -950,7 +936,7 @@ enterComputeCek =
         ctx
         env
         term
-    {-# NOINLINE computeCekRec #-}
+    {-# NOINLINE [0] computeCekRec #-}
 
     returnCekRec :: CekReturn uni fun ann s
     returnCekRec ctx val =
@@ -958,7 +944,7 @@ enterComputeCek =
         (returningWithForce computeCekRec recursiveReturns applyEvaluate)
         ctx
         val
-    {-# NOINLINE returnCekRec #-}
+    {-# NOINLINE [0] returnCekRec #-}
 
     returnConRec
       :: Context uni fun ann
@@ -1307,7 +1293,6 @@ runCekDeBruijn params mode emitMode term =
   runCekM params mode emitMode $ do
     unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts
     enterComputeCek NoFrame Env.empty term
-{-# INLINE runCekDeBruijn #-}
 
 {- Note [Accumulators for terms]
 At a couple of points in the CEK machine (notably building the arguments to a constructor value)
