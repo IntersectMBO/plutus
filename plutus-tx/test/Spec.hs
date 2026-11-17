@@ -34,6 +34,7 @@ import Show.Spec qualified
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit (Assertion, testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Value.Spec (valueTests)
 import Prelude hiding (Enum (..), Rational, negate, recip)
 
 main :: IO ()
@@ -59,6 +60,7 @@ tests =
     , Show.Spec.goldenTests
     , Blueprint.Definition.Spec.tests
     , Blueprint.Spec.tests
+    , valueTests
     ]
 
 sqrtTests :: TestTree
