@@ -922,7 +922,7 @@ enterComputeCek =
     {-# INLINE enterLambda #-}
 
     extendEnv :: CekValue uni fun ann -> CekValEnv uni fun ann -> CekValEnv uni fun ann
-    extendEnv arg env = Env.cons arg env
+    extendEnv = Env.cons
     {-# NOINLINE extendEnv #-}
 
     applyResultRec
