@@ -88,10 +88,6 @@ natToFin {n} m with m <? n
 ... | yes n<m = just (fromℕ< n<m)
 ... | no _ = nothing
 
-intToFin : {n : ℕ} → ℤ → Maybe (Fin n)
-intToFin (+ m)      = natToFin m
-intToFin I.-[1+ _ ] = nothing
-
 cong₃ : {A B C D : Set} → (f : A → B → C → D)
   → {a a' : A} → a ≡ a'
   → {b b' : B} → b ≡ b'
