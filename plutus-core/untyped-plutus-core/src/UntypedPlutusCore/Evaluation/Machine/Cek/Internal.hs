@@ -21,7 +21,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fno-warn-orphans -fspec-constr-count=5 #-}
+{-# OPTIONS_GHC -fno-warn-orphans -fspec-constr-count=9 #-}
 
 -- | The CEK machine.
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
@@ -808,45 +808,36 @@ runCekM
 {-# INLINE runCekM #-}
 
 {- Note [CEK transition continuations]
-The machine has one definition of each computing, returning, forcing, application and builtin
-step. Each step takes its next operations as arguments. Its INLINE unfolding therefore does
-not capture the recursive workers, which can become join points after the steps inline.
+Each computing, returning, forcing, application and builtin step takes its outgoing
+operations as arguments. The steps inline before the recursive workers become join points,
+so their unfoldings do not capture those workers. Computing exposes the value constructors
+it produces to returning; SpecConstr also specializes recursive returns for known values.
 
-'CekReturns' exposes both an arbitrary returned value and the fields of each known value
-constructor. 'returning' derives all these continuations from the same 'returnStep'. This
-lets computing a lambda, for example, expose its body and environment directly to the next
-application. A single large returning continuation shared by all computing branches can
-instead become a join point before this constructor information has been used.
+The completed constructor argument stack is forced before returning its VConstr. This
+preserves the strictness of CekValue and exposes the constructor to specialization across
+the recursive return boundary, avoiding an intermediate value allocation.
 
-'recursiveReturns' closes the recursion through workers for arbitrary and known values.
-The builtin step uses the arbitrary-value continuation for a saturated result and the
-builtin-field continuation for a partial application. Consecutive applications can then
-pass the builtin fields directly between workers, without allocating a 'VBuiltin' each time.
-Likewise, completing a constructor passes its tag and argument stack to its returning worker.
+Application exposes its function-constructor dispatch. This allows computing an argument
+under a known lambda or builtin to retain the function's fields across the recursive
+computing boundary. Lambda environment extension is shared through enterLambda. Its
+permanent NOINLINE keeps that operation shared and bounds specialization on environment
+shapes; the computing worker still specializes on the context and its known function.
 
-The known-value workers preserve the strict fields of 'CekValue'. This prevents thunks from
-being allocated for fields that the next step immediately inspects. The discharged term of
-a builtin remains lazy: successful saturated applications do not need to discharge arguments.
+Builtin saturation dispatch is exposed, while applying and forcing each have a shared
+result worker. These workers receive the original operands, constructing the discharged
+application or force term only on failure. Passing an already assembled error term across
+that boundary can allocate a thunk even when the builtin succeeds. Budget spending still
+precedes inspecting the builtin result, and logging preserves its original order.
 
-All recursive workers use NOINLINE [0]. This keeps them from inlining before phase 0, then
-permits ordinary heuristic inlining. Unlike permanent NOINLINE, it also leaves them eligible
-for SpecConstr. This matters even for generic workers: an unknown returned value can still
-have a known context, and a computing transition can have a known term constructor.
-The known-value workers can specialize further on their fields, including unboxing a
-constructor tag.
+Returning is exposed inside the result workers as well, retaining known argument-stack
+contexts across saturated builtin evaluation. Partial builtin applications can recur with
+the builtin fields and remaining argument stack, without intermediate value or frame boxes.
 
-Phase 0 conservatively delays unfolding until after the surrounding transition machinery
-has simplified. NOINLINE [2] would permit earlier unfolding; it is not needed merely to
-enable SpecConstr. This choice does not establish that phase 0 gives the best performance.
-
-The assembled returning step exposes forcing, while application remains a shared operation
-that GHC can specialize for the known function and argument constructors. This bounds code
-duplication while retaining lambda/constant and builtin/constant application workers. Five
-SpecConstr specializations per function allow both combined and individual workers to survive.
-
-All continuation records and step functions disappear from the optimized machine. The
-recursive workers remain local to 'enterComputeCek', sharing its machine parameters rather
-than passing their dictionaries around each transition.
+The other recursive workers use NOINLINE [0]: they cannot inline before phase 0 but remain
+eligible for SpecConstr. Nine specializations permit the seven nonempty context shapes and
+the known-lambda and known-builtin argument contexts in computing. Their definitions fully
+apply the step functions; partial applications can retain higher-order calls instead of
+recursive jumps. The workers stay local, sharing the machine parameters across transitions.
 -}
 
 type CekCompute uni fun ann s =
@@ -873,32 +864,6 @@ type CekBuiltin uni fun ann s =
   -> BuiltinRuntime (CekValue uni fun ann)
   -> CekM uni fun s (DischargeResult uni fun)
 
--- These continuations share a returning step but expose different known constructors.
-data CekReturns uni fun ann s = CekReturns
-  { cekReturnValue :: CekReturn uni fun ann s
-  , cekReturnCon
-      :: Context uni fun ann
-      -> Some (ValueOf uni)
-      -> CekM uni fun s (DischargeResult uni fun)
-  , cekReturnDelay
-      :: Context uni fun ann
-      -> NTerm uni fun ann
-      -> CekValEnv uni fun ann
-      -> CekM uni fun s (DischargeResult uni fun)
-  , cekReturnLamAbs
-      :: Context uni fun ann
-      -> NamedDeBruijn
-      -> NTerm uni fun ann
-      -> CekValEnv uni fun ann
-      -> CekM uni fun s (DischargeResult uni fun)
-  , cekReturnBuiltin :: CekBuiltin uni fun ann s
-  , cekReturnConstr
-      :: Context uni fun ann
-      -> Word64
-      -> EmptyOrMultiStack uni fun ann
-      -> CekM uni fun s (DischargeResult uni fun)
-  }
-
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
@@ -911,28 +876,23 @@ enterComputeCek
 enterComputeCek =
   computeStep
     computeCekRec
-    (returningWithForce computeCekRec recursiveReturns applyEvaluate)
+    ( returnStep
+        computeCekRec
+        returnCekRec
+        (forceStep computeCekRec returnCekRec forceResultRec)
+        (applyStep enterLambda returnCekRec applyResultRec)
+    )
   where
-    recursiveReturns :: CekReturns uni fun ann s
-    recursiveReturns =
-      CekReturns
-        { cekReturnValue = returnCekRec
-        , cekReturnCon = returnConRec
-        , cekReturnDelay = returnDelayRec
-        , cekReturnLamAbs = returnLamAbsRec
-        , cekReturnBuiltin = returnBuiltinRec
-        , cekReturnConstr = returnConstrRec
-        }
-
-    applyEvaluate :: CekApply uni fun ann s
-    applyEvaluate ctx fun arg =
-      applyStep computeCekRec (builtinStep recursiveReturns) ctx fun arg
-
     computeCekRec :: CekCompute uni fun ann s
     computeCekRec ctx env term =
       computeStep
         computeCekRec
-        (returningWithForce computeCekRec recursiveReturns applyEvaluate)
+        ( returnStep
+            computeCekRec
+            returnCekRec
+            (forceStep computeCekRec returnCekRec forceResultRec)
+            (applyStep enterLambda returnCekRec applyResultRec)
+        )
         ctx
         env
         term
@@ -940,99 +900,90 @@ enterComputeCek =
 
     returnCekRec :: CekReturn uni fun ann s
     returnCekRec ctx val =
-      cekReturnValue
-        (returningWithForce computeCekRec recursiveReturns applyEvaluate)
+      ( returnStep
+          computeCekRec
+          returnCekRec
+          (forceStep computeCekRec returnCekRec forceResultRec)
+          (applyStep enterLambda returnCekRec applyResultRec)
+      )
         ctx
         val
     {-# NOINLINE [0] returnCekRec #-}
 
-    returnConRec
-      :: Context uni fun ann
-      -> Some (ValueOf uni)
-      -> CekM uni fun s (DischargeResult uni fun)
-    returnConRec ctx !val =
-      cekReturnCon
-        (returningWithForce computeCekRec recursiveReturns applyEvaluate)
-        ctx
-        val
-    {-# NOINLINE [0] returnConRec #-}
-
-    returnDelayRec
+    enterLambda
       :: Context uni fun ann
       -> NTerm uni fun ann
       -> CekValEnv uni fun ann
+      -> CekValue uni fun ann
       -> CekM uni fun s (DischargeResult uni fun)
-    returnDelayRec ctx !body !env =
-      cekReturnDelay
-        (returningWithForce computeCekRec recursiveReturns applyEvaluate)
-        ctx
-        body
-        env
-    {-# NOINLINE [0] returnDelayRec #-}
+    enterLambda ctx body env arg = computeCekRec ctx (Env.cons arg env) body
+    {-# NOINLINE enterLambda #-}
 
-    returnLamAbsRec
-      :: Context uni fun ann
-      -> NamedDeBruijn
-      -> NTerm uni fun ann
-      -> CekValEnv uni fun ann
-      -> CekM uni fun s (DischargeResult uni fun)
-    returnLamAbsRec ctx !name !body !env =
-      cekReturnLamAbs
-        (returningWithForce computeCekRec recursiveReturns applyEvaluate)
-        ctx
-        name
-        body
-        env
-    {-# NOINLINE [0] returnLamAbsRec #-}
-
-    returnBuiltinRec
+    applyResultRec
       :: Context uni fun ann
       -> fun
       -> NTerm uni fun ()
-      -> BuiltinRuntime (CekValue uni fun ann)
+      -> CekValue uni fun ann
+      -> ExBudgetStream
+      -> BuiltinResult (CekValue uni fun ann)
       -> CekM uni fun s (DischargeResult uni fun)
-    returnBuiltinRec ctx !fun term !runtime =
-      cekReturnBuiltin
-        (returningWithForce computeCekRec recursiveReturns applyEvaluate)
+    applyResultRec ctx fun funTerm arg budgets result =
+      builtinResultStep
+        ( returnStep
+            computeCekRec
+            returnCekRec
+            (forceStep computeCekRec returnCekRec forceResultRec)
+            (applyStep enterLambda returnCekRec applyResultRec)
+        )
         ctx
         fun
-        term
-        runtime
-    {-# NOINLINE [0] returnBuiltinRec #-}
+        (Apply () funTerm (dischargeResultToTerm $ dischargeCekValue arg))
+        budgets
+        result
+    {-# NOINLINE [0] applyResultRec #-}
 
-    returnConstrRec
+    forceResultRec
       :: Context uni fun ann
-      -> Word64
-      -> EmptyOrMultiStack uni fun ann
+      -> fun
+      -> NTerm uni fun ()
+      -> ExBudgetStream
+      -> BuiltinResult (CekValue uni fun ann)
       -> CekM uni fun s (DischargeResult uni fun)
-    returnConstrRec ctx !tag !args =
-      cekReturnConstr
-        (returningWithForce computeCekRec recursiveReturns applyEvaluate)
+    forceResultRec ctx fun term budgets result =
+      builtinResultStep
+        ( returnStep
+            computeCekRec
+            returnCekRec
+            (forceStep computeCekRec returnCekRec forceResultRec)
+            (applyStep enterLambda returnCekRec applyResultRec)
+        )
         ctx
-        tag
-        args
-    {-# NOINLINE [0] returnConstrRec #-}
+        fun
+        (Force () term)
+        budgets
+        result
+    {-# NOINLINE [0] forceResultRec #-}
 
     computeStep
       :: CekCompute uni fun ann s
-      -> CekReturns uni fun ann s
+      -> CekReturn uni fun ann s
       -> CekCompute uni fun ann s
     computeStep _ returnCekGo !ctx !env (Var _ varName) = do
       stepAndMaybeSpend BVar
       val <- lookupVarName varName env
-      cekReturnValue returnCekGo ctx val
+      returnCekGo ctx val
     -- s ; ρ ▻ con c  ↦  s ◅ con c
     computeStep _ returnCekGo !ctx !_ (Constant _ val) = do
       stepAndMaybeSpend BConst
-      cekReturnCon returnCekGo ctx val
+      returnCekGo ctx (VCon val)
     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
     computeStep _ returnCekGo !ctx !env (LamAbs _ name body) = do
       stepAndMaybeSpend BLamAbs
-      cekReturnLamAbs returnCekGo ctx name body env
+      returnCekGo ctx (VLamAbs name body env)
     -- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)
     computeStep _ returnCekGo !ctx !env (Delay _ body) = do
       stepAndMaybeSpend BDelay
-      cekReturnDelay returnCekGo ctx body env
+      returnCekGo ctx (VDelay body env)
     -- s ; ρ ▻ force T  ↦  s , force _ ; ρ ▻ L
     computeStep computeCekGo _ !ctx !env (Force _ body) = do
       stepAndMaybeSpend BForce
@@ -1046,13 +997,13 @@ enterComputeCek =
       stepAndMaybeSpend BBuiltin
       let meaning = lookupBuiltin bn ?cekRuntime
       -- 'Builtin' is fully discharged.
-      cekReturnBuiltin returnCekGo ctx bn (Builtin () bn) meaning
+      returnCekGo ctx (VBuiltin bn (Builtin () bn) meaning)
     -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
     computeStep computeCekGo returnCekGo !ctx !env (Constr _ i es) = do
       stepAndMaybeSpend BConstr
       case es of
         (t : rest) -> computeCekGo (FrameConstr env i rest NilStack ctx) env t
-        [] -> cekReturnConstr returnCekGo ctx i EmptyStack
+        [] -> returnCekGo ctx (VConstr i EmptyStack)
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeStep computeCekGo _ !ctx !env (Case _ scrut cs) = do
       stepAndMaybeSpend BCase
@@ -1064,7 +1015,7 @@ enterComputeCek =
 
     returnStep
       :: CekCompute uni fun ann s
-      -> CekReturns uni fun ann s
+      -> CekReturn uni fun ann s
       -> CekReturn uni fun ann s
       -> CekApply uni fun ann s
       -> CekReturn uni fun ann s
@@ -1106,7 +1057,8 @@ enterComputeCek =
         [] ->
           let go acc NilStack = acc
               go acc (ConsStack x xs) = go (ConsStackNonEmpty x acc) xs
-           in cekReturnConstr returnCekGo ctx i (MultiStack $ go (LastStackNonEmpty e) done)
+              !args = MultiStack $ go (LastStackNonEmpty e) done
+           in returnCekGo ctx (VConstr i args)
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnStep computeCekGo _ _ _ (FrameCases env cs ctx) e = case e of
       -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
@@ -1132,102 +1084,92 @@ enterComputeCek =
 
     forceStep
       :: CekCompute uni fun ann s
-      -> CekBuiltin uni fun ann s
       -> CekReturn uni fun ann s
-    forceStep computeGo _ !ctx (VDelay body env) = computeGo ctx env body
-    forceStep _ builtinGo !ctx (VBuiltin fun term runtime) = do
-      -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
+      -> ( Context uni fun ann
+           -> fun
+           -> NTerm uni fun ()
+           -> ExBudgetStream
+           -> BuiltinResult (CekValue uni fun ann)
+           -> CekM uni fun s (DischargeResult uni fun)
+         )
+      -> CekReturn uni fun ann s
+    forceStep computeGo _ _ !ctx (VDelay body env) = computeGo ctx env body
+    forceStep _ returnGo resultGo !ctx (VBuiltin fun term runtime) = do
       let term' = Force () term
       case runtime of
-        -- It's only possible to force a builtin application if the builtin expects a type
-        -- argument next.
         BuiltinExpectForce runtime' ->
-          -- We allow a type argument to appear last in the type of a built-in function,
-          -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
-          -- application.
-          builtinGo ctx fun term' runtime'
+          builtinStep returnGo (resultGo ctx fun term) ctx fun term' runtime'
         _ ->
           throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) term'
-    forceStep _ _ !_ val =
+    forceStep _ _ _ !_ val =
       throwErrorDischarged (StructuralError NonPolymorphicInstantiationMachineError) val
     {-# INLINE forceStep #-}
 
     applyStep
-      :: CekCompute uni fun ann s
-      -> CekBuiltin uni fun ann s
+      :: ( Context uni fun ann
+           -> NTerm uni fun ann
+           -> CekValEnv uni fun ann
+           -> CekValue uni fun ann
+           -> CekM uni fun s (DischargeResult uni fun)
+         )
+      -> CekReturn uni fun ann s
+      -> ( Context uni fun ann
+           -> fun
+           -> NTerm uni fun ()
+           -> CekValue uni fun ann
+           -> ExBudgetStream
+           -> BuiltinResult (CekValue uni fun ann)
+           -> CekM uni fun s (DischargeResult uni fun)
+         )
       -> CekApply uni fun ann s
-    applyStep computeGo _ !ctx (VLamAbs _ body env) arg =
-      computeGo ctx (Env.cons arg env) body
-    -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
-    -- 'VCon'. After that the bangs here made things a tiny bit slower, so we removed them.
-    applyStep _ builtinGo !ctx (VBuiltin fun funTerm runtime) arg = do
+    applyStep enterGo _ _ !ctx (VLamAbs _ body env) arg = enterGo ctx body env arg
+    applyStep _ returnGo resultGo !ctx (VBuiltin fun funTerm runtime) arg = do
       let argTerm = dischargeResultToTerm $ dischargeCekValue arg
-          -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
-          -- in a 'VBuiltin'.
           term' = Apply () funTerm argTerm
       case runtime of
-        -- It's only possible to apply a builtin application if the builtin expects a term
-        -- argument next.
         BuiltinExpectArgument f ->
-          builtinGo ctx fun term' $ f arg
+          builtinStep returnGo (resultGo ctx fun funTerm arg) ctx fun term' $ f arg
         _ ->
           throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
-    applyStep _ _ !_ val _ =
+    applyStep _ _ _ !_ val _ =
       throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
     {-# INLINE applyStep #-}
 
     builtinStep
-      :: CekReturns uni fun ann s
+      :: CekReturn uni fun ann s
+      -> ( ExBudgetStream
+           -> BuiltinResult (CekValue uni fun ann)
+           -> CekM uni fun s (DischargeResult uni fun)
+         )
       -> CekBuiltin uni fun ann s
-    builtinStep returnCekGo ctx fun term runtime = case runtime of
-      BuiltinCostedResult budgets0 getFXs -> do
-        let exCat = BBuiltinApp fun
-            spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
-            spendBudgets (ExBudgetCons budget budgets) =
-              spendBudget exCat budget *> spendBudgets budgets
-        spendBudgets budgets0
-        case getFXs of
-          BuiltinSuccess y ->
-            cekReturnValue returnCekGo ctx y
-          BuiltinSuccessWithLogs logs y -> do
-            ?cekEmitter logs
-            cekReturnValue returnCekGo ctx y
-          BuiltinFailure logs err -> do
-            ?cekEmitter logs
-            throwBuiltinErrorWithCause term err
-      _ -> cekReturnBuiltin returnCekGo ctx fun term runtime
+    builtinStep returnGo resultGo ctx fun term runtime = case runtime of
+      BuiltinCostedResult budgets result -> resultGo budgets result
+      _ -> returnGo ctx (VBuiltin fun term runtime)
     {-# INLINE builtinStep #-}
 
-    returningWithForce
-      :: CekCompute uni fun ann s
-      -> CekReturns uni fun ann s
-      -> CekApply uni fun ann s
-      -> CekReturns uni fun ann s
-    returningWithForce computeGo returnGo applyGo =
-      returning computeGo returnGo (forceStep computeGo (builtinStep returnGo)) applyGo
-    {-# INLINE returningWithForce #-}
-
-    returning
-      :: CekCompute uni fun ann s
-      -> CekReturns uni fun ann s
-      -> CekReturn uni fun ann s
-      -> CekApply uni fun ann s
-      -> CekReturns uni fun ann s
-    returning computeGo returnGo forceGo applyGo =
-      CekReturns
-        { cekReturnValue = returnStep computeGo returnGo forceGo applyGo
-        , cekReturnCon = \ctx val ->
-            returnStep computeGo returnGo forceGo applyGo ctx (VCon val)
-        , cekReturnDelay = \ctx body env ->
-            returnStep computeGo returnGo forceGo applyGo ctx (VDelay body env)
-        , cekReturnLamAbs = \ctx name body env ->
-            returnStep computeGo returnGo forceGo applyGo ctx (VLamAbs name body env)
-        , cekReturnBuiltin = \ctx fun term runtime ->
-            returnStep computeGo returnGo forceGo applyGo ctx (VBuiltin fun term runtime)
-        , cekReturnConstr = \ctx tag args ->
-            returnStep computeGo returnGo forceGo applyGo ctx (VConstr tag args)
-        }
-    {-# INLINE returning #-}
+    builtinResultStep
+      :: CekReturn uni fun ann s
+      -> Context uni fun ann
+      -> fun
+      -> NTerm uni fun ()
+      -> ExBudgetStream
+      -> BuiltinResult (CekValue uni fun ann)
+      -> CekM uni fun s (DischargeResult uni fun)
+    builtinResultStep returnGo ctx fun term budgets0 getFXs = do
+      let exCat = BBuiltinApp fun
+          spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
+          spendBudgets (ExBudgetCons budget budgets) =
+            spendBudget exCat budget *> spendBudgets budgets
+      spendBudgets budgets0
+      case getFXs of
+        BuiltinSuccess y -> returnGo ctx y
+        BuiltinSuccessWithLogs logs y -> do
+          ?cekEmitter logs
+          returnGo ctx y
+        BuiltinFailure logs err -> do
+          ?cekEmitter logs
+          throwBuiltinErrorWithCause term err
+    {-# INLINE builtinResultStep #-}
 
     -- Spend the budget accumulated for a number of machine steps.
     spendAccumulatedBudget :: CekM uni fun s ()
