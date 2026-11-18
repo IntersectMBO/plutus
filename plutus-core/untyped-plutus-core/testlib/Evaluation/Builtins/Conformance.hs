@@ -29,7 +29,7 @@ import System.FilePath ((<.>), (</>))
 import Text.Printf (printf)
 
 -- | Representations to write for each generated case. Both formats share a budget.
-data OutputFormat = Uplc | Flat | Both
+data OutputFormat = Flat | Uplc | Both
 
 {-| Select a property by its path relative to the output root, without case
 numbers or filename extensions (for example, integer/RingProperties/addition_associative). -}
@@ -65,11 +65,11 @@ generateTermFiles format outputDir numFiles propertyName cases =
 
     encodings :: [(String, UplcTerm -> BS.ByteString)]
     encodings = case format of
-      Uplc -> [textual]
-      Flat -> [binary]
-      Both -> [textual, binary]
-    textual = ("uplc", Text.encodeUtf8 . renderProgram)
-    binary = ("flat", encodeFlatTerm)
+      Flat -> [flatEncoding]
+      Uplc -> [textualEncoding]
+      Both -> [flatEncoding, textualEncoding]
+    textualEncoding = ("uplc", Text.encodeUtf8 . renderProgram)
+    flatEncoding = ("flat", encodeFlatTerm)
 
     renderProgram :: UplcTerm -> Text
     renderProgram = display . UPLC.Program () plcVersion100
