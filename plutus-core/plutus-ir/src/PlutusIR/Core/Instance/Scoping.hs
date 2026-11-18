@@ -9,6 +9,7 @@
 
 module PlutusIR.Core.Instance.Scoping where
 
+import Data.Bitraversable (bitraverse)
 import PlutusPrelude
 
 import PlutusIR.Core.Type
@@ -257,6 +258,10 @@ instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name un
   establishScoping (Constant _ con) = pure $ Constant NotAName con
   establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
   establishScoping (Constr _ ty i es) = Constr NotAName <$> establishScoping ty <*> pure i <*> traverse establishScoping es
+  establishScoping (TryBuiltin _ b args h) =
+    TryBuiltin NotAName b
+      <$> traverse (bitraverse establishScoping establishScoping) args
+      <*> establishScoping h
   establishScoping (Case _ ty a es) = do
     esScoped <- traverse establishScoping es
     let esScopedPoked = addTheRest $ map (\e -> (e, firstBound e)) esScoped
@@ -311,6 +316,7 @@ instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name un
   collectScopeInfo (Constant _ _) = mempty
   collectScopeInfo (Builtin _ _) = mempty
   collectScopeInfo (Constr _ ty _ es) = collectScopeInfo ty <> foldMap collectScopeInfo es
+  collectScopeInfo (TryBuiltin _ _ args h) = foldMap (either collectScopeInfo collectScopeInfo) args <> collectScopeInfo h
   collectScopeInfo (Case _ ty arg cs) = collectScopeInfo ty <> collectScopeInfo arg <> foldMap collectScopeInfo cs
 
 instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Program tyname name uni fun) where

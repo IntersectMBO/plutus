@@ -53,6 +53,9 @@ instance
     -- anyway.
     Constr _ i es -> iterAppDocM $ \_ prettyArg ->
       ("constr" <+> prettyArg i) :| [prettyArg es]
+    TryBuiltin _ b args h ->
+      iterAppDocM $ \_ prettyArg ->
+        "tryBuiltin" :| [pretty b, brackets (hsep (map (maybe "!" prettyArg) args)), prettyArg h]
     Case _ arg cs -> iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg arg, prettyArg (toList cs)]
 
 instance

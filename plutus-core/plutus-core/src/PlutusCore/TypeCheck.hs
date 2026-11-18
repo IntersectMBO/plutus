@@ -1,4 +1,5 @@
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 
 -- | Kind/type inference/checking.
@@ -27,6 +28,8 @@ module PlutusCore.TypeCheck
   , checkTypeOfProgram
   ) where
 
+import Control.Monad (when)
+import Control.Monad.Except (throwError)
 import PlutusPrelude
 
 import PlutusCore.Builtin
@@ -56,15 +59,18 @@ defKindCheckConfig = KindCheckConfig DetectNameMismatches
 {-| Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
 corresponding 'Type' for each built-in function. -}
 builtinMeaningsToTypes
-  :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, Typecheckable uni fun)
+  :: forall uni fun term ann m
+   . (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, Typecheckable uni fun)
   => BuiltinSemanticsVariant fun
   -> ann
   -> m (BuiltinTypes uni fun)
 builtinMeaningsToTypes semvar ann =
   runQuoteT . fmap BuiltinTypes . sequence . tabulateArray $ \fun -> do
-    let ty = typeOfBuiltinFunction semvar fun
+    let (arity, ty) = withTypeSchemeOfBuiltinFunction @(Term TyName Name uni fun ()) semvar fun $ \sch ->
+          (typeSchemeArity sch, typeSchemeToType sch)
     _ <- inferKind defKindCheckConfig $ ann <$ ty
-    dupable <$> normalizeType ty
+    normalized <- normalizeType ty
+    pure (arity, dupable normalized)
 
 -- | Get the default type checking config.
 getDefTypeCheckConfig
@@ -109,13 +115,19 @@ checkType config ann term ty = do
   termRen <- rename term
   runTypeCheckM config $ checkTypeM ann termRen ty
 
+checkProgramVersion
+  :: MonadTypeCheckPlc uni fun ann m
+  => Program TyName Name uni fun ann -> m ()
+checkProgramVersion (Program ann v t) =
+  when (v < plcVersion130 && usesTryBuiltin t) $ throwError (TryBuiltinBeforeVersion130 ann)
+
 -- | Infer the type of a program.
 inferTypeOfProgram
   :: MonadTypeCheckPlc uni fun ann m
   => TypeCheckConfig uni fun
   -> Program TyName Name uni fun ann
   -> m (Normalized (Type TyName uni ()))
-inferTypeOfProgram config (Program _ _ term) = inferType config term
+inferTypeOfProgram config prog@(Program _ _ term) = checkProgramVersion prog >> inferType config term
 
 {-| Check a program against a type.
 Infers the type of the program and checks that it's equal to the given type
@@ -127,4 +139,4 @@ checkTypeOfProgram
   -> Program TyName Name uni fun ann
   -> Normalized (Type TyName uni ())
   -> m ()
-checkTypeOfProgram config ann (Program _ _ term) = checkType config ann term
+checkTypeOfProgram config ann prog@(Program _ _ term) ty = checkProgramVersion prog >> checkType config ann term ty

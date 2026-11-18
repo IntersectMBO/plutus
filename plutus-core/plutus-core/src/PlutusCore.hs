@@ -65,6 +65,7 @@ module PlutusCore
   , UniqueSet (..)
   , Normalized (..)
   , latestVersion
+  , defaultVersion
   , HasAnn (..)
   , tyVarDeclAnn
   , tyVarDeclName

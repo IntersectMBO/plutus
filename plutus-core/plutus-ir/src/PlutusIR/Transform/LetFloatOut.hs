@@ -325,6 +325,7 @@ removeLets marks term = runWriter $ go term
         Unwrap a t -> Unwrap a <$> go t
         Constr a ty i es -> Constr a ty i <$> traverse go es
         Case a ty arg cs -> Case a ty <$> go arg <*> traverse go cs
+        TryBuiltin a b args h -> TryBuiltin a b <$> traverse (traverse go) args <*> go h
         -- no term inside here, nothing to do
         t@Var {} -> pure t
         t@Constant {} -> pure t

@@ -216,6 +216,7 @@ termMapNames f g = go
       IWrap ann ty1 ty2 body -> IWrap ann (typeMapNames f ty1) (typeMapNames f ty2) (go body)
       Constr ann ty i es -> Constr ann (typeMapNames f ty) i (fmap go es)
       Case ann ty arg cs -> Case ann (typeMapNames f ty) (go arg) (fmap go cs)
+      TryBuiltin ann b args h -> TryBuiltin ann b (map (bimap (typeMapNames f) go) args) (go h)
       Error ann ty -> Error ann (typeMapNames f ty)
 
 programMapNames

@@ -211,6 +211,10 @@ termEvaluationOrder binfo vinfo = goTerm
         foldMap goTerm ts
           -- then the whole term, which means constructing the value, so work
           <> evalThis (EvalTerm Pure MaybeWork t)
+      t@(TryBuiltin _ _ args _) ->
+        foldMap (foldMap goTerm) args
+          <> evalThis (EvalTerm MaybeImpure MaybeWork t)
+          <> evalThis Unknown
       t@(Case _ _ scrut _) ->
         -- first the scrutinee
         goTerm scrut

@@ -117,6 +117,7 @@ conv (Unwrap _ t) = RUnWrap (conv t)
 conv (IWrap _ ty1 ty2 t) = RWrap (convT ty1) (convT ty2) (conv t)
 conv (Error _ _A) = RError (convT _A)
 conv (Constr _ _A i cs) = RConstr (convT _A) (toInteger i) (fmap conv cs)
+conv TryBuiltin {} = error "The Agda evaluator does not support tryBuiltin (PLC 1.3.0)"
 conv (Case _ _A arg cs) = RCase (convT _A) (conv arg) (fmap conv cs)
 
 varTm :: Int -> NamedDeBruijn

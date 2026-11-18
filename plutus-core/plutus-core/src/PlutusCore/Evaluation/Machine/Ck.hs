@@ -117,6 +117,7 @@ instance Pretty CkUserError where
 instance BuiltinErrorToEvaluationError (MachineError fun) CkUserError where
   builtinErrorToEvaluationError (BuiltinUnliftingEvaluationError err) =
     bimap UnliftingMachineError (const CkEvaluationFailure) (unUnliftingEvaluationError err)
+  builtinErrorToEvaluationError BuiltinSizedUnliftingError {} = OperationalError CkEvaluationFailure
   builtinErrorToEvaluationError BuiltinEvaluationFailure =
     OperationalError CkEvaluationFailure
   {-# INLINE builtinErrorToEvaluationError #-}
@@ -152,6 +153,11 @@ data Frame uni fun
     FrameIWrap (Type TyName uni ()) (Type TyName uni ())
   | FrameConstr (Type TyName uni ()) Word64 [Term TyName Name uni fun ()] [CkValue uni fun]
   | FrameCase [Term TyName Name uni fun ()]
+  | FrameTryBuiltin
+      fun
+      (BuiltinArgument (CkValue uni fun))
+      [Either (Type TyName uni ()) (Term TyName Name uni fun ())]
+      (Term TyName Name uni fun ())
 
 deriving stock instance
   (GShow uni, Closed uni, uni `Everywhere` Show, Show fun)
@@ -208,6 +214,9 @@ stack |> Constr _ ty i es = case es of
   [] -> stack <| VConstr ty i []
   t : ts -> FrameConstr ty i ts [] : stack |> t
 stack |> Case _ _ arg cs = FrameCase cs : stack |> arg
+stack |> TryBuiltin _ b args fallback = do
+  runtime <- asks (lookupBuiltin b . ckEnvRuntime)
+  tryBuiltinApp stack b fallback runtime args
 _ |> err@Error {} =
   throwErrorWithCause (OperationalError CkEvaluationFailure) $ void err
 _ |> var@Var {} =
@@ -245,6 +254,8 @@ FrameConstr ty i todo done : stack <| e =
    in case todo of
         t : ts -> FrameConstr ty i ts done' : stack |> t
         [] -> stack <| VConstr ty i (reverse done')
+FrameTryBuiltin b (BuiltinArgument f) args fallback : stack <| arg =
+  tryBuiltinApp stack b fallback (f arg) args
 FrameCase cs : stack <| e = case e of
   VConstr _ i args -> case cs ^? wix i of
     Just t -> go (reverse args) stack |> t
@@ -261,6 +272,28 @@ FrameCase cs : stack <| e = case e of
       HeadOnly fX -> stack |> fX
       HeadSpine f xs -> transferConstantSpine xs stack |> f
   _ -> throwErrorWithCause (StructuralError NonConstrScrutinizedMachineError) $ ckValueToTerm e
+
+tryBuiltinApp
+  :: Context uni fun
+  -> fun
+  -> Term TyName Name uni fun ()
+  -> BuiltinRuntime (CkValue uni fun)
+  -> [Either (Type TyName uni ()) (Term TyName Name uni fun ())]
+  -> CkM uni fun s (Term TyName Name uni fun ())
+tryBuiltinApp stack b fallback = go
+  where
+    go (BuiltinExpectForce runtime) (Left _ : rest) = go runtime rest
+    go (BuiltinExpectArgument f) (Right t : rest) =
+      FrameTryBuiltin b (BuiltinArgument f) rest fallback : stack |> t
+    go (BuiltinCostedResult _ result) [] = case result of
+      BuiltinSuccess v -> stack <| v
+      BuiltinSuccessWithLogs logs v -> emitCkM logs *> (stack <| v)
+      BuiltinFailure logs err -> do
+        emitCkM logs
+        case builtinFailureCharge err of
+          Just _ -> stack |> fallback
+          Nothing -> throwBuiltinErrorWithCause (Builtin () b) err
+    go _ _ = throwErrorWithCause (StructuralError (InvalidBuiltinSpineMachineError b)) (Builtin () b)
 
 transferConstantSpine :: Spine (Some (ValueOf uni)) -> Context uni fun -> Context uni fun
 transferConstantSpine args ctx = foldr ((:) . FrameAwaitFunValue . VCon) ctx args

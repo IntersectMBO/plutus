@@ -91,6 +91,8 @@ deBruijnTermWithM h = go
       Force ann t -> Force ann <$> go t
       Constr ann i es -> Constr ann i <$> traverse go es
       Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
+      TryBuiltin ann b args fallback ->
+        TryBuiltin ann b <$> traverse (traverse go) args <*> go fallback
       -- boring non-recursive cases
       Constant ann con -> pure $ Constant ann con
       Builtin ann bn -> pure $ Builtin ann bn
@@ -119,6 +121,8 @@ unDeBruijnTermWithM h = go
       Force ann t -> Force ann <$> go t
       Constr ann i es -> Constr ann i <$> traverse go es
       Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
+      TryBuiltin ann b args fallback ->
+        TryBuiltin ann b <$> traverse (traverse go) args <*> go fallback
       -- boring non-recursive cases
       Constant ann con -> pure $ Constant ann con
       Builtin ann bn -> pure $ Builtin ann bn

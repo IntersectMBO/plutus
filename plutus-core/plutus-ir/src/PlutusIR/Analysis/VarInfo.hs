@@ -101,6 +101,7 @@ termVarInfo = \case
   t@(Unwrap {}) -> foldMapOf termSubterms termVarInfo t
   t@(Constr {}) -> foldMapOf termSubterms termVarInfo t
   t@(Case {}) -> foldMapOf termSubterms termVarInfo t
+  t@TryBuiltin {} -> foldMapOf termSubterms termVarInfo t
   t@(Var {}) -> foldMapOf termSubterms termVarInfo t
   t@(Constant {}) -> foldMapOf termSubterms termVarInfo t
   t@(Error {}) -> foldMapOf termSubterms termVarInfo t

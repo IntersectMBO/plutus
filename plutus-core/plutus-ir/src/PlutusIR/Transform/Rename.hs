@@ -16,6 +16,7 @@ module PlutusIR.Transform.Rename
   , renameProgramM
   ) where
 
+import Data.Bitraversable (bitraverse)
 import PlutusPrelude
 
 import PlutusIR
@@ -379,6 +380,8 @@ renameTermM = \case
     Unwrap x <$> renameTermM term
   Constr x ty i es -> Constr x <$> PLC.renameTypeM ty <*> pure i <*> traverse renameTermM es
   Case x ty arg cs -> Case x <$> PLC.renameTypeM ty <*> renameTermM arg <*> traverse renameTermM cs
+  TryBuiltin ann b args h ->
+    TryBuiltin ann b <$> traverse (bitraverse PLC.renameTypeM renameTermM) args <*> renameTermM h
 
 -- | Rename a 'Term' in the 'ScopedRenameM' monad.
 renameProgramM

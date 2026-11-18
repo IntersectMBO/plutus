@@ -129,6 +129,8 @@ data TypeError term uni fun ann
   | FreeTypeVariableE !ann !TyName
   | FreeVariableE !ann !Name
   | UnknownBuiltinFunctionE !ann !fun
+  | InvalidBuiltinSpine !ann !fun
+  | TryBuiltinBeforeVersion130 !ann
   | UnsupportedCaseBuiltin !ann !T.Text
   deriving stock (Show, Eq, Generic, Functor)
   deriving anyclass (NFData)
@@ -301,6 +303,10 @@ instance
     "Free type variable at " <+> pretty ann <+> ": " <+> prettyBy config name
   prettyBy config (FreeVariableE ann name) =
     "Free variable at " <+> pretty ann <+> ": " <+> prettyBy config name
+  prettyBy _ (TryBuiltinBeforeVersion130 ann) =
+    "tryBuiltin requires PLC 1.3.0 at" <+> pretty ann
+  prettyBy _ (InvalidBuiltinSpine ann fun) =
+    "Expected a saturated builtin application of" <+> pretty fun <+> "at" <+> pretty ann
   prettyBy _ (UnknownBuiltinFunctionE ann fun) =
     "An unknown built-in function at" <+> pretty ann <> ":" <+> pretty fun
   prettyBy _ (TyNameMismatch ann name1 name2) =

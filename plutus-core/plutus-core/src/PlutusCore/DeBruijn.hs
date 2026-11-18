@@ -37,6 +37,7 @@ module PlutusCore.DeBruijn
   , toFake
   ) where
 
+import Data.Bitraversable (bitraverse)
 import PlutusCore.DeBruijn.Internal
 
 import PlutusCore.Core.Type
@@ -176,6 +177,8 @@ deBruijnTermWithM h = go
       Error ann ty -> Error ann <$> goT ty
       Constr ann ty i es -> Constr ann <$> goT ty <*> pure i <*> traverse go es
       Case ann ty arg cs -> Case ann <$> goT ty <*> go arg <*> traverse go cs
+      TryBuiltin ann b args fallback ->
+        TryBuiltin ann b <$> traverse (bitraverse goT go) args <*> go fallback
       -- boring non-recursive cases
       Constant ann con -> pure $ Constant ann con
       Builtin ann bn -> pure $ Builtin ann bn
@@ -247,6 +250,8 @@ unDeBruijnTermWithM h = go
       Error ann ty -> Error ann <$> goT ty
       Constr ann ty i es -> Constr ann <$> goT ty <*> pure i <*> traverse go es
       Case ann ty arg cs -> Case ann <$> goT ty <*> go arg <*> traverse go cs
+      TryBuiltin ann b args fallback ->
+        TryBuiltin ann b <$> traverse (bitraverse goT go) args <*> go fallback
       -- boring non-recursive cases
       Constant ann con -> pure $ Constant ann con
       Builtin ann bn -> pure $ Builtin ann bn

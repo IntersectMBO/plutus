@@ -371,5 +371,7 @@ data ParamName
   | DropPolicies'cpu'arguments'slope
   | DropPolicies'memory'arguments'intercept
   | DropPolicies'memory'arguments'slope
+  | CekTryBuiltinCost'exBudgetCPU
+  | CekTryBuiltinCost'exBudgetMemory
   deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
   deriving (IsParamName) via (GenericParamName ParamName)

@@ -111,6 +111,10 @@ instance
     Let {} -> error "Panic: 'Let' is not covered by 'viewLet'"
     Constr _ ty i es ->
       iterAppDocM $ \_ prettyArg -> "constr" :| [prettyArg ty, prettyArg i, prettyArg es]
+    TryBuiltin _ b args h ->
+      iterAppDocM $ \_ prettyArg ->
+        "tryBuiltin"
+          :| [pretty b, brackets (hsep (map (either (("!" <+>) . prettyArg) prettyArg) args)), prettyArg h]
     Case _ ty arg cs ->
       iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg ty, prettyArg arg, prettyArg cs]
 

@@ -44,6 +44,7 @@ check (Apply _ t1 t2) = check t1 >> check t2
 check (TyAbs _ _ _ t) = check t
 check (Constr _ ty _ es) = normalType ty >> traverse_ check es
 check (Case _ ty arg cs) = normalType ty >> check arg >> traverse_ check cs
+check (TryBuiltin _ _ args h) = traverse_ (either normalType check) args >> check h
 check Var {} = pure ()
 check Constant {} = pure ()
 check Builtin {} = pure ()

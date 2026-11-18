@@ -32,7 +32,6 @@ import Data.Hashable (Hashable)
 import Data.List.Extra (isSuffixOf, sortOn)
 import Data.Ord (Down (..))
 import Data.Proxy (Proxy (..))
-import Data.Traversable (for)
 import Data.Tuple.Extra (snd3, thd3)
 import PlutusCore.Arity (builtinArity)
 
@@ -269,14 +268,19 @@ annotate = flip evalState 0 . flip runReaderT [] . go
           freshId <- (+ 1) <$> lift get
           lift $ put freshId
           Delay (path, ann) <$> local (freshId :) (go body)
+        -- Each operand is strict and ordered. The fallback is conditional.
+        -- Keep bindings inside the computation that originally used them.
+        TryBuiltin ann b args fallback ->
+          TryBuiltin (path, ann) b <$> traverse (traverse inBranch) args <*> inBranch fallback
         Case ann scrut branches ->
           Case (path, ann)
             <$> go scrut
-            <*> ( for branches $ \br -> do
-                    freshId <- (+ 1) <$> lift get
-                    lift $ put freshId
-                    local (freshId :) (go br)
-                )
+            <*> traverse inBranch branches
+
+    inBranch t = do
+      freshId <- (+ 1) <$> lift get
+      lift $ put freshId
+      local (freshId :) (go t)
 
 {-| The notion of work-free expressions is extended to also include partially
 applied/forced built-ins. -}
@@ -410,6 +414,7 @@ applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
           Error ann -> Error ann
           Constr ann i ts -> Constr ann i (mkLamApp <$> ts)
           Case ann scrut branches -> Case ann (mkLamApp scrut) (mkLamApp <$> branches)
+          TryBuiltin ann b args h -> TryBuiltin ann b (map (fmap mkLamApp) args) (mkLamApp h)
       | otherwise = t
       where
         currPath = fst (getAnn t)
@@ -463,6 +468,7 @@ occursIn n = go
       Delay _ t -> go t
       Constr _ _ ts -> any go ts
       Case _ scrut branches -> go scrut || any go branches
+      TryBuiltin _ _ args h -> any (any go) args || go h
       _ -> False
 
 -- | Generate a fresh variable for the common subexpression.

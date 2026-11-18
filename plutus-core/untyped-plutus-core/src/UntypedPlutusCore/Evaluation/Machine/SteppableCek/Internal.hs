@@ -42,7 +42,6 @@ where
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
@@ -111,6 +110,14 @@ data Context uni fun ann
       !(ArgStack uni fun ann)
       !(Context uni fun ann)
   | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+  | FrameTryBuiltin
+      ann
+      !(CekValEnv uni fun ann)
+      !fun
+      !(BuiltinArgument (CekValue uni fun ann))
+      ![Maybe (NTerm uni fun ann)]
+      !(NTerm uni fun ann)
+      !(Context uni fun ann)
   | NoFrame
 
 deriving stock instance
@@ -164,6 +171,11 @@ computeCek !ctx !env (Constr ann i es) = do
 computeCek !ctx !env (Case ann scrut cs) = do
   stepAndMaybeSpend BCase
   pure $ Computing (FrameCases ann env cs ctx) env scrut
+-- Evaluate strict operands with the fallback saved in the caller's environment.
+computeCek !ctx !env (TryBuiltin ann b args fallback) = do
+  stepAndMaybeSpend BTryBuiltin
+  stepAndMaybeSpend BBuiltin
+  tryBuiltinApp ann ctx env b fallback (lookupBuiltin b ?cekRuntime) args
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek !_ !_ (Error _) =
   throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
@@ -211,6 +223,9 @@ returnCek (FrameConstr ann env i todo done ctx) e = do
       let go acc NilStack = acc
           go acc (ConsStack x xs) = go (ConsStackNonEmpty x acc) xs
        in pure $ Returning ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
+-- Feed the operand to the designated builtin and advance to the next argument.
+returnCek (FrameTryBuiltin ann env b (BuiltinArgument f) rest fallback ctx) arg =
+  tryBuiltinApp ann ctx env b fallback (f arg) rest
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env cs ctx) e = case e of
   -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
@@ -231,6 +246,24 @@ returnCek (FrameCases ann env cs ctx) e = case e of
     HeadOnly fX -> pure $ Computing ctx env fX
     HeadSpine f xs -> pure $ Computing (FrameAwaitFunConN ann xs ctx) env f
   _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
+
+tryBuiltinApp
+  :: forall uni fun ann s
+   . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
+  => ann
+  -> Context uni fun ann
+  -> CekValEnv uni fun ann
+  -> fun
+  -> NTerm uni fun ann
+  -> BuiltinRuntime (CekValue uni fun ann)
+  -> [Maybe (NTerm uni fun ann)]
+  -> CekM uni fun s (CekState uni fun ann)
+tryBuiltinApp ann ctx env b fallback =
+  advanceTryBuiltin stepAndMaybeSpend spendAccumulatedBudget b operand succeed onFailure
+  where
+    operand f rest t = pure $ Computing (FrameTryBuiltin ann env b f rest fallback ctx) env t
+    succeed = pure . Returning ctx
+    onFailure = pure $ Computing ctx env fallback
 
 {-| @force@ a term and proceed.
 If v is a delay then compute the body of v;
@@ -412,6 +445,7 @@ contextAnn = \case
   FrameForce ann _ -> pure ann
   FrameConstr ann _ _ _ _ _ -> pure ann
   FrameCases ann _ _ _ -> pure ann
+  FrameTryBuiltin ann _ _ _ _ _ _ -> pure ann
   NoFrame -> empty
 
 lenContext :: Context uni fun ann -> Word
@@ -426,6 +460,7 @@ lenContext = go 0
       FrameForce _ k -> go (n + 1) k
       FrameConstr _ _ _ _ _ k -> go (n + 1) k
       FrameCases _ _ _ k -> go (n + 1) k
+      FrameTryBuiltin _ _ _ _ _ _ k -> go (n + 1) k
       NoFrame -> 0
 
 -- * Duplicated functions from Cek.Internal module
@@ -446,6 +481,7 @@ cekStepCost costs =
     BBuiltin -> cekBuiltinCost costs
     BConstr -> cekConstrCost costs
     BCase -> cekCaseCost costs
+    BTryBuiltin -> cekTryBuiltinCost costs
 
 {-| Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 'throwErrorWithCause' as the cause of the failure. -}
@@ -484,11 +520,7 @@ evalBuiltinApp
   -> CekM uni fun s (CekState uni fun ann)
 evalBuiltinApp ctx fun term runtime = case runtime of
   BuiltinCostedResult budgets0 getFXs -> do
-    let exCat = BBuiltinApp fun
-        spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
-        spendBudgets (ExBudgetCons budget budgets) =
-          spendBudget exCat budget *> spendBudgets budgets
-    spendBudgets budgets0
+    spendBuiltinBudget fun budgets0
     case getFXs of
       BuiltinSuccess y ->
         returnCek ctx y
@@ -513,7 +545,7 @@ spendAccumulatedBudget = do
   where
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
-    -- Skip index 7, that's the total counter!
+    -- Skip the total counter, which has no associated step cost.
     -- See Note [Structure of the step counter]
     {-# INLINE spend #-}
     spend !i !w =

@@ -20,6 +20,7 @@ module PlutusCore.Core.Plated
   , termSubkinds
   , termSubtypes
   , termSubtermsDeep
+  , usesTryBuiltin
   , termSubtypesDeep
   , termConstantsDeep
   , termSubterms
@@ -133,6 +134,7 @@ termConstants f term0 = case term0 of
   Unwrap {} -> pure term0
   Builtin {} -> pure term0
   Constr {} -> pure term0
+  TryBuiltin {} -> pure term0
   Case {} -> pure term0
 
 -- | Get all the direct child 'tyname a's of the given 'Term' from 'TyAbs'es.
@@ -149,6 +151,7 @@ termTyBinds f term0 = case term0 of
   Constant {} -> pure term0
   Builtin {} -> pure term0
   Constr {} -> pure term0
+  TryBuiltin {} -> pure term0
   Case {} -> pure term0
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'LamAbs'es.
@@ -165,6 +168,7 @@ termBinds f term0 = case term0 of
   Constant {} -> pure term0
   Builtin {} -> pure term0
   Constr {} -> pure term0
+  TryBuiltin {} -> pure term0
   Case {} -> pure term0
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'Var's.
@@ -181,6 +185,7 @@ termVars f term0 = case term0 of
   Constant {} -> pure term0
   Builtin {} -> pure term0
   Constr {} -> pure term0
+  TryBuiltin {} -> pure term0
   Case {} -> pure term0
 
 -- | Get all the direct child 'Unique's of the given 'Term' (including the type-level ones).
@@ -198,6 +203,7 @@ termUniques f term0 = case term0 of
   Constant {} -> pure term0
   Builtin {} -> pure term0
   Constr {} -> pure term0
+  TryBuiltin {} -> pure term0
   Case {} -> pure term0
 
 -- | Get all the direct child 'Kind's of the given 'Term'.
@@ -214,6 +220,7 @@ termSubkinds f term0 = case term0 of
   Constant {} -> pure term0
   Builtin {} -> pure term0
   Constr {} -> pure term0
+  TryBuiltin {} -> pure term0
   Case {} -> pure term0
 {-# INLINE termSubkinds #-}
 
@@ -226,6 +233,7 @@ termSubtypes f term0 = case term0 of
   Error ann ty -> Error ann <$> f ty
   Constr ann ty i es -> Constr ann <$> f ty <*> pure i <*> pure es
   Case ann ty arg cs -> Case ann <$> f ty <*> pure arg <*> pure cs
+  TryBuiltin a b args h -> TryBuiltin a b <$> (traverse . _Left) f args <*> pure h
   TyAbs {} -> pure term0
   Apply {} -> pure term0
   Unwrap {} -> pure term0
@@ -253,6 +261,7 @@ termSubterms f term0 = case term0 of
   Unwrap ann t -> Unwrap ann <$> f t
   Constr ann ty i es -> Constr ann ty i <$> traverse f es
   Case ann ty arg cs -> Case ann ty <$> f arg <*> traverse f cs
+  TryBuiltin a b args h -> TryBuiltin a b <$> traverse (traverse f) args <*> f h
   Error {} -> pure term0
   Var {} -> pure term0
   Constant {} -> pure term0
@@ -262,6 +271,13 @@ termSubterms f term0 = case term0 of
 -- | Get all the transitive child 'Term's of the given 'Term'.
 termSubtermsDeep :: Fold (Term tyname name uni fun ann) (Term tyname name uni fun ann)
 termSubtermsDeep = cosmosOf termSubterms
+
+-- | Whether a term requires the protected builtin form introduced in PLC 1.3.
+usesTryBuiltin :: Term tyname name uni fun a -> Bool
+usesTryBuiltin = anyOf termSubtermsDeep isProtected
+  where
+    isProtected TryBuiltin {} = True
+    isProtected _ = False
 
 -- | Get all the transitive child 'Unique's of the given 'Type'.
 typeUniquesDeep :: HasUniques (Type tyname uni ann) => Fold (Type tyname uni ann) Unique

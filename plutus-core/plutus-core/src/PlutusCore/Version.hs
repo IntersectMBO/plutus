@@ -10,7 +10,9 @@ module PlutusCore.Version
   , plcVersion100
   , plcVersion110
   , plcVersion120
+  , plcVersion130
   , firstVersion
+  , defaultVersion
   , latestVersion
   , knownVersions
   ) where
@@ -71,14 +73,23 @@ plcVersion110 = Version 1 1 0
 plcVersion120 :: Version
 plcVersion120 = Version 1 2 0
 
+-- | Plutus Core version 1.3.0 introduces protected builtin applications.
+plcVersion130 :: Version
+plcVersion130 = Version 1 3 0
+
+{-| Default target for newly constructed programs. Keep it separate
+from the newest supported version while a feature awaits ledger activation. -}
+defaultVersion :: Version
+defaultVersion = plcVersion120
+
 -- | The latest version of Plutus Core supported by this library.
 latestVersion :: Version
-latestVersion = plcVersion120
+latestVersion = plcVersion130
 
 {-| The set of versions that are "known", i.e. that have been released
 and have actual differences associated with them. -}
 knownVersions :: Set.Set Version
-knownVersions = Set.fromList [plcVersion100, plcVersion110, plcVersion120]
+knownVersions = Set.fromList [plcVersion100, plcVersion110, plcVersion120, plcVersion130]
 
 instance Pretty Version where
   pretty (Version i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

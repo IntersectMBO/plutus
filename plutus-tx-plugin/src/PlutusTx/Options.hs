@@ -413,7 +413,7 @@ fromReadOption k f = \case
 defaultPluginOptions :: PluginOptions
 defaultPluginOptions =
   PluginOptions
-    { _posPlcTargetVersion = PLC.plcVersion120
+    { _posPlcTargetVersion = PLC.defaultVersion
     , _posDoTypecheck = True
     , _posDeferErrors = False
     , _posConservativeOpts = False

@@ -17,11 +17,16 @@ module PlutusIR.TypeCheck
   , MonadTypeCheckPir
   ) where
 
+import Control.Monad (when)
+import Control.Monad.Except (throwError)
 import PlutusPrelude
 
+import PlutusCore.Error (TypeError (TryBuiltinBeforeVersion130))
 import PlutusCore.Rename
 import PlutusCore.TypeCheck qualified as PLC
+import PlutusCore.Version (plcVersion130)
 import PlutusIR
+import PlutusIR.Core.Plated (usesTryBuiltin)
 import PlutusIR.Error
 import PlutusIR.Transform.Rename ()
 import PlutusIR.TypeCheck.Internal
@@ -93,6 +98,13 @@ checkType config ann term ty = do
   termRen <- rename term
   runTypeCheckM config $ checkTypeM ann termRen ty
 
+checkProgramVersion
+  :: MonadTypeCheckPir uni fun ann m
+  => Program TyName Name uni fun ann -> m ()
+checkProgramVersion (Program ann v t) =
+  when (v < plcVersion130 && usesTryBuiltin t) $
+    throwError (PLCTypeError (TryBuiltinBeforeVersion130 ann))
+
 {-| Infer the type of a program.
 Note: The "inferred type" can escape its scope if YesEscape config is passed, see
 [PIR vs Paper Escaping Types Difference] -}
@@ -101,7 +113,7 @@ inferTypeOfProgram
   => PirTCConfig uni fun
   -> Program TyName Name uni fun ann
   -> m (Normalized (Type TyName uni ()))
-inferTypeOfProgram config (Program _ _ term) = inferType config term
+inferTypeOfProgram config prog@(Program _ _ term) = checkProgramVersion prog >> inferType config term
 
 {-| Check a program against a type.
 Infers the type of the program and checks that it's equal to the given type
@@ -115,4 +127,4 @@ checkTypeOfProgram
   -> Program TyName Name uni fun ann
   -> Normalized (Type TyName uni ())
   -> m ()
-checkTypeOfProgram config ann (Program _ _ term) = checkType config ann term
+checkTypeOfProgram config ann prog@(Program _ _ term) ty = checkProgramVersion prog >> checkType config ann term ty

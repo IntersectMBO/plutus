@@ -161,7 +161,31 @@ data Term tyname name uni fun ann
     Builtin ann fun
   | -- | fail with error
     Error ann (Type tyname uni ann)
-  deriving stock (Functor, Generic)
+  | {-| A saturated builtin call and a fallback of the same result type.
+    Left instantiates a type. Right supplies a strict term operand. -}
+    TryBuiltin
+      ann
+      fun
+      [Either (Type tyname uni ann) (Term tyname name uni fun ann)]
+      (Term tyname name uni fun ann)
+  deriving stock (Generic)
+
+instance Functor (Term tyname name uni fun) where
+  fmap f = \case
+    Var a n -> Var (f a) n
+    TyAbs a n k t -> TyAbs (f a) n (fmap f k) (fmap f t)
+    LamAbs a n ty t -> LamAbs (f a) n (fmap f ty) (fmap f t)
+    Apply a t u -> Apply (f a) (fmap f t) (fmap f u)
+    Constant a c -> Constant (f a) c
+    Builtin a b -> Builtin (f a) b
+    TyInst a t ty -> TyInst (f a) (fmap f t) (fmap f ty)
+    Error a ty -> Error (f a) (fmap f ty)
+    IWrap a pat ty t -> IWrap (f a) (fmap f pat) (fmap f ty) (fmap f t)
+    Unwrap a t -> Unwrap (f a) (fmap f t)
+    Constr a ty tag args -> Constr (f a) (fmap f ty) tag (fmap (fmap f) args)
+    Case a ty t args -> Case (f a) (fmap f ty) (fmap f t) (fmap (fmap f) args)
+    TryBuiltin a b args h ->
+      TryBuiltin (f a) b (map (bimap (fmap f) (fmap f)) args) (fmap f h)
 
 deriving stock instance
   (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -265,48 +289,50 @@ type instance
     HasUniques (Term tyname name uni fun ann)
 
 instance HasAnn (Type tyname uni) where
-  getAnn (TyVar ann _)        = ann
-  getAnn (TyFun ann _ _)      = ann
-  getAnn (TyIFix ann _ _)     = ann
+  getAnn (TyVar ann _) = ann
+  getAnn (TyFun ann _ _) = ann
+  getAnn (TyIFix ann _ _) = ann
   getAnn (TyForall ann _ _ _) = ann
-  getAnn (TyBuiltin ann _)    = ann
-  getAnn (TyLam ann _ _ _)    = ann
-  getAnn (TyApp ann _ _)      = ann
-  getAnn (TySOP ann _)        = ann
-  modifyAnn f (TyVar ann x)        = TyVar (f ann) x
-  modifyAnn f (TyFun ann a b)      = TyFun (f ann) a b
-  modifyAnn f (TyIFix ann a b)     = TyIFix (f ann) a b
+  getAnn (TyBuiltin ann _) = ann
+  getAnn (TyLam ann _ _ _) = ann
+  getAnn (TyApp ann _ _) = ann
+  getAnn (TySOP ann _) = ann
+  modifyAnn f (TyVar ann x) = TyVar (f ann) x
+  modifyAnn f (TyFun ann a b) = TyFun (f ann) a b
+  modifyAnn f (TyIFix ann a b) = TyIFix (f ann) a b
   modifyAnn f (TyForall ann tn k t) = TyForall (f ann) tn k t
-  modifyAnn f (TyBuiltin ann b)    = TyBuiltin (f ann) b
-  modifyAnn f (TyLam ann tn k t)   = TyLam (f ann) tn k t
-  modifyAnn f (TyApp ann a b)      = TyApp (f ann) a b
-  modifyAnn f (TySOP ann tss)      = TySOP (f ann) tss
+  modifyAnn f (TyBuiltin ann b) = TyBuiltin (f ann) b
+  modifyAnn f (TyLam ann tn k t) = TyLam (f ann) tn k t
+  modifyAnn f (TyApp ann a b) = TyApp (f ann) a b
+  modifyAnn f (TySOP ann tss) = TySOP (f ann) tss
 
 instance HasAnn (Term tyname name uni fun) where
-  getAnn (Var ann _)           = ann
-  getAnn (LamAbs ann _ _ _)   = ann
-  getAnn (Apply ann _ _)      = ann
-  getAnn (TyAbs ann _ _ _)    = ann
-  getAnn (TyInst ann _ _)     = ann
-  getAnn (IWrap ann _ _ _)    = ann
-  getAnn (Unwrap ann _)       = ann
-  getAnn (Constr ann _ _ _)   = ann
-  getAnn (Case ann _ _ _)     = ann
-  getAnn (Constant ann _)     = ann
-  getAnn (Builtin ann _)      = ann
-  getAnn (Error ann _)        = ann
-  modifyAnn f (Var ann x)           = Var (f ann) x
-  modifyAnn f (LamAbs ann n ty t)   = LamAbs (f ann) n ty t
-  modifyAnn f (Apply ann t1 t2)     = Apply (f ann) t1 t2
-  modifyAnn f (TyAbs ann tn k t)    = TyAbs (f ann) tn k t
-  modifyAnn f (TyInst ann t ty)     = TyInst (f ann) t ty
+  getAnn (Var ann _) = ann
+  getAnn (LamAbs ann _ _ _) = ann
+  getAnn (Apply ann _ _) = ann
+  getAnn (TyAbs ann _ _ _) = ann
+  getAnn (TyInst ann _ _) = ann
+  getAnn (IWrap ann _ _ _) = ann
+  getAnn (Unwrap ann _) = ann
+  getAnn (Constr ann _ _ _) = ann
+  getAnn (Case ann _ _ _) = ann
+  getAnn (TryBuiltin ann _ _ _) = ann
+  getAnn (Constant ann _) = ann
+  getAnn (Builtin ann _) = ann
+  getAnn (Error ann _) = ann
+  modifyAnn f (Var ann x) = Var (f ann) x
+  modifyAnn f (LamAbs ann n ty t) = LamAbs (f ann) n ty t
+  modifyAnn f (Apply ann t1 t2) = Apply (f ann) t1 t2
+  modifyAnn f (TyAbs ann tn k t) = TyAbs (f ann) tn k t
+  modifyAnn f (TyInst ann t ty) = TyInst (f ann) t ty
   modifyAnn f (IWrap ann ty1 ty2 t) = IWrap (f ann) ty1 ty2 t
-  modifyAnn f (Unwrap ann t)        = Unwrap (f ann) t
-  modifyAnn f (Constr ann ty i ts)  = Constr (f ann) ty i ts
-  modifyAnn f (Case ann ty t ts)    = Case (f ann) ty t ts
-  modifyAnn f (Constant ann c)      = Constant (f ann) c
-  modifyAnn f (Builtin ann b)       = Builtin (f ann) b
-  modifyAnn f (Error ann ty)        = Error (f ann) ty
+  modifyAnn f (Unwrap ann t) = Unwrap (f ann) t
+  modifyAnn f (Constr ann ty i ts) = Constr (f ann) ty i ts
+  modifyAnn f (Case ann ty t ts) = Case (f ann) ty t ts
+  modifyAnn f (TryBuiltin ann b args h) = TryBuiltin (f ann) b args h
+  modifyAnn f (Constant ann c) = Constant (f ann) c
+  modifyAnn f (Builtin ann b) = Builtin (f ann) b
+  modifyAnn f (Error ann ty) = Error (f ann) ty
 
 -- | Map a function over the set of built-in functions.
 mapFun :: (fun -> fun') -> Term tyname name uni fun ann -> Term tyname name uni fun' ann
@@ -324,6 +350,7 @@ mapFun f = go
     go (Builtin ann fun) = Builtin ann (f fun)
     go (Constr ann ty i args) = Constr ann ty i (map go args)
     go (Case ann ty arg cs) = Case ann ty (go arg) (map go cs)
+    go (TryBuiltin ann b args h) = TryBuiltin ann (f b) (map (fmap go) args) (go h)
 
 {-| This is a wrapper to mark the place where the binder is introduced (i.e. LamAbs/TyAbs)
 and not where it is actually used (TyVar/Var..).

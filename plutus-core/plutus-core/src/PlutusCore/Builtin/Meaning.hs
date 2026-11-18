@@ -246,8 +246,9 @@ instance
 
   toMonoF =
     either
-      -- Unlifting has failed and we don't care about costing at this point, since we're about
-      -- to terminate evaluation anyway, hence we put 'mempty' as the cost of the operation.
+      -- The ordinary call terminates on an unlifting failure, with its historical
+      -- charge of 'mempty'. A protected call accounts for a recoverable conversion
+      -- separately using 'builtinFailureCharge' before it can run the fallback.
       --
       -- Note that putting the cost inside of 'BuiltinResult' is not an option, since forcing
       -- the 'BuiltinResult' computation is exactly forcing the builtin application, which we

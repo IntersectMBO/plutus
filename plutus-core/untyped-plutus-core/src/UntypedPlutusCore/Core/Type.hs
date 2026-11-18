@@ -29,7 +29,7 @@ import Control.Lens
 import Control.Monad.Except
 import PlutusPrelude
 
-import Data.Vector
+import Data.Vector (Vector, fromList)
 import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
@@ -101,6 +101,8 @@ data Term name uni fun ann
     Constr !ann !Word64 ![Term name uni fun ann]
   | -- See Note [Supported case-expressions].
     Case !ann !(Term name uni fun ann) !(Vector (Term name uni fun ann))
+  | -- | Nothing is a force on the builtin. Just is an ordinary strict operand.
+    TryBuiltin !ann !fun ![Maybe (Term name uni fun ann)] !(Term name uni fun ann)
   deriving stock (Functor, Generic)
 
 deriving stock instance
@@ -149,6 +151,7 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
   error = \ann _ -> Error ann
   constr = \ann _ i es -> Constr ann i es
   kase = \ann _ arg cs -> Case ann arg (fromList cs)
+  tryBuiltin ann b args = TryBuiltin ann b (map (either (const Nothing) Just) args)
 
 instance TPLC.HasConstant (Term name uni fun ()) where
   asConstant (Constant _ val) = pure val
@@ -180,6 +183,7 @@ instance HasAnn (Term name uni fun) where
   getAnn (Error ann) = ann
   getAnn (Constr ann _ _) = ann
   getAnn (Case ann _ _) = ann
+  getAnn (TryBuiltin ann _ _ _) = ann
   modifyAnn f = \case
     Constant ann c -> Constant (f ann) c
     Builtin ann b -> Builtin (f ann) b
@@ -191,7 +195,11 @@ instance HasAnn (Term name uni fun) where
     Error ann -> Error (f ann)
     Constr ann i args -> Constr (f ann) i args
     Case ann scrut alts -> Case (f ann) scrut alts
+    TryBuiltin ann b args h -> TryBuiltin (f ann) b args h
 
+{-| Substitute builtin heads. If the replacement is a builtin with a prefix of
+applications or forces, include that prefix in the protected call. For any
+other head there is no primitive invocation to guard. -}
 bindFunM
   :: Monad m
   => (ann -> fun -> m (Term name uni fun' ann))
@@ -209,6 +217,15 @@ bindFunM f = go
     go (Error ann) = pure $ Error ann
     go (Constr ann i args) = Constr ann i <$> traverse go args
     go (Case ann arg cs) = Case ann <$> go arg <*> traverse go cs
+    go (TryBuiltin ann b args h) = do
+      headTerm <- f ann b
+      args' <- traverse (traverse go) args
+      h' <- go h
+      let protect (Builtin _ b') spine = TryBuiltin ann b' spine h'
+          protect (Apply _ t arg) spine = protect t (Just arg : spine)
+          protect (Force _ t) spine = protect t (Nothing : spine)
+          protect _ _ = foldl' (\t -> maybe (Force ann t) (Apply ann t)) headTerm args'
+      pure (protect headTerm args')
 
 bindFun
   :: (ann -> fun -> Term name uni fun' ann)

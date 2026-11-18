@@ -55,6 +55,8 @@ data MachineError fun
     BuiltinTermArgumentExpectedMachineError
   | -- | A builtin received a term argument when something else was expected
     UnexpectedBuiltinTermArgumentMachineError
+  | -- | The argument spine of a protected call does not match its builtin.
+    InvalidBuiltinSpineMachineError fun
   | -- | An attempt to scrutinize a non-constr.
     NonConstrScrutinizedMachineError
   | -- | An attempt to go into a non-existent case branch.
@@ -117,6 +119,8 @@ instance
     "A builtin received a term argument when something else was expected"
   prettyBy _ (UnliftingMachineError unliftingError) =
     pretty unliftingError
+  prettyBy _ (InvalidBuiltinSpineMachineError b) =
+    "Expected a saturated builtin application of" <+> pretty b
   prettyBy _ NonConstrScrutinizedMachineError =
     "A non-constructor/non-builtin value was scrutinized in a case expression"
   prettyBy _ (MissingCaseBranchMachineError i) =

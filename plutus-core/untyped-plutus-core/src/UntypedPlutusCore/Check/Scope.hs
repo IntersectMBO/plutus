@@ -63,6 +63,7 @@ checkScope mode = go 0
         case mode of
           Full -> mapM_ (go lvl) ts
           NoCaseConstr -> pure ()
+      TryBuiltin _ _ args fallback -> mapM_ (mapM_ (go lvl)) args >> go lvl fallback
       Case _ t ts ->
         case mode of
           Full -> go lvl t >> mapM_ (go lvl) ts

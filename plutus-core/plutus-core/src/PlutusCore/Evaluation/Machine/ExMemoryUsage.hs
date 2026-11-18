@@ -10,6 +10,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , singletonRose
   , ExMemoryUsage (..)
   , flattenCostRose
+  , memoryUsageInteger
   , NumBytesCostedAsNumWords (..)
   , IntegerCostedLiterally (..)
   , TextCostedByByteLength (..)

@@ -45,6 +45,7 @@ conv (Error _) = UError
 conv (Delay _ t) = UDelay (conv t)
 conv (Force _ t) = UForce (conv t)
 conv (Constr _ i es) = UConstr (toInteger i) (toList (fmap conv es))
+conv TryBuiltin {} = error "The Agda evaluator does not support tryBuiltin (PLC 1.3.0)"
 conv (Case _ arg cs) = UCase (conv arg) (toList (fmap conv cs))
 
 tmname :: Int -> String

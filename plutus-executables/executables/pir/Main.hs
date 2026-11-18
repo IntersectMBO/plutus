@@ -258,7 +258,7 @@ doOptimisations term = do
 -- | Run the PIR optimisations
 runOptimisations :: PirOptimiseOptions -> IO ()
 runOptimisations (PirOptimiseOptions inp ifmt outp ofmt mode) = do
-  Program _ _ term <- readProgram (pirFormatToFormat ifmt) inp
+  Program _ version term <- readProgram (pirFormatToFormat ifmt) inp
   case doOptimisations term of
     Left e -> error $ show e
     Right t ->
@@ -266,7 +266,7 @@ runOptimisations (PirOptimiseOptions inp ifmt outp ofmt mode) = do
         outp
         (pirFormatToFormat ofmt)
         mode
-        (Program () PLC.latestVersion (void t))
+        (Program () version (void t))
 
 ---------------- Analysis ----------------
 

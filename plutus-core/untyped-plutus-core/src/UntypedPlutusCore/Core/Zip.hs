@@ -64,6 +64,12 @@ tzipWith f term1 term2 = do
     go (Force a1 t1) (Force a2 t2) = Force (f a1 a2) <$> go t1 t2
     go (Delay a1 t1) (Delay a2 t2) = Delay (f a1 a2) <$> go t1 t2
     go (Constr a1 i1 ts1) (Constr a2 _i2 ts2) = Constr (f a1 a2) i1 <$> zipExactWithM go ts1 ts2
+    go (TryBuiltin a b xs h) (TryBuiltin a' _ ys h') =
+      TryBuiltin (f a a') b <$> zipExactWithM zipArg xs ys <*> go h h'
+      where
+        zipArg Nothing Nothing = pure Nothing
+        zipArg (Just x) (Just y) = Just <$> go x y
+        zipArg _ _ = throwError "zip: mismatched builtin arguments"
     go (Case a1 t1 vs1) (Case a2 t2 vs2) =
       Case (f a1 a2) <$> go t1 t2 <*> (fromList <$> zipExactWithM go (toList vs1) (toList vs2))
     go _ _ =

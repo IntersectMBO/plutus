@@ -46,6 +46,7 @@ data CertifierError
   = -- | Certificate dir + certifier report
     InvalidCertificate CertDir String
   | InvalidCompilerOutput
+  | UnsupportedTryBuiltin
   | ValidationError CertName
 
 data CertifierOutput
@@ -66,6 +67,7 @@ prettyCertifierError (InvalidCertificate certDir report) =
        \Certifier report:\n"
     <> report
     <> "\n"
+prettyCertifierError UnsupportedTryBuiltin = "The Agda certifier does not support tryBuiltin (PLC 1.3.0)."
 prettyCertifierError InvalidCompilerOutput =
   "\n\nInvalid compiler output: \
   \\nThe certifier was not able to process the trace produced by the compiler. \
@@ -98,6 +100,9 @@ mkCertifier
      ]
   -> Certifier Bool
 mkCertifier simplTrace certName certOutput costs = do
+  let unsupported (Optimization before _ hs after) =
+        UPLC.usesTryBuiltin before || any UPLC.usesTryBuiltin hs || UPLC.usesTryBuiltin after
+  when (any unsupported (optimizerTrace simplTrace)) $ throwError UnsupportedTryBuiltin
   let rawAgdaTrace = mkFfiOptimizerTrace simplTrace
       costs' :: [EvalResult]
       costs' = uncurry toEvalResult <$> reverse costs

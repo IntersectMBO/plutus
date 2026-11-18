@@ -16,6 +16,7 @@ module PlutusCore.FlatInstances
   ) where
 
 import Codec.Extras.FlatViaSerialise
+import Control.Monad (when)
 import PlutusCore.Core
 import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
@@ -64,7 +65,7 @@ tags and their used/available encoding possibilities.
 \| default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
 \| Kinds            | encodeKind        | 1         | 2     | 2    | 0         |
 \| Types            | encodeType        | 3         | 8     | 7    | 1         |
-\| Terms            | encodeTerm        | 4         | 16    | 12   | 4         |
+\| Terms            | encodeTerm        | 4         | 16    | 13   | 3         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
@@ -292,6 +293,7 @@ instance
         <> encode ty
         <> encode i
         <> encode es
+    TryBuiltin ann b args h -> encodeTerm 12 <> encode ann <> encode b <> encode args <> encode h
     Case ann ty arg cs ->
       encodeTerm 11
         <> encode ann
@@ -313,6 +315,7 @@ instance
       go 9 = Builtin <$> decode <*> decode
       go 10 = Constr <$> decode <*> decode <*> decode <*> decode
       go 11 = Case <$> decode <*> decode <*> decode <*> decode
+      go 12 = TryBuiltin <$> decode <*> decode <*> decode <*> decode
       go _ = fail "Failed to decode Term TyName Name ()"
 
   size tm sz =
@@ -332,6 +335,7 @@ instance
         Builtin ann bn -> size ann $ size bn sz'
         Constr ann ty i es -> size ann $ size ty $ size i $ size es sz'
         Case ann ty arg cs -> size ann $ size ty $ size arg $ size cs sz'
+        TryBuiltin ann b args h -> size ann $ size b $ size args $ size h sz'
 
 instance
   ( Closed uni
@@ -355,7 +359,11 @@ instance
   => Flat (Program tyname name uni fun ann)
   where
   encode (Program ann v t) = encode ann <> encode v <> encode t
-  decode = Program <$> decode <*> decode <*> decode
+  decode = do
+    program@(Program _ v t) <- Program <$> decode <*> decode <*> decode
+    when (v < plcVersion130 && usesTryBuiltin t) $
+      fail "'tryBuiltin' requires version 1.3.0"
+    pure program
 
 deriving newtype instance Flat a => Flat (Normalized a)
 

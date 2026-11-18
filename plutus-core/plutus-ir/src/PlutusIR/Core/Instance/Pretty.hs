@@ -209,6 +209,15 @@ instance
             ann
             (prettyBy config ty : pretty i : fmap (prettyBy config) es)
         )
+    TryBuiltin ann b args h ->
+      sexp "tryBuiltin" $
+        PLC.consAnnIf
+          config
+          ann
+          [ pretty b
+          , brackets (hsep (map (either (("!" <+>) . prettyBy config) (prettyBy config)) args))
+          , prettyBy config h
+          ]
     Case ann ty arg cs ->
       sexp
         "case"

@@ -13,6 +13,7 @@ module PlutusCore.Rename.Internal
   , renameProgramM
   ) where
 
+import Data.Bitraversable (bitraverse)
 import PlutusCore.Core
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
@@ -105,6 +106,8 @@ renameTermM (TyInst ann term ty) = TyInst ann <$> renameTermM term <*> renameTyp
 renameTermM (Var ann name) = Var ann <$> renameNameM name
 renameTermM (Constr ann ty i es) = Constr ann <$> renameTypeM ty <*> pure i <*> traverse renameTermM es
 renameTermM (Case ann ty arg cs) = Case ann <$> renameTypeM ty <*> renameTermM arg <*> traverse renameTermM cs
+renameTermM (TryBuiltin ann b args h) =
+  TryBuiltin ann b <$> traverse (bitraverse renameTypeM renameTermM) args <*> renameTermM h
 renameTermM con@Constant {} = pure con
 renameTermM bi@Builtin {} = pure bi
 

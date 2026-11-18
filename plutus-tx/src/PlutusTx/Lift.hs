@@ -353,7 +353,7 @@ liftProgramDef
   -> ( PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
      , UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
      )
-liftProgramDef = liftProgram PLC.latestVersion
+liftProgramDef = liftProgram PLC.defaultVersion
 
 {-| Like `liftProgramDef` but does not apply PIR/UPLC optimizations. Use this option
 where lifting speed is more important than optimal code. -}
@@ -363,7 +363,7 @@ liftProgramDefUnopt
   -> ( PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
      , UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
      )
-liftProgramDefUnopt = liftProgramUnopt PLC.latestVersion
+liftProgramDefUnopt = liftProgramUnopt PLC.defaultVersion
 
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCode
@@ -412,7 +412,7 @@ liftCodeDef
      , Hashable fun
      )
   => a -> CompiledCodeIn uni fun a
-liftCodeDef = liftCode PLC.latestVersion
+liftCodeDef = liftCode PLC.defaultVersion
 
 {-| Like `liftCodeDef` but does not apply PIR/UPLC optimizations. Use this option
 where lifting speed is more important than optimal code. -}
@@ -429,7 +429,7 @@ liftCodeDefUnopt
      , Hashable fun
      )
   => a -> CompiledCodeIn uni fun a
-liftCodeDefUnopt = liftCodeUnopt PLC.latestVersion
+liftCodeDefUnopt = liftCodeUnopt PLC.defaultVersion
 
 {- Note [Checking the type of a term with Typeable]
 Checking the type of a term should be simple, right? We can just use 'checkType', easy peasy.

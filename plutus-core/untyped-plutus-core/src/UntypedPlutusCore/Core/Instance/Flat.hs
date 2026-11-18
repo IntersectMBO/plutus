@@ -69,7 +69,7 @@ tags and their used/available encoding possibilities.
 \| Data type        | Function          | Bit Width | Total | Used | Remaining |
 \|------------------|-------------------|-----------|-------|------|-----------|
 \| default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
-\| Terms            | encodeTerm        | 4         | 16    | 10   | 6         |
+\| Terms            | encodeTerm        | 4         | 16    | 11   | 5         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
@@ -128,6 +128,12 @@ encodeTerm = \case
   Builtin ann bn -> encodeTermTag 7 <> encode ann <> encode bn
   Constr ann i es -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm es
   Case ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm (V.toList cs)
+  TryBuiltin ann b args h ->
+    encodeTermTag 10
+      <> encode ann
+      <> encode b
+      <> encodeListWith (maybe (encode False) (\t -> encode True <> encodeTerm t)) args
+      <> encodeTerm h
 
 decodeTerm
   :: forall name uni fun ann
@@ -156,14 +162,7 @@ decodeTerm decodeValue version constantPred builtinPred constrPred = go
             Just e -> fail e
     handleTerm 5 = Force <$> decode <*> go
     handleTerm 6 = Error <$> decode
-    handleTerm 7 = do
-      ann <- decode
-      fun <- decode
-      let t :: Term name uni fun ann
-          t = Builtin ann fun
-      case builtinPred fun of
-        Nothing -> pure t
-        Just e -> fail e
+    handleTerm 7 = Builtin <$> decode <*> checkedBuiltin
     handleTerm 8 = do
       unless (version >= PLC.plcVersion110) $
         fail $
@@ -183,7 +182,17 @@ decodeTerm decodeValue version constantPred builtinPred constrPred = go
         fail $
           "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
       Case <$> decode <*> go <*> (V.fromList <$> decodeListWith go)
+    handleTerm 10 = do
+      when (version < PLC.plcVersion130) $ fail "'tryBuiltin' requires version 1.3.0"
+      TryBuiltin <$> decode <*> checkedBuiltin <*> decodeListWith operand <*> go
     handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
+
+    checkedBuiltin = do
+      b <- decode
+      maybe (pure b) fail (builtinPred b)
+    operand = do
+      hasTerm <- decode
+      if hasTerm then Just <$> go else pure Nothing
 
 sizeTerm
   :: forall name uni fun ann
@@ -212,6 +221,8 @@ sizeTerm tm sz =
       Builtin ann bn -> size ann $ size bn sz'
       Constr ann i es -> size ann $ size i $ sizeListWith sizeTerm es sz'
       Case ann arg cs -> size ann $ sizeTerm arg $ sizeListWith sizeTerm (V.toList cs) sz'
+      TryBuiltin ann b args h ->
+        size ann $ size b $ sizeListWith (\arg n -> maybe id sizeTerm arg (n + 1)) args $ sizeTerm h sz'
 
 {-| An encoder for programs.
 
@@ -238,10 +249,24 @@ decodeProgram
   -> (fun -> Maybe String)
   -> (Int -> Maybe String)
   -> Get (Program name uni fun ann)
-decodeProgram decodeValue constantPred builtinPred constrPred = do
+decodeProgram = decodeProgramWithVersion id
+
+{-| Select the version used to decode term tags, retaining the program's
+declared version. The ledger can cap new syntax at its activation boundary
+without changing phase-1 decoding of old syntax in newer program headers. -}
+decodeProgramWithVersion
+  :: forall name uni fun ann
+   . (Closed uni, Flat fun, Flat ann, Flat name, Flat (Binder name))
+  => (Version -> Version)
+  -> (forall a. uni (Esc a) -> Get a)
+  -> (SomeTypeIn uni -> Maybe String)
+  -> (fun -> Maybe String)
+  -> (Int -> Maybe String)
+  -> Get (Program name uni fun ann)
+decodeProgramWithVersion termVersion decodeValue constantPred builtinPred constrPred = do
   ann <- decode
   v <- decode
-  Program ann v <$> decodeTerm decodeValue v constantPred builtinPred constrPred
+  Program ann v <$> decodeTerm decodeValue (termVersion v) constantPred builtinPred constrPred
 
 sizeProgram
   :: forall name uni fun ann

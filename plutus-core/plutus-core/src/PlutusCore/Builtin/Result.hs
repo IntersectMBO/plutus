@@ -12,6 +12,7 @@ module PlutusCore.Builtin.Result
   , UnliftingEvaluationError (..)
   , BuiltinError (..)
   , BuiltinResult (..)
+  , builtinFailureCharge
   , notAConstant
   , underTypeError
   , operationalUnliftingError
@@ -26,6 +27,7 @@ module PlutusCore.Builtin.Result
 import PlutusPrelude
 
 import PlutusCore.Evaluation.Error
+import PlutusCore.Evaluation.Machine.ExMemory (CostingInteger)
 
 import Control.Monad.Error.Lens (throwing, throwing_)
 import Control.Monad.Except
@@ -52,8 +54,22 @@ newtype UnliftingEvaluationError = MkUnliftingEvaluationError
 -- | The type of errors that 'readKnown' and 'makeKnown' can return.
 data BuiltinError
   = BuiltinUnliftingEvaluationError UnliftingEvaluationError
+  | -- A bounds check whose diagnostic depends on the input size. Keep both
+    -- fields lazy: ordinary calls retain their old cost, and a protected call
+    -- must be able to pay before rendering the diagnostic.
+    BuiltinSizedUnliftingError ~CostingInteger ~Text
   | BuiltinEvaluationFailure
   deriving stock (Show, Eq)
+
+{-| Extra units to debit before recovering. Denotation failures have already
+paid the builtin's cost. Unlifting failures precede the ordinary cost model. -}
+builtinFailureCharge :: BuiltinError -> Maybe CostingInteger
+builtinFailureCharge BuiltinEvaluationFailure = Just 0
+builtinFailureCharge (BuiltinSizedUnliftingError units _) = Just (max 1 units)
+builtinFailureCharge (BuiltinUnliftingEvaluationError (MkUnliftingEvaluationError err)) =
+  case err of
+    StructuralError _ -> Nothing
+    OperationalError _ -> Just 1
 
 {-| The monad that 'makeKnown' runs in.
 Equivalent to @ExceptT BuiltinError (Writer (DList Text))@, except optimized in two ways:
@@ -101,6 +117,7 @@ deriving newtype instance Pretty UnliftingEvaluationError
 
 instance Pretty BuiltinError where
   pretty (BuiltinUnliftingEvaluationError err) = "Builtin evaluation failure:" <+> pretty err
+  pretty (BuiltinSizedUnliftingError _ msg) = "Builtin evaluation failure:" <+> pretty (MkUnliftingError msg)
   pretty BuiltinEvaluationFailure = "Builtin evaluation failure"
 
 {- Note [INLINE and OPAQUE on error-related definitions]
@@ -208,6 +225,7 @@ instance MonadError BuiltinError BuiltinResult where
   throwError builtinErr = BuiltinFailure operationalLogs builtinErr
     where
       operationalLogs = case builtinErr of
+        BuiltinSizedUnliftingError _ msg -> pure msg
         BuiltinUnliftingEvaluationError
           ( MkUnliftingEvaluationError
               ( OperationalError

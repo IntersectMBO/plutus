@@ -67,6 +67,8 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
   , defaultSlippage
   , NTerm
   , runCekM
+  , advanceTryBuiltin
+  , spendBuiltinBudget
   )
 where
 
@@ -103,8 +105,10 @@ import Data.Bifunctor
 import Data.DList qualified as DList
 import Data.Functor.Identity
 import Data.Hashable (Hashable)
+import Data.Int (Int64)
 import Data.Kind qualified as GHC
 import Data.Proxy
+import Data.SatInt (fromSatInt)
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Vector qualified as V
@@ -215,6 +219,7 @@ data StepKind
   | BBuiltin -- Cost of evaluating a Builtin AST node, not the function itself
   | BConstr
   | BCase
+  | BTryBuiltin
   deriving stock (Show, Eq, Ord, Generic, Enum, Bounded)
   deriving anyclass (NFData, Hashable)
 
@@ -230,6 +235,7 @@ cekStepCost costs =
     BBuiltin -> cekBuiltinCost costs
     BConstr -> cekConstrCost costs
     BCase -> cekCaseCost costs
+    BTryBuiltin -> cekTryBuiltinCost costs
 
 data ExBudgetCategory fun
   = BStep StepKind
@@ -579,6 +585,7 @@ type CekEvaluationException name uni fun =
 instance BuiltinErrorToEvaluationError (MachineError fun) CekUserError where
   builtinErrorToEvaluationError (BuiltinUnliftingEvaluationError err) =
     bimap UnliftingMachineError (const CekEvaluationFailure) $ unUnliftingEvaluationError err
+  builtinErrorToEvaluationError BuiltinSizedUnliftingError {} = OperationalError CekEvaluationFailure
   builtinErrorToEvaluationError BuiltinEvaluationFailure =
     OperationalError CekEvaluationFailure
   {-# INLINE builtinErrorToEvaluationError #-}
@@ -762,6 +769,7 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
           Error _ -> Error ()
           Constr _ ind args -> Constr () ind $ map (go shift) args
           Case _ scrut alts -> Case () (go shift scrut) $ fmap (go shift) alts
+          TryBuiltin _ b args h -> TryBuiltin () b (map (fmap (go shift)) args) (go shift h)
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
   prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue
@@ -802,6 +810,13 @@ data Context uni fun ann
       !(Context uni fun ann)
   | -- | @(case _ C0 .. Cn)@
     FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+  | FrameTryBuiltin
+      !(CekValEnv uni fun ann)
+      !fun
+      !(BuiltinArgument (CekValue uni fun ann))
+      ![Maybe (NTerm uni fun ann)]
+      !(NTerm uni fun ann)
+      !(Context uni fun ann)
   | NoFrame
 
 deriving stock instance
@@ -867,6 +882,52 @@ runCekM
     pure $ CekReport res st logs
 {-# INLINE runCekM #-}
 
+{-| Evaluate just the designated primitive under protection. The operand
+continuation and fallback both run in the caller's environment. Neither
+their failures nor errors from the spender pass through the result branch. -}
+advanceTryBuiltin
+  :: (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
+  => (StepKind -> CekM uni fun s ())
+  -> CekM uni fun s ()
+  -> fun
+  -> (BuiltinArgument (CekValue uni fun ann) -> [Maybe t] -> t -> CekM uni fun s r)
+  -> (CekValue uni fun ann -> CekM uni fun s r)
+  -> CekM uni fun s r
+  -> BuiltinRuntime (CekValue uni fun ann)
+  -> [Maybe t]
+  -> CekM uni fun s r
+advanceTryBuiltin step flushSteps b operand succeed fallback = go
+  where
+    go (BuiltinExpectForce runtime) (Nothing : rest) = step BForce *> go runtime rest
+    go (BuiltinExpectArgument f) (Just t : rest) = step BApply *> operand (BuiltinArgument f) rest t
+    go (BuiltinCostedResult budgets result) [] = do
+      -- Settle the ordinary batched CEK steps at the protection boundary. In
+      -- restricting mode they can exhaust the budget before the catch is entered.
+      flushSteps
+      spendBuiltinBudget b budgets
+      case result of
+        BuiltinSuccess v -> succeed v
+        BuiltinSuccessWithLogs logs v -> ?cekEmitter logs *> succeed v
+        BuiltinFailure logs err -> case builtinFailureCharge err of
+          Nothing -> ?cekEmitter logs *> throwBuiltinErrorWithCause (Builtin () b) err
+          Just units -> do
+            when (units > 0) $
+              unCekBudgetSpender
+                ?cekBudgetSpender
+                (BBuiltinApp b)
+                (stimes (fromSatInt @Int64 units) (cekStepCost ?cekCosts BTryBuiltin))
+            ?cekEmitter logs
+            fallback
+    go _ _ = throwErrorWithCause (StructuralError (InvalidBuiltinSpineMachineError b)) (Builtin () b)
+
+spendBuiltinBudget :: GivenCekSpender uni fun s => fun -> ExBudgetStream -> CekM uni fun s ()
+spendBuiltinBudget b = go
+  where
+    spend = unCekBudgetSpender ?cekBudgetSpender (BBuiltinApp b)
+    go (ExBudgetLast budget) = spend budget
+    go (ExBudgetCons budget rest) = spend budget *> go rest
+{-# INLINE spendBuiltinBudget #-}
+
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
@@ -930,6 +991,11 @@ enterComputeCek = computeCek
     computeCek !ctx !env (Case _ scrut cs) = do
       stepAndMaybeSpend BCase
       computeCek (FrameCases env cs ctx) env scrut
+    -- Evaluate strict operands with the fallback saved in the caller's environment.
+    computeCek !ctx !env (TryBuiltin _ b args fallback) = do
+      stepAndMaybeSpend BTryBuiltin
+      stepAndMaybeSpend BBuiltin
+      tryBuiltinApp ctx env b fallback (lookupBuiltin b ?cekRuntime) args
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
       throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
@@ -987,6 +1053,9 @@ enterComputeCek = computeCek
           let go acc NilStack = acc
               go acc (ConsStack x xs) = go (ConsStackNonEmpty x acc) xs
            in returnCek ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
+    -- Feed the operand to the designated builtin and advance to the next argument.
+    returnCek (FrameTryBuiltin env b (BuiltinArgument f) rest fallback ctx) arg =
+      tryBuiltinApp ctx env b fallback (f arg) rest
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
       -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
@@ -1008,6 +1077,21 @@ enterComputeCek = computeCek
         HeadOnly fX -> computeCek ctx env fX
         HeadSpine f xs -> computeCek (FrameAwaitFunConN xs ctx) env f
       _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
+
+    tryBuiltinApp
+      :: Context uni fun ann
+      -> CekValEnv uni fun ann
+      -> fun
+      -> NTerm uni fun ann
+      -> BuiltinRuntime (CekValue uni fun ann)
+      -> [Maybe (NTerm uni fun ann)]
+      -> CekM uni fun s (DischargeResult uni fun)
+    tryBuiltinApp ctx env b fallback =
+      advanceTryBuiltin stepAndMaybeSpend spendAccumulatedBudget b operand succeed onFailure
+      where
+        operand f rest t = computeCek (FrameTryBuiltin env b f rest fallback ctx) env t
+        succeed = returnCek ctx
+        onFailure = computeCek ctx env fallback
 
     -- \| @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
@@ -1123,11 +1207,7 @@ enterComputeCek = computeCek
       -> CekM uni fun s (DischargeResult uni fun)
     evalBuiltinApp ctx fun term runtime = case runtime of
       BuiltinCostedResult budgets0 getFXs -> do
-        let exCat = BBuiltinApp fun
-            spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
-            spendBudgets (ExBudgetCons budget budgets) =
-              spendBudget exCat budget *> spendBudgets budgets
-        spendBudgets budgets0
+        spendBuiltinBudget fun budgets0
         case getFXs of
           BuiltinSuccess y ->
             returnCek ctx y

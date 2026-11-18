@@ -37,7 +37,7 @@ import PlutusCore (toPatFuncKind, tyVarDeclName)
 import PlutusCore.Builtin (annotateCaseBuiltin)
 import PlutusCore.Core qualified as PLC
 import PlutusCore.Error as PLC
-import PlutusCore.MkPlc (mkIterTyFun)
+import PlutusCore.MkPlc (mkBuiltinApplication, mkIterTyFun)
 
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
 import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
@@ -149,6 +149,11 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
 -- [infer| G !- bi : vTy]
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
+inferTypeM (TryBuiltin ann b args fallback) = do
+  mapReaderT (modifyError PLCTypeError) $ checkBuiltinSpine ann b args
+  res <- inferTypeM (mkBuiltinApplication ann b args)
+  checkTypeM ann fallback res
+  pure res
 inferTypeM (Builtin ann bn) =
   mapReaderT (modifyError PLCTypeError) $ lookupBuiltinM ann bn
 -- [infer| G !- v : ty]    ty ~> vTy

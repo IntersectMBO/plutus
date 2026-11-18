@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -186,6 +187,16 @@ eqTermM (Constr ann1 ty1 i1 args1) (Constr ann2 ty2 i2 args2) = do
   case zipExact args1 args2 of
     Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
     Nothing -> empty
+eqTermM (TryBuiltin a b args h) (TryBuiltin a' b' args' h') = do
+  eqM a a'
+  eqM b b'
+  case zipExact args args' of
+    Nothing -> empty
+    Just pairs -> for_ pairs $ \case
+      (Left x, Left y) -> eqTypeM x y
+      (Right x, Right y) -> eqTermM x y
+      _ -> empty
+  eqTermM h h'
 eqTermM (Case ann1 ty1 a1 cs1) (Case ann2 ty2 a2 cs2) = do
   eqM ann1 ann2
   eqTypeM ty1 ty2
@@ -205,3 +216,4 @@ eqTermM Constant {} _ = empty
 eqTermM Builtin {} _ = empty
 eqTermM Constr {} _ = empty
 eqTermM Case {} _ = empty
+eqTermM TryBuiltin {} _ = empty

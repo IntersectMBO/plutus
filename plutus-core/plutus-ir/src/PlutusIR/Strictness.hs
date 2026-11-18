@@ -23,6 +23,7 @@ isStrictIn n = go
       Unwrap _ body -> go body
       Constr _ _ _ args -> any go args
       Case _ _ scrut _ -> go scrut
+      TryBuiltin _ _ args _ -> any (any go) args
       TyAbs {} -> False
       LamAbs {} -> False
       Constant {} -> False

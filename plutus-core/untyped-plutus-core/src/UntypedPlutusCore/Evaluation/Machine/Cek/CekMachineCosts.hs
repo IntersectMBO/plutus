@@ -22,13 +22,16 @@ import Data.Aeson
   ( FromJSON (..)
   , Options
   , ToJSON (..)
+  , Value (Object)
   , defaultOptions
   , fieldLabelModifier
   , genericParseJSON
   , genericToEncoding
   , genericToJSON
   , omitNothingFields
+  , withObject
   )
+import Data.Aeson.KeyMap qualified as KeyMap
 import Data.Functor.Identity
 import Data.Text qualified as Text
 import Language.Haskell.TH.Syntax (Lift)
@@ -58,6 +61,7 @@ data CekMachineCostsBase f
   happen if calling 'Error' caused the budget to be exceeded? -}
   , cekConstrCost :: f ExBudget
   , cekCaseCost :: f ExBudget
+  , cekTryBuiltinCost :: f ExBudget
   }
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)
@@ -70,7 +74,14 @@ instance ToJSON (CekMachineCostsBase Identity) where
   toEncoding = genericToEncoding cekMachineCostsOptions
 
 instance FromJSON (CekMachineCostsBase Identity) where
-  parseJSON = genericParseJSON cekMachineCostsOptions
+  parseJSON = withObject "CekMachineCosts" $ \obj ->
+    -- Pre-1.3 cost files have no entry for this instruction. Older scripts
+    -- never execute it. Use the same provisional price as the bundled models.
+    let compat
+          | KeyMap.member "cekTryBuiltinCost" obj = obj
+          | Just cost <- KeyMap.lookup "cekCaseCost" obj = KeyMap.insert "cekTryBuiltinCost" cost obj
+          | otherwise = obj
+     in genericParseJSON cekMachineCostsOptions (Object compat)
 
 -- This instance will omit the generation of JSON for Nothing fields,
 -- (any functors which have Maybe functor at the outer layer)
@@ -103,6 +114,7 @@ unitCekMachineCosts =
     , cekBuiltinCost = unitCost
     , cekConstrCost = unitCost
     , cekCaseCost = unitCost
+    , cekTryBuiltinCost = unitCost
     }
   where
     zeroCost = Identity $ ExBudget 0 0

@@ -298,6 +298,11 @@ floatTerm binfo relaxed t0 =
               us = typeUniqs ty <> foldMap termUniqs es
              in
               Constr (a, us) ty i es
+          TryBuiltin a b args0 h0 ->
+            let args = map (bimap goType go) args0
+                h = go h0
+                us = foldMap (either typeUniqs termUniqs) args <> termUniqs h
+             in TryBuiltin (a, us) b args h
           Case a ty0 arg0 cs0 ->
             let
               ty = goType ty0

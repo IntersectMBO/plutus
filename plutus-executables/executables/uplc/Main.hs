@@ -612,6 +612,7 @@ execCertifier optimizerTrace cert out costs = do
         InvalidCertificate _ _ -> exitWith $ ExitFailure 1
         InvalidCompilerOutput -> exitWith $ ExitFailure 2
         ValidationError _ -> exitWith $ ExitFailure 3
+        UnsupportedTryBuiltin -> exitWith $ ExitFailure 2
     Right True ->
       hPutStrLn stderr "The compilation was successfully certified."
     Right False -> do

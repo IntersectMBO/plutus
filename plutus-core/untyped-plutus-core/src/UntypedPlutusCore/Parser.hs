@@ -86,6 +86,13 @@ constrTerm sp = do
   args <- many term
   pure $ UPLC.Constr sp (fromIntegral tag) args
 
+tryBuiltinTerm :: SrcSpan -> Parser PTerm
+tryBuiltinTerm sp = do
+  whenVersion (< plcVersion130) $ fail "'tryBuiltin' requires version 1.3.0"
+  b <- builtinFunction
+  args <- lexeme . inBrackets $ many (choice [Nothing <$ symbol "!", Just <$> term])
+  UPLC.TryBuiltin sp b args <$> term
+
 caseTerm :: SrcSpan -> Parser PTerm
 caseTerm sp = do
   res <- UPLC.Case sp <$> term <*> (V.fromList <$> many term)
@@ -125,8 +132,9 @@ term =
               , symbol "force" *> forceTerm sp
               , symbol "error" *> errorTerm sp
               , symbol "case" *> caseTerm sp
+              , symbol "tryBuiltin" *> tryBuiltinTerm sp
               ]
-              <?> "term keyword (builtin, lam, constr, con, delay, force, error, case)"
+              <?> "term keyword (builtin, lam, constr, con, delay, force, error, case, tryBuiltin)"
           )
 
 -- | Parser for UPLC programs.

@@ -119,6 +119,13 @@ constrTerm tm = withSpan $ \sp ->
     args <- many tm
     pure $ PIR.constr sp ty (fromIntegral tag) args
 
+tryBuiltinTerm :: Parametric
+tryBuiltinTerm tm = withSpan $ \sp -> inParens $ do
+  b <- symbol "tryBuiltin" *> builtinFunction
+  whenVersion (< plcVersion130) $ fail "'tryBuiltin' requires version 1.3.0"
+  args <- lexeme . inBrackets $ many (choice [Left <$> (symbol "!" *> pType), Right <$> tm])
+  PIR.tryBuiltin sp b args <$> tm
+
 caseTerm :: Parametric
 caseTerm tm = withSpan $ \sp -> inParens $ do
   res <- PIR.kase sp <$> (symbol "case" *> pType) <*> tm <*> many tm
@@ -160,6 +167,7 @@ pTerm = leadingWhitespace go
               , appTerm go
               , constrTerm go
               , caseTerm go
+              , tryBuiltinTerm go
               ]
 
 program :: Parser (Program TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan)

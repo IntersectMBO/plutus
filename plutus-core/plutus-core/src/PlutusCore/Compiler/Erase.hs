@@ -26,6 +26,8 @@ eraseTerm (IWrap _ _ _ term) = eraseTerm term
 eraseTerm (Error ann _) = UPLC.Error ann
 eraseTerm (Constr ann _ i args) = UPLC.Constr ann i (fmap eraseTerm args)
 eraseTerm (Case ann _ arg cs) = UPLC.Case ann (eraseTerm arg) (fromList $ fmap eraseTerm cs)
+eraseTerm (TryBuiltin ann b args h) =
+  UPLC.TryBuiltin ann b (map (either (const Nothing) (Just . eraseTerm)) args) (eraseTerm h)
 
 eraseProgram
   :: HasUnique name TermUnique

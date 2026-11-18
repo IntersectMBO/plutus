@@ -65,6 +65,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , ValueOuterDepth (..)
   , ValueOuterSize (..)
   , ValueTotalSize (..)
+  , memoryUsageInteger
   )
 import PlutusCore.Flat (Flat (decode))
 import PlutusCore.Flat.Decoder (Get, decodeListWith)
@@ -583,6 +584,13 @@ makeKnownAsInteger
 makeKnownAsInteger = makeKnown . toInteger
 {-# INLINE makeKnownAsInteger #-}
 
+-- Decimal rendering can take quadratic time in the number of machine words.
+-- The CEK debits this bound before exposing the diagnostic to a handler.
+integerBoundsError :: Integer -> Text -> BuiltinError
+integerBoundsError i = BuiltinSizedUnliftingError (n * n)
+  where
+    n = memoryUsageInteger i
+
 readKnownAsInteger
   :: forall term a
    . (KnownBuiltinTypeIn DefaultUni term Integer, Integral a, Bounded a, Typeable a)
@@ -598,7 +606,7 @@ readKnownAsInteger term =
     if fromIntegral (minBound :: a) <= i && i <= fromIntegral (maxBound :: a)
       then pure $ fromIntegral i
       else
-        throwError . operationalUnliftingError $
+        throwError . integerBoundsError i $
           fold
             [ Text.pack $ show i
             , " is not within the bounds of "
@@ -880,7 +888,7 @@ instance
         -- TODO: benchmark alternatives: ghc>=9 integerToNatural
         then pure $ fromInteger i
         else
-          throwError . operationalUnliftingError $
+          throwError . integerBoundsError i $
             fold
               [ Text.pack $ show i
               , " is not within the bounds of Natural"

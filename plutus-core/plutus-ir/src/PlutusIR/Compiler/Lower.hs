@@ -30,4 +30,5 @@ lowerTerm = \case
   IWrap x tn ty t -> PLC.IWrap x tn ty <$> lowerTerm t
   Unwrap x t -> PLC.Unwrap x <$> lowerTerm t
   Constr x ty i es -> PLC.Constr x ty i <$> traverse lowerTerm es
+  TryBuiltin x b args h -> PLC.TryBuiltin x b <$> traverse (traverse lowerTerm) args <*> lowerTerm h
   Case x ty arg cs -> PLC.Case x ty <$> lowerTerm arg <*> traverse lowerTerm cs

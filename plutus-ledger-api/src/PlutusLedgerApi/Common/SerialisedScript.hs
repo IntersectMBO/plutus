@@ -24,6 +24,7 @@ module PlutusLedgerApi.Common.SerialisedScript
 
 import PlutusCore
 import PlutusCore.Default (decodeDefaultUniValue, defaultUniSize)
+import PlutusCore.Version (plcVersion120, plcVersion130)
 import PlutusLedgerApi.Common.Versions
 import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
@@ -199,7 +200,18 @@ scriptCBORDecoder
 scriptCBORDecoder ll pv =
   -- See Note [New builtins/language versions and protocol versions]
   let availableBuiltins = builtinsAvailableIn ll pv
-      flatDecoder = UPLC.decodeProgram decodeDefaultUniValue checkConstant checkBuiltin checkConstr
+      -- A program supplies its own PLC version. Before activation even a
+      -- header claiming 1.3 must fail on tag 10, including in reference scripts.
+      termVersion
+        | plcVersion130 `Set.member` plcVersionsAvailableIn ll pv = id
+        | otherwise = min plcVersion120
+      flatDecoder =
+        UPLC.decodeProgramWithVersion
+          termVersion
+          decodeDefaultUniValue
+          checkConstant
+          checkBuiltin
+          checkConstr
 
       checkConstant (SomeTypeIn uni)
         | defaultUniSize uni <= maxHeaderSize = Nothing

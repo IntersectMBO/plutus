@@ -206,6 +206,10 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
           -- then the whole term, which means constructing the value, so work, unless there's no
           -- arguments, in which case it's not more work than evaluating, say, a @Delay@ node
           <> evalThis (EvalTerm Pure (if null ts then WorkFree else MaybeWork) t)
+      t@(TryBuiltin _ b args _)
+        | map (maybe TypeParam (const TermParam)) args == builtinArity (Proxy @uni) builtinSemanticsVariant b ->
+            foldMap (foldMap goTerm) args <> evalThis (EvalTerm MaybeImpure MaybeWork t) <> evalThis Unknown
+        | otherwise -> evalThis Unknown
       t@(Case _ scrut _) ->
         -- first the scrutinee
         goTerm scrut

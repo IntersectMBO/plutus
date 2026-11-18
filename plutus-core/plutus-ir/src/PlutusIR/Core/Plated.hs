@@ -6,6 +6,7 @@
 module PlutusIR.Core.Plated
   ( termSubterms
   , termSubtermsDeep
+  , usesTryBuiltin
   , termSubtypes
   , termSubtypesDeep
   , termSubkinds
@@ -144,6 +145,7 @@ termConstants f term0 = case term0 of
   Unwrap {} -> pure term0
   Builtin {} -> pure term0
   Constr {} -> pure term0
+  TryBuiltin {} -> pure term0
   Case {} -> pure term0
 
 -- | Get all the direct child 'Kind's of the given 'Term'.
@@ -161,6 +163,7 @@ termSubkinds f term0 = case term0 of
   Constant {} -> pure term0
   Builtin {} -> pure term0
   Constr {} -> pure term0
+  TryBuiltin {} -> pure term0
   Case {} -> pure term0
 {-# INLINE termSubkinds #-}
 
@@ -176,6 +179,7 @@ termSubterms f = \case
   Unwrap x t -> Unwrap x <$> f t
   Constr x ty i es -> Constr x ty i <$> traverse f es
   Case x ty arg cs -> Case x ty <$> f arg <*> traverse f cs
+  TryBuiltin a b args h -> TryBuiltin a b <$> traverse (traverse f) args <*> f h
   e@Error {} -> pure e
   v@Var {} -> pure v
   c@Constant {} -> pure c
@@ -185,6 +189,13 @@ termSubterms f = \case
 -- | Get all the transitive child 'Term's of the given 'Term'.
 termSubtermsDeep :: Fold (Term tyname name uni fun ann) (Term tyname name uni fun ann)
 termSubtermsDeep = cosmosOf termSubterms
+
+-- | Whether a term requires the protected builtin form introduced in PLC 1.3.
+usesTryBuiltin :: Term tyname name uni fun a -> Bool
+usesTryBuiltin = anyOf termSubtermsDeep isProtected
+  where
+    isProtected TryBuiltin {} = True
+    isProtected _ = False
 
 -- | Get all the direct child 'Type's of the given 'Term', including those within 'Binding's.
 termSubtypes :: Traversal' (Term tyname name uni fun a) (Type tyname uni a)
@@ -196,6 +207,7 @@ termSubtypes f = \case
   Error x ty -> Error x <$> f ty
   Constr x ty i es -> Constr x <$> f ty <*> pure i <*> pure es
   Case x ty arg cs -> Case x <$> f ty <*> pure arg <*> pure cs
+  TryBuiltin a b args h -> TryBuiltin a b <$> (traverse . _Left) f args <*> pure h
   t@TyAbs {} -> pure t
   a@Apply {} -> pure a
   u@Unwrap {} -> pure u
@@ -232,6 +244,7 @@ termUniques f = \case
   i@IWrap {} -> pure i
   u@Unwrap {} -> pure u
   p@Constr {} -> pure p
+  p@TryBuiltin {} -> pure p
   p@Case {} -> pure p
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'Var's.

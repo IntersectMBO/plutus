@@ -104,6 +104,13 @@ constrTerm = withSpan $ \sp ->
     args <- many term
     pure $ Constr sp ty (fromIntegral tag) args
 
+tryBuiltinTerm :: Parser PTerm
+tryBuiltinTerm = withSpan $ \sp -> inParens $ do
+  b <- symbol "tryBuiltin" *> builtinFunction
+  whenVersion (< plcVersion130) $ fail "'tryBuiltin' requires version 1.3.0"
+  args <- lexeme . inBrackets $ many (choice [Left <$> (symbol "!" *> pType), Right <$> term])
+  TryBuiltin sp b args <$> term
+
 caseTerm :: Parser PTerm
 caseTerm = withSpan $ \sp ->
   inParens $ do
@@ -131,6 +138,7 @@ term = leadingWhitespace go
           , varTerm
           , constrTerm
           , caseTerm
+          , tryBuiltinTerm
           ]
 
 {-| Parse a PLC program. The resulting program will have fresh names. The

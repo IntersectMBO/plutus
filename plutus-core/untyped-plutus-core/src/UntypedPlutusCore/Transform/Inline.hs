@@ -242,7 +242,7 @@ inline
   t = do
     (certifierHints, result) <- liftQuote $ go (emptyDecoration <$> t)
     recordOptimizationWithHints
-      (CertifierHints.Inline certifierHints)
+      (maybe CertifierHints.NoHints CertifierHints.Inline certifierHints)
       t
       InlineStage
       result
@@ -252,7 +252,7 @@ inline
       -- See Note [Checkpointing in the UPLC inliner].
       go
         :: Term name uni fun (Ann a)
-        -> Quote (CertifierHints.InlinePlus (Term name uni fun a), Term name uni fun a)
+        -> Quote (Maybe (CertifierHints.InlinePlus (Term name uni fun a)), Term name uni fun a)
       go t' = do
         (decorated, finalState) <-
           flip runStateT initialState $
@@ -272,10 +272,10 @@ inline
           then do
             (rest, result) <- go (clearDecorations decorated)
             pure
-              ( CertifierHints.InlSeq (mkHints decorated) checkpoint rest
+              ( (\h -> CertifierHints.InlSeq h checkpoint) <$> mkHints decorated <*> rest
               , result
               )
-          else pure (CertifierHints.InlOne (mkHints decorated), checkpoint)
+          else pure (CertifierHints.InlOne <$> mkHints decorated, checkpoint)
 
 -- See Note [Differences from PIR inliner] 3
 
@@ -552,6 +552,8 @@ isStrictIn name = go
       Error {} -> False
       Constr _ann _idx terms -> any go terms
       Case _ann scrut _branches -> go scrut
+      -- A malformed spine can abort before reaching an operand.
+      TryBuiltin {} -> False
 
 effectSafe
   :: forall name uni fun a b
@@ -607,6 +609,7 @@ costIsAcceptable = \case
       _ -> False
   -- Inlining a case means redoing the match at each use site
   Case {} -> False
+  TryBuiltin {} -> False
   Force {} -> False
   Delay {} -> True
 
@@ -747,10 +750,10 @@ decorateWith ds = modifyAnn (first (ds ++))
 {-# INLINE decorateWith #-}
 
 -- | Fold a decorated term into certifier hints.
-mkHints :: Term name uni fun (Ann a) -> CertifierHints.Inline
+mkHints :: Term name uni fun (Ann a) -> Maybe CertifierHints.Inline
 mkHints = go
   where
-    go t = decorate hints ds
+    go t = (`decorate` ds) <$> hints
       where
         decorate :: CertifierHints.Inline -> [Decoration] -> CertifierHints.Inline
         decorate = foldr $ \d h -> case d of
@@ -760,16 +763,18 @@ mkHints = go
         ds = getAnn t ^. decorations
 
         hints = case t of
-          Var {} -> CertifierHints.InlVar
-          LamAbs _ _ body -> CertifierHints.InlLam (go body)
-          Apply _ fun arg -> CertifierHints.InlApply (go fun) (go arg)
-          Force _ body -> CertifierHints.InlForce (go body)
-          Delay _ body -> CertifierHints.InlDelay (go body)
-          Constant {} -> CertifierHints.InlCon
-          Builtin {} -> CertifierHints.InlBuiltin
-          Error {} -> CertifierHints.InlError
-          Constr _ _ args -> CertifierHints.InlConstr (go <$> args)
-          Case _ scrut alts -> CertifierHints.InlCase (go scrut) (go <$> V.toList alts)
+          Var {} -> Just CertifierHints.InlVar
+          LamAbs _ _ body -> CertifierHints.InlLam <$> go body
+          Apply _ fun arg -> CertifierHints.InlApply <$> go fun <*> go arg
+          Force _ body -> CertifierHints.InlForce <$> go body
+          Delay _ body -> CertifierHints.InlDelay <$> go body
+          Constant {} -> Just CertifierHints.InlCon
+          Builtin {} -> Just CertifierHints.InlBuiltin
+          Error {} -> Just CertifierHints.InlError
+          Constr _ _ args -> CertifierHints.InlConstr <$> traverse go args
+          Case _ scrut alts -> CertifierHints.InlCase <$> go scrut <*> traverse go (V.toList alts)
+          -- The Agda certifier has no rule for this term.
+          TryBuiltin {} -> Nothing
 
 -- | Does any node of the term carry a decoration?
 hasDecorations :: Term name uni fun (Ann a) -> Bool

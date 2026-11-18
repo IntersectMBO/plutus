@@ -351,6 +351,7 @@ analyseTermDataObjects = go
         Error _ -> pure ()
         UPLC.Constr _ _ ts -> mapM_ go ts
         Case _ t1 t2 -> go t1 >> mapM_ go t2
+        TryBuiltin _ _ args h -> mapM_ (mapM_ go) args >> go h
 
 -- Counting builtins
 
@@ -370,6 +371,7 @@ countBuiltinsInTerm counts = go
       Error _ -> pure ()
       UPLC.Constr _ _ ts -> mapM_ go ts
       Case _ t1 t2 -> go t1 >> mapM_ go t2
+      TryBuiltin _ b args h -> incrCount (fromEnum b) >> mapM_ (mapM_ go) args >> go h
     incrCount i = do
       c <- P.readPrimArray counts i
       P.writePrimArray counts i (c + 1)

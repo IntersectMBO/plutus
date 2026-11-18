@@ -19,7 +19,7 @@ module PlutusCore.TypeCheck.Internal
 import PlutusCore.Builtin
 import PlutusCore.Core.Type (Kind (..), Normalized (..), Term (..), Type (..), toPatFuncKind)
 import PlutusCore.Error (ExpectedShapeOr (ExpectedExact, ExpectedShape), TypeError (..))
-import PlutusCore.MkPlc (mkIterTyAppNoAnn, mkIterTyFun, mkTyBuiltinOf)
+import PlutusCore.MkPlc (mkBuiltinApplication, mkIterTyAppNoAnn, mkIterTyFun, mkTyBuiltinOf)
 import PlutusCore.Name.Unique
   ( HasText (theText)
   , Name (Name)
@@ -98,7 +98,7 @@ functions that cannot fail look like this:
 
 -- | Mapping from 'Builtin's to their 'Normalized' 'Type's.
 newtype BuiltinTypes uni fun = BuiltinTypes
-  { unBuiltinTypes :: Array fun (Dupable (Normalized (Type TyName uni ())))
+  { unBuiltinTypes :: Array fun (Arity, Dupable (Normalized (Type TyName uni ())))
   }
 
 type TyVarKinds = UniqueMap TypeUnique (Named (Kind ()))
@@ -251,13 +251,28 @@ withTyVar name = local . over tceTyVarKinds . insertNamed name
 lookupBuiltinM
   :: (MonadTypeCheck (TypeError term uni fun ann) term uni fun ann m, HasTypeCheckConfig cfg uni fun)
   => ann -> fun -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
-lookupBuiltinM ann fun = do
+lookupBuiltinM ann fun = liftDupable . snd =<< lookupBuiltinSignature ann fun
+
+lookupBuiltinSignature
+  :: (MonadTypeCheck (TypeError term uni fun ann) term uni fun ann m, HasTypeCheckConfig cfg uni fun)
+  => ann -> fun -> TypeCheckT uni fun cfg m (Arity, Dupable (Normalized (Type TyName uni ())))
+lookupBuiltinSignature ann fun = do
   BuiltinTypes arr <- view $ tceTypeCheckConfig . tccBuiltinTypes
   -- Believe it or not, but 'Data.Array' doesn't seem to expose any way of indexing into an array
   -- safely.
   case preview (ix fun) arr of
     Nothing -> throwError $ UnknownBuiltinFunctionE ann fun
-    Just ty -> liftDupable ty
+    Just sig -> pure sig
+
+-- Compare the spine to the builtin's declared scheme before instantiation. A
+-- polymorphic result can itself be a function without taking another operand.
+checkBuiltinSpine
+  :: (MonadTypeCheck (TypeError term uni fun ann) term uni fun ann m, HasTypeCheckConfig cfg uni fun)
+  => ann -> fun -> [Either ty arg] -> TypeCheckT uni fun cfg m ()
+checkBuiltinSpine ann fun args = do
+  (arity, _) <- lookupBuiltinSignature ann fun
+  when (arity /= map (either (const TypeParam) (const TermParam)) args) $
+    throwError (InvalidBuiltinSpine ann fun)
 
 -- | Extend the context of a 'TypeCheckM' computation with a typed variable.
 withVar
@@ -450,6 +465,14 @@ inferTypeM
 inferTypeM (Constant _ (Some (ValueOf uni _))) =
   -- See Note [Normalization of built-in types].
   normalizeTypeM $ mkTyBuiltinOf () uni
+-- shape(args) = arity(b)    G |- b args : R    G |- fallback : R
+-- ---------------------------------------------------------------
+-- G |- tryBuiltin b args fallback : R
+inferTypeM (TryBuiltin ann b args fallback) = do
+  checkBuiltinSpine ann b args
+  res <- inferTypeM (mkBuiltinApplication ann b args)
+  checkTypeM ann fallback res
+  pure res
 -- [infer| G !- bi : vTy]
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]

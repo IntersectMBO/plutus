@@ -73,6 +73,12 @@ instance
         )
     Constr ann i es ->
       sexp "constr" (consAnnIf config ann (pretty i : fmap (prettyBy config) es))
+    TryBuiltin ann b args h ->
+      sexp "tryBuiltin" $
+        consAnnIf
+          config
+          ann
+          [pretty b, brackets (hsep (map (maybe "!" (prettyBy config)) args)), prettyBy config h]
     Case ann arg cs ->
       sexp
         "case"

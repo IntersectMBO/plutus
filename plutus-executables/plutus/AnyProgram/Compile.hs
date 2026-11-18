@@ -136,15 +136,15 @@ compileProgram = curry $ \case
   -- TODO: deduplicate if we had `withTermLikeL`
   (SData, SPir _ a2) ->
     withA @Monoid a2 $
-      pure . PIR.Program mempty PLC.latestVersion . PIR.Constant mempty . someValue
+      pure . PIR.Program mempty PLC.defaultVersion . PIR.Constant mempty . someValue
   (SData, SPlc _ a2) ->
     withA @Monoid a2 $
-      pure . PLC.Program mempty PLC.latestVersion . PLC.Constant mempty . someValue
+      pure . PLC.Program mempty PLC.defaultVersion . PLC.Constant mempty . someValue
   (SData, SUplc _ a2) ->
     withA @Monoid a2 $
       pure
         . UPLC.UnrestrictedProgram
-        . UPLC.Program mempty PLC.latestVersion
+        . UPLC.Program mempty PLC.defaultVersion
         . UPLC.Constant mempty
         . someValue
   -- uplc to ?

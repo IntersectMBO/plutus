@@ -388,6 +388,7 @@ costIsAcceptable = \case
     _ -> False
   -- Inlining a case means redoing the match at each use site
   Case {} -> False
+  TryBuiltin {} -> False
   -- Arguably we could allow these two, but they're uncommon anyway
   IWrap {} -> False
   Unwrap {} -> False
@@ -412,6 +413,7 @@ sizeIsAcceptable inlineConstants = \case
     _ -> False
   -- Cases are pretty big, due to the case branches
   Case {} -> False
+  TryBuiltin {} -> False
   -- Arguably we could allow these two, but they're uncommon anyway
   IWrap {} -> False
   Unwrap {} -> False

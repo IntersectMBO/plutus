@@ -17,6 +17,7 @@ import PlutusCore qualified as P
   )
 import PlutusIR qualified as P
 import PlutusIR.Certifier.Extracted qualified as E
+import PlutusIR.Core.Plated (usesTryBuiltin)
 
 import Data.Char
 import Data.List.NonEmpty
@@ -81,6 +82,7 @@ glueTerm = \case
   P.Unwrap _ t -> E.Unwrap (glueTerm t)
   P.IWrap _ ty1 ty2 t -> E.IWrap (glueType ty1) (glueType ty2) (glueTerm t)
   P.Error _ ty -> E.Error (glueType ty)
+  P.TryBuiltin {} -> error "glueTerm: tryBuiltin not supported"
   P.Case _ _ _ _ -> error "glueTerm: Case not supported"
   P.Constr _ _ _ _ -> error "glueTerm: Constr not supported"
 
@@ -242,10 +244,12 @@ toBool E.False = False
 
 -- | Check if only pure let bindings were eliminated
 is_dead_code :: Term a -> Term a -> Bool
+is_dead_code t1 t2 | usesTryBuiltin t1 || usesTryBuiltin t2 = False
 is_dead_code t1 t2 = toBool $ E.dec_Term (glueTerm t1) (glueTerm t2)
 
 -- | Check if a term has unique binders
 is_unique :: Term a -> Bool
+is_unique t | usesTryBuiltin t = False
 is_unique t = case E.dec_unique (glueTerm t) infinity of
   E.Some b -> toBool b
   _ -> False

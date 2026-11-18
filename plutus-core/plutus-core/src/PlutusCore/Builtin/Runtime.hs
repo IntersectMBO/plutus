@@ -34,6 +34,13 @@ data BuiltinRuntime val
     | BuiltinExpectArgument (val -> BuiltinRuntime val)
     | BuiltinExpectForce (BuiltinRuntime val)
 
+-- | The next strict operand of a protected builtin call. Machine frames
+-- retain this continuation while evaluating the operand in the caller's scope.
+newtype BuiltinArgument val = BuiltinArgument (val -> BuiltinRuntime val)
+
+instance Show (BuiltinArgument val) where
+    show _ = "<builtin argument>"
+
 instance NoThunks (BuiltinRuntime val) where
     wNoThunks ctx = \case
         -- Unreachable, because we don't allow nullary builtins and the 'BuiltinArrow' case only

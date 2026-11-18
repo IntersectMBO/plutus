@@ -9,6 +9,7 @@ module UntypedPlutusCore.Core.Plated
   , termSubterms
   , termConstantsDeep
   , termSubtermsDeep
+  , usesTryBuiltin
   , termUniquesDeep
   , _Constant
   ) where
@@ -33,6 +34,7 @@ termConstants f term0 = case term0 of
   Delay {} -> pure term0
   Builtin {} -> pure term0
   Constr {} -> pure term0
+  TryBuiltin {} -> pure term0
   Case {} -> pure term0
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'LamAbs'es.
@@ -63,6 +65,7 @@ termSubterms f = \case
   Force ann t -> Force ann <$> f t
   Constr ann i args -> Constr ann i <$> traverse f args
   Case ann arg cs -> Case ann <$> f arg <*> traverse f cs
+  TryBuiltin a b args h -> TryBuiltin a b <$> traverse (traverse f) args <*> f h
   e@Error {} -> pure e
   v@Var {} -> pure v
   c@Constant {} -> pure c
@@ -76,6 +79,13 @@ termConstantsDeep = termSubtermsDeep . termConstants
 -- | Get all the transitive child 'Term's of the given 'Term'.
 termSubtermsDeep :: Fold (Term name uni fun ann) (Term name uni fun ann)
 termSubtermsDeep = cosmosOf termSubterms
+
+-- | Whether a term requires the protected builtin form introduced in PLC 1.3.
+usesTryBuiltin :: Term name uni fun a -> Bool
+usesTryBuiltin = anyOf termSubtermsDeep isProtected
+  where
+    isProtected TryBuiltin {} = True
+    isProtected _ = False
 
 -- | Get all the transitive child 'Unique's of the given 'Term'.
 termUniquesDeep :: HasUniques (Term name uni fun ann) => Fold (Term name uni fun ann) Unique
