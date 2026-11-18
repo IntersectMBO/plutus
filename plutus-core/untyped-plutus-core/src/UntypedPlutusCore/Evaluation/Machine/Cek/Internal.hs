@@ -819,9 +819,10 @@ the recursive return boundary, avoiding an intermediate value allocation.
 
 Application exposes its function-constructor dispatch. This allows computing an argument
 under a known lambda or builtin to retain the function's fields across the recursive
-computing boundary. Lambda environment extension is shared through enterLambda. Its
-permanent NOINLINE keeps that operation shared and bounds specialization on environment
-shapes; the computing worker still specializes on the context and its known function.
+computing boundary. Lambda entry inlines so that a known context can reach computing the
+body. Only environment extension has a permanent NOINLINE boundary: its result hides the
+environment shape from specialization without hiding the control-flow arguments. This
+keeps environment construction shared while allowing computing to specialize on the context.
 
 Builtin saturation dispatch is exposed, while applying and forcing each have a shared
 result worker. These workers receive the original operands, constructing the discharged
@@ -917,8 +918,12 @@ enterComputeCek =
       -> CekValEnv uni fun ann
       -> CekValue uni fun ann
       -> CekM uni fun s (DischargeResult uni fun)
-    enterLambda ctx body env arg = computeCekRec ctx (Env.cons arg env) body
-    {-# NOINLINE enterLambda #-}
+    enterLambda ctx body env arg = computeCekRec ctx (extendEnv arg env) body
+    {-# INLINE enterLambda #-}
+
+    extendEnv :: CekValue uni fun ann -> CekValEnv uni fun ann -> CekValEnv uni fun ann
+    extendEnv arg env = Env.cons arg env
+    {-# NOINLINE extendEnv #-}
 
     applyResultRec
       :: Context uni fun ann
