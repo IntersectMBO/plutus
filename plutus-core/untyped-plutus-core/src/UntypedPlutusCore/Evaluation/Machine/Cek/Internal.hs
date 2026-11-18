@@ -829,9 +829,10 @@ application or force term only on failure. Passing an already assembled error te
 that boundary can allocate a thunk even when the builtin succeeds. Budget spending still
 precedes inspecting the builtin result, and logging preserves its original order.
 
-Returning is exposed inside the result workers as well, retaining known argument-stack
-contexts across saturated builtin evaluation. Partial builtin applications can recur with
-the builtin fields and remaining argument stack, without intermediate value or frame boxes.
+Saturated builtin results use the shared returning worker. Partial builtin applications
+can recur with the builtin fields and remaining argument stack, without intermediate value
+or frame boxes. This retains specialization of repeated partial applications while sharing
+the larger returning code after saturated results.
 
 The other recursive workers use NOINLINE [0]: they cannot inline before phase 0 but remain
 eligible for SpecConstr. Nine specializations permit the seven nonempty context shapes and
@@ -929,12 +930,7 @@ enterComputeCek =
       -> CekM uni fun s (DischargeResult uni fun)
     applyResultRec ctx fun funTerm arg budgets result =
       builtinResultStep
-        ( returnStep
-            computeCekRec
-            returnCekRec
-            (forceStep computeCekRec returnCekRec forceResultRec)
-            (applyStep enterLambda returnCekRec applyResultRec)
-        )
+        returnCekRec
         ctx
         fun
         (Apply () funTerm (dischargeResultToTerm $ dischargeCekValue arg))
@@ -951,12 +947,7 @@ enterComputeCek =
       -> CekM uni fun s (DischargeResult uni fun)
     forceResultRec ctx fun term budgets result =
       builtinResultStep
-        ( returnStep
-            computeCekRec
-            returnCekRec
-            (forceStep computeCekRec returnCekRec forceResultRec)
-            (applyStep enterLambda returnCekRec applyResultRec)
-        )
+        returnCekRec
         ctx
         fun
         (Force () term)
