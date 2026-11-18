@@ -7,11 +7,6 @@ This module defines bits, bytes and binary representations of natural numbers. T
 underpin the ByteString library in `Builtin.ByteString.Base`, and with it the conversions
 between integers and ByteStrings performed by the Cardano builtins.
 
-Bytes are the natural numbers from 0 to 255, and bits are 𝟶 and 𝟷. Every byte `c` can be
-written uniquely as `c = b₀ + 2b₁ + 4b₂ + ⋯ + 128b₇` with bits `b₀, …, b₇`. We take this
-decomposition as the definition: a `Byte` consists of eight bits, and its numeric value is
-computed from them.
-
 ```
 module Builtin.Binary where
 ```
@@ -46,18 +41,16 @@ bits. Bit vectors are little endian: position `i` holds the bit `bᵢ`, of weigh
 writing a bitstring we put the most significant bit on the left, as in `bₙ₋₁ ⋯ b₀`, so a
 vector stores the bits in the reverse of their written order.
 
+This convention is the one given by
+[CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122), which
+introduced the bitwise ByteString builtins.
+
 ```
 Bits : ℕ → Set
 Bits n = Vec Bool n
 ```
 
 ## Representing Natural Numbers in Binary
-
-`bitsToNat` computes the value `b₀ + 2b₁ + ⋯ + 2ⁿ⁻¹bₙ₋₁` of a little-endian bit vector.
-Its inverse, `natToBits len n`, produces exactly `len` bits: it pads with `false` bits
-when `len` is larger than the minimum required to represent `n`, and truncates when it is
-smaller. For this reason, it is private and one should use the smart constructors
-`binaryOf` and `binaryOfLen` instead.
 
 ```
 bitVal : Bool → ℕ
@@ -67,7 +60,15 @@ bitVal true  = 1
 bitsToNat : ∀ {n} → Bits n → ℕ
 bitsToNat []       = 0
 bitsToNat (b ∷ bs) = bitVal b + 2 * bitsToNat bs
+```
 
+`bitsToNat` computes the value `b₀ + 2b₁ + ⋯ + 2ⁿ⁻¹bₙ₋₁` of a little-endian bit vector.
+Its inverse, `natToBits len n`, produces exactly `len` bits: it pads with `false` bits
+when `len` is larger than the minimum required to represent `n`, and truncates when it is
+smaller. For this reason, `natToBits` is private and one should use the smart constructors
+`binaryOf` and `binaryOfLen` instead.
+
+```
 private
   natToBits : (len : ℕ) → ℕ → Bits len
   natToBits zero      _ = []
@@ -93,10 +94,26 @@ record BinaryOf (n : ℕ) : Set where
 ## Byte
 
 A byte is a record of eight bits, from the least significant `b₁` to the most significant
-`b₈`, so that its value is `b₁ + 2b₂ + ⋯ + 128b₈`. Representing bytes by their bits,
-rather than as numbers below 256, makes the bit-level operations needed by the bitwise
-builtins structural. `natToByte` and `byteToNat` convert between bytes and the numbers
-from 0 to 255.
+`b₈`, so that its value is `b₁ + 2b₂ + ⋯ + 128b₈`. 
+
+`natToByte` and `byteToNat` convert between bytes and the numbers from 0 to 255.
+
+### `Byte` vs. `Bits 8`
+
+`Byte` and `Bits 8` are isomorphic, via `bitsToByte` and `byteToBits`, but they behave
+differently in proofs. `Byte` is a record, so it has [eta](https://agda.readthedocs.io/en/stable/language/record-types.html#eta-expansion):
+every `b : Byte` is definitionally `byte (b₁ b) ⋯ (b₈ b)`, and functions defined by
+matching on `byte`, such as `mapByte` and `zipWithByte`, reduce even when `b` is a variable.
+Their properties follow bit by bit from the corresponding facts about `Bool`, with no induction.
+A variable `bs : Bits 8`, on the other hand, does not reduce until it is split into its
+eight elements, and the `Vec` operations on it are recursive in the length. `Bits n`
+has the advantage of being generic in the width: `bitsToNat`, `natToBits` and their
+properties apply to any number of bits, including bit vectors spanning several bytes.
+
+We therefore use `Byte` as the element type of ByteStrings and for operations that act
+on the bits of a single byte, and `Bits n` for the numeric value of bits and for
+anything that spans several bytes or is generic in the width. Arithmetic on a single
+byte reuses the `Bits` machinery through `byteToBits`, as in `byteToNat`.
 
 ```
 record Byte : Set where

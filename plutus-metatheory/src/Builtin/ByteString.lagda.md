@@ -16,6 +16,12 @@ bounds and failure conditions of each builtin.
 
 ```
 open import Builtin.ByteString.Base
+  using (ByteString; []; _∷_; _≟_; _++_; length; take; drop; index; map; replicate;
+         _≤ᵇ_; natToByteStringLE; natToByteStringBE; natToByteStringLenLE;
+         natToByteStringLenBE; byteStringToNatLE; byteStringToNatBE;
+         toBits; fromBits; onBits; zipWithExtend;
+         shiftLeft; shiftRight; rotateLeft; rotateRight;
+         popCount; findFirstSet; setBits)
 open import Builtin.Binary hiding (_≟_)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Integer using (ℤ; +_)
@@ -72,11 +78,6 @@ Both arguments must, however, fit in a signed 64-bit integer, that is, lie in
 `[-2⁶³, 2⁶³ - 1]`; otherwise the builtin fails. `fitsInt` checks this range.
 
 ```
-private
-  fitsInt : ℤ → Bool
-  fitsInt (ℤ.pos n)    = n <ᵇ 2 ^ 63
-  fitsInt (ℤ.negsuc n) = n <ᵇ 2 ^ 63
-
 sliceByteString : ℤ → ℤ → ByteString → Maybe ByteString
 sliceByteString start subStrLen bs =
   if fitsInt start ∧ fitsInt subStrLen
@@ -86,6 +87,9 @@ sliceByteString start subStrLen bs =
     clamp : ℤ → ℕ
     clamp (ℤ.pos n)    = n
     clamp (ℤ.negsuc _) = 0
+    fitsInt : ℤ → Bool
+    fitsInt (ℤ.pos n)    = n <ᵇ 2 ^ 63
+    fitsInt (ℤ.negsuc n) = n <ᵇ 2 ^ 63
 ```
 
 `lengthOfByteString` returns the number of bytes in a ByteString. `indexByteString s i`
@@ -99,14 +103,7 @@ lengthOfByteString = (+_) ∘ length
 indexByteString : ByteString → ℤ → Maybe Byte
 indexByteString bs (ℤ.pos i)    = index i bs
 indexByteString _  (ℤ.negsuc _) = nothing
-```
 
-`equalsByteString` decides equality: two ByteStrings are equal if and only if they have
-the same length and the same byte at every position. `lessThanEqualsByteString` is the
-lexicographic order `_≤ᵇ_` defined in `Builtin.ByteString.Base`, and `lessThanByteString`
-is its strict version: `a < b` if and only if `a ≤ b` and `a ≠ b`.
-
-```
 equalsByteString : ByteString → ByteString → Bool
 equalsByteString bs₁ bs₂ = does (bs₁ ≟ bs₂)
 
@@ -197,14 +194,8 @@ complementByteString : ByteString → ByteString
 complementByteString = map (mapByte not)
 ```
 
-`shiftByteString s k` shifts the bits of `s` by `|k|` places: towards the most significant
-end if `k ≥ 0`, and towards the least significant end if `k < 0`. Vacated positions are
-filled with 𝟶, so shifting by at least the length of `s` in bits clears every bit.
-`rotateByteString s k` rotates the bits instead: bits moving past one end re-enter at the
-other. Both preserve the length of `s`.
-
-`countSetBits s` is the number of bits of `s` that are 𝟷. `findFirstSetBit s` is the index
-of the lowest bit of `s` that is 𝟷, and `-1` if all bits are 𝟶.
+The following builtins are defined using the operations in the "Operations on Bits"
+section of `Builtin.ByteString.Base`.
 
 ```
 shiftByteString : ByteString → ℤ → ByteString

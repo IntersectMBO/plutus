@@ -9,6 +9,9 @@ bits that the bitwise builtins are built from. Everything here is pure and total
 semantics of the Cardano builtins, including the conditions under which they fail, is
 given in `Builtin.ByteString` in terms of these definitions.
 
+It is not intended to be efficient as the focus is on the ease of writing specifications
+and proofs.
+
 ```
 module Builtin.ByteString.Base where
 ```
@@ -317,15 +320,9 @@ zipWithExtend f true  p (x ∷ xs) []       = f x p ∷ zipWithExtend f true p x
 
 ### Ordering
 
-ByteStrings are ordered lexicographically. For `a = [a₁, …, aₘ]` and `b = [b₁, …, bₙ]`,
-`a ≤ b` if and only if
-
-* `a = []`, or
-* `m, n > 0` and `a₁ < b₁`, or
-* `m, n > 0`, `a₁ = b₁` and `[a₂, …, aₘ] ≤ [b₂, …, bₙ]`.
-
-For example, `[0x23, 0x45, 0x67, 0x89] < [0x24]` and `[0x23, 0x45] < [0x23, 0x45, 0x00]`,
-and the empty ByteString is below every other ByteString.
+ByteStrings are ordered lexicographically, comparing bytes as numbers. For example,
+`[0x23, 0x45, 0x67, 0x89] < [0x24]` and `[0x23, 0x45] < [0x23, 0x45, 0x00]`, and the
+empty ByteString is smaller than every other ByteString.
 
 ```
 _≤ᵇ_ : ByteString → ByteString → Bool
