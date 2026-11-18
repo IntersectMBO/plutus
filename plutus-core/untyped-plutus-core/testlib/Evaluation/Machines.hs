@@ -23,6 +23,7 @@ import PlutusCore.Compiler.Erase
 import PlutusCore.Data qualified as Data
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plc
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -74,7 +75,51 @@ test_machines =
     [ testMachine "CEK" $ Cek.evaluateCekNoEmit Plc.defaultCekParametersForTesting
     , testMachine "SteppableCEK" $ SCek.evaluateCekNoEmit Plc.defaultCekParametersForTesting
     , test_transitions
+    , test_builtinBudgetOrder
     ]
+
+-- A result must remain unevaluated until its entire budget has been spent. An exception
+-- detects premature evaluation even when ordinary result-and-budget comparisons would pass.
+test_builtinBudgetOrder :: TestTree
+test_builtinBudgetOrder =
+  testGroup
+    "builtin budget before result"
+    [ testCase (streamName ++ "/" ++ name) $ do
+        let result = BuiltinCostedResult budgets (throw BuiltinErrorCall)
+            runtime =
+              if forced
+                then BuiltinExpectForce result
+                else BuiltinExpectArgument (const result)
+            params =
+              MachineParameters def $
+                MachineVariantParameters
+                  Plc.defaultCekMachineCostsForTesting
+                  (BuiltinsRuntime $ const runtime)
+            mode = restricting $ ExRestrictingBudget $ ExBudget 1000000 1000000
+            report = Cek.runCekDeBruijn params mode logEmitter term
+        case cekResultToEither $ _cekReportResult report of
+          Left (ErrorWithCause (OperationalError (CekOutOfExError _)) _) -> pure ()
+          other -> assertFailure $ "Expected budget exhaustion, got: " ++ displayPlc other
+    | (streamName, budgets) <- streams
+    , (name, term, forced) <- terms
+    ]
+  where
+    excessive = ExBudget 1000000000000 1000000000000
+    streams =
+      [ ("single cost", ExBudgetLast excessive)
+      , ("unevaluated cost tail", ExBudgetCons excessive $ throw BuiltinErrorCall)
+      ]
+
+    one :: Term NamedDeBruijn DefaultUni DefaultFun ()
+    one = mkConstant () (1 :: Integer)
+    builtin = Builtin () AddInteger
+    terms =
+      [ ("apply", Apply () builtin one, False)
+      , ("force", Force () builtin, True)
+      , ("apply under function", Apply () (Apply () builtin one) one, False)
+      , ("force under function", Apply () (Force () builtin) one, True)
+      , ("evaluated arguments", Case () (Constr () 0 [one, one]) $ Vector.singleton builtin, False)
+      ]
 
 -- The steppable machine provides an independent reference for changes to CEK transitions.
 -- Returning a value directly and returning it through a builtin can take different optimized

@@ -108,6 +108,7 @@ import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Vector qualified as V
+import GHC.Exts (lazy)
 import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
@@ -820,22 +821,27 @@ the recursive return boundary, avoiding an intermediate value allocation.
 Application exposes its function-constructor dispatch. This allows computing an argument
 under a known lambda or builtin to retain the function's fields across the recursive
 computing boundary. Lambda entry inlines so that a known context can reach computing the
-body. Only environment extension has a permanent NOINLINE boundary: its result hides the
+body. Environment extension retains a permanent NOINLINE boundary: its result hides the
 environment shape from specialization without hiding the control-flow arguments. This
 keeps environment construction shared while allowing computing to specialize on the context.
 
-Builtin saturation dispatch is exposed, while applying and forcing each have a shared
-result worker. These workers receive the original operands, constructing the discharged
-application or force term only on failure. Passing an already assembled error term across
-that boundary can allocate a thunk even when the builtin succeeds. Budget spending still
-precedes inspecting the builtin result, and logging preserves its original order.
+Builtin saturation dispatch is exposed. Applying and forcing saturated builtins use shared
+operations that return a value after spending the budget and handling logs and failure.
+The machine context remains at the call site, allowing recursive returning to specialize on
+it without duplicating builtin execution. These operations are top-level to avoid allocating
+closures that capture the machine parameters on each evaluation.
 
-Saturated builtin results use the shared returning worker. Partial builtin applications
-can recur with the builtin fields and remaining argument stack, without intermediate value
-or frame boxes. This retains specialization of repeated partial applications while sharing
-the larger returning code after saturated results.
+The shared operations receive the original operands, constructing the discharged application
+or force term only on failure. Passing an already assembled error term across that boundary
+can allocate a thunk even when the builtin succeeds. The result passes through lazy to prevent
+demand analysis from making callers force it before budget spending. Logging preserves its
+original order.
 
-The other recursive workers use NOINLINE [0]: they cannot inline before phase 0 but remain
+Partial builtin applications can recur with the builtin fields and remaining argument stack,
+without intermediate value or frame boxes. Saturated results also retain the known context
+through the call to shared returning; no context-specific transition is defined by hand.
+
+The computing and returning workers use NOINLINE [0]: they cannot inline before phase 0 but remain
 eligible for SpecConstr. Nine specializations permit the seven nonempty context shapes and
 the known-lambda and known-builtin argument contexts in computing. Their definitions fully
 apply the step functions; partial applications can retain higher-order calls instead of
@@ -865,6 +871,60 @@ type CekBuiltin uni fun ann s =
   -> NTerm uni fun ()
   -> BuiltinRuntime (CekValue uni fun ann)
   -> CekM uni fun s (DischargeResult uni fun)
+
+applyResultValue
+  :: (ThrowableBuiltins uni fun, GivenCekSpender uni fun s, GivenCekEmitter uni fun s)
+  => fun
+  -> NTerm uni fun ()
+  -> CekValue uni fun ann
+  -> ExBudgetStream
+  -> BuiltinResult (CekValue uni fun ann)
+  -> CekM uni fun s (CekValue uni fun ann)
+applyResultValue fun funTerm arg budgets result =
+  builtinResultStep
+    fun
+    (Apply () funTerm (dischargeResultToTerm $ dischargeCekValue arg))
+    budgets
+    result
+{-# NOINLINE applyResultValue #-}
+
+forceResultValue
+  :: (ThrowableBuiltins uni fun, GivenCekSpender uni fun s, GivenCekEmitter uni fun s)
+  => fun
+  -> NTerm uni fun ()
+  -> ExBudgetStream
+  -> BuiltinResult (CekValue uni fun ann)
+  -> CekM uni fun s (CekValue uni fun ann)
+forceResultValue fun term budgets result =
+  builtinResultStep
+    fun
+    (Force () term)
+    budgets
+    result
+{-# NOINLINE forceResultValue #-}
+
+builtinResultStep
+  :: (ThrowableBuiltins uni fun, GivenCekSpender uni fun s, GivenCekEmitter uni fun s)
+  => fun
+  -> NTerm uni fun ()
+  -> ExBudgetStream
+  -> BuiltinResult (CekValue uni fun ann)
+  -> CekM uni fun s (CekValue uni fun ann)
+builtinResultStep fun term budgets0 getFXs = do
+  let exCat = BBuiltinApp fun
+      spendBudgets (ExBudgetLast budget) = unCekBudgetSpender ?cekBudgetSpender exCat budget
+      spendBudgets (ExBudgetCons budget budgets) =
+        unCekBudgetSpender ?cekBudgetSpender exCat budget *> spendBudgets budgets
+  spendBudgets budgets0
+  case lazy getFXs of
+    BuiltinSuccess y -> pure y
+    BuiltinSuccessWithLogs logs y -> do
+      ?cekEmitter logs
+      pure y
+    BuiltinFailure logs err -> do
+      ?cekEmitter logs
+      throwBuiltinErrorWithCause term err
+{-# INLINE builtinResultStep #-}
 
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
@@ -933,15 +993,10 @@ enterComputeCek =
       -> ExBudgetStream
       -> BuiltinResult (CekValue uni fun ann)
       -> CekM uni fun s (DischargeResult uni fun)
-    applyResultRec ctx fun funTerm arg budgets result =
-      builtinResultStep
-        returnCekRec
-        ctx
-        fun
-        (Apply () funTerm (dischargeResultToTerm $ dischargeCekValue arg))
-        budgets
-        result
-    {-# NOINLINE [0] applyResultRec #-}
+    applyResultRec ctx fun funTerm arg budgets result = do
+      val <- applyResultValue fun funTerm arg budgets result
+      returnCekRec ctx val
+    {-# INLINE applyResultRec #-}
 
     forceResultRec
       :: Context uni fun ann
@@ -950,15 +1005,10 @@ enterComputeCek =
       -> ExBudgetStream
       -> BuiltinResult (CekValue uni fun ann)
       -> CekM uni fun s (DischargeResult uni fun)
-    forceResultRec ctx fun term budgets result =
-      builtinResultStep
-        returnCekRec
-        ctx
-        fun
-        (Force () term)
-        budgets
-        result
-    {-# NOINLINE [0] forceResultRec #-}
+    forceResultRec ctx fun term budgets result = do
+      val <- forceResultValue fun term budgets result
+      returnCekRec ctx val
+    {-# INLINE forceResultRec #-}
 
     computeStep
       :: CekCompute uni fun ann s
@@ -1142,30 +1192,6 @@ enterComputeCek =
       BuiltinCostedResult budgets result -> resultGo budgets result
       _ -> returnGo ctx (VBuiltin fun term runtime)
     {-# INLINE builtinStep #-}
-
-    builtinResultStep
-      :: CekReturn uni fun ann s
-      -> Context uni fun ann
-      -> fun
-      -> NTerm uni fun ()
-      -> ExBudgetStream
-      -> BuiltinResult (CekValue uni fun ann)
-      -> CekM uni fun s (DischargeResult uni fun)
-    builtinResultStep returnGo ctx fun term budgets0 getFXs = do
-      let exCat = BBuiltinApp fun
-          spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
-          spendBudgets (ExBudgetCons budget budgets) =
-            spendBudget exCat budget *> spendBudgets budgets
-      spendBudgets budgets0
-      case getFXs of
-        BuiltinSuccess y -> returnGo ctx y
-        BuiltinSuccessWithLogs logs y -> do
-          ?cekEmitter logs
-          returnGo ctx y
-        BuiltinFailure logs err -> do
-          ?cekEmitter logs
-          throwBuiltinErrorWithCause term err
-    {-# INLINE builtinResultStep #-}
 
     -- Spend the budget accumulated for a number of machine steps.
     spendAccumulatedBudget :: CekM uni fun s ()
