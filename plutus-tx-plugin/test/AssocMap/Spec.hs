@@ -19,9 +19,14 @@
 
 module AssocMap.Spec where
 
+import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
+import PlutusTx.Data.AssocMap qualified as Data.AssocMap
 import PlutusTx.IsData ()
+import PlutusTx.IsData qualified as IsData
 import PlutusTx.Lift (liftCodeDef)
+import PlutusTx.Prelude qualified as PlutusTx
+import PlutusTx.TH (compile)
 import PlutusTx.Test
 
 import AssocMap.Golden
@@ -33,6 +38,7 @@ import AssocMap.Semantics
 import Test.Tasty (TestTree, localOption, testGroup)
 import Test.Tasty.Extras
 import Test.Tasty.Hedgehog (HedgehogTestLimit (..), testProperty)
+import Test.Tasty.HUnit (Assertion, testCase, (@?=))
 
 goldenTests :: TestNested
 goldenTests =
@@ -66,4 +72,51 @@ propertyTests =
       , testProperty "mapMaybe" mapMaybeSpec
       , testProperty "mapMaybeWithKey" mapMaybeWithKeySpec
       , testProperty "builtinDataEncoding" builtinDataEncodingSpec
+      , fromBuiltinDataTests
       ]
+
+fromBuiltinDataProgram ::
+  CompiledCode
+    ( PlutusTx.BuiltinData
+      -> PlutusTx.Maybe [(PlutusTx.Integer, PlutusTx.Integer)]
+    )
+fromBuiltinDataProgram =
+  $$( compile
+        [||
+        \d -> PlutusTx.fmap Data.AssocMap.toSOPList (IsData.fromBuiltinData d)
+        ||]
+    )
+
+fromBuiltinDataTests :: TestTree
+fromBuiltinDataTests =
+  testGroup
+    "Data.AssocMap FromData"
+    [ testCase "rejects Constr data" $
+        assertDecodesTo (Builtins.mkConstr 0 []) PlutusTx.Nothing
+    , testCase "rejects List data" $
+        assertDecodesTo (Builtins.mkList []) PlutusTx.Nothing
+    , testCase "rejects I data" $
+        assertDecodesTo (Builtins.mkI 1) PlutusTx.Nothing
+    , testCase "rejects B data" $
+        assertDecodesTo (Builtins.mkB "bytes") PlutusTx.Nothing
+    , testCase "decodes an empty map" $
+        assertDecodesTo (Builtins.mkMap []) (PlutusTx.Just [])
+    , testCase "decodes a populated map" $
+        assertDecodesTo
+          ( Builtins.mkMap
+              [ (Builtins.mkI 1, Builtins.mkI 2)
+              , (Builtins.mkI 3, Builtins.mkI 4)
+              ]
+          )
+          (PlutusTx.Just [(1, 2), (3, 4)])
+    ]
+
+assertDecodesTo ::
+  PlutusTx.BuiltinData
+  -> PlutusTx.Maybe [(PlutusTx.Integer, PlutusTx.Integer)]
+  -> Assertion
+assertDecodesTo d expected =
+  evaluationResultMatchesHaskell
+    (fromBuiltinDataProgram `unsafeApplyCode` liftCodeDef d)
+    (@?=)
+    expected
