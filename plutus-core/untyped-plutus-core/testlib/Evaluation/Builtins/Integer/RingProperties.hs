@@ -16,10 +16,9 @@ import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common
 import Evaluation.Builtins.Integer.Conformance
 
-import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter, PropertyId (..))
 
 import Control.Monad (when)
-import System.FilePath ((</>))
 
 import Test.QuickCheck.Random (QCGen)
 import Test.Tasty (TestName, TestTree, testGroup)
@@ -90,8 +89,9 @@ generate_integer_ring_properties format include outputDir numFiles seed =
   sequence_ $
     integerRingPropertiesWith
       ( \identifier _ prop ->
-          when (include (conformanceSuiteDirectory </> identifier)) $
-            generatePropertyFiles format (outputDir </> conformanceSuiteDirectory) numFiles seed identifier prop
+          let propertyId = PropertyId conformanceSuiteDirectory identifier
+           in when (include propertyId) $
+                generatePropertyFiles format outputDir numFiles seed propertyId prop
       )
 
 {-| Share stable identifiers, test descriptions and property definitions.
@@ -123,9 +123,9 @@ integerRingPropertiesWith testProp =
   ]
 
 -- | Qualified property names, without sampling inputs or evaluating checks.
-integer_ring_property_names :: [FilePath]
+integer_ring_property_names :: [PropertyId]
 integer_ring_property_names =
-  integerRingPropertiesWith $ \identifier _ _ -> conformanceSuiteDirectory </> identifier
+  integerRingPropertiesWith $ \identifier _ _ -> PropertyId conformanceSuiteDirectory identifier
 
-conformanceSuiteDirectory :: FilePath
-conformanceSuiteDirectory = "integer" </> "RingProperties"
+conformanceSuiteDirectory :: [String]
+conformanceSuiteDirectory = ["integer", "RingProperties"]

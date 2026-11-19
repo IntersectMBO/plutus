@@ -22,7 +22,7 @@ import Evaluation.Builtins.Common
   , integer
   , mkApp2
   )
-import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter, PropertyId (..))
 import PlutusCore.Crypto.BLS12_381.Bounds qualified as Bounds
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
@@ -41,7 +41,6 @@ import Data.List as List
   , genericReplicate
   , nub
   )
-import System.FilePath ((</>))
 import Test.QuickCheck.Random (QCGen)
 import Text.Printf (printf)
 
@@ -725,15 +724,16 @@ generate_bls12_381_properties format include outputDir numCases seed = do
   mapM_ (emit "pairing" id) pairingCases
   where
     emit group encodeResult (name, gen) =
-      when (include (conformanceSuiteDirectory </> group </> name)) $
-        generateBlsPropertyFiles
-          format
-          (outputDir </> conformanceSuiteDirectory </> group)
-          numCases
-          seed
-          name
-          encodeResult
-          gen
+      let propertyId = PropertyId (conformanceSuiteDirectory <> [group]) name
+       in when (include propertyId) $
+            generateBlsPropertyFiles
+              format
+              outputDir
+              numCases
+              seed
+              propertyId
+              encodeResult
+              gen
     generateGroup :: forall g. HashAndCompress g => IO ()
     generateGroup = mapM_ (emit (groupName @g) (compressTerm @g)) (groupCases @g)
 
@@ -776,13 +776,13 @@ pairingCases =
   ]
 
 -- | Qualified property names, without sampling inputs or evaluating checks.
-bls12_381_property_names :: [FilePath]
+bls12_381_property_names :: [PropertyId]
 bls12_381_property_names =
   map (qualify (groupName @G1.Element) . fst) (groupCases @G1.Element)
     <> map (qualify (groupName @G2.Element) . fst) (groupCases @G2.Element)
     <> map (qualify "pairing" . fst) pairingCases
   where
-    qualify group name = conformanceSuiteDirectory </> group </> name
+    qualify group name = PropertyId (conformanceSuiteDirectory <> [group]) name
 
-conformanceSuiteDirectory :: FilePath
-conformanceSuiteDirectory = "bls12_381" </> "BLS12_381"
+conformanceSuiteDirectory :: [String]
+conformanceSuiteDirectory = ["bls12_381", "BLS12_381"]

@@ -10,7 +10,12 @@ module Evaluation.Builtins.Integer.Conformance
 
 import Evaluation.Builtins.Common
 
-import Evaluation.Builtins.Conformance (OutputFormat, TermCase (..), generateTermFiles)
+import Evaluation.Builtins.Conformance
+  ( OutputFormat
+  , PropertyId
+  , TermCase (..)
+  , generateTermFiles
+  )
 
 import Test.QuickCheck
   ( Arbitrary (arbitrary)
@@ -71,15 +76,21 @@ with a shared number and -A/-B suffixes. Each exported term is evaluated
 once to obtain its expected result and budget. Files from a previous run with
 the same names are overwritten; other files are left untouched.
 
-Numbers are padded to five digits. The caller supplies the suite directory
-(for example, <output-dir>/integer/RingProperties) and a property identifier
-based on its Haskell function name (for example, @rem_pos_neg@). Output is placed in:
-<suite-dir>/<property-id>/<property-id>-<n>[-A|-B]/<property-id>-<n>[-A|-B]
+Numbers are padded to five digits. The caller supplies the property identifier,
+which carries both the suite segments and the property's own name. Output is placed in:
+<property-id-path>/<property-id-name>-<n>[-A|-B]/<property-id-name>-<n>[-A|-B]
 with .uplc and/or .flat inputs, matching .expected files, and .budget.expected. -}
 generatePropertyFiles
-  :: GenerateCases prop => OutputFormat -> FilePath -> Int -> QCGen -> String -> prop -> IO ()
-generatePropertyFiles format outputDir numFiles seed propertyName prop =
-  generateTermFiles format outputDir numFiles propertyName terms
+  :: GenerateCases prop
+  => OutputFormat
+  -> FilePath
+  -> Int
+  -> QCGen
+  -> PropertyId
+  -> prop
+  -> IO ()
+generatePropertyFiles format outputDir numFiles seed propertyId prop =
+  generateTermFiles format outputDir numFiles propertyId terms
   where
     -- Match the size used by QuickCheck's 'generate', with an explicit seed.
     cases = unGen (infiniteListOf (caseGenerator prop)) seed 30

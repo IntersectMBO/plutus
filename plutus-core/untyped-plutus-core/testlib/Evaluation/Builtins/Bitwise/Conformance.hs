@@ -13,7 +13,12 @@ module Evaluation.Builtins.Bitwise.Conformance
   ) where
 
 import Evaluation.Builtins.Common (PlcTerm)
-import Evaluation.Builtins.Conformance (OutputFormat, TermCase (..), generateTermFiles)
+import Evaluation.Builtins.Conformance
+  ( OutputFormat
+  , PropertyId
+  , TermCase (..)
+  , generateTermFiles
+  )
 import Evaluation.Helpers (evaluateTheSame)
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc (mkConstant)
@@ -62,9 +67,9 @@ QuickCheck seed. No property runner or assertions are involved. Discarded
 inputs are retried, and the lazy stream stops at the requested case count.
 Equality cases retain both terms, numbered together with -A/-B suffixes. -}
 generateBitwisePropertyFiles
-  :: OutputFormat -> FilePath -> Int -> QCGen -> String -> Gen Check -> IO ()
-generateBitwisePropertyFiles format outputDir numFiles seed name gen =
-  generateTermFiles format outputDir numFiles name $ concatMap terms cases
+  :: OutputFormat -> FilePath -> Int -> QCGen -> PropertyId -> Gen Check -> IO ()
+generateBitwisePropertyFiles format outputDir numFiles seed propertyId gen =
+  generateTermFiles format outputDir numFiles propertyId $ concatMap terms cases
   where
     seeds = unGen (QC.infiniteListOf QC.arbitrary) seed 30
     cases = mapMaybe (\s -> treeValue <$> evalGen 30 (Seed.from s) gen) seeds

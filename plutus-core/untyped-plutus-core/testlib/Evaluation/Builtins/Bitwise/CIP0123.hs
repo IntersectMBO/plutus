@@ -42,13 +42,12 @@ import PlutusCore.Test (mapTestLimitAtLeast)
 import Data.Bits qualified as Bits
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
-import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter, PropertyId (..))
 import Hedgehog (Gen, Property)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
 import Control.Monad (when)
-import System.FilePath ((</>))
 import Test.QuickCheck.Random (QCGen)
 import Test.Tasty (TestTree)
 import Test.Tasty.HUnit (testCase)
@@ -796,8 +795,9 @@ generate_bitwise_cip0123_properties
 generate_bitwise_cip0123_properties format include outputDir numFiles seed =
   mapM_
     ( \(name, gen) ->
-        when (include (conformanceSuiteDirectory </> name)) $
-          generateBitwisePropertyFiles format (outputDir </> conformanceSuiteDirectory) numFiles seed name gen
+        let propertyId = PropertyId conformanceSuiteDirectory name
+         in when (include propertyId) $
+              generateBitwisePropertyFiles format outputDir numFiles seed propertyId gen
     )
     conformanceProperties
 
@@ -833,9 +833,9 @@ conformanceProperties =
   ]
 
 -- | Qualified property names, without sampling inputs or evaluating checks.
-bitwise_cip0123_property_names :: [FilePath]
+bitwise_cip0123_property_names :: [PropertyId]
 bitwise_cip0123_property_names =
-  map ((conformanceSuiteDirectory </>) . fst) conformanceProperties
+  map (PropertyId conformanceSuiteDirectory . fst) conformanceProperties
 
-conformanceSuiteDirectory :: FilePath
-conformanceSuiteDirectory = "bitwise" </> "CIP0123"
+conformanceSuiteDirectory :: [String]
+conformanceSuiteDirectory = ["bitwise", "CIP0123"]

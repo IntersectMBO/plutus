@@ -17,10 +17,9 @@ import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common
 import Evaluation.Builtins.Integer.Conformance
 
-import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter, PropertyId (..))
 
 import Control.Monad (when)
-import System.FilePath ((</>))
 
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck.Random (QCGen)
@@ -152,8 +151,9 @@ generate_integer_quot_rem_properties format include outputDir numFiles seed =
   sequence_ $
     integerQuotRemPropertiesWith
       ( \identifier _ prop ->
-          when (include (conformanceSuiteDirectory </> identifier)) $
-            generatePropertyFiles format (outputDir </> conformanceSuiteDirectory) numFiles seed identifier prop
+          let propertyId = PropertyId conformanceSuiteDirectory identifier
+           in when (include propertyId) $
+                generatePropertyFiles format outputDir numFiles seed propertyId prop
       )
 
 {-| Share stable identifiers, test descriptions and property definitions.
@@ -196,9 +196,9 @@ integerQuotRemPropertiesWith testProp =
   ]
 
 -- | Qualified property names, without sampling inputs or evaluating checks.
-integer_quot_rem_property_names :: [FilePath]
+integer_quot_rem_property_names :: [PropertyId]
 integer_quot_rem_property_names =
-  integerQuotRemPropertiesWith $ \identifier _ _ -> conformanceSuiteDirectory </> identifier
+  integerQuotRemPropertiesWith $ \identifier _ _ -> PropertyId conformanceSuiteDirectory identifier
 
-conformanceSuiteDirectory :: FilePath
-conformanceSuiteDirectory = "integer" </> "QuotRemProperties"
+conformanceSuiteDirectory :: [String]
+conformanceSuiteDirectory = ["integer", "QuotRemProperties"]

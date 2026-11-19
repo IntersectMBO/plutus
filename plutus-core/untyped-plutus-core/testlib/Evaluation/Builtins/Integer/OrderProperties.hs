@@ -18,10 +18,9 @@ import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common
 import Evaluation.Builtins.Integer.Conformance
 
-import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter, PropertyId (..))
 
 import Control.Monad (when)
-import System.FilePath ((</>))
 
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck.Random (QCGen)
@@ -116,8 +115,9 @@ generate_integer_order_properties format include outputDir numFiles seed =
   sequence_ $
     integerOrderPropertiesWith
       ( \identifier _ prop ->
-          when (include (conformanceSuiteDirectory </> identifier)) $
-            generatePropertyFiles format (outputDir </> conformanceSuiteDirectory) numFiles seed identifier prop
+          let propertyId = PropertyId conformanceSuiteDirectory identifier
+           in when (include propertyId) $
+                generatePropertyFiles format outputDir numFiles seed propertyId prop
       )
 
 {-| Share stable identifiers, test descriptions and property definitions.
@@ -139,9 +139,9 @@ integerOrderPropertiesWith testProp =
   ]
 
 -- | Qualified property names, without sampling inputs or evaluating checks.
-integer_order_property_names :: [FilePath]
+integer_order_property_names :: [PropertyId]
 integer_order_property_names =
-  integerOrderPropertiesWith $ \identifier _ _ -> conformanceSuiteDirectory </> identifier
+  integerOrderPropertiesWith $ \identifier _ _ -> PropertyId conformanceSuiteDirectory identifier
 
-conformanceSuiteDirectory :: FilePath
-conformanceSuiteDirectory = "integer" </> "OrderProperties"
+conformanceSuiteDirectory :: [String]
+conformanceSuiteDirectory = ["integer", "OrderProperties"]

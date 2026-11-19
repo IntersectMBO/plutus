@@ -16,7 +16,12 @@ import Evaluation.Builtins.Common
   , evalTerm
   , mkApp1
   )
-import Evaluation.Builtins.Conformance (OutputFormat, TermCase (..), generateTermFiles)
+import Evaluation.Builtins.Conformance
+  ( OutputFormat
+  , PropertyId
+  , TermCase (..)
+  , generateTermFiles
+  )
 import PlutusCore qualified as PLC
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
@@ -54,9 +59,16 @@ instance Testable BlsCheck where
 Pairing tests return booleans and keep intermediate MlResult values inside
 the program, so no non-serialisable value escapes into a fixture. -}
 generateBlsPropertyFiles
-  :: OutputFormat -> FilePath -> Int -> QCGen -> String -> (PlcTerm -> PlcTerm) -> Gen BlsCheck -> IO ()
-generateBlsPropertyFiles format outputDir numCases seed name compressResult gen =
-  generateTermFiles format outputDir numCases name $ concatMap terms cases
+  :: OutputFormat
+  -> FilePath
+  -> Int
+  -> QCGen
+  -> PropertyId
+  -> (PlcTerm -> PlcTerm)
+  -> Gen BlsCheck
+  -> IO ()
+generateBlsPropertyFiles format outputDir numCases seed propertyId compressResult gen =
+  generateTermFiles format outputDir numCases propertyId $ concatMap terms cases
   where
     cases = unGen (infiniteListOf gen) seed 30
     groupResult = portableTerm . compressResult

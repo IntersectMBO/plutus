@@ -18,10 +18,9 @@ import Evaluation.Builtins.Integer.Conformance
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 
-import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter)
+import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter, PropertyId (..))
 
 import Control.Monad (when)
-import System.FilePath ((</>))
 
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck.Random (QCGen)
@@ -201,8 +200,9 @@ generate_integer_exp_mod_properties format include outputDir numFiles seed =
   sequence_ $
     integerExpModPropertiesWith
       ( \identifier _ prop ->
-          when (include (conformanceSuiteDirectory </> identifier)) $
-            generatePropertyFiles format (outputDir </> conformanceSuiteDirectory) numFiles seed identifier prop
+          let propertyId = PropertyId conformanceSuiteDirectory identifier
+           in when (include propertyId) $
+                generatePropertyFiles format outputDir numFiles seed propertyId prop
       )
 
 {-| Share stable identifiers, test descriptions and property definitions.
@@ -237,9 +237,9 @@ integerExpModPropertiesWith testProp =
   ]
 
 -- | Qualified property names, without sampling inputs or evaluating checks.
-integer_exp_mod_property_names :: [FilePath]
+integer_exp_mod_property_names :: [PropertyId]
 integer_exp_mod_property_names =
-  integerExpModPropertiesWith $ \identifier _ _ -> conformanceSuiteDirectory </> identifier
+  integerExpModPropertiesWith $ \identifier _ _ -> PropertyId conformanceSuiteDirectory identifier
 
-conformanceSuiteDirectory :: FilePath
-conformanceSuiteDirectory = "integer" </> "ExpModIntegerProperties"
+conformanceSuiteDirectory :: [String]
+conformanceSuiteDirectory = ["integer", "ExpModIntegerProperties"]
