@@ -1,7 +1,9 @@
 module Transform.Simplify.Spec where
 
 import PlutusCore qualified as PLC
-import PlutusCore.MkPlc (mkIterApp, mkIterAppNoAnn)
+import PlutusCore.Data qualified as Data
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
+import PlutusCore.MkPlc (mkConstant, mkIterApp, mkIterAppNoAnn)
 import PlutusPrelude (def)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
@@ -33,7 +35,10 @@ import UntypedPlutusCore
   , UVarDecl (..)
   , evalOptimizerT
   )
+import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.MkUPlc (mkIterLamAbs)
+import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
+import UntypedPlutusCore.Transform.Optimizer (evalOptimizer)
 import UntypedPlutusCore.Transform.PolyBuiltin (polyBuiltin)
 
 basic :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -536,7 +541,68 @@ test_simplify =
     $ fmap (uncurry goldenVsOptimized) testSimplifyInputs
       <> fmap (uncurry (goldenVsCse ExcludeWorkFree)) testCseInputs
       <> fmap (uncurry (goldenVsCse AllSubterms)) testCseInputsWorkFree
-      <> [testPolyBuiltin]
+      <> [testPolyBuiltin, testFuseUncons]
+
+testFuseUncons :: TestTree
+testFuseUncons =
+  testGroup
+    "fuse uncons"
+    [ testCase "forwards both fields to the consumer" $
+        simplify (uncons xs k) @?= direct xs k
+    , testCase "uses the constructor-data fields and tracks successive list tails" $
+        let fields body =
+              case_ (builtin PLC.UnConstrData `app` var "d") [lam "i" (lam "xs" body)]
+            onCons body = lam "a" (lam "as" body)
+         in simplify (fields (uncons (var "xs") (onCons (uncons (var "as") k))))
+              @?= fields (direct (var "xs") (onCons (direct (var "as") k)))
+    , testCase "tracks a list bound by a lambda application" $
+        let bind body = lam "xs" body `app` xs
+         in simplify (bind (uncons (var "xs") k)) @?= bind (direct (var "xs") k)
+    , testCase "requires fully applied list builtins" $ do
+        let tailFn = force (builtin PLC.TailList)
+            tailResult = tailFn `app` var "v"
+        simplify (uncons tailResult k) @?= direct tailResult k
+        unchanged (uncons tailFn k)
+    , testCase "only evaluates the selected branch" $
+        let empty = mkConstant () (Data.List [])
+            term =
+              case_
+                (producer (builtin PLC.UnListData `app` empty) (var "h") (var "t"))
+                [lam "p" (case_ (var "p") [err]), con 7]
+         in evaluateCekNoEmit defaultCekParametersForTesting (simplify term) @?= Right (con 7)
+    , testCase "preserves an unknown scrutinee" $
+        unchanged (uncons (var "v") k)
+    , testCase "preserves a constructor with too few fields" $
+        unchanged (uncons (constr 0 []) k)
+    , testCase "forgets a list fact when a binder shadows it" $
+        let term = lam "xs" (lam "xs" (uncons (var "xs") k)) `app` xs
+         in unchanged term
+    , testCase "keeps a pair still used by the consumer" $
+        unchanged (uncons xs (lam "a" (lam "b" (var "p"))))
+    , testCase "preserves swapped fields" $
+        unchanged (consume (producer xs (var "t") (var "h")) k)
+    , testCase "preserves a shadowed producer field" $
+        let branch = lam "h" (lam "h" (constr 0 [constr 0 [var "h", var "h"]]))
+         in unchanged (consume (case_ xs [branch, constr 1 []]) k)
+    , testCase "preserves empty, nonempty and malformed data on the CEK" $
+        let before = lam "d" (uncons xs k)
+            after = simplify before
+            eval term d =
+              evaluateCekNoEmit defaultCekParametersForTesting (term `app` mkConstant () d)
+         in map (eval after) inputs @?= map (eval before) inputs
+    ]
+  where
+    xs = builtin PLC.UnListData `app` var "d"
+    k = lam "a" (lam "b" (var "a"))
+    inputs = [Data.List [], Data.List [Data.I 1, Data.I 2], Data.I 3]
+    producer scrut h t =
+      case_ scrut [lam "h" (lam "t" (constr 0 [constr 0 [h, t]])), constr 1 []]
+    consume scrut handler = case_ scrut [lam "p" (case_ (var "p") [handler]), err]
+    uncons scrut = consume (producer scrut (var "h") (var "t"))
+    direct scrut handler = case_ scrut [handler, err]
+    simplify :: T -> T
+    simplify term = evalOptimizer (caseOfCase term)
+    unchanged term = simplify term @?= term
 
 --------------------------------------------------------------------------------
 -- Local helpers ---------------------------------------------------------------

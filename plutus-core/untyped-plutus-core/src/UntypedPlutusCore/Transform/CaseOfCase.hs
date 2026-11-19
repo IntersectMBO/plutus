@@ -1,5 +1,8 @@
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -51,9 +54,15 @@ import UntypedPlutusCore.Transform.Optimizer
 
 import Control.Lens
 import Data.List (nub)
+import Data.Set qualified as Set
+import Data.Typeable (eqT)
+import Data.Vector qualified as Vector
 
 caseOfCase
-  :: ( fun ~ PLC.DefaultFun
+  :: forall name uni fun m a
+   . ( Typeable name
+     , Typeable uni
+     , fun ~ PLC.DefaultFun
      , Monad m
      , CaseBuiltin uni
      , PLC.GEq uni
@@ -63,9 +72,74 @@ caseOfCase
   => Term name uni fun a
   -> OptimizerT name uni fun a m (Term name uni fun a)
 caseOfCase term = do
-  let result = transformOf termSubterms processTerm term
+  let result = case (eqT @name @PLC.Name, eqT @uni @PLC.DefaultUni) of
+        (Just Refl, Just Refl) -> simplifyWithListFacts term
+        _ -> transformOf termSubterms processTerm term
   recordOptimization term CaseOfCaseStage result
   return result
+
+-- The second field supplied by a non-empty builtin list, or by the builtin pair
+-- returned by unConstrData, is itself a list. Carry that fact into its branch,
+-- so subsequent uncons operations on the tail can fuse in the same traversal.
+simplifyWithListFacts
+  :: Term PLC.Name PLC.DefaultUni PLC.DefaultFun a
+  -> Term PLC.Name PLC.DefaultUni PLC.DefaultFun a
+simplifyWithListFacts = go Set.empty
+  where
+    go lists term = processTerm $ case fuseUncons lists term of
+      Case a scrut alts ->
+        let goAlt 0 (LamAbs b h (LamAbs c t body))
+              | knownList lists scrut || isConstrDataPair scrut =
+                  LamAbs b h $ LamAbs c t $ go (Set.insert t (Set.delete h lists)) body
+            goAlt _ alt = go lists alt
+         in Case a (go lists scrut) (Vector.imap goAlt alts)
+      Apply a (LamAbs b n body) rhs
+        | knownList lists rhs ->
+            Apply a (LamAbs b n (go (Set.insert n lists) body)) (go lists rhs)
+      LamAbs a n body -> LamAbs a n $ go (Set.delete n lists) body
+      other -> over termSubterms (go lists) other
+
+isConstrDataPair :: Term name uni PLC.DefaultFun a -> Bool
+isConstrDataPair (Apply _ (Builtin _ PLC.UnConstrData) _) = True
+isConstrDataPair _ = False
+
+-- Only the result on success matters: the new case evaluates the same scrutinee.
+knownList :: Set.Set PLC.Name -> Term PLC.Name PLC.DefaultUni PLC.DefaultFun a -> Bool
+knownList lists = \case
+  Var _ n -> Set.member n lists
+  Constant _ (PLC.Some (PLC.ValueOf (PLC.DefaultUniList _) _)) -> True
+  Apply _ (Builtin _ f) _ ->
+    f `elem` [PLC.UnListData, PLC.UnMapData, PLC.MkNilData, PLC.MkNilPairData]
+  Apply _ (Force _ (Builtin _ PLC.TailList)) _ -> True
+  Apply _ (Apply _ (Force _ (Builtin _ PLC.MkCons)) _) _ -> True
+  Apply _ (Force _ (Force _ (Builtin _ PLC.SndPair))) pair -> isConstrDataPair pair
+  _ -> False
+
+-- case (case xs [\h t -> Just (h,t), Nothing]) [\p -> case p [k], n]
+--   ==> case xs [k, n]
+-- The list proof is essential. For example, a nullary SOP constructor with tag
+-- zero would leave the original inner branch partially applied.
+fuseUncons
+  :: Set.Set PLC.Name
+  -> Term PLC.Name PLC.DefaultUni PLC.DefaultFun a
+  -> Term PLC.Name PLC.DefaultUni PLC.DefaultFun a
+fuseUncons lists (Case _ (Case a xs inner) outer)
+  | [consBranch, Constr _ 1 []] <- toList inner
+  , LamAbs _ h (LamAbs _ t (Constr _ 0 [Constr _ 0 [Var _ x, Var _ y]])) <- consBranch
+  , h == x && t == y && h /= t
+  , [LamAbs _ p (Case _ (Var _ v) branches), nil] <- toList outer
+  , p == v
+  , [k] <- toList branches
+  , knownList lists xs
+  , not (occursFree p k) =
+      Case a xs (Vector.fromList [k, nil])
+fuseUncons _ term = term
+
+occursFree :: Eq name => name -> Term name uni fun a -> Bool
+occursFree name = \case
+  Var _ v -> name == v
+  LamAbs _ v _ | name == v -> False
+  other -> anyOf termSubterms (occursFree name) other
 
 processTerm
   :: ( fun ~ PLC.DefaultFun
