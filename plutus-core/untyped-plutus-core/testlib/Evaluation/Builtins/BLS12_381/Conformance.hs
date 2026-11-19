@@ -4,8 +4,8 @@
 
 -- | Unevaluated BLS checks shared by normal tests and conformance generation.
 module Evaluation.Builtins.BLS12_381.Conformance
-  ( BlsCheck (..)
-  , generateBlsPropertyFiles
+  ( generateBlsPropertyFiles
+  , hasCompressionBit
   ) where
 
 import Evaluation.Builtins.BLS12_381.Utils (compressionBit, isSet)
@@ -13,13 +13,14 @@ import Evaluation.Builtins.Common
   ( PlcTerm
   , TypeErrorOrCekResult (..)
   , bytestring
-  , evalTerm
   , mkApp1
   )
 import Evaluation.Builtins.Conformance
-  ( OutputFormat
+  ( Check (..)
+  , OutputFormat
   , PropertyId
   , TermCase (..)
+  , caseTerms
   , generateTermFiles
   )
 import PlutusCore qualified as PLC
@@ -29,31 +30,16 @@ import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkTyBuiltinOf)
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Lens (transformOf)
-import Data.List (nub)
-import Test.QuickCheck (Gen, Testable (property), infiniteListOf, (.&.), (===), (==>))
+import Test.QuickCheck (Gen, infiniteListOf)
 import Test.QuickCheck.Gen (unGen)
 import Test.QuickCheck.Random (QCGen)
 
-{-| The Haskell-only checks are deliberately retained for normal test execution.
-Export uses just their scripts; it never evaluates these assertions. -}
-data BlsCheck
-  = EvaluatesTo PlcTerm TypeErrorOrCekResult
-  | SameResult PlcTerm PlcTerm
-  | CompressionBitSet PlcTerm
-  | DistinctResults [PlcTerm]
-  | Given Bool BlsCheck
-
-instance Testable BlsCheck where
-  property (EvaluatesTo term expected) = evalTerm term === expected
-  property (SameResult lhs rhs) = evalTerm lhs === evalTerm rhs
-  property (CompressionBitSet term) = property $ case evalTerm term of
-    CekSuccess (UPLC.Constant _ (PLC.Some (PLC.ValueOf PLC.DefaultUniByteString bs))) ->
-      isSet compressionBit bs
-    _ -> False
-  property (DistinctResults terms) =
-    let results = map evalTerm terms
-     in property (all (/= CekError) results) .&. (length results === length (nub results))
-  property (Given condition check) = condition ==> check
+-- | The evaluated term returned a bytestring with the compression bit set.
+hasCompressionBit :: TypeErrorOrCekResult -> Bool
+hasCompressionBit
+  (CekSuccess (UPLC.Constant _ (PLC.Some (PLC.ValueOf PLC.DefaultUniByteString bs)))) =
+    isSet compressionBit bs
+hasCompressionBit _ = False
 
 {-| The caller supplies the group's compressor for group-valued results.
 Pairing tests return booleans and keep intermediate MlResult values inside
@@ -65,19 +51,24 @@ generateBlsPropertyFiles
   -> QCGen
   -> PropertyId
   -> (PlcTerm -> PlcTerm)
-  -> Gen BlsCheck
+  -> Gen Check
   -> IO ()
 generateBlsPropertyFiles format outputDir numCases seed propertyId compressResult gen =
-  generateTermFiles format outputDir numCases propertyId $ concatMap terms cases
+  generateTermFiles format outputDir numCases propertyId $ concatMap termCases cases
   where
     cases = unGen (infiniteListOf gen) seed 30
     groupResult = portableTerm . compressResult
-    terms (EvaluatesTo term CekError) = [SingleTerm (groupResult term)]
-    terms (EvaluatesTo term _) = [SingleTerm (portableTerm term)]
-    terms (SameResult lhs rhs) = [EqualTerms (groupResult lhs) (groupResult rhs)]
-    terms (CompressionBitSet term) = [SingleTerm (portableTerm term)]
-    terms (DistinctResults ts) = map (SingleTerm . groupResult) ts
-    terms (Given condition check) = if condition then terms check else []
+    -- Group-valued results are compressed so that the exported programs and
+    -- their expected results can be encoded.
+    termCases check = case check of
+      CheckEq lhs rhs -> [EqualTerms (groupResult lhs) (groupResult rhs)]
+      CheckEvaluatesTo term CekError -> [SingleTerm (groupResult term)]
+      CheckEvaluatesTo term _ -> [SingleTerm (portableTerm term)]
+      CheckSatisfies _ term _ -> [SingleTerm (portableTerm term)]
+      CheckDistinct terms -> map (SingleTerm . groupResult) terms
+      CheckBoth a b -> termCases a <> termCases b
+      CheckImplies condition inner -> if condition then termCases inner else []
+      _ -> caseTerms check
 
 {-| Group constants cannot be encoded in Flat. Reconstruct inputs from their
 compressed bytes at runtime, including elements in multiScalarMul's lists.

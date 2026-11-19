@@ -18,10 +18,8 @@ import Evaluation.Builtins.Integer.Conformance
 
 import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter, PropertyId (..))
 
-import Control.Monad (when)
-
 import Test.QuickCheck.Random (QCGen)
-import Test.Tasty (TestName, TestTree, testGroup)
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck
 
 -- a+(b+c) = (a+b)+c
@@ -78,54 +76,52 @@ prop_distibutive (biginteger -> a) (biginteger -> b) (biginteger -> c) =
 test_integer_ring_properties :: TestTree
 test_integer_ring_properties =
   testGroup "Ring properties for integer arithmetic builtins" $
-    integerRingPropertiesWith $
-      \_ name prop -> testProperty name prop
+    testPropertySpecs id integerRingProperties
 
-{-| Generate the requested number of numbered cases per property, with expected
-results and budgets. No property assertions are run. -}
-generate_integer_ring_properties
-  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
-generate_integer_ring_properties format include outputDir numFiles seed =
-  sequence_ $
-    integerRingPropertiesWith
-      ( \identifier _ prop ->
-          let propertyId = PropertyId conformanceSuiteDirectory identifier
-           in when (include propertyId) $
-                generatePropertyFiles format outputDir numFiles seed propertyId prop
-      )
-
-{-| Share stable identifiers, test descriptions and property definitions.
-Identifiers follow the function names, with any @prop_@ prefix removed. -}
-integerRingPropertiesWith
-  :: (forall prop. (Testable prop, GenerateCases prop) => String -> TestName -> prop -> result)
-  -> [result]
-integerRingPropertiesWith testProp =
-  [ testProp "addition_associative" "addInteger is associative" prop_addition_associative
-  , testProp "addition_commutative" "addInteger is commutative" prop_addition_commutative
-  , testProp
+-- | Properties shared by the test suite and the corpus generator.
+integerRingProperties :: [PropertySpec (Gen Check)]
+integerRingProperties =
+  [ propertySpec "addition_associative" "addInteger is associative" prop_addition_associative
+  , propertySpec "addition_commutative" "addInteger is commutative" prop_addition_commutative
+  , propertySpec
       "zero_additive_identity"
       "0 is an identity element for addInteger"
       prop_zero_additive_identity
-  , testProp "add_subtract_inverse" "subtraction is the inverse of addition" prop_add_subtract_inverse
-  , testProp
+  , propertySpec
+      "add_subtract_inverse"
+      "subtraction is the inverse of addition"
+      prop_add_subtract_inverse
+  , propertySpec
       "multiplication_associative"
       "multiplyInteger is associative"
       prop_multiplication_associative
-  , testProp
+  , propertySpec
       "multiplication_commutative"
       "multiplyInteger is commutative"
       prop_multiplication_commutative
-  , testProp
+  , propertySpec
       "one_multiplicative_identity"
       "1 is a multiplicative identity"
       prop_one_multiplicative_identity
-  , testProp "distibutive" "multiplyInteger distributes over addInteger" prop_distibutive
+  , propertySpec "distibutive" "multiplyInteger distributes over addInteger" prop_distibutive
   ]
+
+generate_integer_ring_properties
+  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
+generate_integer_ring_properties format include outputDir numFiles seed =
+  generatePropertySpecs
+    format
+    include
+    outputDir
+    numFiles
+    seed
+    conformanceSuiteDirectory
+    integerRingProperties
 
 -- | Qualified property names, without sampling inputs or evaluating checks.
 integer_ring_property_names :: [PropertyId]
 integer_ring_property_names =
-  integerRingPropertiesWith $ \identifier _ _ -> PropertyId conformanceSuiteDirectory identifier
+  propertySpecPropertyIds conformanceSuiteDirectory integerRingProperties
 
 conformanceSuiteDirectory :: [String]
 conformanceSuiteDirectory = ["integer", "RingProperties"]

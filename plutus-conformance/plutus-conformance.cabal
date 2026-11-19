@@ -126,12 +126,27 @@ executable generate-agda-conformance
     , bytestring
     , containers
     , directory
-    , filepath
     , plutus-conformance
     , plutus-core         ^>=1.72
     , plutus-metatheory   ^>=1.72
     , text
     , transformers
+
+test-suite generated-conformance-fixtures
+  import:         lang, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts
+  hs-source-dirs: test-generated
+  build-depends:
+    , base                                     >=4.9   && <5
+    , directory
+    , filepath
+    , plutus-conformance
+    , plutus-core                              ^>=1.72
+    , plutus-core:untyped-plutus-core-testlib
+    , QuickCheck
+    , tasty
 
 test-suite conformance-consistency
   import:         lang, os-support
@@ -144,7 +159,6 @@ test-suite conformance-consistency
     , base                >=4.9   && <5
     , bytestring
     , directory
-    , filepath
     , plutus-conformance
     , plutus-core         ^>=1.72
     , tasty

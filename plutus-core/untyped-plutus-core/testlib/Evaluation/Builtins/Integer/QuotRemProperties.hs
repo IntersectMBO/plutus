@@ -19,11 +19,9 @@ import Evaluation.Builtins.Integer.Conformance
 
 import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter, PropertyId (..))
 
-import Control.Monad (when)
-
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck.Random (QCGen)
-import Test.Tasty (TestName, TestTree, testGroup)
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck
 
 numberOfTests :: Int
@@ -140,65 +138,60 @@ prop_rem_neg_neg (NonPositive (biginteger -> a)) (Negative (biginteger -> b)) =
 test_integer_quot_rem_properties :: TestTree
 test_integer_quot_rem_properties =
   testGroup "Property tests for quotientInteger and remainderInteger" $
-    integerQuotRemPropertiesWith $ \_ name prop ->
-      testProperty name $ BaseQC.withNumTests numberOfTests prop
+    testPropertySpecs (BaseQC.withNumTests numberOfTests) integerQuotRemProperties
 
-{-| Generate the requested number of numbered cases per property, with expected
-results and budgets. No property assertions are run. -}
-generate_integer_quot_rem_properties
-  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
-generate_integer_quot_rem_properties format include outputDir numFiles seed =
-  sequence_ $
-    integerQuotRemPropertiesWith
-      ( \identifier _ prop ->
-          let propertyId = PropertyId conformanceSuiteDirectory identifier
-           in when (include propertyId) $
-                generatePropertyFiles format outputDir numFiles seed propertyId prop
-      )
-
-{-| Share stable identifiers, test descriptions and property definitions.
-Identifiers follow the function names, with any @prop_@ prefix removed. -}
-integerQuotRemPropertiesWith
-  :: (forall prop. (Testable prop, GenerateCases prop) => String -> TestName -> prop -> result)
-  -> [result]
-integerQuotRemPropertiesWith testProp =
-  [ testProp "quot_0_fails" "quotientInteger _ 0 always fails" prop_quot_0_fails
-  , testProp "rem_0_fails" "remainderInteger _ 0 always fails" prop_rem_0_fails
-  , testProp
+-- | Properties shared by the test suite and the corpus generator.
+integerQuotRemProperties :: [PropertySpec (Gen Check)]
+integerQuotRemProperties =
+  [ propertySpec "quot_0_fails" "quotientInteger _ 0 always fails" prop_quot_0_fails
+  , propertySpec "rem_0_fails" "remainderInteger _ 0 always fails" prop_rem_0_fails
+  , propertySpec
       "quot_rem_compatible"
       "quotientInteger and remainderInteger are compatible"
       prop_quot_rem_compatible
-  , testProp
+  , propertySpec
       "quot_rem_multiple"
       "quotientInteger and remainderInteger behave sensibly on multiples of the divisor"
       prop_quot_rem_multiple
-  , testProp
+  , propertySpec
       "rem_additive_pos"
       "remainderInteger _ b is additive on non-negative inputs"
       prop_rem_additive_pos
-  , testProp
+  , propertySpec
       "rem_additive_neg"
       "remainderInteger _ b is additive on non-positive inputs"
       prop_rem_additive_neg
-  , testProp
+  , propertySpec
       "rem_multiplicative"
       "remainderInteger is a multiplicative homomorphism"
       prop_rem_multiplicative
-  , testProp "rem_size" "remainderInteger size correct" prop_rem_size
-  , testProp "quot_pos_pos" "quotientInteger (>= 0) (> 0) >= 0" prop_quot_pos_pos
-  , testProp "quot_neg_pos" "quotientInteger (<= 0) (> 0) <= 0" prop_quot_neg_pos
-  , testProp "quot_pos_neg" "quotientInteger (>= 0) (< 0) <= 0" prop_quot_pos_neg
-  , testProp "quot_neg_neg" "quotientInteger (<= 0) (< 0) >= 0" prop_quot_neg_neg
-  , testProp "rem_pos_pos" "remainderInteger (>= 0) (> 0) >= 0" prop_rem_pos_pos
-  , testProp "rem_neg_pos" "remainderInteger (<= 0) (> 0) <= 0" prop_rem_neg_pos
-  , testProp "rem_pos_neg" "remainderInteger (>= 0) (< 0) >= 0" prop_rem_pos_neg
-  , testProp "rem_neg_neg" "remainderInteger (<= 0) (< 0) <= 0" prop_rem_neg_neg
+  , propertySpec "rem_size" "remainderInteger size correct" prop_rem_size
+  , propertySpec "quot_pos_pos" "quotientInteger (>= 0) (> 0) >= 0" prop_quot_pos_pos
+  , propertySpec "quot_neg_pos" "quotientInteger (<= 0) (> 0) <= 0" prop_quot_neg_pos
+  , propertySpec "quot_pos_neg" "quotientInteger (>= 0) (< 0) <= 0" prop_quot_pos_neg
+  , propertySpec "quot_neg_neg" "quotientInteger (<= 0) (< 0) >= 0" prop_quot_neg_neg
+  , propertySpec "rem_pos_pos" "remainderInteger (>= 0) (> 0) >= 0" prop_rem_pos_pos
+  , propertySpec "rem_neg_pos" "remainderInteger (<= 0) (> 0) <= 0" prop_rem_neg_pos
+  , propertySpec "rem_pos_neg" "remainderInteger (>= 0) (< 0) >= 0" prop_rem_pos_neg
+  , propertySpec "rem_neg_neg" "remainderInteger (<= 0) (< 0) <= 0" prop_rem_neg_neg
   ]
+
+generate_integer_quot_rem_properties
+  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
+generate_integer_quot_rem_properties format include outputDir numFiles seed =
+  generatePropertySpecs
+    format
+    include
+    outputDir
+    numFiles
+    seed
+    conformanceSuiteDirectory
+    integerQuotRemProperties
 
 -- | Qualified property names, without sampling inputs or evaluating checks.
 integer_quot_rem_property_names :: [PropertyId]
 integer_quot_rem_property_names =
-  integerQuotRemPropertiesWith $ \identifier _ _ -> PropertyId conformanceSuiteDirectory identifier
+  propertySpecPropertyIds conformanceSuiteDirectory integerQuotRemProperties
 
 conformanceSuiteDirectory :: [String]
 conformanceSuiteDirectory = ["integer", "QuotRemProperties"]

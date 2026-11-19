@@ -12,20 +12,39 @@ module Evaluation.Builtins.Bitwise.Conformance
   , generateBitwisePropertyFiles
   ) where
 
-import Evaluation.Builtins.Common (PlcTerm)
+import Evaluation.Builtins.Common
+  ( PlcTerm
+  , TypeErrorOrCekResult (..)
+  , cekSuccessTrue
+  , evalTerm
+  )
 import Evaluation.Builtins.Conformance
-  ( OutputFormat
+  ( Check (..)
+  , OutputFormat
   , PropertyId
-  , TermCase (..)
+  , caseTerms
   , generateTermFiles
+  , isCekSuccess
   )
 import Evaluation.Helpers (evaluateTheSame)
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc (mkConstant)
 
 import Data.ByteString (ByteString)
+import Data.List (nub)
 import Data.Maybe (mapMaybe)
-import Hedgehog (Gen, Property, forAll, property)
+import Hedgehog
+  ( Gen
+  , Property
+  , annotate
+  , annotateShow
+  , assert
+  , failure
+  , forAll
+  , property
+  , success
+  , (===)
+  )
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Internal.Gen (evalGen)
 import Hedgehog.Internal.Seed qualified as Seed
@@ -35,26 +54,33 @@ import Test.QuickCheck qualified as QC
 import Test.QuickCheck.Gen (unGen)
 import Test.QuickCheck.Random (QCGen)
 
--- | Expected constants are used only by the normal tests, never emitted as inputs.
-data Check
-  = CheckSame PlcTerm PlcTerm
-  | CheckConstant PlcTerm PlcTerm
-  | CheckBoth Check Check
-  deriving stock (Show)
-
 checkSame :: PlcTerm -> PlcTerm -> Gen Check
-checkSame lhs rhs = pure $ CheckSame lhs rhs
+checkSame lhs rhs = pure $ CheckEq lhs rhs
 
+{-| Compare a term's result with a constant. The constant is only used by the
+normal tests; the corpus exports the term alone. -}
 checkConstant :: forall a. PLC.Contains PLC.DefaultUni a => a -> PlcTerm -> Gen Check
-checkConstant expected term = pure $ CheckConstant (mkConstant () expected) term
+checkConstant expected term =
+  pure $ CheckEvaluatesTo term (CekSuccess (mkConstant () expected))
 
 -- | Keep Hedgehog's input shrinking and normal assertion reporting.
 checkProperty :: Gen Check -> Property
 checkProperty gen = property $ forAll gen >>= check
   where
-    check (CheckSame lhs rhs) = evaluateTheSame lhs rhs
-    check (CheckConstant expected term) = evaluateTheSame expected term
+    check (CheckEq lhs rhs) = evaluateTheSame lhs rhs
+    check (CheckEvaluatesTo term expected) = evalTerm term === expected
+    check (CheckTrue term) = evalTerm term === cekSuccessTrue
+    check (CheckOk term) = case evalTerm term of
+      CekSuccess _ -> success
+      result -> annotateShow result >> failure
+    check (CheckFails term) = evalTerm term === CekError
     check (CheckBoth lhs rhs) = check lhs >> check rhs
+    check (CheckImplies condition inner) = if condition then check inner else success
+    check (CheckDistinct terms) =
+      let results = map evalTerm terms
+       in assert (all isCekSuccess results && length results == length (nub results))
+    check (CheckSatisfies label term predicate) =
+      annotate label >> assert (predicate (evalTerm term))
 
 genByteString :: Int -> Int -> Gen ByteString
 genByteString lo hi = Gen.bytes $ Range.linear lo hi
@@ -69,10 +95,7 @@ Equality cases retain both terms, numbered together with -A/-B suffixes. -}
 generateBitwisePropertyFiles
   :: OutputFormat -> FilePath -> Int -> QCGen -> PropertyId -> Gen Check -> IO ()
 generateBitwisePropertyFiles format outputDir numFiles seed propertyId gen =
-  generateTermFiles format outputDir numFiles propertyId $ concatMap terms cases
+  generateTermFiles format outputDir numFiles propertyId $ concatMap caseTerms cases
   where
     seeds = unGen (QC.infiniteListOf QC.arbitrary) seed 30
     cases = mapMaybe (\s -> treeValue <$> evalGen 30 (Seed.from s) gen) seeds
-    terms (CheckSame lhs rhs) = [EqualTerms lhs rhs]
-    terms (CheckConstant _ term) = [SingleTerm term]
-    terms (CheckBoth lhs rhs) = terms lhs <> terms rhs

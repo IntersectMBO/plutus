@@ -17,11 +17,9 @@ import Evaluation.Builtins.Integer.Conformance
 
 import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter, PropertyId (..))
 
-import Control.Monad (when)
-
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck.Random (QCGen)
-import Test.Tasty (TestName, TestTree, testGroup)
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck
 
 numberOfTests :: Int
@@ -124,53 +122,51 @@ prop_mod_neg_neg (NonPositive (biginteger -> a)) (Negative (biginteger -> b)) =
 test_integer_div_mod_properties :: TestTree
 test_integer_div_mod_properties =
   testGroup "Property tests for divideInteger and modInteger" $
-    integerDivModPropertiesWith $ \_ name prop ->
-      testProperty name $ BaseQC.withNumTests numberOfTests prop
+    testPropertySpecs (BaseQC.withNumTests numberOfTests) integerDivModProperties
 
-{-| Generate the requested number of numbered cases per property, with expected
-results and budgets. No property assertions are run. -}
-generate_integer_div_mod_properties
-  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
-generate_integer_div_mod_properties format include outputDir numFiles seed =
-  sequence_ $
-    integerDivModPropertiesWith
-      ( \identifier _ prop ->
-          let propertyId = PropertyId conformanceSuiteDirectory identifier
-           in when (include propertyId) $
-                generatePropertyFiles format outputDir numFiles seed propertyId prop
-      )
-
-{-| Share stable identifiers, test descriptions and property definitions.
-Identifiers follow the function names, with any @prop_@ prefix removed. -}
-integerDivModPropertiesWith
-  :: (forall prop. (Testable prop, GenerateCases prop) => String -> TestName -> prop -> result)
-  -> [result]
-integerDivModPropertiesWith testProp =
-  [ testProp "div_0_fails" "divideInteger _ 0 always fails" prop_div_0_fails
-  , testProp "mod_0_fails" "modInteger _ 0 always fails" prop_mod_0_fails
-  , testProp "div_mod_compatible" "divideInteger and modInteger are compatible" prop_div_mod_compatible
-  , testProp
+-- | Properties shared by the test suite and the corpus generator.
+integerDivModProperties :: [PropertySpec (Gen Check)]
+integerDivModProperties =
+  [ propertySpec "div_0_fails" "divideInteger _ 0 always fails" prop_div_0_fails
+  , propertySpec "mod_0_fails" "modInteger _ 0 always fails" prop_mod_0_fails
+  , propertySpec
+      "div_mod_compatible"
+      "divideInteger and modInteger are compatible"
+      prop_div_mod_compatible
+  , propertySpec
       "div_mod_multiple"
       "divideInteger and modInteger behave sensibly on multiples of the divisor"
       prop_div_mod_multiple
-  , testProp "mod_additive" "mod is an additive homomorphism" prop_mod_additive
-  , testProp "mod_multiplicative" "mod is a multiplicative homomorphism" prop_mod_multiplicative
-  , testProp "mod_size_pos" "modInteger size is correct for positive modulus" prop_mod_size_pos
-  , testProp "mod_size_neg" "modInteger size is correct for negative modulus" prop_mod_size_neg
-  , testProp "div_pos_pos" "divideInteger (>= 0) (> 0) >= 0" prop_div_pos_pos
-  , testProp "div_neg_pos" "divideInteger (<= 0) (> 0) <= 0" prop_div_neg_pos
-  , testProp "div_pos_neg" "divideInteger (>= 0) (< 0) <= 0" prop_div_pos_neg
-  , testProp "div_neg_neg" "divideInteger (<= 0) (< 0) >= 0" prop_div_neg_neg
-  , testProp "mod_pos_pos" "modInteger (>= 0) (> 0) >= 0 " prop_mod_pos_pos
-  , testProp "mod_neg_pos" "modInteger (>= 0) (< 0) >= 0" prop_mod_neg_pos
-  , testProp "mod_pos_neg" "modInteger (<= 0) (> 0) <= 0" prop_mod_pos_neg
-  , testProp "mod_neg_neg" "modInteger (<= 0) (< 0) <= 0" prop_mod_neg_neg
+  , propertySpec "mod_additive" "mod is an additive homomorphism" prop_mod_additive
+  , propertySpec "mod_multiplicative" "mod is a multiplicative homomorphism" prop_mod_multiplicative
+  , propertySpec "mod_size_pos" "modInteger size is correct for positive modulus" prop_mod_size_pos
+  , propertySpec "mod_size_neg" "modInteger size is correct for negative modulus" prop_mod_size_neg
+  , propertySpec "div_pos_pos" "divideInteger (>= 0) (> 0) >= 0" prop_div_pos_pos
+  , propertySpec "div_neg_pos" "divideInteger (<= 0) (> 0) <= 0" prop_div_neg_pos
+  , propertySpec "div_pos_neg" "divideInteger (>= 0) (< 0) <= 0" prop_div_pos_neg
+  , propertySpec "div_neg_neg" "divideInteger (<= 0) (< 0) >= 0" prop_div_neg_neg
+  , propertySpec "mod_pos_pos" "modInteger (>= 0) (> 0) >= 0 " prop_mod_pos_pos
+  , propertySpec "mod_neg_pos" "modInteger (>= 0) (< 0) >= 0" prop_mod_neg_pos
+  , propertySpec "mod_pos_neg" "modInteger (<= 0) (> 0) <= 0" prop_mod_pos_neg
+  , propertySpec "mod_neg_neg" "modInteger (<= 0) (< 0) <= 0" prop_mod_neg_neg
   ]
+
+generate_integer_div_mod_properties
+  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
+generate_integer_div_mod_properties format include outputDir numFiles seed =
+  generatePropertySpecs
+    format
+    include
+    outputDir
+    numFiles
+    seed
+    conformanceSuiteDirectory
+    integerDivModProperties
 
 -- | Qualified property names, without sampling inputs or evaluating checks.
 integer_div_mod_property_names :: [PropertyId]
 integer_div_mod_property_names =
-  integerDivModPropertiesWith $ \identifier _ _ -> PropertyId conformanceSuiteDirectory identifier
+  propertySpecPropertyIds conformanceSuiteDirectory integerDivModProperties
 
 conformanceSuiteDirectory :: [String]
 conformanceSuiteDirectory = ["integer", "DivModProperties"]

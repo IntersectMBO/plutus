@@ -20,11 +20,9 @@ import Evaluation.Builtins.Integer.Conformance
 
 import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter, PropertyId (..))
 
-import Control.Monad (when)
-
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck.Random (QCGen)
-import Test.Tasty (TestName, TestTree, testGroup)
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck
 
 numberOfTests :: Int
@@ -104,44 +102,39 @@ mul_neg_neg (NonPositive (biginteger -> a)) (NonPositive (biginteger -> b)) =
 test_integer_order_properties :: TestTree
 test_integer_order_properties =
   testGroup "Property tests involving integer ordering" $
-    integerOrderPropertiesWith $ \_ name prop ->
-      testProperty name $ BaseQC.withNumTests numberOfTests prop
+    testPropertySpecs (BaseQC.withNumTests numberOfTests) integerOrderProperties
 
-{-| Generate the requested number of numbered cases per property, with expected
-results and budgets. No property assertions are run. -}
+-- | Properties shared by the test suite and the corpus generator.
+integerOrderProperties :: [PropertySpec (Gen Check)]
+integerOrderProperties =
+  [ propertySpec "lte_reflexive" "lessThanEqualsInteger is reflexive" lte_reflexive
+  , propertySpec "lte_antisymmetric" "lessThanEqualsInteger is antisymmetric" lte_antisymmetric
+  , propertySpec "lte_transitive" "lessThanEqualsInteger is transitive" lte_transitive
+  , propertySpec "lt_versus_lte" "a <= b <=> a < b or a = b" lt_versus_lte
+  , propertySpec "trichotomy" "a < b or a = b or b < a" trichotomy
+  , propertySpec "add_pairs" "a <= b and c <= d => addInteger a c <= addInteger b d" add_pairs
+  , propertySpec "mul_pos_pos" "multiplyInteger (>= 0) (>= 0) >= 0" mul_pos_pos
+  , propertySpec "mul_pos_neg" "multiplyInteger (>= 0) (<= 0) <= 0" mul_pos_neg
+  , propertySpec "mul_neg_pos" "multiplyInteger (<= 0) (>= 0) <= 0" mul_neg_pos
+  , propertySpec "mul_neg_neg" "multiplyInteger (<= 0) (<= 0) >= 0" mul_neg_neg
+  ]
+
 generate_integer_order_properties
   :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
 generate_integer_order_properties format include outputDir numFiles seed =
-  sequence_ $
-    integerOrderPropertiesWith
-      ( \identifier _ prop ->
-          let propertyId = PropertyId conformanceSuiteDirectory identifier
-           in when (include propertyId) $
-                generatePropertyFiles format outputDir numFiles seed propertyId prop
-      )
-
-{-| Share stable identifiers, test descriptions and property definitions.
-Identifiers follow the function names, with any @prop_@ prefix removed. -}
-integerOrderPropertiesWith
-  :: (forall prop. (Testable prop, GenerateCases prop) => String -> TestName -> prop -> result)
-  -> [result]
-integerOrderPropertiesWith testProp =
-  [ testProp "lte_reflexive" "lessThanEqualsInteger is reflexive" lte_reflexive
-  , testProp "lte_antisymmetric" "lessThanEqualsInteger is antisymmetric" lte_antisymmetric
-  , testProp "lte_transitive" "lessThanEqualsInteger is transitive" lte_transitive
-  , testProp "lt_versus_lte" "a <= b <=> a < b or a = b" lt_versus_lte
-  , testProp "trichotomy" "a < b or a = b or b < a" trichotomy
-  , testProp "add_pairs" "a <= b and c <= d => addInteger a c <= addInteger b d" add_pairs
-  , testProp "mul_pos_pos" "multiplyInteger (>= 0) (>= 0) >= 0" mul_pos_pos
-  , testProp "mul_pos_neg" "multiplyInteger (>= 0) (<= 0) <= 0" mul_pos_neg
-  , testProp "mul_neg_pos" "multiplyInteger (<= 0) (>= 0) <= 0" mul_neg_pos
-  , testProp "mul_neg_neg" "multiplyInteger (<= 0) (<= 0) >= 0" mul_neg_neg
-  ]
+  generatePropertySpecs
+    format
+    include
+    outputDir
+    numFiles
+    seed
+    conformanceSuiteDirectory
+    integerOrderProperties
 
 -- | Qualified property names, without sampling inputs or evaluating checks.
 integer_order_property_names :: [PropertyId]
 integer_order_property_names =
-  integerOrderPropertiesWith $ \identifier _ _ -> PropertyId conformanceSuiteDirectory identifier
+  propertySpecPropertyIds conformanceSuiteDirectory integerOrderProperties
 
 conformanceSuiteDirectory :: [String]
 conformanceSuiteDirectory = ["integer", "OrderProperties"]

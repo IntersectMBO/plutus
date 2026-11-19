@@ -20,11 +20,9 @@ import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 
 import Evaluation.Builtins.Conformance (OutputFormat, PropertyFilter, PropertyId (..))
 
-import Control.Monad (when)
-
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck.Random (QCGen)
-import Test.Tasty (TestName, TestTree, testGroup)
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck
 
 numberOfTests :: Int
@@ -189,57 +187,52 @@ prop_power_does_not_exist = do
 test_integer_exp_mod_properties :: TestTree
 test_integer_exp_mod_properties =
   testGroup "Property tests for expModInteger" $
-    integerExpModPropertiesWith $ \_ name prop ->
-      testProperty name $ BaseQC.withNumTests numberOfTests prop
+    testPropertySpecs (BaseQC.withNumTests numberOfTests) integerExpModProperties
 
-{-| Generate the requested number of numbered cases per property, with expected
-results and budgets. No property assertions are run. -}
-generate_integer_exp_mod_properties
-  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
-generate_integer_exp_mod_properties format include outputDir numFiles seed =
-  sequence_ $
-    integerExpModPropertiesWith
-      ( \identifier _ prop ->
-          let propertyId = PropertyId conformanceSuiteDirectory identifier
-           in when (include propertyId) $
-                generatePropertyFiles format outputDir numFiles seed propertyId prop
-      )
-
-{-| Share stable identifiers, test descriptions and property definitions.
-Identifiers follow the function names, with any @prop_@ prefix removed. -}
-integerExpModPropertiesWith
-  :: (forall prop. (Testable prop, GenerateCases prop) => String -> TestName -> prop -> result)
-  -> [result]
-integerExpModPropertiesWith testProp =
-  [ testProp "bad_modulus" "modulus <= 0 -> error" prop_bad_modulus
-  , testProp "modulus_one" "a^e mod 1 == 0 for all a and e" prop_modulus_one
-  , testProp "in_range" "Result lies between 0 and m-1" prop_in_range
-  , testProp "power_zero" "a^0 mod m == 1" prop_power_zero
-  , testProp "power_one" "a^1 mod m == a mod m" prop_power_one
-  , testProp "positive_exponent" "e >= 0  => a^e mod m exists" prop_positive_exponent
-  , testProp
+-- | Properties shared by the test suite and the corpus generator.
+integerExpModProperties :: [PropertySpec (Gen Check)]
+integerExpModProperties =
+  [ propertySpec "bad_modulus" "modulus <= 0 -> error" prop_bad_modulus
+  , propertySpec "modulus_one" "a^e mod 1 == 0 for all a and e" prop_modulus_one
+  , propertySpec "in_range" "Result lies between 0 and m-1" prop_in_range
+  , propertySpec "power_zero" "a^0 mod m == 1" prop_power_zero
+  , propertySpec "power_one" "a^1 mod m == a mod m" prop_power_one
+  , propertySpec "positive_exponent" "e >= 0  => a^e mod m exists" prop_positive_exponent
+  , propertySpec
       "negative_exponent_good"
       "e < 0 && gcd a m == 1 => a^e mod m exists"
       prop_negative_exponent_good
-  , testProp
+  , propertySpec
       "negative_exponent_bad"
       "e < 0 && gcd a m > 1 => a^e mod m does not exist"
       prop_negative_exponent_bad
-  , testProp
+  , propertySpec
       "negated_exponent_inverse"
       "e < 0 && gcd a m == 1 => (a^e mod m) * (a^(-e) mod m) = 1 mod m"
       prop_negated_exponent_inverse
-  , testProp "multiplicative" "(ab)^e mod m == (a^e * b^e) mod m" prop_multiplicative
-  , testProp "exponent_additive" "a^(e+e') mod m == (a^e * a^e') mod m" prop_exponent_additive
-  , testProp "periodic" "(a+k*m)^e mod m == a^e mod m for all k" prop_periodic
-  , testProp "power_exists" "Power exists" prop_power_exists
-  , testProp "power_does_not_exist" "Power does not exist" prop_power_does_not_exist
+  , propertySpec "multiplicative" "(ab)^e mod m == (a^e * b^e) mod m" prop_multiplicative
+  , propertySpec "exponent_additive" "a^(e+e') mod m == (a^e * a^e') mod m" prop_exponent_additive
+  , propertySpec "periodic" "(a+k*m)^e mod m == a^e mod m for all k" prop_periodic
+  , propertySpec "power_exists" "Power exists" prop_power_exists
+  , propertySpec "power_does_not_exist" "Power does not exist" prop_power_does_not_exist
   ]
+
+generate_integer_exp_mod_properties
+  :: OutputFormat -> PropertyFilter -> FilePath -> Int -> QCGen -> IO ()
+generate_integer_exp_mod_properties format include outputDir numFiles seed =
+  generatePropertySpecs
+    format
+    include
+    outputDir
+    numFiles
+    seed
+    conformanceSuiteDirectory
+    integerExpModProperties
 
 -- | Qualified property names, without sampling inputs or evaluating checks.
 integer_exp_mod_property_names :: [PropertyId]
 integer_exp_mod_property_names =
-  integerExpModPropertiesWith $ \identifier _ _ -> PropertyId conformanceSuiteDirectory identifier
+  propertySpecPropertyIds conformanceSuiteDirectory integerExpModProperties
 
 conformanceSuiteDirectory :: [String]
 conformanceSuiteDirectory = ["integer", "ExpModIntegerProperties"]

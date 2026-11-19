@@ -5,14 +5,28 @@ module Evaluation.Builtins.Conformance
   ( OutputFormat (..)
   , PropertyFilter
   , PropertyId (..)
+  , PropertySpec (..)
   , propertyIdPath
   , propertyIdText
+  , propertySpecPropertyIds
   , TermCase (..)
+  , Check (..)
+  , caseTerms
+  , isCekSuccess
   , evaluationFailureText
   , generateTermFiles
   ) where
 
-import Evaluation.Builtins.Common (PlcTerm, UplcTerm)
+import Evaluation.Builtins.Common
+  ( PlcTerm
+  , TypeErrorOrCekResult (..)
+  , UplcTerm
+  , evalOkEq
+  , evalOkTrue
+  , evalTerm
+  , fails
+  , ok
+  )
 
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
@@ -23,15 +37,17 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (CountingSt (..), counting, runCekNoEmit)
 
 import Control.Exception (Exception, displayException, throwIO)
-import Control.Monad (forM_)
+import Control.Monad (forM_, when)
 import Control.Monad.Except (runExcept)
 import Data.ByteString qualified as BS
-import Data.List (intercalate)
+import Data.List (intercalate, nub)
 import Data.Text (Text)
 import Data.Text.Encoding qualified as Text
 import Data.Text.IO qualified as Text
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath (joinPath, (<.>), (</>))
+import Test.QuickCheck (Testable (property), counterexample, (.&&.), (===), (==>))
+import Test.Tasty (TestName)
 import Text.Printf (printf)
 
 -- | Representations to write for each generated case. Both formats share a budget.
@@ -59,12 +75,97 @@ instance Show PropertyId where
 propertyIdPath :: PropertyId -> FilePath
 propertyIdPath (PropertyId directory name) = joinPath (directory <> [name])
 
+{-| A property with the identifier and description shared by the normal test
+suite and the conformance generator, together with the sampler that produces
+its inputs. -}
+data PropertySpec gen = PropertySpec
+  { propertySpecId :: String
+  -- ^ Stable identifier: used in corpus file paths.
+  , propertySpecDescription :: TestName
+  -- ^ Human-readable name shown by the test runner.
+  , propertySpecCheck :: gen
+  -- ^ Sampler for unevaluated checks.
+  }
+
+-- | Corpus identifiers for a suite's properties, in declaration order.
+propertySpecPropertyIds :: [String] -> [PropertySpec gen] -> [PropertyId]
+propertySpecPropertyIds suiteDirectory =
+  map (\spec -> PropertyId suiteDirectory (propertySpecId spec))
+
 {-| Select a property by its path relative to the output root, without case
 numbers or filename extensions (for example, integer/RingProperties/addition_associative). -}
 type PropertyFilter = PropertyId -> Bool
 
 -- | Keep the terms of an equality check together until their filenames are assigned.
 data TermCase = SingleTerm PlcTerm | EqualTerms PlcTerm PlcTerm
+
+{-| A property check expressed without performing it. Normal QuickCheck suites
+interpret it as an assertion, the Hedgehog suites have their own interpreter,
+and the corpus generator extracts its terms without evaluating anything. -}
+data Check
+  = -- | Both terms evaluate successfully to equal results.
+    CheckEq PlcTerm PlcTerm
+  | -- | The term evaluates to the given result.
+    CheckEvaluatesTo PlcTerm TypeErrorOrCekResult
+  | -- | The term evaluates successfully to @True@.
+    CheckTrue PlcTerm
+  | -- | The term evaluates successfully.
+    CheckOk PlcTerm
+  | -- | The term fails to evaluate.
+    CheckFails PlcTerm
+  | CheckBoth Check Check
+  | CheckImplies Bool Check
+  | -- | All terms evaluate successfully to pairwise distinct results.
+    CheckDistinct [PlcTerm]
+  | -- | The term's result satisfies the predicate, labelled for failure reports.
+    CheckSatisfies String PlcTerm (TypeErrorOrCekResult -> Bool)
+
+instance Testable Check where
+  property (CheckEq t1 t2) = evalOkEq t1 t2
+  property (CheckEvaluatesTo t expected) = evalTerm t === expected
+  property (CheckTrue t) = evalOkTrue t
+  property (CheckOk t) = ok t
+  property (CheckFails t) = fails t
+  property (CheckBoth a b) = a .&&. b
+  property (CheckImplies condition check) = condition ==> check
+  property (CheckDistinct terms) =
+    let results = map evalTerm terms
+     in counterexample (show results) $
+          property (all isCekSuccess results)
+            .&&. (length results === length (nub results))
+  property (CheckSatisfies label term predicate) =
+    counterexample label $ property (predicate (evalTerm term))
+
+-- | Successful evaluations only.
+isCekSuccess :: TypeErrorOrCekResult -> Bool
+isCekSuccess (CekSuccess _) = True
+isCekSuccess _ = False
+
+-- | Shows the terms of a check; the predicate of 'CheckSatisfies' is omitted.
+instance Show Check where
+  show (CheckEq t1 t2) = "CheckEq " <> show t1 <> " " <> show t2
+  show (CheckEvaluatesTo t expected) = "CheckEvaluatesTo " <> show t <> " " <> show expected
+  show (CheckTrue t) = "CheckTrue " <> show t
+  show (CheckOk t) = "CheckOk " <> show t
+  show (CheckFails t) = "CheckFails " <> show t
+  show (CheckBoth a b) = "CheckBoth (" <> show a <> ") (" <> show b <> ")"
+  show (CheckImplies condition inner) = "CheckImplies " <> show condition <> " (" <> show inner <> ")"
+  show (CheckDistinct terms) = "CheckDistinct " <> show terms
+  show (CheckSatisfies label t _) = "CheckSatisfies " <> show label <> " " <> show t
+
+{-| The terms to write for a check. Preconditions still select suitable inputs,
+but no assertion runs. Kept lazy so reaching the case limit need not inspect
+later checks. -}
+caseTerms :: Check -> [TermCase]
+caseTerms (CheckEq t1 t2) = [EqualTerms t1 t2]
+caseTerms (CheckEvaluatesTo t _) = [SingleTerm t]
+caseTerms (CheckTrue t) = [SingleTerm t]
+caseTerms (CheckOk t) = [SingleTerm t]
+caseTerms (CheckFails t) = [SingleTerm t]
+caseTerms (CheckBoth a b) = caseTerms a <> caseTerms b
+caseTerms (CheckImplies condition check) = if condition then caseTerms check else []
+caseTerms (CheckDistinct terms) = map SingleTerm terms
+caseTerms (CheckSatisfies _ t _) = [SingleTerm t]
 
 {-| Text recorded in @.expected@ and @.budget.expected@ files when evaluation
 fails. The conformance harness compares those files verbatim against its own
@@ -84,9 +185,16 @@ instance Exception ConformanceError where
 terms with the same five-digit index and -A/-B suffixes. Other cases emit one
 term without a suffix. Each term has its own result and budget files. -}
 generateTermFiles :: OutputFormat -> FilePath -> Int -> PropertyId -> [TermCase] -> IO ()
-generateTermFiles format outputDir numFiles propertyId cases =
-  forM_ (zip [1 .. toInteger numFiles] cases) $ \(n, termCase) ->
-    forM_ (caseTerms termCase) $ \(suffix, term) -> do
+generateTermFiles format outputDir numFiles propertyId cases = do
+  let (selected, _) = splitAt numFiles cases
+      available = length selected
+  when (available < numFiles) $
+    throwIO $
+      ConformanceError
+        (propertyIdText propertyId)
+        (printf "only %d of %d requested cases were available" available numFiles)
+  forM_ (zip [1 :: Integer ..] selected) $ \(n, termCase) ->
+    forM_ (termSuffixes termCase) $ \(suffix, term) -> do
       let caseName = propertyIdName propertyId <> "-" <> printf "%05d" n <> suffix
           dir = outputDir </> propertyIdPath propertyId </> caseName
           basePath = dir </> caseName
@@ -104,8 +212,8 @@ generateTermFiles format outputDir numFiles propertyId cases =
         BS.writeFile (path <.> "expected") expectedBytes
       Text.writeFile (basePath <.> "budget" <.> "expected") expectedBudget
   where
-    caseTerms (SingleTerm term) = [("", term)]
-    caseTerms (EqualTerms lhs rhs) = [("-A", lhs), ("-B", rhs)]
+    termSuffixes (SingleTerm term) = [("", term)]
+    termSuffixes (EqualTerms lhs rhs) = [("-A", lhs), ("-B", rhs)]
 
     encodings :: [(String, UplcTerm -> Either String BS.ByteString)]
     encodings = case format of

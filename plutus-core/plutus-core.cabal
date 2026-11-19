@@ -529,6 +529,7 @@ library untyped-plutus-core-testlib
     Evaluation.Builtins.BLS12_381.Utils
     Evaluation.Builtins.Common
     Evaluation.Builtins.Conformance
+    Evaluation.Builtins.Conformance.Suites
     Evaluation.Builtins.Conversion
     Evaluation.Builtins.Costing
     Evaluation.Builtins.Definition
