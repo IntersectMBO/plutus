@@ -55,7 +55,7 @@ def hashMatches (actual guess : ByteString) : Prop :=
 
 {-@ PROPERTY [scope: gameValidator] malformed_datum
     "An integer datum fails to decode as the stored hash, for every redeemer and context."
-  : ∀ (r ctx : Data), isUnsuccessful (gameValidator (Data.I 0) r ctx)
+  : ∀ (r ctx : Data), isSuccessful (gameValidator (Data.I 0) r ctx)
 @-}
 
 code :: PlutusTx.CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit)

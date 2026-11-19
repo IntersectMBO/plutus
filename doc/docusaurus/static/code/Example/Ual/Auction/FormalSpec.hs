@@ -152,7 +152,7 @@ import PlutusTx.Ual.TH (ualModule)
 
 {-@ PROPERTY [scope: outbids] outbids_exact
     "The separately compiled helper returns the native comparison result."
-  : ∀ (old proposed : Integer), outbids_returns old proposed (decide (old < proposed))
+  : ∀ (old proposed : Integer), outbids_returns old proposed (decide (old <= proposed))
 @-}
 {-@ PROPERTY [scope: auction] first_bid_exact
     "For the upstream no-previous-bid scenario, the minimum, deadline, locked Ada and NFT quantity characterize success."

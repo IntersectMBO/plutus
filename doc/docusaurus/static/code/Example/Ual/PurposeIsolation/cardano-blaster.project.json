@@ -2,7 +2,10 @@
   "format": "cardano-blaster-project-v1",
   "blueprint": ".local/cardano-blaster/plutus.json",
   "assurance": ".local/cardano-blaster/assurance.json",
-  "sources": ["Main.hs"],
+  "sources": [
+    "../../../../../docusaurus-examples.cabal",
+    "Main.hs"
+  ],
   "profile": "cardano-v3-cex",
   "refreshEnvironment": true,
   "generator": {
@@ -14,6 +17,8 @@
       "${ghcPath}",
       "${projectDir}/.local/cardano-blaster"
     ],
-    "env": { "BLASTER_CABAL": "${cabalPath}" }
+    "env": {
+      "BLASTER_CABAL": "${cabalPath}"
+    }
   }
 }
