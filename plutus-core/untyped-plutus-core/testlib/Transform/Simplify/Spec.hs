@@ -2,7 +2,9 @@ module Transform.Simplify.Spec where
 
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc (mkIterApp, mkIterAppNoAnn)
+import PlutusPrelude (def)
 import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (testCase, (@?=))
 import Transform.Lib
   ( T
   , app
@@ -29,8 +31,10 @@ import UntypedPlutusCore
   , Name
   , Term (..)
   , UVarDecl (..)
+  , evalOptimizerT
   )
 import UntypedPlutusCore.MkUPlc (mkIterLamAbs)
+import UntypedPlutusCore.Transform.PolyBuiltin (polyBuiltin)
 
 basic :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 basic = force $ delay $ con 1
@@ -501,6 +505,30 @@ testCseInputsWorkFree =
   , ("cseRepeatPlus", cseRepeatPlus)
   ]
 
+testPolyBuiltin :: TestTree
+testPolyBuiltin =
+  testGroup
+    "PolyBuiltin"
+    [ testCase "single usage should not be hoisted" $
+        optimize forcedFst @?= forcedFst
+    , testCase "two usages should be hoisted" $
+        expectHoist (\f -> constr 0 [f, f])
+    , testCase "single usage inside a lambda should be hoisted" $
+        expectHoist (\f -> lam "p" (f `app` var "p"))
+    , testCase "single usage inside a delay should be hoisted" $
+        expectHoist delay
+    , testCase "two single-usage builtins, only the one in delay should be hoisted" $
+        expectHoist (\f -> constr 0 [delay f, force (builtin PLC.HeadList)])
+    ]
+  where
+    forcedFst = force (force (builtin PLC.FstPair))
+
+    optimize :: T -> T
+    optimize = PLC.runQuote . evalOptimizerT . polyBuiltin def
+
+    expectHoist body =
+      optimize (body forcedFst) @?= lam "f" (body (var "f")) `app` forcedFst
+
 test_simplify :: TestTree
 test_simplify =
   testGroup
@@ -508,6 +536,7 @@ test_simplify =
     $ fmap (uncurry goldenVsOptimized) testSimplifyInputs
       <> fmap (uncurry (goldenVsCse ExcludeWorkFree)) testCseInputs
       <> fmap (uncurry (goldenVsCse AllSubterms)) testCseInputsWorkFree
+      <> [testPolyBuiltin]
 
 --------------------------------------------------------------------------------
 -- Local helpers ---------------------------------------------------------------

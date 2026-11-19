@@ -16,7 +16,7 @@ import PlutusCore (Name, getAnn)
 import PlutusCore.Arity (Param (..), builtinArity)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
 import PlutusCore.Quote (MonadQuote, freshName)
-import UntypedPlutusCore.Core.Plated (termSubterms, termSubtermsDeep)
+import UntypedPlutusCore.Core.Plated (termSubterms)
 import UntypedPlutusCore.Core.Type (Term (..))
 import UntypedPlutusCore.Transform.Optimizer
   ( OptimizerT
@@ -57,12 +57,25 @@ polyBuiltin semvar term = do
           (n, t') = peelForces t
 
       candidates :: HashMap fun Int
-      candidates =
-        foldlOf' termSubtermsDeep alg Map.empty term
+      candidates = Map.mapMaybe id $ collect False Map.empty term
         where
-          alg !acc t = case checkFullyForced t of
-            Just (_, fun, n) -> Map.insert fun n acc
-            Nothing -> acc
+          -- If a builtin can be called no more than once, then it is not worth hoisting.
+          -- When a builtin is encountered for the first time, if it isn't inside any
+          -- lambda or delay, record it as Nothing.
+          -- A second occurrence turns it into Just.
+          collect
+            :: Bool
+            -> HashMap fun (Maybe Int)
+            -> Term Name uni fun a
+            -> HashMap fun (Maybe Int)
+          collect inLamOrDelay !seen t = case t of
+            LamAbs _ _ body -> collect True seen body
+            Delay _ body -> collect True seen body
+            _ -> case checkFullyForced t of
+              Just (_, fun, n) ->
+                let firstOcc = if inLamOrDelay then Just n else Nothing
+                 in Map.insertWith (\_ _ -> Just n) fun firstOcc seen
+              Nothing -> foldlOf' termSubterms (collect inLamOrDelay) seen t
 
   result <-
     if Map.null candidates
