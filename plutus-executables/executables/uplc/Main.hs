@@ -95,6 +95,7 @@ import Data.Version.Extras (gitAwareVersionInfo)
 import Paths_plutus_executables qualified as Paths
 
 import Certifier
+import Lint (runLint)
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -175,6 +176,7 @@ data Command
   | ApplyToCborData ApplyOptions
   | Benchmark BenchmarkOptions
   | Convert ConvertOptions
+  | Lint Input Format
   | Optimise (OptimiseOptions UPLC.Name SrcSpan)
   | Print PrintOptions
   | Example ExampleOptions
@@ -405,6 +407,15 @@ plutusOpts =
                       "Pretty-print a hex-encoded script to stdout; --if/--of override the deduced formats"
                       "uplc convert --if hex --of textual -i script.hex"
                   ]
+            )
+        )
+      <> command
+        "lint"
+        ( info
+            (uncurry Lint <$> inputWithFormat)
+            ( progDesc "Report potential improvements to a UPLC program."
+                <> Help.examplesFooter
+                  [Help.eg "Inspect a script for optimization opportunities" "uplc lint -i program.uplc"]
             )
         )
       <> command "optimise" (optimise "Run the UPLC optimisation pipeline on the input.")
@@ -1001,6 +1012,7 @@ main = do
     TimeEval opts -> runTimeEval opts
     Dbg opts -> runDbg opts
     Example opts -> runUplcPrintExample opts
+    Lint inp fmt -> runLint inp fmt
     Optimise opts -> runOptimisations opts
     Print opts -> runPrint @UplcProg opts
     Convert opts -> runConvert @UplcProg opts
