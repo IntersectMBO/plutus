@@ -51,6 +51,8 @@ postulate unitSize : ⊤ → CostingNat
 postulate stringSize : String → CostingNat
 postulate valueSize : Utils.Value → CostingNat
 postulate valueMaxDepth : Utils.Value → CostingNat
+postulate valueOuterSize : Utils.Value → CostingNat
+postulate valueOuterDepth : Utils.Value → CostingNat
 
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExMemoryUsage #-}
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.CostStream #-}
@@ -68,6 +70,8 @@ postulate valueMaxDepth : Utils.Value → CostingNat
 {-# COMPILE GHC stringSize  = size #-}
 {-# COMPILE GHC valueSize = size #-}
 {-# COMPILE GHC valueMaxDepth = size . ValueMaxDepth #-}
+{-# COMPILE GHC valueOuterSize = size . ValueOuterSize #-}
+{-# COMPILE GHC valueOuterDepth = size . ValueOuterDepth #-}
 ```
 
 For each constant we return the corresponding size.
@@ -106,6 +110,14 @@ Non-standard measures:
 valueMaxDepthMeasure : Value → CostingNat
 valueMaxDepthMeasure (V-con (atomic aValue) v) = valueMaxDepth v
 valueMaxDepthMeasure _ = 0
+
+valueOuterSizeMeasure : Value → CostingNat
+valueOuterSizeMeasure (V-con (atomic aValue) v) = valueOuterSize v
+valueOuterSizeMeasure _ = 0
+
+valueOuterDepthMeasure : Value → CostingNat
+valueOuterDepthMeasure (V-con (atomic aValue) v) = valueOuterDepth v
+valueOuterDepthMeasure _ = 0
 
 dataNodeCountMeasure : Value → CostingNat
 dataNodeCountMeasure (V-con (atomic aData) d) = dataNodeCount d

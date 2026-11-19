@@ -76,10 +76,16 @@ d_valueSize_24 = size
 -- Cost.Size.valueMaxDepth
 d_valueMaxDepth_26 :: MAlonzo.Code.Utils.T_Value_766 -> Integer
 d_valueMaxDepth_26 = size . ValueMaxDepth
+-- Cost.Size.valueOuterSize
+d_valueOuterSize_28 :: MAlonzo.Code.Utils.T_Value_766 -> Integer
+d_valueOuterSize_28 = size . ValueOuterSize
+-- Cost.Size.valueOuterDepth
+d_valueOuterDepth_30 :: MAlonzo.Code.Utils.T_Value_766 -> Integer
+d_valueOuterDepth_30 = size . ValueOuterDepth
 -- Cost.Size.defaultConstantMeasure
-d_defaultConstantMeasure_28 ::
+d_defaultConstantMeasure_32 ::
   MAlonzo.Code.RawU.T_TmCon_204 -> Integer
-d_defaultConstantMeasure_28 v0
+d_defaultConstantMeasure_32 v0
   = case coe v0 of
       MAlonzo.Code.RawU.C_tmCon_208 v1 v2
         -> case coe v1 of
@@ -121,21 +127,21 @@ d_defaultConstantMeasure_28 v0
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Size.defaultValueMeasure
-d_defaultValueMeasure_86 ::
+d_defaultValueMeasure_90 ::
   MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
-d_defaultValueMeasure_86 v0
+d_defaultValueMeasure_90 v0
   = let v1 = 0 :: Integer in
     coe
       (case coe v0 of
          MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
            -> coe
-                d_defaultConstantMeasure_28
+                d_defaultConstantMeasure_32
                 (coe MAlonzo.Code.RawU.C_tmCon_208 (coe v2) (coe v3))
          _ -> coe v1)
 -- Cost.Size.valueMaxDepthMeasure
-d_valueMaxDepthMeasure_92 ::
+d_valueMaxDepthMeasure_96 ::
   MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
-d_valueMaxDepthMeasure_92 v0
+d_valueMaxDepthMeasure_96 v0
   = let v1 = 0 :: Integer in
     coe
       (case coe v0 of
@@ -148,10 +154,42 @@ d_valueMaxDepthMeasure_92 v0
                        _ -> coe v1
                 _ -> coe v1
          _ -> coe v1)
--- Cost.Size.dataNodeCountMeasure
-d_dataNodeCountMeasure_96 ::
+-- Cost.Size.valueOuterSizeMeasure
+d_valueOuterSizeMeasure_100 ::
   MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
-d_dataNodeCountMeasure_96 v0
+d_valueOuterSizeMeasure_100 v0
+  = let v1 = 0 :: Integer in
+    coe
+      (case coe v0 of
+         MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
+           -> case coe v2 of
+                MAlonzo.Code.Builtin.Signature.C_atomic_12 v5
+                  -> case coe v5 of
+                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                         -> coe d_valueOuterSize_28 v3
+                       _ -> coe v1
+                _ -> coe v1
+         _ -> coe v1)
+-- Cost.Size.valueOuterDepthMeasure
+d_valueOuterDepthMeasure_104 ::
+  MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
+d_valueOuterDepthMeasure_104 v0
+  = let v1 = 0 :: Integer in
+    coe
+      (case coe v0 of
+         MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
+           -> case coe v2 of
+                MAlonzo.Code.Builtin.Signature.C_atomic_12 v5
+                  -> case coe v5 of
+                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                         -> coe d_valueOuterDepth_30 v3
+                       _ -> coe v1
+                _ -> coe v1
+         _ -> coe v1)
+-- Cost.Size.dataNodeCountMeasure
+d_dataNodeCountMeasure_108 ::
+  MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
+d_dataNodeCountMeasure_108 v0
   = let v1 = 0 :: Integer in
     coe
       (case coe v0 of
@@ -165,9 +203,9 @@ d_dataNodeCountMeasure_96 v0
                 _ -> coe v1
          _ -> coe v1)
 -- Cost.Size.numBytesAsWords
-d_numBytesAsWords_100 ::
+d_numBytesAsWords_112 ::
   MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
-d_numBytesAsWords_100 v0
+d_numBytesAsWords_112 v0
   = let v1 = 0 :: Integer in
     coe
       (case coe v0 of
