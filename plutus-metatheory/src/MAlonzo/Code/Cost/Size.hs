@@ -77,10 +77,10 @@ d_valueSize_24 = size
 d_valueMaxDepth_26 :: MAlonzo.Code.Utils.T_Value_772 -> Integer
 d_valueMaxDepth_26 = size . ValueMaxDepth
 -- Cost.Size.valueOuterSize
-d_valueOuterSize_28 :: MAlonzo.Code.Utils.T_Value_766 -> Integer
+d_valueOuterSize_28 :: MAlonzo.Code.Utils.T_Value_772 -> Integer
 d_valueOuterSize_28 = size . ValueOuterSize
 -- Cost.Size.valueOuterDepth
-d_valueOuterDepth_30 :: MAlonzo.Code.Utils.T_Value_766 -> Integer
+d_valueOuterDepth_30 :: MAlonzo.Code.Utils.T_Value_772 -> Integer
 d_valueOuterDepth_30 = size . ValueOuterDepth
 -- Cost.Size.defaultConstantMeasure
 d_defaultConstantMeasure_32 ::
