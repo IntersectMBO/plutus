@@ -126,13 +126,20 @@ executable generate-agda-conformance
     , bytestring
     , containers
     , directory
+    , filepath
     , plutus-conformance
     , plutus-core         ^>=1.72
     , plutus-metatheory   ^>=1.72
     , text
     , transformers
 
-test-suite generated-conformance-fixtures
+-- Round-trip check for the generated conformance corpus. A small sample of
+-- cases is produced with the generate-conformance-tests machinery, then run
+-- through the same discovery and golden comparison used for the checked-in
+-- test-cases, in both textual and Flat formats. This catches any drift between
+-- what the generator writes (input encodings, .expected files, failure
+-- markers, budgets) and what the conformance harness expects to read.
+test-suite generated-conformance-cases-roundtrip
   import:         lang, os-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
@@ -159,6 +166,7 @@ test-suite conformance-consistency
     , base                >=4.9   && <5
     , bytestring
     , directory
+    , filepath
     , plutus-conformance
     , plutus-core         ^>=1.72
     , tasty

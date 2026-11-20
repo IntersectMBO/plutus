@@ -134,14 +134,14 @@ zActionProperties =
       (cases_scalarMul_assoc @g)
   , -- (a+b)p = ap + bp.
     PropertySpec
-      "scalarMul_distributive_left"
-      (mkTestName @g "scalarMul_distributive_left")
-      (cases_scalarMul_distributive_left @g)
+      "scalarMul_left_distributive"
+      (mkTestName @g "scalarMul_left_distributive")
+      (cases_scalarMul_left_distributive @g)
   , -- a(p+q) = ap + aq.
     PropertySpec
-      "scalarMul_distributive_right"
-      (mkTestName @g "scalarMul_distributive_right")
-      (cases_scalarMul_distributive_right @g)
+      "scalarMul_right_distributive"
+      (mkTestName @g "scalarMul_right_distributive")
+      (cases_scalarMul_right_distributive @g)
   , -- 0p = 0.
     PropertySpec "scalarMul_zero" (mkTestName @g "scalarMul_zero") (cases_scalarMul_zero @g)
   , -- 1p = p.
@@ -228,9 +228,13 @@ compressHashProperties =
       (mkTestName @g "set_infinity_bit")
       (cases_set_infinity_bit @g)
   , -- This tests the case omitted by uncompression_wrong_size, and should fail
-    -- with very high probability.  About 50% of samples will not be the
-    -- x-coordinate of a point on the curve even with the compression bit set and
-    -- the infinity bit clear, so this is a weak test.
+    -- with very high probablity.  It's quite difficult to test this with random
+    -- inputs.  We can improve our chances of getting a bytestring which encodes a
+    -- point on the curve by setting the compression bit and clearing the infinity
+    -- bit, but about 50% of the samples will still not be the x-coordinate of a
+    -- point on the curve.  We can also generate points with an x-coordinate that's
+    -- bigger than the field size (especially for G2), which will give us a bad
+    -- encoding.  Maybe this just isn't a very good test.
     PropertySpec
       "uncompress_out_of_group"
       (mkTestName @g "uncompress_out_of_group")
@@ -357,8 +361,8 @@ cases_scalarMul_assoc = do
       e3 = eqTerm @g e1 e2
   pure $ CheckEvaluatesTo e3 cekSuccessTrue
 
-cases_scalarMul_distributive_left :: forall g. TestableAbelianGroup g => Gen Check
-cases_scalarMul_distributive_left = do
+cases_scalarMul_left_distributive :: forall g. TestableAbelianGroup g => Gen Check
+cases_scalarMul_left_distributive = do
   m <- arbitraryPlcScalar
   n <- arbitraryPlcScalar
   p <- arbitraryPlcConst @g
@@ -367,8 +371,8 @@ cases_scalarMul_distributive_left = do
       e3 = eqTerm @g e1 e2
   pure $ CheckEvaluatesTo e3 cekSuccessTrue
 
-cases_scalarMul_distributive_right :: forall g. TestableAbelianGroup g => Gen Check
-cases_scalarMul_distributive_right = do
+cases_scalarMul_right_distributive :: forall g. TestableAbelianGroup g => Gen Check
+cases_scalarMul_right_distributive = do
   n <- arbitraryPlcScalar
   p <- arbitraryPlcConst @g
   q <- arbitraryPlcConst @g
