@@ -1,0 +1,103 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Relation.Binary.Properties.TotalOrder</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Properties satisfied by total orders</a>
+<a id="146" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="220" class="Symbol">{-#</a> <a id="224" class="Keyword">OPTIONS</a> <a id="232" class="Pragma">--cubical-compatible</a> <a id="253" class="Pragma">--safe</a> <a id="260" class="Symbol">#-}</a>
+
+<a id="265" class="Keyword">open</a> <a id="270" class="Keyword">import</a> <a id="277" href="Relation.Binary.Bundles.html" class="Module">Relation.Binary.Bundles</a> <a id="301" class="Keyword">using</a> <a id="307" class="Symbol">(</a><a id="308" href="Relation.Binary.Bundles.html#7577" class="Record">TotalOrder</a><a id="318" class="Symbol">;</a> <a id="320" href="Relation.Binary.Bundles.html#8160" class="Record">DecTotalOrder</a><a id="333" class="Symbol">)</a>
+
+<a id="336" class="Keyword">module</a> <a id="343" href="Relation.Binary.Properties.TotalOrder.html" class="Module">Relation.Binary.Properties.TotalOrder</a>
+  <a id="383" class="Symbol">{</a><a id="384" href="Relation.Binary.Properties.TotalOrder.html#384" class="Bound">t₁</a> <a id="387" href="Relation.Binary.Properties.TotalOrder.html#387" class="Bound">t₂</a> <a id="390" href="Relation.Binary.Properties.TotalOrder.html#390" class="Bound">t₃</a><a id="392" class="Symbol">}</a> <a id="394" class="Symbol">(</a><a id="395" href="Relation.Binary.Properties.TotalOrder.html#395" class="Bound">T</a> <a id="397" class="Symbol">:</a> <a id="399" href="Relation.Binary.Bundles.html#7577" class="Record">TotalOrder</a> <a id="410" href="Relation.Binary.Properties.TotalOrder.html#384" class="Bound">t₁</a> <a id="413" href="Relation.Binary.Properties.TotalOrder.html#387" class="Bound">t₂</a> <a id="416" href="Relation.Binary.Properties.TotalOrder.html#390" class="Bound">t₃</a><a id="418" class="Symbol">)</a> <a id="420" class="Keyword">where</a>
+
+<a id="427" class="Keyword">open</a> <a id="432" class="Keyword">import</a> <a id="439" href="Data.Product.Base.html" class="Module">Data.Product.Base</a> <a id="457" class="Keyword">using</a> <a id="463" class="Symbol">(</a><a id="464" href="Data.Product.Base.html#636" class="Field">proj₁</a><a id="469" class="Symbol">)</a>
+<a id="471" class="Keyword">open</a> <a id="476" class="Keyword">import</a> <a id="483" href="Data.Sum.Base.html" class="Module">Data.Sum.Base</a> <a id="497" class="Keyword">using</a> <a id="503" class="Symbol">(</a><a id="504" href="Data.Sum.Base.html#675" class="InductiveConstructor">inj₁</a><a id="508" class="Symbol">;</a> <a id="510" href="Data.Sum.Base.html#700" class="InductiveConstructor">inj₂</a><a id="514" class="Symbol">)</a>
+<a id="516" class="Keyword">import</a> <a id="523" href="Relation.Binary.Construct.Flip.EqAndOrd.html" class="Module">Relation.Binary.Construct.Flip.EqAndOrd</a> <a id="563" class="Symbol">as</a> <a id="566" class="Module">EqAndOrd</a>
+<a id="575" class="Keyword">open</a> <a id="580" class="Keyword">import</a> <a id="587" href="Relation.Binary.Definitions.html" class="Module">Relation.Binary.Definitions</a> <a id="615" class="Keyword">using</a> <a id="621" class="Symbol">(</a><a id="622" href="Relation.Binary.Definitions.html#6907" class="Function">Decidable</a><a id="631" class="Symbol">)</a>
+<a id="633" class="Keyword">open</a> <a id="638" class="Keyword">import</a> <a id="645" href="Relation.Binary.Structures.html" class="Module">Relation.Binary.Structures</a> <a id="672" class="Keyword">using</a> <a id="678" class="Symbol">(</a><a id="679" href="Relation.Binary.Structures.html#5977" class="Record">IsTotalOrder</a><a id="691" class="Symbol">)</a>
+<a id="693" class="Keyword">open</a> <a id="698" class="Keyword">import</a> <a id="705" href="Relation.Binary.Consequences.html" class="Module">Relation.Binary.Consequences</a> <a id="734" class="Keyword">using</a> <a id="740" class="Symbol">(</a><a id="741" href="Relation.Binary.Consequences.html#2639" class="Function">total∧dec⇒dec</a><a id="754" class="Symbol">)</a>
+
+<a id="757" class="Keyword">open</a> <a id="762" href="Relation.Binary.Bundles.html#7577" class="Module">TotalOrder</a> <a id="773" href="Relation.Binary.Properties.TotalOrder.html#395" class="Bound">T</a>
+
+<a id="776" class="Keyword">import</a> <a id="783" href="Relation.Binary.Construct.NonStrictToStrict.html" class="Module">Relation.Binary.Construct.NonStrictToStrict</a> <a id="827" href="Relation.Binary.Bundles.html#7683" class="Field Operator">_≈_</a> <a id="831" href="Relation.Binary.Bundles.html#7717" class="Field Operator">_≤_</a> <a id="835" class="Symbol">as</a> <a id="ToStrict"></a><a id="838" href="Relation.Binary.Properties.TotalOrder.html#838" class="Module">ToStrict</a>
+<a id="847" class="Keyword">import</a> <a id="854" href="Relation.Binary.Properties.Poset.html" class="Module">Relation.Binary.Properties.Poset</a> <a id="887" href="Relation.Binary.Bundles.html#7882" class="Function">poset</a> <a id="893" class="Symbol">as</a> <a id="PosetProperties"></a><a id="896" href="Relation.Binary.Properties.TotalOrder.html#896" class="Module">PosetProperties</a>
+
+<a id="913" class="Comment">------------------------------------------------------------------------</a>
+<a id="986" class="Comment">-- Total orders are almost decidable total orders</a>
+
+<a id="decTotalOrder"></a><a id="1037" href="Relation.Binary.Properties.TotalOrder.html#1037" class="Function">decTotalOrder</a> <a id="1051" class="Symbol">:</a> <a id="1053" href="Relation.Binary.Definitions.html#6907" class="Function">Decidable</a> <a id="1063" href="Relation.Binary.Bundles.html#7683" class="Field Operator">_≈_</a> <a id="1067" class="Symbol">→</a> <a id="1069" href="Relation.Binary.Bundles.html#8160" class="Record">DecTotalOrder</a> <a id="1083" class="Symbol">_</a> <a id="1085" class="Symbol">_</a> <a id="1087" class="Symbol">_</a>
+<a id="1089" href="Relation.Binary.Properties.TotalOrder.html#1037" class="Function">decTotalOrder</a> <a id="1103" href="Relation.Binary.Properties.TotalOrder.html#1103" class="Bound">≟</a> <a id="1105" class="Symbol">=</a> <a id="1107" class="Keyword">record</a>
+  <a id="1116" class="Symbol">{</a> <a id="1118" href="Relation.Binary.Bundles.html#8346" class="Field">isDecTotalOrder</a> <a id="1134" class="Symbol">=</a> <a id="1136" class="Keyword">record</a>
+    <a id="1147" class="Symbol">{</a> <a id="1149" href="Relation.Binary.Structures.html#6383" class="Field">isTotalOrder</a> <a id="1162" class="Symbol">=</a> <a id="1164" href="Relation.Binary.Bundles.html#7751" class="Field">isTotalOrder</a>
+    <a id="1181" class="Symbol">;</a> <a id="1183" href="Relation.Binary.Structures.html#6419" class="Field Operator">_≟_</a>          <a id="1196" class="Symbol">=</a> <a id="1198" href="Relation.Binary.Properties.TotalOrder.html#1103" class="Bound">≟</a>
+    <a id="1204" class="Symbol">;</a> <a id="1206" href="Relation.Binary.Structures.html#6452" class="Field Operator">_≤?_</a>         <a id="1219" class="Symbol">=</a> <a id="1221" href="Relation.Binary.Consequences.html#2639" class="Function">total∧dec⇒dec</a> <a id="1235" href="Relation.Binary.Structures.html#2404" class="Function">reflexive</a> <a id="1245" href="Relation.Binary.Structures.html#4110" class="Function">antisym</a> <a id="1253" href="Relation.Binary.Structures.html#6084" class="Function">total</a> <a id="1259" href="Relation.Binary.Properties.TotalOrder.html#1103" class="Bound">≟</a>
+    <a id="1265" class="Symbol">}</a>
+  <a id="1269" class="Symbol">}</a>
+
+<a id="1272" class="Comment">------------------------------------------------------------------------</a>
+<a id="1345" class="Comment">-- _≥_ - the flipped relation is also a total order</a>
+
+<a id="1398" class="Keyword">open</a> <a id="1403" href="Relation.Binary.Properties.TotalOrder.html#896" class="Module">PosetProperties</a> <a id="1419" class="Keyword">public</a>
+  <a id="1428" class="Keyword">using</a>
+  <a id="1436" class="Symbol">(</a> <a id="1438" href="Relation.Binary.Properties.Poset.html#1681" class="Function">≥-refl</a>
+  <a id="1447" class="Symbol">;</a> <a id="1449" href="Relation.Binary.Properties.Poset.html#1705" class="Function">≥-reflexive</a>
+  <a id="1463" class="Symbol">;</a> <a id="1465" href="Relation.Binary.Properties.Poset.html#1734" class="Function">≥-trans</a>
+  <a id="1475" class="Symbol">;</a> <a id="1477" href="Relation.Binary.Properties.Poset.html#1759" class="Function">≥-antisym</a>
+  <a id="1489" class="Symbol">;</a> <a id="1491" href="Relation.Binary.Properties.Poset.html#1340" class="Function">≥-isPreorder</a>
+  <a id="1506" class="Symbol">;</a> <a id="1508" href="Relation.Binary.Properties.Poset.html#1396" class="Function">≥-isPartialOrder</a>
+  <a id="1527" class="Symbol">;</a> <a id="1529" href="Relation.Binary.Properties.Poset.html#1380" class="Function">≥-preorder</a>
+  <a id="1542" class="Symbol">;</a> <a id="1544" href="Relation.Binary.Properties.Poset.html#1533" class="Function">≥-poset</a>
+  <a id="1554" class="Symbol">)</a>
+
+<a id="≥-isTotalOrder"></a><a id="1557" href="Relation.Binary.Properties.TotalOrder.html#1557" class="Function">≥-isTotalOrder</a> <a id="1572" class="Symbol">:</a> <a id="1574" href="Relation.Binary.Structures.html#5977" class="Record">IsTotalOrder</a> <a id="1587" href="Relation.Binary.Bundles.html#7683" class="Field Operator">_≈_</a> <a id="1591" href="Relation.Binary.Bundles.html#5097" class="Function Operator">_≥_</a>
+<a id="1595" href="Relation.Binary.Properties.TotalOrder.html#1557" class="Function">≥-isTotalOrder</a> <a id="1610" class="Symbol">=</a> <a id="1612" href="Relation.Binary.Construct.Flip.EqAndOrd.html#4040" class="Function">EqAndOrd.isTotalOrder</a> <a id="1634" href="Relation.Binary.Bundles.html#7751" class="Field">isTotalOrder</a>
+
+<a id="≥-totalOrder"></a><a id="1648" href="Relation.Binary.Properties.TotalOrder.html#1648" class="Function">≥-totalOrder</a> <a id="1661" class="Symbol">:</a> <a id="1663" href="Relation.Binary.Bundles.html#7577" class="Record">TotalOrder</a> <a id="1674" class="Symbol">_</a> <a id="1676" class="Symbol">_</a> <a id="1678" class="Symbol">_</a>
+<a id="1680" href="Relation.Binary.Properties.TotalOrder.html#1648" class="Function">≥-totalOrder</a> <a id="1693" class="Symbol">=</a> <a id="1695" class="Keyword">record</a>
+  <a id="1704" class="Symbol">{</a> <a id="1706" href="Relation.Binary.Bundles.html#7751" class="Field">isTotalOrder</a> <a id="1719" class="Symbol">=</a> <a id="1721" href="Relation.Binary.Properties.TotalOrder.html#1557" class="Function">≥-isTotalOrder</a>
+  <a id="1738" class="Symbol">}</a>
+
+<a id="1741" class="Keyword">open</a> <a id="1746" href="Relation.Binary.Bundles.html#7577" class="Module">TotalOrder</a> <a id="1757" href="Relation.Binary.Properties.TotalOrder.html#1648" class="Function">≥-totalOrder</a> <a id="1770" class="Keyword">public</a>
+  <a id="1779" class="Keyword">using</a> <a id="1785" class="Symbol">()</a> <a id="1788" class="Keyword">renaming</a> <a id="1797" class="Symbol">(</a><a id="1798" href="Relation.Binary.Structures.html#6084" class="Function">total</a> <a id="1804" class="Symbol">to</a> <a id="1807" class="Function">≥-total</a><a id="1814" class="Symbol">)</a>
+
+<a id="1817" class="Comment">------------------------------------------------------------------------</a>
+<a id="1890" class="Comment">-- _&lt;_ - the strict version is a strict partial order</a>
+
+<a id="1945" class="Comment">-- Note that total orders can NOT be turned into strict total orders as</a>
+<a id="2017" class="Comment">-- in order to distinguish between the _≤_ and _&lt;_ cases we must have</a>
+<a id="2087" class="Comment">-- decidable equality _≈_.</a>
+
+<a id="2115" class="Keyword">open</a> <a id="2120" href="Relation.Binary.Properties.TotalOrder.html#896" class="Module">PosetProperties</a> <a id="2136" class="Keyword">public</a>
+  <a id="2145" class="Keyword">using</a>
+  <a id="2153" class="Symbol">(</a> <a id="2155" href="Relation.Binary.Properties.Poset.html#2157" class="Function Operator">_&lt;_</a>
+  <a id="2161" class="Symbol">;</a> <a id="2163" href="Relation.Binary.Structures.html#4951" class="Function">&lt;-resp-≈</a>
+  <a id="2174" class="Symbol">;</a> <a id="2176" href="Relation.Binary.Structures.html#5121" class="Function">&lt;-respʳ-≈</a>
+  <a id="2188" class="Symbol">;</a> <a id="2190" href="Relation.Binary.Structures.html#5183" class="Function">&lt;-respˡ-≈</a>
+  <a id="2202" class="Symbol">;</a> <a id="2204" href="Relation.Binary.Properties.Poset.html#2574" class="Function">&lt;-irrefl</a>
+  <a id="2215" class="Symbol">;</a> <a id="2217" href="Relation.Binary.Properties.Poset.html#2597" class="Function">&lt;-asym</a>
+  <a id="2226" class="Symbol">;</a> <a id="2228" href="Relation.Binary.Properties.Poset.html#2618" class="Function">&lt;-trans</a>
+  <a id="2238" class="Symbol">;</a> <a id="2240" href="Relation.Binary.Properties.Poset.html#2191" class="Function">&lt;-isStrictPartialOrder</a>
+  <a id="2265" class="Symbol">;</a> <a id="2267" href="Relation.Binary.Properties.Poset.html#2318" class="Function">&lt;-strictPartialOrder</a>
+  <a id="2290" class="Symbol">;</a> <a id="2292" href="Relation.Binary.Properties.Poset.html#2631" class="Function">&lt;⇒≉</a>
+  <a id="2298" class="Symbol">;</a> <a id="2300" href="Relation.Binary.Properties.Poset.html#2681" class="Function">≤∧≉⇒&lt;</a>
+  <a id="2308" class="Symbol">;</a> <a id="2310" href="Relation.Binary.Properties.Poset.html#2745" class="Function">&lt;⇒≱</a>
+  <a id="2316" class="Symbol">;</a> <a id="2318" href="Relation.Binary.Properties.Poset.html#2803" class="Function">≤⇒≯</a>
+  <a id="2324" class="Symbol">)</a>
+
+<a id="2327" class="Comment">------------------------------------------------------------------------</a>
+<a id="2400" class="Comment">-- _≰_ - the negated order</a>
+
+<a id="2428" class="Keyword">open</a> <a id="2433" href="Relation.Binary.Properties.TotalOrder.html#896" class="Module">PosetProperties</a> <a id="2449" class="Keyword">public</a>
+  <a id="2458" class="Keyword">using</a>
+  <a id="2466" class="Symbol">(</a> <a id="2468" href="Relation.Binary.Properties.Poset.html#1938" class="Function">≰-respʳ-≈</a>
+  <a id="2480" class="Symbol">;</a> <a id="2482" href="Relation.Binary.Properties.Poset.html#1865" class="Function">≰-respˡ-≈</a>
+  <a id="2494" class="Symbol">)</a>
+
+<a id="≰⇒&gt;"></a><a id="2497" href="Relation.Binary.Properties.TotalOrder.html#2497" class="Function">≰⇒&gt;</a> <a id="2501" class="Symbol">:</a> <a id="2503" class="Symbol">∀</a> <a id="2505" class="Symbol">{</a><a id="2506" href="Relation.Binary.Properties.TotalOrder.html#2506" class="Bound">x</a> <a id="2508" href="Relation.Binary.Properties.TotalOrder.html#2508" class="Bound">y</a><a id="2509" class="Symbol">}</a> <a id="2511" class="Symbol">→</a> <a id="2513" href="Relation.Binary.Properties.TotalOrder.html#2506" class="Bound">x</a> <a id="2515" href="Relation.Binary.Bundles.html#5084" class="Function Operator">≰</a> <a id="2517" href="Relation.Binary.Properties.TotalOrder.html#2508" class="Bound">y</a> <a id="2519" class="Symbol">→</a> <a id="2521" href="Relation.Binary.Properties.TotalOrder.html#2508" class="Bound">y</a> <a id="2523" href="Relation.Binary.Properties.Poset.html#2157" class="Function Operator">&lt;</a> <a id="2525" href="Relation.Binary.Properties.TotalOrder.html#2506" class="Bound">x</a>
+<a id="2527" href="Relation.Binary.Properties.TotalOrder.html#2497" class="Function">≰⇒&gt;</a> <a id="2531" class="Symbol">=</a> <a id="2533" href="Relation.Binary.Construct.NonStrictToStrict.html#1837" class="Function">ToStrict.≰⇒&gt;</a> <a id="2546" href="Relation.Binary.Structures.html#1245" class="Function">Eq.sym</a> <a id="2553" href="Relation.Binary.Structures.html#2404" class="Function">reflexive</a> <a id="2563" href="Relation.Binary.Structures.html#6084" class="Function">total</a>
+
+<a id="≰⇒≥"></a><a id="2570" href="Relation.Binary.Properties.TotalOrder.html#2570" class="Function">≰⇒≥</a> <a id="2574" class="Symbol">:</a> <a id="2576" class="Symbol">∀</a> <a id="2578" class="Symbol">{</a><a id="2579" href="Relation.Binary.Properties.TotalOrder.html#2579" class="Bound">x</a> <a id="2581" href="Relation.Binary.Properties.TotalOrder.html#2581" class="Bound">y</a><a id="2582" class="Symbol">}</a> <a id="2584" class="Symbol">→</a> <a id="2586" href="Relation.Binary.Properties.TotalOrder.html#2579" class="Bound">x</a> <a id="2588" href="Relation.Binary.Bundles.html#5084" class="Function Operator">≰</a> <a id="2590" href="Relation.Binary.Properties.TotalOrder.html#2581" class="Bound">y</a> <a id="2592" class="Symbol">→</a> <a id="2594" href="Relation.Binary.Properties.TotalOrder.html#2581" class="Bound">y</a> <a id="2596" href="Relation.Binary.Bundles.html#7717" class="Field Operator">≤</a> <a id="2598" href="Relation.Binary.Properties.TotalOrder.html#2579" class="Bound">x</a>
+<a id="2600" href="Relation.Binary.Properties.TotalOrder.html#2570" class="Function">≰⇒≥</a> <a id="2604" href="Relation.Binary.Properties.TotalOrder.html#2604" class="Bound">x≰y</a> <a id="2608" class="Symbol">=</a> <a id="2610" href="Data.Product.Base.html#636" class="Field">proj₁</a> <a id="2616" class="Symbol">(</a><a id="2617" href="Relation.Binary.Properties.TotalOrder.html#2497" class="Function">≰⇒&gt;</a> <a id="2621" href="Relation.Binary.Properties.TotalOrder.html#2604" class="Bound">x≰y</a><a id="2624" class="Symbol">)</a>
+</pre></body></html>

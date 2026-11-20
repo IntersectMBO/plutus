@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Builtin.Array.Base</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Builtin.Array.Base</h1>
+    <section>
+      <pre class="Agda"><a id="53" class="Keyword">module</a> <a id="60" href="Builtin.Array.Base.html" class="Module">Builtin.Array.Base</a> <a id="79" class="Keyword">where</a>
+
+<a id="86" class="Keyword">open</a> <a id="91" class="Keyword">import</a> <a id="98" href="Data.List.html" class="Module">Data.List</a>
+<a id="108" class="Keyword">open</a> <a id="113" class="Keyword">import</a> <a id="120" href="Data.Nat.html" class="Module">Data.Nat</a> <a id="129" class="Keyword">using</a> <a id="135" class="Symbol">(</a><a id="136" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a><a id="137" class="Symbol">;</a> <a id="139" href="Data.Nat.Properties.html#11931" class="Function Operator">_&lt;?_</a><a id="143" class="Symbol">)</a>
+<a id="145" class="Keyword">open</a> <a id="150" class="Keyword">import</a> <a id="157" href="Data.Integer.html" class="Module">Data.Integer</a> <a id="170" class="Keyword">using</a> <a id="176" class="Symbol">(</a><a id="177" href="Agda.Builtin.Int.html#245" class="Datatype">ℤ</a><a id="178" class="Symbol">;</a> <a id="180" href="Agda.Builtin.Int.html#290" class="InductiveConstructor">-[1+_]</a><a id="186" class="Symbol">;</a> <a id="188" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">+_</a><a id="190" class="Symbol">)</a>
+<a id="192" class="Keyword">open</a> <a id="197" class="Keyword">import</a> <a id="204" href="Data.Maybe.html" class="Module">Data.Maybe</a> <a id="215" class="Keyword">using</a> <a id="221" class="Symbol">(</a><a id="222" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a><a id="227" class="Symbol">;</a> <a id="229" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a><a id="236" class="Symbol">;</a> <a id="238" href="Agda.Builtin.Maybe.html#173" class="InductiveConstructor">just</a><a id="242" class="Symbol">)</a>
+<a id="244" class="Keyword">open</a> <a id="249" class="Keyword">import</a> <a id="256" href="Data.Fin.html" class="Module">Data.Fin</a> <a id="265" class="Keyword">using</a> <a id="271" class="Symbol">(</a><a id="272" href="Data.Fin.Base.html#1931" class="Function">fromℕ&lt;</a><a id="278" class="Symbol">;</a> <a id="280" href="Data.Fin.Base.html#1154" class="InductiveConstructor">zero</a><a id="284" class="Symbol">;</a> <a id="286" href="Data.Fin.Base.html#1175" class="InductiveConstructor">suc</a><a id="289" class="Symbol">)</a>
+<a id="291" class="Keyword">open</a> <a id="296" class="Keyword">import</a> <a id="303" href="Relation.Nullary.html" class="Module">Relation.Nullary</a> <a id="320" class="Keyword">using</a> <a id="326" class="Symbol">(</a><a id="327" href="Relation.Nullary.Decidable.Core.html#2099" class="InductiveConstructor">yes</a><a id="330" class="Symbol">;</a> <a id="332" href="Relation.Nullary.Decidable.Core.html#2136" class="InductiveConstructor">no</a><a id="334" class="Symbol">)</a>
+</pre>
+<h2 id="semantics-of-arrays">Semantics of arrays</h2>
+
+<p>The denotation of the array type is identical to that of lists, but we expect
+that in practice arrays will be implemented in such a way that the
+<code class="language-plaintext highlighter-rouge">lengthOfArray</code> and <code class="language-plaintext highlighter-rouge">indexArray</code> functions will be constant time and listToArray
+may be nontrivial, requiring linear time.</p>
+
+<pre class="Agda"><a id="Array"></a><a id="638" href="Builtin.Array.Base.html#638" class="Function">Array</a> <a id="644" class="Symbol">:</a> <a id="646" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="650" class="Symbol">→</a> <a id="652" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="656" href="Builtin.Array.Base.html#638" class="Function">Array</a> <a id="662" class="Symbol">=</a> <a id="664" href="Agda.Builtin.List.html#147" class="Datatype">List</a>
+
+<a id="670" class="Keyword">private</a> <a id="678" class="Keyword">variable</a>
+  <a id="689" href="Builtin.Array.Base.html#689" class="Generalizable">A</a> <a id="691" class="Symbol">:</a> <a id="693" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+</pre>
+<h2 id="built-in-functions-on-array">Built-in functions on Array</h2>
+
+<h3 id="batch-6">Batch 6</h3>
+
+<pre class="Agda"><a id="lengthOfArray"></a><a id="751" href="Builtin.Array.Base.html#751" class="Function">lengthOfArray</a> <a id="765" class="Symbol">:</a> <a id="767" href="Builtin.Array.Base.html#638" class="Function">Array</a> <a id="773" href="Builtin.Array.Base.html#689" class="Generalizable">A</a> <a id="775" class="Symbol">→</a> <a id="777" href="Agda.Builtin.Int.html#245" class="Datatype">ℤ</a>
+<a id="779" href="Builtin.Array.Base.html#751" class="Function">lengthOfArray</a> <a id="793" href="Builtin.Array.Base.html#793" class="Bound">xs</a> <a id="796" class="Symbol">=</a> <a id="798" href="Agda.Builtin.Int.html#263" class="InductiveConstructor Operator">+</a> <a id="800" class="Symbol">(</a><a id="801" href="Data.List.Base.html#4746" class="Function">length</a> <a id="808" href="Builtin.Array.Base.html#793" class="Bound">xs</a><a id="810" class="Symbol">)</a>
+
+<a id="listToArray"></a><a id="813" href="Builtin.Array.Base.html#813" class="Function">listToArray</a> <a id="825" class="Symbol">:</a> <a id="827" href="Agda.Builtin.List.html#147" class="Datatype">List</a> <a id="832" href="Builtin.Array.Base.html#689" class="Generalizable">A</a> <a id="834" class="Symbol">→</a> <a id="836" href="Builtin.Array.Base.html#638" class="Function">Array</a> <a id="842" href="Builtin.Array.Base.html#689" class="Generalizable">A</a>
+<a id="844" href="Builtin.Array.Base.html#813" class="Function">listToArray</a> <a id="856" href="Builtin.Array.Base.html#856" class="Bound">xs</a> <a id="859" class="Symbol">=</a> <a id="861" href="Builtin.Array.Base.html#856" class="Bound">xs</a>
+
+<a id="indexArray"></a><a id="865" href="Builtin.Array.Base.html#865" class="Function">indexArray</a> <a id="876" class="Symbol">:</a> <a id="878" href="Builtin.Array.Base.html#638" class="Function">Array</a> <a id="884" href="Builtin.Array.Base.html#689" class="Generalizable">A</a> <a id="886" class="Symbol">→</a> <a id="888" href="Agda.Builtin.Int.html#245" class="Datatype">ℤ</a> <a id="890" class="Symbol">→</a> <a id="892" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a> <a id="898" href="Builtin.Array.Base.html#689" class="Generalizable">A</a>
+<a id="900" href="Builtin.Array.Base.html#865" class="Function">indexArray</a> <a id="911" href="Builtin.Array.Base.html#911" class="Bound">xs</a> <a id="914" class="Symbol">(</a><a id="915" href="Agda.Builtin.Int.html#290" class="InductiveConstructor Operator">-[1+</a> <a id="920" href="Builtin.Array.Base.html#920" class="Bound">n</a> <a id="922" href="Agda.Builtin.Int.html#290" class="InductiveConstructor Operator">]</a><a id="923" class="Symbol">)</a> <a id="925" class="Symbol">=</a> <a id="927" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a>
+<a id="935" href="Builtin.Array.Base.html#865" class="Function">indexArray</a> <a id="946" href="Builtin.Array.Base.html#946" class="Bound">xs</a> <a id="949" class="Symbol">(</a><a id="950" href="Agda.Builtin.Int.html#263" class="InductiveConstructor Operator">+</a> <a id="952" href="Builtin.Array.Base.html#952" class="Bound">n</a><a id="953" class="Symbol">)</a>
+  <a id="957" class="Keyword">with</a> <a id="962" href="Builtin.Array.Base.html#952" class="Bound">n</a> <a id="964" href="Data.Nat.Properties.html#11931" class="Function Operator">&lt;?</a> <a id="967" href="Data.List.Base.html#4746" class="Function">length</a> <a id="974" href="Builtin.Array.Base.html#946" class="Bound">xs</a>
+<a id="977" class="Symbol">...</a> <a id="981" class="Symbol">|</a> <a id="983" href="Relation.Nullary.Decidable.Core.html#2099" class="InductiveConstructor">yes</a> <a id="987" href="Builtin.Array.Base.html#987" class="Bound">n&lt;len</a> <a id="993" class="Symbol">=</a> <a id="995" href="Agda.Builtin.Maybe.html#173" class="InductiveConstructor">just</a> <a id="1000" class="Symbol">(</a><a id="1001" href="Data.List.Base.html#6263" class="Function">lookup</a> <a id="1008" class="Bound">xs</a> <a id="1011" class="Symbol">(</a><a id="1012" href="Data.Fin.Base.html#1931" class="Function">fromℕ&lt;</a> <a id="1019" href="Builtin.Array.Base.html#987" class="Bound">n&lt;len</a><a id="1024" class="Symbol">))</a>
+<a id="1027" class="Symbol">...</a> <a id="1031" class="Symbol">|</a> <a id="1033" href="Relation.Nullary.Decidable.Core.html#2136" class="InductiveConstructor">no</a> <a id="1036" class="Symbol">_</a> <a id="1038" class="Symbol">=</a> <a id="1040" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a>
+</pre>
+<h3 id="batch-7">Batch 7</h3>
+
+<p>Indices are zero-based.</p>
+
+<pre class="Agda"><a id="multiIndexArray"></a><a id="1095" href="Builtin.Array.Base.html#1095" class="Function">multiIndexArray</a> <a id="1111" class="Symbol">:</a> <a id="1113" href="Builtin.Array.Base.html#638" class="Function">Array</a> <a id="1119" href="Builtin.Array.Base.html#689" class="Generalizable">A</a> <a id="1121" class="Symbol">→</a> <a id="1123" href="Agda.Builtin.List.html#147" class="Datatype">List</a> <a id="1128" href="Agda.Builtin.Int.html#245" class="Datatype">ℤ</a> <a id="1130" class="Symbol">→</a> <a id="1132" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a> <a id="1138" class="Symbol">(</a><a id="1139" href="Agda.Builtin.List.html#147" class="Datatype">List</a> <a id="1144" href="Builtin.Array.Base.html#689" class="Generalizable">A</a><a id="1145" class="Symbol">)</a>
+<a id="1147" href="Builtin.Array.Base.html#1095" class="Function">multiIndexArray</a> <a id="1163" class="Symbol">_</a>  <a id="1166" href="Agda.Builtin.List.html#184" class="InductiveConstructor">[]</a> <a id="1169" class="Symbol">=</a> <a id="1171" href="Agda.Builtin.Maybe.html#173" class="InductiveConstructor">just</a> <a id="1176" href="Agda.Builtin.List.html#184" class="InductiveConstructor">[]</a>
+<a id="1179" href="Builtin.Array.Base.html#1095" class="Function">multiIndexArray</a> <a id="1195" href="Builtin.Array.Base.html#1195" class="Bound">xs</a> <a id="1198" class="Symbol">(</a><a id="1199" href="Builtin.Array.Base.html#1199" class="Bound">i</a> <a id="1201" href="Agda.Builtin.List.html#199" class="InductiveConstructor Operator">∷</a> <a id="1203" href="Builtin.Array.Base.html#1203" class="Bound">is</a><a id="1205" class="Symbol">)</a>
+  <a id="1209" class="Keyword">with</a> <a id="1214" href="Builtin.Array.Base.html#865" class="Function">indexArray</a> <a id="1225" href="Builtin.Array.Base.html#1195" class="Bound">xs</a> <a id="1228" href="Builtin.Array.Base.html#1199" class="Bound">i</a>
+<a id="1230" class="Symbol">...</a> <a id="1234" class="Symbol">|</a> <a id="1236" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a> <a id="1244" class="Symbol">=</a> <a id="1246" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a>
+<a id="1254" class="Symbol">...</a> <a id="1258" class="Symbol">|</a> <a id="1260" href="Agda.Builtin.Maybe.html#173" class="InductiveConstructor">just</a> <a id="1265" href="Builtin.Array.Base.html#1265" class="Bound">y</a>
+  <a id="1269" class="Keyword">with</a> <a id="1274" href="Builtin.Array.Base.html#1095" class="Function">multiIndexArray</a> <a id="1290" class="Bound">xs</a> <a id="1293" class="Bound">is</a>
+<a id="1296" class="Symbol">...</a> <a id="1300" class="Symbol">|</a> <a id="1302" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a> <a id="1310" class="Symbol">=</a> <a id="1312" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a>
+<a id="1320" class="Symbol">...</a> <a id="1324" class="Symbol">|</a> <a id="1326" href="Agda.Builtin.Maybe.html#173" class="InductiveConstructor">just</a> <a id="1331" href="Builtin.Array.Base.html#1331" class="Bound">ys</a> <a id="1334" class="Symbol">=</a> <a id="1336" href="Agda.Builtin.Maybe.html#173" class="InductiveConstructor">just</a> <a id="1341" class="Symbol">(</a><a id="1342" class="Bound">y</a> <a id="1344" href="Agda.Builtin.List.html#199" class="InductiveConstructor Operator">∷</a> <a id="1346" href="Builtin.Array.Base.html#1331" class="Bound">ys</a><a id="1348" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

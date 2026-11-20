@@ -1,0 +1,72 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE GADTs #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>module PlutusCore.Arity where
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>import Data.Proxy
+<span class="lineno">    7 </span>import PlutusCore
+<span class="lineno">    8 </span>import PlutusCore.Builtin
+<span class="lineno">    9 </span>import Prettyprinter
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>-- | Is the next argument a term or a type?
+<span class="lineno">   12 </span>data Param
+<span class="lineno">   13 </span>  = TermParam
+<span class="lineno">   14 </span>  | TypeParam
+<span class="lineno">   15 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>instance <span class="decl"><span class="nottickedoff">Pretty Param</span></span> where
+<span class="lineno">   18 </span>  <span class="decl"><span class="nottickedoff">pretty = viaShow</span></span>
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>{-|
+<span class="lineno">   21 </span>The (syntactic) arity of a term. That is, a record of the arguments that the
+<span class="lineno">   22 </span>term expects before it may do some work. Since we have both type and lambda
+<span class="lineno">   23 </span>abstractions, this is not a simple argument count, but rather a list of values
+<span class="lineno">   24 </span>indicating whether the next argument should be a term or a type.
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>Note that this is the syntactic arity, i.e. it just corresponds to the number of
+<span class="lineno">   27 </span>syntactic lambda and type abstractions on the outside of the term. It is thus
+<span class="lineno">   28 </span>an under-approximation of how many arguments the term may need.
+<span class="lineno">   29 </span>e.g. consider the term @let id = \x -&gt; x in id@: the variable @id@ has syntactic
+<span class="lineno">   30 </span>arity @[]@, but does in fact need an argument before it does any work. -}
+<span class="lineno">   31 </span>type Arity = [Param]
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>-- | Get the 'Arity' from a 'TypeScheme'.
+<span class="lineno">   34 </span>typeSchemeArity :: TypeScheme val args res -&gt; Arity
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">typeSchemeArity TypeSchemeResult {} = []</span>
+<span class="lineno">   36 </span><span class="spaces"></span><span class="istickedoff">typeSchemeArity (TypeSchemeArrow sch) = TermParam : typeSchemeArity sch</span>
+<span class="lineno">   37 </span><span class="spaces"></span><span class="istickedoff">typeSchemeArity (TypeSchemeAll _ sch) = TypeParam : typeSchemeArity sch</span></span>
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>-- | Get the arity of a builtin function from the 'PLC.BuiltinSemanticsVariant'.
+<span class="lineno">   40 </span>builtinArity
+<span class="lineno">   41 </span>  :: forall uni fun
+<span class="lineno">   42 </span>   . ToBuiltinMeaning uni fun
+<span class="lineno">   43 </span>  =&gt; Proxy uni
+<span class="lineno">   44 </span>  -&gt; BuiltinSemanticsVariant fun
+<span class="lineno">   45 </span>  -&gt; fun
+<span class="lineno">   46 </span>  -&gt; Arity
+<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">builtinArity _ semvar fun =</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) semvar fun of</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="istickedoff">BuiltinMeaning sch _ _ -&gt; typeSchemeArity sch</span></span>
+
+</pre>
+</body>
+</html>

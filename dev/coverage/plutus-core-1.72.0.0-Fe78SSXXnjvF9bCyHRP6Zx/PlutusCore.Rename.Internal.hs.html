@@ -1,0 +1,138 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>{-| The internal module of the renamer that defines the actual algorithms,
+<span class="lineno">    4 </span>but not the user-facing API. -}
+<span class="lineno">    5 </span>module PlutusCore.Rename.Internal
+<span class="lineno">    6 </span>  ( module Export
+<span class="lineno">    7 </span>  , Renamed (..)
+<span class="lineno">    8 </span>  , Dupable (..)
+<span class="lineno">    9 </span>  , withFreshenedTyVarDecl
+<span class="lineno">   10 </span>  , withFreshenedVarDecl
+<span class="lineno">   11 </span>  , renameTypeM
+<span class="lineno">   12 </span>  , renameTermM
+<span class="lineno">   13 </span>  , renameProgramM
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import PlutusCore.Core
+<span class="lineno">   17 </span>import PlutusCore.Name.Unique
+<span class="lineno">   18 </span>import PlutusCore.Quote
+<span class="lineno">   19 </span>import PlutusCore.Rename.Monad as Export
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Control.Monad.Reader
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>{-| A wrapper for signifying that the value inside of it satisfies global uniqueness.
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>It's safe to call 'unRenamed', it's not safe to call 'Renamed', hence the latter is only exported
+<span class="lineno">   26 </span>from this internal module and should not be exported from the main API.
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>Don't provide any instances allowing the user to create a 'Renamed' (even out of an existing one
+<span class="lineno">   29 </span>like with 'Functor'). -}
+<span class="lineno">   30 </span>newtype Renamed a = Renamed
+<span class="lineno">   31 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unRenamed</span></span></span> :: a
+<span class="lineno">   32 </span>  }
+<span class="lineno">   33 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>{-| @Dupable a@ is isomorphic to @a@, but the only way to extract the @a@ is via 'liftDupable'
+<span class="lineno">   36 </span>(defined in the main API module because of a constraint requirement) which renames the stored
+<span class="lineno">   37 </span>value along the way. This type is used whenever
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>1. preserving global uniqueness is required
+<span class="lineno">   40 </span>2. some value may be used multiple times
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>so we annotate such a value with 'Dupable' and call 'liftDupable' at each usage, which ensures
+<span class="lineno">   43 </span>global uniqueness is preserved.
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>'unDupable' is not supposed to be exported. Don't provide any instances allowing the user to
+<span class="lineno">   46 </span>access the underlying value. -}
+<span class="lineno">   47 </span>newtype Dupable a = Dupable
+<span class="lineno">   48 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">unDupable</span></span></span> :: a
+<span class="lineno">   49 </span>  }
+<span class="lineno">   50 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>{-| Replace the unique in the name stored in a 'TyVarDecl' by a new unique, save the mapping
+<span class="lineno">   53 </span>from the old unique to the new one and supply the updated 'TyVarDecl' to a continuation. -}
+<span class="lineno">   54 </span>withFreshenedTyVarDecl
+<span class="lineno">   55 </span>  :: (HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann), MonadQuote m, MonadReader ren m)
+<span class="lineno">   56 </span>  =&gt; TyVarDecl tyname ann
+<span class="lineno">   57 </span>  -&gt; (TyVarDecl tyname ann -&gt; m c)
+<span class="lineno">   58 </span>  -&gt; m c
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">withFreshenedTyVarDecl (TyVarDecl ann name kind) cont =</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">withFreshenedName name $ \nameFr -&gt; cont $ TyVarDecl ann nameFr kind</span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>{-| Replace the unique in the name stored in a 'VarDecl' by a new unique, save the mapping
+<span class="lineno">   63 </span>from the old unique to the new one and supply to a continuation the computation that
+<span class="lineno">   64 </span>renames the type stored in the updated 'VarDecl'.
+<span class="lineno">   65 </span>The reason the continuation receives a computation rather than a pure term is that we may want
+<span class="lineno">   66 </span>to bring several term and type variables in scope before renaming the types of term variables.
+<span class="lineno">   67 </span>This situation arises when we want to rename a bunch of mutually recursive bindings. -}
+<span class="lineno">   68 </span>withFreshenedVarDecl
+<span class="lineno">   69 </span>  :: (HasUniques (Term tyname name uni fun ann), MonadQuote m, MonadReader ScopedRenaming m)
+<span class="lineno">   70 </span>  =&gt; VarDecl tyname name uni ann
+<span class="lineno">   71 </span>  -&gt; (m (VarDecl tyname name uni ann) -&gt; m c)
+<span class="lineno">   72 </span>  -&gt; m c
+<span class="lineno">   73 </span><span class="decl"><span class="istickedoff">withFreshenedVarDecl (VarDecl ann name ty) cont =</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">withFreshenedName name $ \nameFr -&gt; cont $ VarDecl ann nameFr &lt;$&gt; renameTypeM ty</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>-- | Rename a 'Type' in the 'RenameM' monad.
+<span class="lineno">   77 </span>renameTypeM
+<span class="lineno">   78 </span>  :: (HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann), MonadQuote m, MonadReader ren m)
+<span class="lineno">   79 </span>  =&gt; Type tyname uni ann -&gt; m (Type tyname uni ann)
+<span class="lineno">   80 </span><span class="decl"><span class="istickedoff">renameTypeM (TyLam ann name kind ty) =</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="istickedoff">withFreshenedName name $ \nameFr -&gt; TyLam ann nameFr kind &lt;$&gt; renameTypeM ty</span>
+<span class="lineno">   82 </span><span class="spaces"></span><span class="istickedoff">renameTypeM (TyForall ann name kind ty) =</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">withFreshenedName name $ \nameFr -&gt; TyForall ann nameFr kind &lt;$&gt; renameTypeM ty</span>
+<span class="lineno">   84 </span><span class="spaces"></span><span class="istickedoff">renameTypeM (TyIFix ann pat arg) = TyIFix ann &lt;$&gt; renameTypeM pat &lt;*&gt; renameTypeM arg</span>
+<span class="lineno">   85 </span><span class="spaces"></span><span class="istickedoff">renameTypeM (TyApp ann fun arg) = TyApp ann &lt;$&gt; renameTypeM fun &lt;*&gt; renameTypeM arg</span>
+<span class="lineno">   86 </span><span class="spaces"></span><span class="istickedoff">renameTypeM (TyFun ann dom cod) = TyFun ann &lt;$&gt; renameTypeM dom &lt;*&gt; renameTypeM cod</span>
+<span class="lineno">   87 </span><span class="spaces"></span><span class="istickedoff">renameTypeM (TyVar ann name) = TyVar ann &lt;$&gt; renameNameM name</span>
+<span class="lineno">   88 </span><span class="spaces"></span><span class="istickedoff">renameTypeM (TySOP ann tyls) = TySOP ann &lt;$&gt; (traverse . traverse) renameTypeM tyls</span>
+<span class="lineno">   89 </span><span class="spaces"></span><span class="istickedoff">renameTypeM ty@TyBuiltin {} = pure ty</span></span>
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>-- | Rename a 'Term' in the 'RenameM' monad.
+<span class="lineno">   92 </span>renameTermM
+<span class="lineno">   93 </span>  :: (HasUniques (Term tyname name uni fun ann), MonadQuote m, MonadReader ScopedRenaming m)
+<span class="lineno">   94 </span>  =&gt; Term tyname name uni fun ann -&gt; m (Term tyname name uni fun ann)
+<span class="lineno">   95 </span><span class="decl"><span class="istickedoff">renameTermM (LamAbs ann name ty body) =</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="istickedoff">withFreshenedName name $ \nameFr -&gt; LamAbs ann nameFr &lt;$&gt; renameTypeM ty &lt;*&gt; renameTermM body</span>
+<span class="lineno">   97 </span><span class="spaces"></span><span class="istickedoff">renameTermM (TyAbs ann name kind body) =</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="istickedoff">withFreshenedName name $ \nameFr -&gt; TyAbs ann nameFr kind &lt;$&gt; renameTermM body</span>
+<span class="lineno">   99 </span><span class="spaces"></span><span class="istickedoff">renameTermM (IWrap ann pat arg term) =</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="istickedoff">IWrap ann &lt;$&gt; renameTypeM pat &lt;*&gt; renameTypeM arg &lt;*&gt; renameTermM term</span>
+<span class="lineno">  101 </span><span class="spaces"></span><span class="istickedoff">renameTermM (Apply ann fun arg) = Apply ann &lt;$&gt; renameTermM fun &lt;*&gt; renameTermM arg</span>
+<span class="lineno">  102 </span><span class="spaces"></span><span class="istickedoff">renameTermM (Unwrap ann term) = Unwrap ann &lt;$&gt; renameTermM term</span>
+<span class="lineno">  103 </span><span class="spaces"></span><span class="istickedoff">renameTermM (Error ann ty) = Error ann &lt;$&gt; renameTypeM ty</span>
+<span class="lineno">  104 </span><span class="spaces"></span><span class="istickedoff">renameTermM (TyInst ann term ty) = TyInst ann &lt;$&gt; renameTermM term &lt;*&gt; renameTypeM ty</span>
+<span class="lineno">  105 </span><span class="spaces"></span><span class="istickedoff">renameTermM (Var ann name) = Var ann &lt;$&gt; renameNameM name</span>
+<span class="lineno">  106 </span><span class="spaces"></span><span class="istickedoff">renameTermM (Constr ann ty i es) = Constr ann &lt;$&gt; renameTypeM ty &lt;*&gt; pure i &lt;*&gt; traverse renameTermM es</span>
+<span class="lineno">  107 </span><span class="spaces"></span><span class="istickedoff">renameTermM (Case ann ty arg cs) = Case ann &lt;$&gt; renameTypeM ty &lt;*&gt; renameTermM arg &lt;*&gt; traverse renameTermM cs</span>
+<span class="lineno">  108 </span><span class="spaces"></span><span class="istickedoff">renameTermM con@Constant {} = pure con</span>
+<span class="lineno">  109 </span><span class="spaces"></span><span class="istickedoff">renameTermM bi@Builtin {} = pure bi</span></span>
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>-- | Rename a 'Program' in the 'RenameM' monad.
+<span class="lineno">  112 </span>renameProgramM
+<span class="lineno">  113 </span>  :: (HasUniques (Program tyname name uni fun ann), MonadQuote m, MonadReader ScopedRenaming m)
+<span class="lineno">  114 </span>  =&gt; Program tyname name uni fun ann -&gt; m (Program tyname name uni fun ann)
+<span class="lineno">  115 </span><span class="decl"><span class="istickedoff">renameProgramM (Program ann ver term) = Program ann ver &lt;$&gt; renameTermM term</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    2 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    6 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    7 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    8 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>-- | 'Eq' instances for core data types.
+<span class="lineno">   11 </span>module PlutusCore.Core.Instance.Eq () where
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import PlutusPrelude
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import PlutusCore.Core.Type
+<span class="lineno">   16 </span>import PlutusCore.DeBruijn
+<span class="lineno">   17 </span>import PlutusCore.Eq
+<span class="lineno">   18 </span>import PlutusCore.Name.Unique
+<span class="lineno">   19 </span>import PlutusCore.Rename.Monad
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Universe
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>instance <span class="decl"><span class="istickedoff">(GEq uni, Eq ann) =&gt; Eq (Type TyName uni ann)</span></span> where
+<span class="lineno">   24 </span>  <span class="decl"><span class="istickedoff">ty1 == ty2 = runEqRename @TypeRenaming $ eqTypeM ty1 ty2</span></span>
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>instance
+<span class="lineno">   27 </span>  <span class="decl"><span class="istickedoff">( GEq uni</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="istickedoff">, Closed uni</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="istickedoff">, uni `Everywhere` Eq</span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="istickedoff">, Eq fun</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="istickedoff">, Eq ann</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="istickedoff">)</span>
+<span class="lineno">   33 </span><span class="spaces">  </span><span class="istickedoff">=&gt; Eq (Term TyName Name uni fun ann)</span></span>
+<span class="lineno">   34 </span>  where
+<span class="lineno">   35 </span>  <span class="decl"><span class="istickedoff">term1 == term2 = runEqRename $ eqTermM term1 term2</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>-- Simple Structural Equality of a `Term NamedDeBruijn`. This implies three things:
+<span class="lineno">   38 </span>-- b) We do not do equality &quot;modulo starting index&quot;. E.g. `LamAbs 0 (Var 0) /= LamAbs 1 (Var 1)`.
+<span class="lineno">   39 </span>-- c) We do not do equality &quot;&quot;modulo annotations&quot;.
+<span class="lineno">   40 </span>-- Note that we ignore the name part in case of the nameddebruijn
+<span class="lineno">   41 </span>-- If a user wants to ignore annotations he must prior do `void &lt;$&gt; term`, to throw away any annotations.
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="nottickedoff">(GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann)</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Eq (Term NamedTyDeBruijn NamedDeBruijn uni fun ann)</span></span></span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="nottickedoff">(GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann)</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Eq (Term TyDeBruijn DeBruijn uni fun ann)</span></span></span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">(GEq uni, Closed uni, uni `Everywhere` Eq, Eq ann)</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Eq (Type NamedTyDeBruijn uni ann)</span></span></span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">(GEq uni, Closed uni, uni `Everywhere` Eq, Eq ann)</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Eq (Type TyDeBruijn uni ann)</span></span></span></span>
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">( GEq uni</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">, Closed uni</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="nottickedoff">, uni `Everywhere` Eq</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">, Eq fun</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">, Eq ann</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">, Eq (Term tyname name uni fun ann)</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">)</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; Eq (Program tyname name uni fun ann)</span></span></span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>type EqRenameOf ren a = HasUniques a =&gt; a -&gt; a -&gt; EqRename ren
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>{- Note [No catch-all]
+<span class="lineno">   71 </span>Catch-all clauses like @f _x = &lt;...&gt;@ have the disadvantage that if somebody adds a new constructor
+<span class="lineno">   72 </span>to the definition of the type of @_x@, then GHC will not warn us about @f@ potentially no longer
+<span class="lineno">   73 </span>being defined correctly. This is especially pronounced for equality checking functions, having
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>    _ == _ = False
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>as the last clause of '(==)' makes it much trickier to spot that a new clause needs to be added if
+<span class="lineno">   78 </span>the type of the arguments get extended with a new constructor. For this reason in equality checking
+<span class="lineno">   79 </span>functions we always match on the first argument exhaustively even if it means having a wall of
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>    C1 == _ = False
+<span class="lineno">   82 </span>    C2 == _ = False
+<span class="lineno">   83 </span>    &lt;...&gt;
+<span class="lineno">   84 </span>    Cn == _ = False
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>This way we get a warning from GHC about non-exhaustive pattern matching if the type of the
+<span class="lineno">   87 </span>arguments gets extended with additional constructors.
+<span class="lineno">   88 </span>-}
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>-- See Note [Modulo alpha].
+<span class="lineno">   91 </span>-- See Note [Scope tracking]
+<span class="lineno">   92 </span>-- See Note [Side tracking]
+<span class="lineno">   93 </span>-- See Note [No catch-all].
+<span class="lineno">   94 </span>-- | Check equality of two 'Type's.
+<span class="lineno">   95 </span>eqTypeM :: (HasRenaming ren TypeUnique, GEq uni, Eq ann) =&gt; EqRenameOf ren (Type tyname uni ann)
+<span class="lineno">   96 </span><span class="decl"><span class="istickedoff">eqTypeM (TyVar ann1 name1) (TyVar ann2 name2) = do</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="istickedoff">eqNameM name1 name2</span>
+<span class="lineno">   99 </span><span class="spaces"></span><span class="istickedoff">eqTypeM (TyLam ann1 name1 kind1 ty1) (TyLam ann2 name2 kind2 ty2) = do</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="istickedoff">eqM kind1 kind2</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="istickedoff">withTwinBindings name1 name2 $ eqTypeM ty1 ty2</span>
+<span class="lineno">  103 </span><span class="spaces"></span><span class="istickedoff">eqTypeM (TyForall ann1 name1 kind1 ty1) (TyForall ann2 name2 kind2 ty2) = do</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="istickedoff">eqM kind1 kind2</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="istickedoff">withTwinBindings name1 name2 $ eqTypeM ty1 ty2</span>
+<span class="lineno">  107 </span><span class="spaces"></span><span class="istickedoff">eqTypeM (TyIFix ann1 pat1 arg1) (TyIFix ann2 pat2 arg2) = do</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM pat1 pat2</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM arg1 arg2</span>
+<span class="lineno">  111 </span><span class="spaces"></span><span class="istickedoff">eqTypeM (TyApp ann1 fun1 arg1) (TyApp ann2 fun2 arg2) = do</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM fun1 fun2</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM arg1 arg2</span>
+<span class="lineno">  115 </span><span class="spaces"></span><span class="istickedoff">eqTypeM (TyFun ann1 dom1 cod1) (TyFun ann2 dom2 cod2) = do</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  117 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM dom1 dom2</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM cod1 cod2</span>
+<span class="lineno">  119 </span><span class="spaces"></span><span class="istickedoff">eqTypeM (TyBuiltin ann1 someUni1) (TyBuiltin ann2 someUni2) = do</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="istickedoff">eqM someUni1 someUni2</span>
+<span class="lineno">  122 </span><span class="spaces"></span><span class="istickedoff">eqTypeM (TySOP ann1 tyls1) (TySOP ann2 tyls2) = do</span>
+<span class="lineno">  123 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="istickedoff">case zipExact tyls1 tyls2 of</span>
+<span class="lineno">  125 </span><span class="spaces">    </span><span class="istickedoff">Just ps -&gt; for_ ps $ \(ptys1, ptys2) -&gt; case zipExact ptys1 ptys2 of</span>
+<span class="lineno">  126 </span><span class="spaces">      </span><span class="istickedoff">Just tys -&gt; for_ tys $ \(ty1, ty2) -&gt; eqTypeM ty1 ty2</span>
+<span class="lineno">  127 </span><span class="spaces">      </span><span class="istickedoff">Nothing -&gt; <span class="nottickedoff">empty</span></span>
+<span class="lineno">  128 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; <span class="nottickedoff">empty</span></span>
+<span class="lineno">  129 </span><span class="spaces"></span><span class="istickedoff">eqTypeM TyVar {} _ = empty</span>
+<span class="lineno">  130 </span><span class="spaces"></span><span class="istickedoff">eqTypeM TyLam {} _ = empty</span>
+<span class="lineno">  131 </span><span class="spaces"></span><span class="istickedoff">eqTypeM TyForall {} _ = empty</span>
+<span class="lineno">  132 </span><span class="spaces"></span><span class="istickedoff">eqTypeM TyIFix {} _ = empty</span>
+<span class="lineno">  133 </span><span class="spaces"></span><span class="istickedoff">eqTypeM TyApp {} _ = empty</span>
+<span class="lineno">  134 </span><span class="spaces"></span><span class="istickedoff">eqTypeM TyFun {} _ = empty</span>
+<span class="lineno">  135 </span><span class="spaces"></span><span class="istickedoff">eqTypeM TyBuiltin {} _ = empty</span>
+<span class="lineno">  136 </span><span class="spaces"></span><span class="istickedoff">eqTypeM TySOP {} _ = empty</span></span>
+<span class="lineno">  137 </span>
+<span class="lineno">  138 </span>-- See Note [Modulo alpha].
+<span class="lineno">  139 </span>-- See Note [Scope tracking]
+<span class="lineno">  140 </span>-- See Note [Side tracking]
+<span class="lineno">  141 </span>-- See Note [No catch-all].
+<span class="lineno">  142 </span>-- | Check equality of two 'Term's.
+<span class="lineno">  143 </span>eqTermM
+<span class="lineno">  144 </span>  :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann)
+<span class="lineno">  145 </span>  =&gt; EqRenameOf ScopedRenaming (Term tyname name uni fun ann)
+<span class="lineno">  146 </span><span class="decl"><span class="istickedoff">eqTermM (LamAbs ann1 name1 ty1 body1) (LamAbs ann2 name2 ty2 body2) = do</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  148 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM ty1 ty2</span>
+<span class="lineno">  149 </span><span class="spaces">  </span><span class="istickedoff">withTwinBindings name1 name2 $ eqTermM body1 body2</span>
+<span class="lineno">  150 </span><span class="spaces"></span><span class="istickedoff">eqTermM (TyAbs ann1 name1 kind1 body1) (TyAbs ann2 name2 kind2 body2) = do</span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  152 </span><span class="spaces">  </span><span class="istickedoff">eqM kind1 kind2</span>
+<span class="lineno">  153 </span><span class="spaces">  </span><span class="istickedoff">withTwinBindings name1 name2 $ eqTermM body1 body2</span>
+<span class="lineno">  154 </span><span class="spaces"></span><span class="istickedoff">eqTermM (IWrap ann1 pat1 arg1 term1) (IWrap ann2 pat2 arg2 term2) = do</span>
+<span class="lineno">  155 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  156 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM pat1 pat2</span>
+<span class="lineno">  157 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM arg1 arg2</span>
+<span class="lineno">  158 </span><span class="spaces">  </span><span class="istickedoff">eqTermM term1 term2</span>
+<span class="lineno">  159 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Apply ann1 fun1 arg1) (Apply ann2 fun2 arg2) = do</span>
+<span class="lineno">  160 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  161 </span><span class="spaces">  </span><span class="istickedoff">eqTermM fun1 fun2</span>
+<span class="lineno">  162 </span><span class="spaces">  </span><span class="istickedoff">eqTermM arg1 arg2</span>
+<span class="lineno">  163 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Unwrap ann1 term1) (Unwrap ann2 term2) = do</span>
+<span class="lineno">  164 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  165 </span><span class="spaces">  </span><span class="istickedoff">eqTermM term1 term2</span>
+<span class="lineno">  166 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Error ann1 ty1) (Error ann2 ty2) = do</span>
+<span class="lineno">  167 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM ty1 ty2</span>
+<span class="lineno">  169 </span><span class="spaces"></span><span class="istickedoff">eqTermM (TyInst ann1 term1 ty1) (TyInst ann2 term2 ty2) = do</span>
+<span class="lineno">  170 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  171 </span><span class="spaces">  </span><span class="istickedoff">eqTermM term1 term2</span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM ty1 ty2</span>
+<span class="lineno">  173 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Var ann1 name1) (Var ann2 name2) = do</span>
+<span class="lineno">  174 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  175 </span><span class="spaces">  </span><span class="istickedoff">eqNameM name1 name2</span>
+<span class="lineno">  176 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Constant ann1 con1) (Constant ann2 con2) = do</span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  178 </span><span class="spaces">  </span><span class="istickedoff">eqM con1 con2</span>
+<span class="lineno">  179 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Builtin ann1 bi1) (Builtin ann2 bi2) = do</span>
+<span class="lineno">  180 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  181 </span><span class="spaces">  </span><span class="istickedoff">eqM bi1 bi2</span>
+<span class="lineno">  182 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Constr ann1 ty1 i1 args1) (Constr ann2 ty2 i2 args2) = do</span>
+<span class="lineno">  183 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  184 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM ty1 ty2</span>
+<span class="lineno">  185 </span><span class="spaces">  </span><span class="istickedoff">eqM i1 i2</span>
+<span class="lineno">  186 </span><span class="spaces">  </span><span class="istickedoff">case zipExact args1 args2 of</span>
+<span class="lineno">  187 </span><span class="spaces">    </span><span class="istickedoff">Just ps -&gt; for_ ps $ \(t1, t2) -&gt; eqTermM t1 t2</span>
+<span class="lineno">  188 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; <span class="nottickedoff">empty</span></span>
+<span class="lineno">  189 </span><span class="spaces"></span><span class="istickedoff">eqTermM (Case ann1 ty1 a1 cs1) (Case ann2 ty2 a2 cs2) = do</span>
+<span class="lineno">  190 </span><span class="spaces">  </span><span class="istickedoff">eqM ann1 ann2</span>
+<span class="lineno">  191 </span><span class="spaces">  </span><span class="istickedoff">eqTypeM ty1 ty2</span>
+<span class="lineno">  192 </span><span class="spaces">  </span><span class="istickedoff">eqTermM a1 a2</span>
+<span class="lineno">  193 </span><span class="spaces">  </span><span class="istickedoff">case zipExact cs1 cs2 of</span>
+<span class="lineno">  194 </span><span class="spaces">    </span><span class="istickedoff">Just ps -&gt; for_ ps $ \(t1, t2) -&gt; eqTermM t1 t2</span>
+<span class="lineno">  195 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; <span class="nottickedoff">empty</span></span>
+<span class="lineno">  196 </span><span class="spaces"></span><span class="istickedoff">eqTermM LamAbs {} _ = <span class="nottickedoff">empty</span></span>
+<span class="lineno">  197 </span><span class="spaces"></span><span class="istickedoff">eqTermM TyAbs {} _ = <span class="nottickedoff">empty</span></span>
+<span class="lineno">  198 </span><span class="spaces"></span><span class="istickedoff">eqTermM IWrap {} _ = <span class="nottickedoff">empty</span></span>
+<span class="lineno">  199 </span><span class="spaces"></span><span class="istickedoff">eqTermM Apply {} _ = <span class="nottickedoff">empty</span></span>
+<span class="lineno">  200 </span><span class="spaces"></span><span class="istickedoff">eqTermM Unwrap {} _ = <span class="nottickedoff">empty</span></span>
+<span class="lineno">  201 </span><span class="spaces"></span><span class="istickedoff">eqTermM Error {} _ = <span class="nottickedoff">empty</span></span>
+<span class="lineno">  202 </span><span class="spaces"></span><span class="istickedoff">eqTermM TyInst {} _ = <span class="nottickedoff">empty</span></span>
+<span class="lineno">  203 </span><span class="spaces"></span><span class="istickedoff">eqTermM Var {} _ = <span class="nottickedoff">empty</span></span>
+<span class="lineno">  204 </span><span class="spaces"></span><span class="istickedoff">eqTermM Constant {} _ = <span class="nottickedoff">empty</span></span>
+<span class="lineno">  205 </span><span class="spaces"></span><span class="istickedoff">eqTermM Builtin {} _ = <span class="nottickedoff">empty</span></span>
+<span class="lineno">  206 </span><span class="spaces"></span><span class="istickedoff">eqTermM Constr {} _ = <span class="nottickedoff">empty</span></span>
+<span class="lineno">  207 </span><span class="spaces"></span><span class="istickedoff">eqTermM Case {} _ = <span class="nottickedoff">empty</span></span></span>
+
+</pre>
+</body>
+</html>

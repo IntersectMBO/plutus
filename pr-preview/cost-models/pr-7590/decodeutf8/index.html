@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DecodeUtf8 - Plutus Cost Model Visualization</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../valuedata/index.html">ValueData</a></li>
+      <li><a href="../unvaluedata/index.html">UnValueData</a></li>
+      <li><a href="../valuecontains/index.html">ValueContains</a></li>
+      <li><a href="../lookupcoin/index.html">LookupCoin</a></li>
+      <li><a href="../insertcoin/index.html">InsertCoin</a></li>
+      <li><a href="../unionvalue/index.html">UnionValue</a></li>
+      <li><a href="../scalevalue/index.html">ScaleValue</a></li>
+      <li><a href="../listtoarray/index.html">ListToArray</a></li>
+      <li><a href="../lengthofarray/index.html">LengthOfArray</a></li>
+      <li><a href="../indexarray/index.html">IndexArray</a></li>
+      <li><a href="../appendstring/index.html">AppendString</a></li>
+      <li><a href="../equalsstring/index.html">EqualsString</a></li>
+      <li><a href="../encodeutf8/index.html">EncodeUtf8</a></li>
+      <li><a href="../decodeutf8/index.html" class="active">DecodeUtf8</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1>DecodeUtf8 Cost Model Visualization</h1>
+    <p>
+      Interactive visualization of benchmark data and fitted cost model for the <code>DecodeUtf8</code> builtin function.
+      Decodes a UTF-8 <code>ByteString</code> to a Plutus <code>Text</code> value.
+    </p>
+
+    <div class="controls" id="data-source-controls">
+      <h3 id="data-source-toggle">Data Source Configuration</h3>
+      <div class="controls-content">
+        <div class="control-group-vertical">
+          <label for="branch-name">Branch name:</label>
+          <div class="branch-input-row">
+            <input type="text" id="branch-name" placeholder="master">
+            <button id="copy-link" title="Copy shareable link">Copy Link</button>
+          </div>
+        </div>
+        <div class="control-group-vertical">
+          <label for="csv-url">CSV file URL:</label>
+          <input type="text" id="csv-url" style="width: 100%; font-family: monospace;">
+        </div>
+        <div class="control-group-vertical">
+          <label for="json-url">JSON file URL:</label>
+          <input type="text" id="json-url" style="width: 100%; font-family: monospace;">
+        </div>
+        <div class="control-group">
+          <button id="reload-data">Load Data</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls" id="plot-controls">
+      <h3 id="plot-controls-toggle">Plot Controls</h3>
+      <div class="controls-content">
+        <div class="control-group">
+          <input type="checkbox" id="show-model" checked>
+          <label for="show-model">Show model predictions</label>
+        </div>
+        <div class="control-group">
+          <label for="y-axis-mode">Y-axis range:</label>
+          <select id="y-axis-mode">
+            <option value="zero">Start from 0</option>
+            <option value="auto">Auto-scale from min</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="plot-wrapper">
+      <div id="plot-container">
+        <div class="loading">Loading data and generating plot...</div>
+      </div>
+
+      <div class="info-panel">
+        <h3>Plot Information</h3>
+
+        <div class="info-section">
+          <dl>
+            <dt>X-axis:</dt>
+            <dd id="info-x-axis">ByteString size (byte-words)</dd>
+
+            <dt>Y-axis:</dt>
+            <dd id="info-y-axis">Time (nanoseconds)</dd>
+
+            <dt>Description:</dt>
+            <dd id="info-description">Each point represents one benchmark run</dd>
+          </dl>
+        </div>
+
+        <div class="info-section">
+          <dt>Cost Model Type:</dt>
+          <dd id="info-model-type">Loading...</dd>
+
+          <dt>Model Formula (net):</dt>
+          <dd class="formula" id="info-model-formula">Loading...</dd>
+
+          <dt>Overhead:</dt>
+          <dd id="info-overhead">Loading...</dd>
+        </div>
+
+        <div class="info-section">
+          <dl>
+            <dt>Data points:</dt>
+            <dd id="info-data-points">-</dd>
+
+            <dt>ByteString size range:</dt>
+            <dd id="info-x-range">-</dd>
+
+            <dt>Time range:</dt>
+            <dd id="info-time-range">-</dd>
+          </dl>
+        </div>
+
+        <div class="info-section">
+          <dt>Data sources:</dt>
+          <dd><a href="https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/benching-conway.csv" target="_blank">benching-conway.csv</a></dd>
+          <dd><a href="https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/builtinCostModelC.json" target="_blank">builtinCostModelC.json</a></dd>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Plutus Cost Model Visualization | <a href="https://github.com/IntersectMBO/plutus" target="_blank">Plutus Repository</a></p>
+  </footer>
+
+  <script src="../shared/utils.js"></script>
+  <script src="plot.js"></script>
+</body>
+</html>

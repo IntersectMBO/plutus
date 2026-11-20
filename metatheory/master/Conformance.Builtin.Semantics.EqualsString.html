@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Builtin.Semantics.EqualsString</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Builtin.Semantics.EqualsString</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsString</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="465" class="Keyword">module</a> <a id="472" href="Conformance.Builtin.Semantics.EqualsString.html" class="Module">Conformance.Builtin.Semantics.EqualsString</a> <a id="515" class="Keyword">where</a>
+
+<a id="522" class="Keyword">open</a> <a id="527" class="Keyword">import</a> <a id="534" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="equalsstring-01">equalsString-01</h2>
+
+<pre class="Agda"><a id="580" class="Comment">-- builtin/semantics/equalsString/equalsString-01</a>
+<a id="test-equalsString-01"></a><a id="630" href="Conformance.Builtin.Semantics.EqualsString.html#630" class="Function">test-equalsString-01</a> <a id="651" class="Symbol">:</a> <a id="653" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="661" href="Conformance.Builtin.Semantics.EqualsString.html#630" class="Function">test-equalsString-01</a> <a id="682" class="Symbol">=</a> <a id="684" class="Symbol">(</a><a id="685" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="690" class="Symbol">(</a><a id="691" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="696" class="Symbol">(</a><a id="697" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="706" href="Builtin.html#2794" class="InductiveConstructor">equalsString</a><a id="718" class="Symbol">)</a> <a id="720" class="Symbol">(</a><a id="721" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="726" class="Symbol">(</a><a id="727" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="734" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="741" class="String">&quot;Ola&quot;</a><a id="746" class="Symbol">)))</a> <a id="750" class="Symbol">(</a><a id="751" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="756" class="Symbol">(</a><a id="757" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="764" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="771" class="String">&quot; mundo!&quot;</a><a id="780" class="Symbol">)))</a>
+
+<a id="expected-equalsString-01"></a><a id="785" href="Conformance.Builtin.Semantics.EqualsString.html#785" class="Function">expected-equalsString-01</a> <a id="810" class="Symbol">:</a> <a id="812" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="819" href="Conformance.Builtin.Semantics.EqualsString.html#785" class="Function">expected-equalsString-01</a> <a id="844" class="Symbol">=</a> <a id="846" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="854" class="Symbol">(</a><a id="855" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="860" class="Symbol">(</a><a id="861" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="868" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="873" href="Agda.Builtin.Bool.html#192" class="InductiveConstructor">false</a><a id="878" class="Symbol">))</a>
+
+<a id="882" href="Conformance.Builtin.Semantics.EqualsString.html#882" class="Function">_</a> <a id="884" class="Symbol">:</a> <a id="886" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="894" href="Conformance.Builtin.Semantics.EqualsString.html#630" class="Function">test-equalsString-01</a> <a id="915" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="917" href="Conformance.Builtin.Semantics.EqualsString.html#785" class="Function">expected-equalsString-01</a>
+<a id="942" class="Symbol">_</a> <a id="944" class="Symbol">=</a> <a id="946" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="equalsstring-02">equalsString-02</h2>
+
+<pre class="Agda"><a id="980" class="Comment">-- builtin/semantics/equalsString/equalsString-02</a>
+<a id="test-equalsString-02"></a><a id="1030" href="Conformance.Builtin.Semantics.EqualsString.html#1030" class="Function">test-equalsString-02</a> <a id="1051" class="Symbol">:</a> <a id="1053" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1061" href="Conformance.Builtin.Semantics.EqualsString.html#1030" class="Function">test-equalsString-02</a> <a id="1082" class="Symbol">=</a> <a id="1084" class="Symbol">(</a><a id="1085" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1090" class="Symbol">(</a><a id="1091" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1096" class="Symbol">(</a><a id="1097" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1106" href="Builtin.html#2794" class="InductiveConstructor">equalsString</a><a id="1118" class="Symbol">)</a> <a id="1120" class="Symbol">(</a><a id="1121" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1126" class="Symbol">(</a><a id="1127" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1134" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="1141" class="String">&quot;Ola&quot;</a><a id="1146" class="Symbol">)))</a> <a id="1150" class="Symbol">(</a><a id="1151" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1156" class="Symbol">(</a><a id="1157" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1164" href="RawU.html#2518" class="InductiveConstructor">string</a> <a id="1171" class="String">&quot;Ola&quot;</a><a id="1176" class="Symbol">)))</a>
+
+<a id="expected-equalsString-02"></a><a id="1181" href="Conformance.Builtin.Semantics.EqualsString.html#1181" class="Function">expected-equalsString-02</a> <a id="1206" class="Symbol">:</a> <a id="1208" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1215" href="Conformance.Builtin.Semantics.EqualsString.html#1181" class="Function">expected-equalsString-02</a> <a id="1240" class="Symbol">=</a> <a id="1242" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1250" class="Symbol">(</a><a id="1251" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1256" class="Symbol">(</a><a id="1257" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1264" href="RawU.html#2560" class="InductiveConstructor">bool</a> <a id="1269" href="Agda.Builtin.Bool.html#198" class="InductiveConstructor">true</a><a id="1273" class="Symbol">))</a>
+
+<a id="1277" href="Conformance.Builtin.Semantics.EqualsString.html#1277" class="Function">_</a> <a id="1279" class="Symbol">:</a> <a id="1281" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1289" href="Conformance.Builtin.Semantics.EqualsString.html#1030" class="Function">test-equalsString-02</a> <a id="1310" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1312" href="Conformance.Builtin.Semantics.EqualsString.html#1181" class="Function">expected-equalsString-02</a>
+<a id="1337" class="Symbol">_</a> <a id="1339" class="Symbol">=</a> <a id="1341" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+
+    </section>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Term.Delay</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Term.Delay</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/term/delay</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="425" class="Keyword">module</a> <a id="432" href="Conformance.Term.Delay.html" class="Module">Conformance.Term.Delay</a> <a id="455" class="Keyword">where</a>
+
+<a id="462" class="Keyword">open</a> <a id="467" class="Keyword">import</a> <a id="474" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="delay-error-1">delay-error-1</h2>
+
+<pre class="Agda"><a id="518" class="Comment">-- term/delay/delay-error-1</a>
+<a id="test-delay-error-1"></a><a id="546" href="Conformance.Term.Delay.html#546" class="Function">test-delay-error-1</a> <a id="565" class="Symbol">:</a> <a id="567" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="575" href="Conformance.Term.Delay.html#546" class="Function">test-delay-error-1</a> <a id="594" class="Symbol">=</a> <a id="596" class="Symbol">(</a><a id="597" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="602" class="Symbol">(</a><a id="603" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="611" class="Symbol">(</a><a id="612" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="617" class="Symbol">(</a><a id="618" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="625" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="633" class="Symbol">(</a><a id="634" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="640" class="Number">4</a><a id="641" class="Symbol">))))</a> <a id="646" class="Symbol">(</a><a id="647" href="RawU.html#8450" class="InductiveConstructor">UDelay</a> <a id="654" href="RawU.html#8400" class="InductiveConstructor">UError</a><a id="660" class="Symbol">))</a>
+
+<a id="expected-delay-error-1"></a><a id="664" href="Conformance.Term.Delay.html#664" class="Function">expected-delay-error-1</a> <a id="687" class="Symbol">:</a> <a id="689" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="696" href="Conformance.Term.Delay.html#664" class="Function">expected-delay-error-1</a> <a id="719" class="Symbol">=</a> <a id="721" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="729" class="Symbol">(</a><a id="730" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="735" class="Symbol">(</a><a id="736" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="743" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="751" class="Symbol">(</a><a id="752" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="758" class="Number">4</a><a id="759" class="Symbol">)))</a>
+
+<a id="764" href="Conformance.Term.Delay.html#764" class="Function">_</a> <a id="766" class="Symbol">:</a> <a id="768" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="776" href="Conformance.Term.Delay.html#546" class="Function">test-delay-error-1</a> <a id="795" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="797" href="Conformance.Term.Delay.html#664" class="Function">expected-delay-error-1</a>
+<a id="820" class="Symbol">_</a> <a id="822" class="Symbol">=</a> <a id="824" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="delay-error-2">delay-error-2</h2>
+
+<pre class="Agda"><a id="856" class="Comment">-- term/delay/delay-error-2</a>
+<a id="test-delay-error-2"></a><a id="884" href="Conformance.Term.Delay.html#884" class="Function">test-delay-error-2</a> <a id="903" class="Symbol">:</a> <a id="905" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="913" href="Conformance.Term.Delay.html#884" class="Function">test-delay-error-2</a> <a id="932" class="Symbol">=</a> <a id="934" class="Symbol">(</a><a id="935" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="940" class="Symbol">(</a><a id="941" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="949" class="Symbol">(</a><a id="950" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="955" class="Number">0</a><a id="956" class="Symbol">))</a> <a id="959" class="Symbol">(</a><a id="960" href="RawU.html#8450" class="InductiveConstructor">UDelay</a> <a id="967" href="RawU.html#8400" class="InductiveConstructor">UError</a><a id="973" class="Symbol">))</a>
+
+<a id="expected-delay-error-2"></a><a id="977" href="Conformance.Term.Delay.html#977" class="Function">expected-delay-error-2</a> <a id="1000" class="Symbol">:</a> <a id="1002" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1009" href="Conformance.Term.Delay.html#977" class="Function">expected-delay-error-2</a> <a id="1032" class="Symbol">=</a> <a id="1034" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1042" class="Symbol">(</a><a id="1043" href="RawU.html#8450" class="InductiveConstructor">UDelay</a> <a id="1050" href="RawU.html#8400" class="InductiveConstructor">UError</a><a id="1056" class="Symbol">)</a>
+
+<a id="1059" href="Conformance.Term.Delay.html#1059" class="Function">_</a> <a id="1061" class="Symbol">:</a> <a id="1063" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1071" href="Conformance.Term.Delay.html#884" class="Function">test-delay-error-2</a> <a id="1090" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1092" href="Conformance.Term.Delay.html#977" class="Function">expected-delay-error-2</a>
+<a id="1115" class="Symbol">_</a> <a id="1117" class="Symbol">=</a> <a id="1119" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="delay-lam">delay-lam</h2>
+
+<pre class="Agda"><a id="1147" class="Comment">-- term/delay/delay-lam</a>
+<a id="test-delay-lam"></a><a id="1171" href="Conformance.Term.Delay.html#1171" class="Function">test-delay-lam</a> <a id="1186" class="Symbol">:</a> <a id="1188" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1196" href="Conformance.Term.Delay.html#1171" class="Function">test-delay-lam</a> <a id="1211" class="Symbol">=</a> <a id="1213" class="Symbol">(</a><a id="1214" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1222" class="Symbol">(</a><a id="1223" href="RawU.html#8450" class="InductiveConstructor">UDelay</a> <a id="1230" class="Symbol">(</a><a id="1231" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="1236" class="Number">0</a><a id="1237" class="Symbol">)))</a>
+
+<a id="expected-delay-lam"></a><a id="1242" href="Conformance.Term.Delay.html#1242" class="Function">expected-delay-lam</a> <a id="1261" class="Symbol">:</a> <a id="1263" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1270" href="Conformance.Term.Delay.html#1242" class="Function">expected-delay-lam</a> <a id="1289" class="Symbol">=</a> <a id="1291" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1299" class="Symbol">(</a><a id="1300" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1308" class="Symbol">(</a><a id="1309" href="RawU.html#8450" class="InductiveConstructor">UDelay</a> <a id="1316" class="Symbol">(</a><a id="1317" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="1322" class="Number">0</a><a id="1323" class="Symbol">)))</a>
+
+<a id="1328" href="Conformance.Term.Delay.html#1328" class="Function">_</a> <a id="1330" class="Symbol">:</a> <a id="1332" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1340" href="Conformance.Term.Delay.html#1171" class="Function">test-delay-lam</a> <a id="1355" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1357" href="Conformance.Term.Delay.html#1242" class="Function">expected-delay-lam</a>
+<a id="1376" class="Symbol">_</a> <a id="1378" class="Symbol">=</a> <a id="1380" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+
+    </section>
+  </body>
+</html>
