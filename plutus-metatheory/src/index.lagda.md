@@ -124,6 +124,12 @@ import Builtin.ByteString
 import Builtin.ByteString.Properties
 ```
 
+The specification of Values.
+
+```
+import Builtin.Value
+```
+
 The types of the built-in operations are defined by a signature.
 These types are abstract, and they can be made concrete to obtain the different
 notions of type used in the formalisation.

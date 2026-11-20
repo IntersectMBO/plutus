@@ -19,7 +19,7 @@ module Builtin.ByteString.Base where
 ## Imports
 
 ```
-open import Data.Bool using (Bool; true; false; T; _∧_; _∨_; if_then_else_)
+open import Data.Bool using (Bool; true; false; T; _∧_; _∨_; if_then_else_; not)
 open import Data.Fin using (Fin)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Vec using (Vec; _∷_; [])
@@ -28,7 +28,7 @@ open import Data.Nat.Properties using (<ᵇ⇒<; m∸n≤m; ≤-<-trans)
 open import Data.Nat.DivMod using (m%n<n)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 open import Function.Base using (_∘_)
-open import Relation.Nullary using (Dec; yes; no)
+open import Relation.Nullary using (Dec; yes; no; does)
 
 import Data.Fin as Fin
 import Data.Fin.Properties as Fin
@@ -331,6 +331,9 @@ _ ≤ᵇ [] = false
 (b₁ ∷ bs₁) ≤ᵇ (b₂ ∷ bs₂) =
   (byteToNat b₁ ℕ.<ᵇ byteToNat b₂)
   ∨ ((byteToNat b₁ ℕ.≡ᵇ byteToNat b₂) ∧ (bs₁ ≤ᵇ bs₂))
+
+_<ᵇ_ : ByteString → ByteString → Bool
+_<ᵇ_ bs₁ bs₂ = (bs₁ ≤ᵇ bs₂) ∧ not (does (bs₂ ≟ bs₁))
 ```
 
 Some tests:
