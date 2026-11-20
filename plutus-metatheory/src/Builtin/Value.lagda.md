@@ -278,27 +278,27 @@ private
   c₁ = natToByte 1 (s≤s (s≤s z≤n)) BS.∷ BS.[]
   c₂ = natToByte 2 (s≤s (s≤s (s≤s z≤n))) BS.∷ BS.[]
 
+  -- A value with three tokens, inserted out of order.
+  v : Value
+  v = ins c₂ c₀ (+ 5) (ins c₁ c₂ (+ 1) (ins c₁ c₁ (- (+ 3)) empty))
+
   -- Keys are kept sorted, whatever the order of insertion.
-  _ : toFlatList (ins c₂ c₀ (+ 5) (ins c₁ c₂ (+ 1) (ins c₁ c₁ (- (+ 3)) empty)))
-      ≡ (c₁ , c₁ , - (+ 3)) ∷ (c₁ , c₂ , + 1) ∷ (c₂ , c₀ , + 5) ∷ []
+  _ : toFlatList v ≡ (c₁ , c₁ , - (+ 3)) ∷ (c₁ , c₂ , + 1) ∷ (c₂ , c₀ , + 5) ∷ []
   _ = refl
 
   -- Inserting an existing token replaces its quantity.
   _ : toFlatList (ins c₁ c₁ (+ 7) (ins c₁ c₁ (+ 1) empty)) ≡ (c₁ , c₁ , + 7) ∷ []
   _ = refl
 
-  v₃ : Value
-  v₃ = ins c₂ c₀ (+ 5) (ins c₁ c₂ (+ 1) (ins c₁ c₁ (- (+ 3)) empty))
-
   -- Deleting a present token removes only that token.
-  _ : toFlatList (delete c₁ c₂ v₃) ≡ (c₁ , c₁ , - (+ 3)) ∷ (c₂ , c₀ , + 5) ∷ []
+  _ : toFlatList (delete c₁ c₂ v) ≡ (c₁ , c₁ , - (+ 3)) ∷ (c₂ , c₀ , + 5) ∷ []
   _ = refl
 
   -- Deleting an absent token, even one with a matching currency, changes nothing.
-  _ : toFlatList (delete c₁ c₀ v₃) ≡ toFlatList v₃
+  _ : toFlatList (delete c₁ c₀ v) ≡ toFlatList v
   _ = refl
 
   -- Deleting every token gives the empty value.
-  _ : toFlatList (delete c₂ c₀ (delete c₁ c₂ (delete c₁ c₁ v₃))) ≡ []
+  _ : toFlatList (delete c₂ c₀ (delete c₁ c₂ (delete c₁ c₁ v))) ≡ []
   _ = refl
 ```
