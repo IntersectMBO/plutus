@@ -120,6 +120,7 @@ on ByteStrings.
 ```
 import Builtin.Binary
 import Builtin.ByteString.Base
+import Builtin.ByteString.Order
 import Builtin.ByteString
 import Builtin.ByteString.Properties
 ```

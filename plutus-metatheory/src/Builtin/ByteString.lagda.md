@@ -17,7 +17,7 @@ bounds and failure conditions of each builtin.
 ```
 open import Builtin.ByteString.Base
   using (ByteString; []; _∷_; _≟_; _++_; length; take; drop; index; map; replicate;
-         _≤ᵇ_; natToByteStringLE; natToByteStringBE; natToByteStringLenLE;
+         natToByteStringLE; natToByteStringBE; natToByteStringLenLE;
          natToByteStringLenBE; byteStringToNatLE; byteStringToNatBE;
          toBits; fromBits; onBits; zipWithExtend;
          shiftLeft; shiftRight; rotateLeft; rotateRight;
@@ -38,6 +38,7 @@ import Data.Vec as Vec
 import Data.Nat.Properties as ℕ
 import Data.Integer as ℤ
 import Builtin.Integer.Base as ℤ
+import Builtin.ByteString.Order as Order
 ```
 
 ## Cardano Builtin Functions on ByteString
@@ -108,10 +109,10 @@ equalsByteString : ByteString → ByteString → Bool
 equalsByteString bs₁ bs₂ = does (bs₁ ≟ bs₂)
 
 lessThanByteString : ByteString → ByteString → Bool
-lessThanByteString bs₁ bs₂ = (bs₁ ≤ᵇ bs₂) ∧ (not (equalsByteString bs₁ bs₂))
+lessThanByteString = Order._<ᵇ_
 
 lessThanEqualsByteString : ByteString → ByteString → Bool
-lessThanEqualsByteString bs₁ bs₂ = bs₁ ≤ᵇ bs₂
+lessThanEqualsByteString = Order._≤ᵇ_
 ```
 
 ### Batch 4

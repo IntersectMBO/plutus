@@ -19,7 +19,7 @@ module Builtin.ByteString.Base where
 ## Imports
 
 ```
-open import Data.Bool using (Bool; true; false; T; _∧_; _∨_; if_then_else_; not)
+open import Data.Bool using (Bool; true; false; T; _∧_; _∨_; if_then_else_)
 open import Data.Fin using (Fin)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Vec using (Vec; _∷_; [])
@@ -28,7 +28,7 @@ open import Data.Nat.Properties using (<ᵇ⇒<; m∸n≤m; ≤-<-trans)
 open import Data.Nat.DivMod using (m%n<n)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 open import Function.Base using (_∘_)
-open import Relation.Nullary using (Dec; yes; no; does)
+open import Relation.Nullary using (Dec; yes; no)
 
 import Data.Fin as Fin
 import Data.Fin.Properties as Fin
@@ -318,24 +318,6 @@ zipWithExtend f true  p []       (y ∷ ys) = f p y ∷ zipWithExtend f true p [
 zipWithExtend f true  p (x ∷ xs) []       = f x p ∷ zipWithExtend f true p xs []
 ```
 
-### Ordering
-
-ByteStrings are ordered lexicographically, comparing bytes as numbers. For example,
-`[0x23, 0x45, 0x67, 0x89] < [0x24]` and `[0x23, 0x45] < [0x23, 0x45, 0x00]`, and the
-empty ByteString is smaller than every other ByteString.
-
-```
-_≤ᵇ_ : ByteString → ByteString → Bool
-[] ≤ᵇ _ = true
-_ ≤ᵇ [] = false
-(b₁ ∷ bs₁) ≤ᵇ (b₂ ∷ bs₂) =
-  (byteToNat b₁ ℕ.<ᵇ byteToNat b₂)
-  ∨ ((byteToNat b₁ ℕ.≡ᵇ byteToNat b₂) ∧ (bs₁ ≤ᵇ bs₂))
-
-_<ᵇ_ : ByteString → ByteString → Bool
-_<ᵇ_ bs₁ bs₂ = (bs₁ ≤ᵇ bs₂) ∧ not (does (bs₂ ≟ bs₁))
-```
-
 Some tests:
 
 ```
@@ -343,37 +325,6 @@ private
   -- A byte literal; the bound is checked by computation.
   w : (n : ℕ) → {T (n ℕ.<ᵇ 2 ^ 8)} → Byte
   w n {p} = natToByte n (<ᵇ⇒< n (2 ^ 8) p)
-
-  -- The first differing byte decides, regardless of later bytes.
-  _ : (w 1 ∷ w 5 ∷ []) ≤ᵇ (w 2 ∷ w 0 ∷ []) ≡ true
-  _ = refl
-
-  _ : (w 2 ∷ w 0 ∷ []) ≤ᵇ (w 1 ∷ w 5 ∷ []) ≡ false
-  _ = refl
-
-  -- Equal prefixes defer to the rest.
-  _ : (w 1 ∷ w 2 ∷ []) ≤ᵇ (w 1 ∷ w 3 ∷ []) ≡ true
-  _ = refl
-
-  _ : (w 1 ∷ w 3 ∷ []) ≤ᵇ (w 1 ∷ w 2 ∷ []) ≡ false
-  _ = refl
-
-  -- Reflexive.
-  _ : (w 7 ∷ w 255 ∷ []) ≤ᵇ (w 7 ∷ w 255 ∷ []) ≡ true
-  _ = refl
-
-  -- A proper prefix is smaller.
-  _ : (w 1 ∷ []) ≤ᵇ (w 1 ∷ w 0 ∷ []) ≡ true
-  _ = refl
-
-  _ : (w 1 ∷ w 0 ∷ []) ≤ᵇ (w 1 ∷ []) ≡ false
-  _ = refl
-
-  _ : [] ≤ᵇ (w 0 ∷ []) ≡ true
-  _ = refl
-
-  _ : (w 0 ∷ []) ≤ᵇ [] ≡ false
-  _ = refl
 
   -- byteStringToNat: endianness, leading zeros, empty input.
   _ : byteStringToNatLE (w 1 ∷ w 2 ∷ []) ≡ 513
