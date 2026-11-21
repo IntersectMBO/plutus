@@ -35,13 +35,21 @@ import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
 import Data.Proxy (Proxy (..))
-import GHC.Exts (fromString)
+import GHC.Exts
+  ( fromList
+  , fromString
+  )
 import GHC.Ix
 import GHC.TypeNats (natVal)
 import Hedgehog hiding (Size, Var, eval)
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.Golden
+import Test.Tasty.HUnit
+  ( assertFailure
+  , testCase
+  , (@?=)
+  )
 import Test.Tasty.Hedgehog
 
 testMachine
@@ -68,7 +76,49 @@ test_machines =
     "machines"
     [ testMachine "CEK" $ Cek.evaluateCekNoEmit Plc.defaultCekParametersForTesting
     , testMachine "SteppableCEK" $ SCek.evaluateCekNoEmit Plc.defaultCekParametersForTesting
+    , testCaseBranches "CEK case branches" $
+        cekResultToEither
+          . _cekReportResult
+          . Cek.runCekDeBruijn Plc.defaultCekParametersForTesting restrictingEnormous noEmitter
+    , testCaseBranches "SteppableCEK case branches" $
+        cekResultToEither
+          . _cekReportResult
+          . SCek.runCekDeBruijn Plc.defaultCekParametersForTesting restrictingEnormous noEmitter
     ]
+
+testCaseBranches
+  :: String
+  -> ( Term NamedDeBruijn DefaultUni DefaultFun ()
+       -> Either
+            (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+            (Term NamedDeBruijn DefaultUni DefaultFun ())
+     )
+  -> TestTree
+testCaseBranches machine eval =
+  testGroup machine $
+    [ testCase name $ eval (Case () scrut (fromList branches)) @?= Right value
+    | (name, scrut, branches) <-
+        [ ("first constructor branch", Constr () 0 [], [value, unused])
+        , ("last constructor branch", Constr () 1 [], [unused, value])
+        , ("unit branch", mkConstant () (), [value])
+        , ("false branch", mkConstant () False, [value, unused])
+        , ("true branch", mkConstant () True, [unused, value])
+        , ("integer branch", mkConstant () (1 :: Integer), [unused, value])
+        ]
+    ]
+      ++ [ testCase ("missing branch " ++ show (n, i)) $
+             case eval (Case () (Constr () i []) (fromList $ replicate n unused)) of
+               Left (ErrorWithCause (StructuralError (MissingCaseBranchMachineError actual)) _) ->
+                 actual @?= i
+               result -> assertFailure $ "Expected a missing branch error, got " ++ show result
+         | (n, i) <-
+             (0, 0)
+               : [(1, i) | i <- [1, 2 ^ (32 :: Int), 2 ^ (63 :: Int), maxBound]]
+         ]
+  where
+    value = mkConstant () (42 :: Integer)
+    -- A Haskell bottom detects accidental forcing as well as evaluation of an unused branch.
+    unused = Prelude.error "unselected case branch was forced"
 
 testBudget
   :: (Ix fun, Show fun, Hashable fun, Pretty fun, Typeable fun)

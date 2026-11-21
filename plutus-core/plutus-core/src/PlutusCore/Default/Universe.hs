@@ -15,6 +15,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -25,6 +26,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 #include "MachDeps.h"
 
@@ -86,11 +88,10 @@ import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Typeable (typeRep)
-import Data.Vector qualified as Vector
 import Data.Vector.Orphans ()
 import Data.Vector.Strict qualified as Strict (Vector, fromList)
 import Data.Word (Word16, Word32)
-import GHC.Exts (inline, oneShot)
+import GHC.Exts (Array#, Int (I#), indexArray#, inline, oneShot, sizeofArray#)
 import Text.PrettyBy.Fixity
   ( RenderContext
   , inContextM
@@ -941,13 +942,13 @@ instance
         else pure $ CByteString s
   {-# INLINE readKnown #-}
 
-outOfBoundsErr :: Pretty a => a -> Vector.Vector term -> Text
+outOfBoundsErr :: Pretty a => a -> Array# term -> Text
 outOfBoundsErr x branches =
   fold
     [ "'case "
     , display x
     , "' is out of bounds for the given number of branches: "
-    , display $ Vector.length branches
+    , display $ I# (sizeofArray# branches)
     ]
 
 instance AnnotateCaseBuiltin DefaultUni where
@@ -978,55 +979,63 @@ instance AnnotateCaseBuiltin DefaultUni where
         _ -> Left "Casing on pair requires exactly one branch"
     _ -> Left $ display (void ty) <> " isn't supported in 'case'"
 
+indexArray :: Array# a -> Int -> a
+indexArray branches (I# i) = case indexArray# branches i of
+  (# branch #) -> branch
+{-# INLINE indexArray #-}
+
 -- | Case on a 'DefaultUni' value, delegating casing on 'Data' to the supplied handler.
 caseBuiltinDefault
   :: ( Data
        -> Some (ValueOf DefaultUni)
-       -> Vector.Vector term
+       -> Array# term
        -> HeadSpine Text term (Some (ValueOf DefaultUni))
      )
   -> Some (ValueOf DefaultUni)
-  -> Vector.Vector term
+  -> Array# term
   -> HeadSpine Text term (Some (ValueOf DefaultUni))
 caseBuiltinDefault caseData someVal@(Some (ValueOf uni x)) branches = case uni of
   DefaultUniUnit
-    | 1 == len -> HeadOnly $ branches Vector.! 0
+    | 1 == len -> HeadOnly $ indexArray branches 0
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   DefaultUniBool -> case x of
     -- We allow there to be only one branch as long as the scrutinee is 'False'.
     -- This is strictly to save size by not having the 'True' branch if it was gonna be
     -- 'Error' anyway.
-    False | len == 1 || len == 2 -> HeadOnly $ branches Vector.! 0
-    True | len == 2 -> HeadOnly $ branches Vector.! 1
+    False | len == 1 || len == 2 -> HeadOnly $ indexArray branches 0
+    True | len == 2 -> HeadOnly $ indexArray branches 1
     _ -> HeadError $ outOfBoundsErr someVal branches
   DefaultUniInteger
-    | 0 <= x && x < toInteger len -> HeadOnly $ branches Vector.! fromInteger x
+    | 0 <= x && x < toInteger len -> HeadOnly $ indexArray branches (fromInteger x)
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   DefaultUniData -> caseData x someVal branches
   DefaultUniList ty
     | len == 1 ->
         case x of
           [] -> HeadError "Expected non-empty list, got empty list for casing list"
-          (y : ys) -> headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
+          (y : ys) ->
+            headSpine (indexArray branches 0) [someValueOf ty y, someValueOf uni ys]
     | len == 2 ->
         case x of
-          [] -> HeadOnly $ branches Vector.! 1
-          (y : ys) -> headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
+          [] -> HeadOnly $ indexArray branches 1
+          (y : ys) ->
+            headSpine (indexArray branches 0) [someValueOf ty y, someValueOf uni ys]
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   DefaultUniPair tyL tyR
     | len == 1 ->
         case x of
-          (l, r) -> headSpine (branches Vector.! 0) [someValueOf tyL l, someValueOf tyR r]
+          (l, r) ->
+            headSpine (indexArray branches 0) [someValueOf tyL l, someValueOf tyR r]
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   _ -> HeadError $ display uni <> " isn't supported in 'case'"
   where
-    !len = Vector.length branches
+    !len = I# (sizeofArray# branches)
 {-# INLINE caseBuiltinDefault #-}
 
 -- | The built-in caser used when casing is available except on 'Data'.
 caseBuiltinNoData
   :: Some (ValueOf DefaultUni)
-  -> Vector.Vector term
+  -> Array# term
   -> HeadSpine Text term (Some (ValueOf DefaultUni))
 caseBuiltinNoData =
   caseBuiltinDefault $ \_ _ _ -> HeadError "Casing on data is not supported"
@@ -1035,18 +1044,18 @@ caseBuiltinNoData =
 caseBuiltinData
   :: Data
   -> Some (ValueOf DefaultUni)
-  -> Vector.Vector term
+  -> Array# term
   -> HeadSpine Text term (Some (ValueOf DefaultUni))
 caseBuiltinData x someVal branches = case x of
   Data.Constr tag fields
     | 0 <= tag && tag < toInteger len ->
         headSpine
-          (branches Vector.! fromInteger tag)
+          (indexArray branches (fromInteger tag))
           [someValueOf (DefaultUniList DefaultUniData) fields]
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   _ -> HeadError "Casing on data only supports Data.Constr values"
   where
-    !len = Vector.length branches
+    !len = I# (sizeofArray# branches)
 {-# INLINE caseBuiltinData #-}
 
 instance CaseBuiltin DefaultUni where
