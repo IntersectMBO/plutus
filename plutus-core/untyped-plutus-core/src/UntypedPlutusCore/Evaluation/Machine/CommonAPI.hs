@@ -62,6 +62,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
 import UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+import UntypedPlutusCore.Subst (termMapNames)
 
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -78,7 +79,7 @@ type MachineRunner cost uni fun ann =
   -> ExBudgetMode cost uni fun
   -> EmitterMode uni fun
   -> NTerm uni fun ann
-  -> CekReport cost NamedDeBruijn uni fun
+  -> CekReport cost DeBruijn uni fun
 
 {- Note [CEK runners naming convention]
 A function whose name ends in @NoEmit@ does not perform logging and so does not return any logs.
@@ -93,6 +94,7 @@ allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully e
 
 {-| Evaluate a term using a machine with logging enabled and keep track of costing.
 A wrapper around the internal runCek to debruijn input and undebruijn output.
+Output variables receive fresh names, since the machine discards textual names.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 runCek
   :: MachineRunner cost uni fun ann
@@ -107,7 +109,7 @@ runCek runner params mode emitMode term =
     Left fvError -> throw fvError
     Right dbt -> do
       -- Don't use 'let': https://github.com/IntersectMBO/plutus/issues/3876
-      case runner params mode emitMode dbt of
+      case runner params mode emitMode (termMapNames unNameDeBruijn dbt) of
         -- translating back the output
         CekReport res cost' logs ->
           CekReport (mapTermCekResult gracefulUnDeBruijn res) cost' logs
@@ -116,11 +118,11 @@ runCek runner params mode emitMode term =
     -- \*value-term.
     -- 'Graceful' means that the (a) && (b) undebruijnifications do not throw an error upon a free
     -- variable encounter: free debruijn indices will be turned to free, consistent uniques
-    gracefulUnDeBruijn :: Term NamedDeBruijn uni fun () -> Term Name uni fun ()
+    gracefulUnDeBruijn :: Term DeBruijn uni fun () -> Term Name uni fun ()
     gracefulUnDeBruijn t =
       runQuote
         . flip evalStateT mempty
-        $ unDeBruijnTermWith freeIndexAsConsistentLevel t
+        $ unDeBruijnTermWith freeIndexAsConsistentLevel (termMapNames fakeNameDeBruijn t)
 
 {-| Evaluate a term using a machine with logging disabled and keep track of costing.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}

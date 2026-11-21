@@ -130,7 +130,11 @@ runForBudget v ctx =
           getPlcNoAnn $
             v
               `unsafeApplyCode` liftCode110 (toBuiltinData ctx)
-   in case UPLC.runCekDeBruijn defaultCekParametersForTesting counting noEmitter vPs of
+   in case UPLC.runCekDeBruijn
+        defaultCekParametersForTesting
+        counting
+        noEmitter
+        (UPLC.termMapNames UPLC.unNameDeBruijn vPs) of
         -- Here, we guard against the case that a ConstitutionValidator **FAILS EARLY** (for some reason),
         -- resulting in misleading low budget costs.
         UPLC.CekReport

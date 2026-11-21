@@ -58,7 +58,7 @@ import NoThunks.Class
 -- | Errors that can be thrown when evaluating a Plutus script.
 data EvaluationError
   = -- | An error from the evaluator itself
-    CekError !(UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+    CekError !(UPLC.CekEvaluationException DeBruijn DefaultUni DefaultFun)
   | -- | An error in the pre-evaluation step of converting from de-Bruijn indices
     DeBruijnError !FreeVariableError
   | {-| A deserialisation error
@@ -115,9 +115,9 @@ mkTermToEvaluate
   -- ^ the script to evaluate
   -> [Plutus.Data]
   -- ^ the arguments that the script's underlying term will be applied to
-  -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+  -> m (UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ())
 mkTermToEvaluate ll pv script args = do
-  let ScriptNamedDeBruijn (UPLC.Program _ v t) = deserialisedScript script
+  let ScriptDeBruijn (UPLC.Program _ v t) = deserialisedScript script
       termArgs = fmap (UPLC.mkConstant ()) args
       appliedT = UPLC.mkIterAppNoAnn t termArgs
 
@@ -234,8 +234,8 @@ evaluateTerm
   -> Version
   -> VerboseMode
   -> EvaluationContext
-  -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-  -> UPLC.CekReport cost NamedDeBruijn DefaultUni DefaultFun
+  -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
+  -> UPLC.CekReport cost DeBruijn DefaultUni DefaultFun
 evaluateTerm budgetMode pv plcVersion verbose ectx =
   UPLC.runCekDeBruijn
     (toMachineParameters pv plcVersion ectx)
@@ -272,7 +272,7 @@ evaluateScriptRestricting
   -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting ll pv verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
   appliedTerm <- mkTermToEvaluate ll pv p args
-  let ScriptNamedDeBruijn (UPLC.Program _ plcVersion _) = deserialisedScript p
+  let ScriptDeBruijn (UPLC.Program _ plcVersion _) = deserialisedScript p
       UPLC.CekReport res (UPLC.RestrictingSt (ExRestrictingBudget final)) logs =
         evaluateTerm (UPLC.restricting $ ExRestrictingBudget budget) pv plcVersion verbose ectx appliedTerm
   processLogsAndErrors ll logs res
@@ -300,7 +300,7 @@ evaluateScriptCounting
   -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting ll pv verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
   appliedTerm <- mkTermToEvaluate ll pv p args
-  let ScriptNamedDeBruijn (UPLC.Program _ plcVersion _) = deserialisedScript p
+  let ScriptDeBruijn (UPLC.Program _ plcVersion _) = deserialisedScript p
       UPLC.CekReport res (UPLC.CountingSt final) logs =
         evaluateTerm UPLC.counting pv plcVersion verbose ectx appliedTerm
   processLogsAndErrors ll logs res
@@ -311,7 +311,7 @@ processLogsAndErrors
    . (MonadError EvaluationError m, MonadWriter LogOutput m)
   => PlutusLedgerLanguage
   -> LogOutput
-  -> UPLC.CekResult NamedDeBruijn DefaultUni DefaultFun
+  -> UPLC.CekResult DeBruijn DefaultUni DefaultFun
   -> m ()
 processLogsAndErrors ll logs res = do
   tell logs
