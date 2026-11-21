@@ -29,9 +29,7 @@ open import Builtin.Value.Nested
 open import Builtin.Value.Nested.Properties
 ```
 
-## Round trip
-
-Decoding the encoding of a nested association list gives it back.
+## Decoding inverts encoding
 
 ```
 decodeTokens-encodeTokens : ∀ ts → decodeTokens (encodeTokens ts) ≡ just ts
@@ -55,9 +53,7 @@ unValueData∞-valueData∞ v =
         (toValue∞-toNested∞ v)
 ```
 
-## Canonicity
-
-Data that decodes to a nested association list is its encoding.
+## Encoding inverts decoding
 
 ```
 encodeTokens-decodeTokens
@@ -92,10 +88,8 @@ encode-decodeNested ((c , ts) ∷ ps) () | nothing | _
 encode-decodeNested ((c , ts) ∷ ps) () | just _  | nothing
 ```
 
-Data that decodes to a value is its encoding: it is the encoding of a nested list, which
-`toValue∞` turns into a value that groups back to it (see
-`Builtin.Value.Nested.Properties`). So the encoding of values is canonical: every value
-has exactly one encoding that decodes to it.
+Data that decodes to a value is its encoding, so the encoding of values is canonical:
+every value has exactly one encoding that decodes to it.
 
 ```
 valueData∞-unValueData∞ : ∀ d {v} → unValueData∞ d ≡ just v → valueData∞ v ≡ d

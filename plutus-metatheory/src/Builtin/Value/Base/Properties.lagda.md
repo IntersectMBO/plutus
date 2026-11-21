@@ -4,8 +4,8 @@ layout: page
 ---
 
 This module proves that a `Value∞` is determined by the quantities of its tokens, as
-given by `lookup∞`, how negation and scaling affect them, and that `contains∞` compares
-them.
+given by `lookup∞`, how scaling, negation and filtering affect them, and that
+`contains∞` compares them.
 
 ```
 module Builtin.Value.Base.Properties where
@@ -50,11 +50,7 @@ open import Data.List.Membership.Propositional using (_∈_; _∉_)
 
 <ᵏ-trans : ∀ {k₁ k₂ k₃} → k₁ <ᵏ k₂ → k₂ <ᵏ k₃ → k₁ <ᵏ k₃
 <ᵏ-trans = IsStrictTotalOrder.trans <ᵏ-isStrictTotalOrder
-```
 
-In a sorted list, the key of the first entry is smaller than the keys of all the others.
-
-```
 head-< : ∀ {e kvs} → Linked _<ᵉ_ (e ∷ kvs) → All (λ e' → proj₁ e <ᵏ proj₁ e') kvs
 head-< [-]       = []
 head-< (r ∷ [-]) = r ∷ []
@@ -62,9 +58,7 @@ head-< {e} {e' ∷ e'' ∷ _} (r ∷ r' ∷ l) =
   r ∷ head-< {e} (<ᵏ-trans {proj₁ e} {proj₁ e'} {proj₁ e''} r r' ∷ l)
 ```
 
-## Lookup
-
-`lookupEntry k` is the quantity of the first entry with key `k`, or zero.
+## Lookup in sorted lists
 
 ```
 lookupEntry-here : ∀ k q kvs → lookupEntry k ((k , q) ∷ kvs) ≡ q
@@ -90,9 +84,7 @@ lookupEntry-tail
 lookupEntry-tail {e} {kvs} l = lookupEntry-< (proj₁ e) kvs (head-< l)
 ```
 
-## Scaling
-
-Scaling a value scales the quantity of every token.
+## Lookup after scaling
 
 ```
 lookupEntry-scale
@@ -106,19 +98,12 @@ lookup∞-scale∞ : ∀ n c t v → lookup∞ c t (scale∞ n v) ≡ n ℤ.* lo
 lookup∞-scale∞ n c t (mkValue∞ m _ _) with n ℤ.≟ 0ℤ
 ... | yes refl = refl
 ... | no  _    = lookupEntry-scale n (c , t) m
-```
 
-In particular, negating a value negates the quantity of every token.
-
-```
 lookup∞-negate∞ : ∀ c t v → lookup∞ c t (negate∞ v) ≡ ℤ.- lookup∞ c t v
 lookup∞-negate∞ c t v = trans (lookup∞-scale∞ ℤ.-1ℤ c t v) (ℤ.-1*i≡-i _)
 ```
 
-## Filtering
-
-Filtering keeps the quantity of the tokens that satisfy the property, and removes the
-others.
+## Lookup after filtering
 
 ```
 lookupEntry-filter-yes
@@ -152,11 +137,7 @@ lookup∞-filter∞-no
   : ∀ {P : Key → Set} (P? : U.Decidable P) {c t} v
   → ¬ P (c , t) → lookup∞ c t (filter∞ P? v) ≡ 0ℤ
 lookup∞-filter∞-no P? v = lookupEntry-filter-no P? (Value∞.map v)
-```
 
-So `delete∞ c t` removes the token `t` of the currency `c`, and keeps the others.
-
-```
 lookup∞-delete∞-≡ : ∀ c t v → lookup∞ c t (delete∞ c t v) ≡ 0ℤ
 lookup∞-delete∞-≡ c t v = lookup∞-filter∞-no _ v λ k≢k → k≢k refl
 
@@ -164,12 +145,7 @@ lookup∞-delete∞-≢
   : ∀ {c t} c' t' v
   → (c' , t') ≢ (c , t) → lookup∞ c' t' (delete∞ c t v) ≡ lookup∞ c' t' v
 lookup∞-delete∞-≢ c' t' v = lookup∞-filter∞-yes _ v
-```
 
-Also, `keepPolicies∞ ps` keeps exactly the tokens of the currencies in `ps`, and
-`dropPolicies∞ ps` the others.
-
-```
 lookup∞-keepPolicies∞-∈
   : ∀ {c} ps t v → c ∈ ps → lookup∞ c t (keepPolicies∞ ps v) ≡ lookup∞ c t v
 lookup∞-keepPolicies∞-∈ ps t v = lookup∞-filter∞-yes _ v
@@ -187,12 +163,9 @@ lookup∞-dropPolicies∞-∉
 lookup∞-dropPolicies∞-∉ ps t v = lookup∞-filter∞-yes _ v
 ```
 
-## Extensionality
+## Values are determined by their quantities
 
-Two well-formed association lists with the same quantity at every key are equal: at the
-smaller of their first keys, one of them has a non-zero quantity and the other has none
-unless the keys are equal, in which case the quantities are equal too, and so are the
-tails.
+Two well-formed association lists with the same quantity at every key are equal.
 
 ```
 lookupEntry-injective
@@ -226,10 +199,9 @@ lookupEntry-injective ((k₁ , q₁) ∷ kvs₁) ((k₂ , q₂) ∷ kvs₂) l₁
     ... | no  _    | e = e
 ```
 
-The invariants of a `Value∞` are irrelevant, so they can only be used to prove another
-irrelevant statement. Equality of association lists is decidable, though, so it can be
-recomputed from an irrelevant proof of it. Two `Value∞`s with equal association lists
-are equal, as their other fields are irrelevant.
+Since the invariants of a `Value∞` are irrelevant, values with equal association lists
+are equal. The equality of the lists is recomputed from its decision procedure, as its
+proof uses the invariants.
 
 ```
 _≟ᵉ_ : DecidableEquality Entry
@@ -243,7 +215,7 @@ lookup∞-injective {mkValue∞ m₁ s₁ z₁} {mkValue∞ m₂ s₂ z₂} eq
 ... | refl = refl
 ```
 
-## Algebra of scaling
+## Laws of scaling
 
 Since a `Value∞` is determined by the quantities of its tokens, the laws of scaling
 follow from those of the multiplication of integers.
@@ -266,10 +238,7 @@ scale∞-assoc m n v = lookup∞-injective λ c t → let q = lookup∞ c t in b
   where open ≡-Reasoning
 ```
 
-## Containment
-
-The quantities of a value with non-negative quantities are non-negative, including those
-of absent tokens.
+## Containment compares quantities
 
 ```
 lookupEntry-nonNegative : ∀ k kvs → NonNegative kvs → 0ℤ ℤ.≤ lookupEntry k kvs
@@ -279,11 +248,8 @@ lookupEntry-nonNegative k ((k' , q) ∷ kvs) (p ∷ a) with k' ≟ᵏ k
 ... | no  _ = lookupEntry-nonNegative k kvs a
 ```
 
-`v₁` contains `v₂` exactly when every token has at least the same quantity in `v₁` as in
-`v₂`, if the quantities of `v₁` are non-negative. Tokens absent from `v₂` have quantity
-zero in it, so they need the quantities of `v₁` to be non-negative. Conversely, the
-quantity of the first token of `v₂` is its quantity in `v₂`, and the token is not in the
-rest of `v₂`, as `v₂` is sorted.
+If the quantities of `v₁` are non-negative, `v₁` contains `v₂` exactly when every token
+has at least the same quantity in `v₁` as in `v₂`.
 
 ```
 Contains∞ : Value∞ → Value∞ → Set
@@ -320,8 +286,7 @@ containsEntries⇒≤ kvs₁ ((k' , q) ∷ kvs₂) n (p ∷ a) k with k' ≟ᵏ 
     ... | no  _    | le' = le'
 ```
 
-The sortedness of `v₂` is irrelevant, but `ContainsEntries` is decidable, so it can be
-recomputed.
+As above, the sortedness of `v₂` is irrelevant, so `ContainsEntries` is recomputed.
 
 ```
 contains∞-correct

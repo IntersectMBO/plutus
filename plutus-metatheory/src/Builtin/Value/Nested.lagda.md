@@ -35,7 +35,7 @@ open import Builtin.ByteString.Base using (ByteString)
 open import Builtin.Value.Base
 ```
 
-## Nested association lists
+## Values grouped by currency
 
 A nested association list has an entry for each currency symbol, with the list of its
 tokens and their quantities.
@@ -48,7 +48,7 @@ Nested : Set
 Nested = List (CurrencySymbol × Tokens)
 ```
 
-## From values
+## Grouping a value by currency
 
 `group kvs` groups the entries of `kvs` by currency symbol. In a well-formed list the
 entries of each currency are next to each other, so it only compares neighbouring
@@ -67,7 +67,7 @@ toNested∞ : Value∞ → Nested
 toNested∞ = group ∘ Value∞.map
 ```
 
-## To values
+## Flattening a grouped value
 
 `flatten ns` is the flat list of the entries of `ns`.
 
@@ -90,8 +90,10 @@ _<ᶠ_ : ∀ {A : Set} → ByteString × A → ByteString × A → Set
 _<ᶠ_ = BS._<_ on proj₁
 
 _<ᶠ?_ : ∀ {A : Set} (x y : ByteString × A) → Dec (x <ᶠ y)
-x <ᶠ? y = proj₁ x BS.<? proj₁ y
+(x , _) <ᶠ? (y , _) = x BS.<? y
 
+-- The stdlib has no non-emptiness predicate on lists, so we
+-- define a custom one here.
 data NonEmpty {A : Set} : List A → Set where
   _∷_ : ∀ x xs → NonEmpty (x ∷ xs)
 
@@ -110,58 +112,49 @@ wellFormed? ns =
   linked? _<ᶠ?_ ns ×-dec all? (λ (_ , ts) → nonEmpty? ts ×-dec linked? _<ᶠ?_ ts) ns
 ```
 
-The keys of a flattened well-formed nested list are sorted. The keys with the same
-currency symbol are compared by token name, and those of later currency symbols are
-larger, since they compare greater on their currency symbol. Sortedness does not need
-the tokens to be non-empty, which only matters to rule out empty inner lists, as the
-builtin does.
+The keys of a flattened well-formed nested list are sorted: keys with the same currency
+symbol are compared by token name, and keys of later currency symbols are larger.
 
 ```
-private
-  -- The currency symbol of an entry.
-  cur : Entry → CurrencySymbol
-  cur = proj₁ ∘ proj₁
-
-  withCurrency-above
-    : ∀ {c c'} ts → c BS.< c' → All (λ e → c BS.< cur e) (withCurrency c' ts)
-  withCurrency-above []       _     = []
-  withCurrency-above (_ ∷ ts) c<c' = c<c' ∷ withCurrency-above ts c<c'
-
-  flatten-above
-    : ∀ {c} ns → All (λ g → c BS.< proj₁ g) ns → All (λ e → c BS.< cur e) (flatten ns)
-  flatten-above []              []          = []
-  flatten-above ((_ , ts) ∷ ns) (c<c' ∷ a) =
-    All.++⁺ (withCurrency-above ts c<c') (flatten-above ns a)
-
-  -- The currency symbols after the first one of a sorted list are larger.
-  heads-above
-    : ∀ {g : CurrencySymbol × Tokens} {ns}
-    → Linked _<ᶠ_ (g ∷ ns) → All (λ g' → proj₁ g BS.< proj₁ g') ns
-  heads-above [-]           = []
-  heads-above (r ∷ [-])     = r ∷ []
-  heads-above {g} {g' ∷ g'' ∷ _} (r ∷ r' ∷ l) =
-    r ∷ heads-above {g} (BS.<-trans {proj₁ g} {proj₁ g'} {proj₁ g''} r r' ∷ l)
-
-  withCurrency-++-linked
-    : ∀ c ts rest
-    → Linked _<ᶠ_ ts
-    → All (λ e → c BS.< cur e) rest
-    → Linked _<ᵉ_ rest
-    → Linked _<ᵉ_ (withCurrency c ts ++ rest)
-  withCurrency-++-linked c []                      rest _          _          l = l
-  withCurrency-++-linked c ((t , q) ∷ [])          []   _          _          _ = [-]
-  withCurrency-++-linked c ((t , q) ∷ [])          (_ ∷ _) _       (c<c' ∷ _) l =
-    inj₁ c<c' ∷ l
-  withCurrency-++-linked c ((t , q) ∷ (t' , q') ∷ ts) rest (t<t' ∷ lt) a l =
-    inj₂ (refl , t<t') ∷ withCurrency-++-linked c ((t' , q') ∷ ts) rest lt a l
-
 flatten-linked
   : ∀ ns → Linked _<ᶠ_ ns → All (Linked _<ᶠ_ ∘ proj₂) ns → Linked _<ᵉ_ (flatten ns)
 flatten-linked []              _ _        = []
 flatten-linked ((c , ts) ∷ ns) l (lt ∷ a) =
-  withCurrency-++-linked c ts (flatten ns) lt
+  ++-linked ts (flatten ns) lt
     (flatten-above ns (heads-above l))
     (flatten-linked ns (Linked-tail l) a)
+  where
+    -- The entry has a currency symbol larger than `c`.
+    Above : Entry → Set
+    Above ((c' , _) , _) = c BS.< c'
+
+    heads-above
+      : ∀ {ns'} → Linked _<ᶠ_ ((c , ts) ∷ ns') → All (λ (c' , _) → c BS.< c') ns'
+    heads-above [-]           = []
+    heads-above (r ∷ [-])     = r ∷ []
+    heads-above {_ ∷ g' ∷ _} (r ∷ r' ∷ l) =
+      r ∷ heads-above (BS.<-trans {c} {_} {proj₁ g'} r r' ∷ l)
+
+    withCurrency-above : ∀ {c'} ts' → c BS.< c' → All Above (withCurrency c' ts')
+    withCurrency-above []        _    = []
+    withCurrency-above (_ ∷ ts') c<c' = c<c' ∷ withCurrency-above ts' c<c'
+
+    flatten-above
+      : ∀ ns' → All (λ (c' , _) → c BS.< c') ns' → All Above (flatten ns')
+    flatten-above []                []          = []
+    flatten-above ((_ , ts') ∷ ns') (c<c' ∷ a') =
+      All.++⁺ (withCurrency-above ts' c<c') (flatten-above ns' a')
+
+    ++-linked
+      : ∀ ts' rest
+      → Linked _<ᶠ_ ts' → All Above rest → Linked _<ᵉ_ rest
+      → Linked _<ᵉ_ (withCurrency c ts' ++ rest)
+    ++-linked []                          _       _            _          l' = l'
+    ++-linked ((t , q) ∷ [])              []      _            _          _  = [-]
+    ++-linked ((t , q) ∷ [])              (_ ∷ _) _            (c<c' ∷ _) l' =
+      inj₁ c<c' ∷ l'
+    ++-linked ((t , q) ∷ (t' , q') ∷ ts') rest    (t<t' ∷ lt') a'         l' =
+      inj₂ (refl , t<t') ∷ ++-linked ((t' , q') ∷ ts') rest lt' a' l'
 ```
 
 `toValue∞ ns` checks that `ns` is well-formed and that its quantities are non-zero, and

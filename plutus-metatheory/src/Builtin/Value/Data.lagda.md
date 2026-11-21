@@ -26,7 +26,7 @@ open import Builtin.Value.Base
 open import Builtin.Value.Nested
 ```
 
-## Encoding
+## Encoding values as Data
 
 `valueData∞ v` encodes `v` as a map from each currency symbol, as a bytestring, to the
 map from each of its tokens, as a bytestring, to its quantity, as an integer. Both maps
@@ -46,7 +46,7 @@ valueData∞ : Value∞ → D.Data
 valueData∞ = encodeNested ∘ toNested∞
 ```
 
-## Decoding
+## Decoding values from Data
 
 `unValueData∞ d` decodes a value encoded as by `valueData∞`. It fails unless `d` is a
 map from bytestrings to maps from bytestrings to integers, which is well-formed (see

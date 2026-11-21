@@ -49,32 +49,29 @@ flatten-group (((c , t) , q) ∷ kvs) with group kvs | flatten-group kvs
 ...   | no  _    = cong (((c , t) , q) ∷_) eq
 ```
 
-## Well-formedness
+## Grouping gives a well-formed nested list
 
-The first group of `group kvs` starts with the first entry of `kvs`.
-
-```
-data StartsWith : List Entry → Nested → Set where
-  none : StartsWith [] []
-  some : ∀ {c t q kvs ts ns} → StartsWith (((c , t) , q) ∷ kvs) ((c , (t , q) ∷ ts) ∷ ns)
-
-group-startsWith : ∀ kvs → StartsWith kvs (group kvs)
-group-startsWith [] = none
-group-startsWith (((c , t) , q) ∷ kvs) with group kvs
-... | []            = some
-... | (c' , _) ∷ _ with c BS.≟ c'
-...   | yes refl = some
-...   | no  _    = some
-```
-
-Grouping a sorted list gives a well-formed nested list. Adding an entry `((c , t) , q)`
-to the front of a sorted list either adds `t` to the tokens of its first currency, if
-that is `c`, in which case `t` is smaller than the first of them, or adds a new currency
-`c`, which is smaller than the first currency.
+Grouping a sorted list gives a well-formed nested list: its first entry `((c , t) , q)`
+either joins the first currency, if that is `c`, with `t` smaller than its tokens, or
+starts a new currency `c`, smaller than the others.
 
 ```
 private
-  -- Sortedness by key only depends on the key of the first element.
+  -- The first group of `group kvs` starts with the first entry of `kvs`.
+  data StartsWith : List Entry → Nested → Set where
+    none : StartsWith [] []
+    some
+      : ∀ {c t q kvs ts ns}
+      → StartsWith (((c , t) , q) ∷ kvs) ((c , (t , q) ∷ ts) ∷ ns)
+
+  group-startsWith : ∀ kvs → StartsWith kvs (group kvs)
+  group-startsWith [] = none
+  group-startsWith (((c , t) , q) ∷ kvs) with group kvs
+  ... | []            = some
+  ... | (c' , _) ∷ _ with c BS.≟ c'
+  ...   | yes refl = some
+  ...   | no  _    = some
+
   replace-tokens
     : ∀ {c ts ts'} {ns : Nested}
     → Linked _<ᶠ_ ((c , ts) ∷ ns) → Linked _<ᶠ_ ((c , ts') ∷ ns)
@@ -95,11 +92,11 @@ group-wellFormed (((c , t) , q) ∷ kvs) l
 ...   | no  c≢c' | inj₂ (c≡c' , _) ∷ _ = ⊥-elim (c≢c' c≡c')
 ```
 
-## Back to values
+## Recovering a value from its grouping
 
 `toValue∞ ns` gives back a value whose entries are the flattening of `ns`, if `ns` is
-well-formed. Its quantities are non-zero, as they are those of the value. This is
-irrelevant in the value, but decidable, so it can be recomputed.
+well-formed. The proof that its quantities are non-zero is irrelevant in the value, so
+it is recomputed.
 
 ```
 toValue∞-flatten
@@ -123,10 +120,8 @@ toValue∞-toNested∞ v@(mkValue∞ m s _) =
 
 ## Grouping a flattened list
 
-Grouping the flattening of a well-formed nested list gives it back. The entries of the
-first currency `c` are grouped together, as they have the same currency symbol, and
-they form a group of their own, since the following currency symbol is larger than `c`.
-The tokens of every currency are non-empty, so no currency is lost by flattening.
+Grouping the flattening of a well-formed nested list gives it back. This needs the
+tokens of every currency to be non-empty, as an empty one would be lost by flattening.
 
 ```
 private

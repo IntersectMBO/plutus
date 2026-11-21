@@ -3,6 +3,16 @@ title: Builtin.Value
 layout: page
 ---
 
+This module defines the builtin type `Value`, and the semantics of the builtin
+functions on it. Each builtin function is defined by the Agda function of the same
+name, whose description starts with **Builtin.**:
+
+* `insertCoin`, `lookupCoin`, `unionValue`, `valueContains` and `scaleValue`;
+* `policies`, `assetCount`, `keepPolicies` and `dropPolicies`;
+* `valueData` and `unValueData`.
+
+A builtin function that can fail returns a `Maybe`, and fails when it returns `nothing`.
+
 ```
 module Builtin.Value where
 ```
@@ -39,7 +49,7 @@ open import Builtin.Value.Nested using (toNested∞)
 open import Builtin.Value.Union using (mergeEntries-all; merge∞)
 ```
 
-## Value
+## Values within the builtin bounds
 
 A `Value` is a `Value∞` (see `Builtin.Value.Base`) that fits the bounds of the builtin
 type:
@@ -103,13 +113,11 @@ fromValue∞ v k with all? (in-range? ∘ proj₂) (Value∞.map v)
 ... | no  _ = nothing
 ```
 
-## Operations
+## Setting, removing and looking up tokens
 
-`insert`, `filterValue`, `delete` and `lookupCoin` are the corresponding operations on
-`Value∞`. `insert` also requires the key to be valid and the quantity to be in range.
+`insert`, `filterValue` and `delete` are the corresponding operations on `Value∞`.
+`insert` also requires the key to be valid and the quantity to be in range.
 `filterValue`, and so `delete`, keeps the bounds, since it only removes entries.
-`lookupCoin` has no conditions on its key: a key that is too long cannot be in a value,
-so its quantity is zero.
 
 ```
 insert
@@ -133,14 +141,20 @@ filterValue P? (mkValue v k r) =
 
 delete : CurrencySymbol → TokenName → Value → Value
 delete c t = filterValue λ k → ¬? (k ≟ᵏ (c , t))
+```
 
+**Builtin.** `lookupCoin c t v` is the quantity of the token `t` of the currency `c` in
+`v`, or zero if `v` does not contain it. It has no conditions on its keys: a key that is
+too long cannot be in a value, so its quantity is zero.
+
+```
 lookupCoin : CurrencySymbol → TokenName → Value → Quantity
 lookupCoin c t = lookup∞ c t ∘ value∞
 ```
 
-`insertCoin c t q v` is the builtin that sets the quantity of a token: it deletes the
-token if `q` is zero, whatever its keys, and otherwise fails unless its keys are valid
-and `q` is in range.
+**Builtin.** `insertCoin c t q v` sets the quantity of the token `t` of the currency `c`
+in `v` to `q`. If `q` is zero, it deletes the token and succeeds, whatever the lengths
+of `c` and `t`. Otherwise, it fails unless `c` and `t` are valid and `q` is in range.
 
 ```
 insertCoin : CurrencySymbol → TokenName → Quantity → Value → Maybe Value
@@ -170,11 +184,11 @@ private
   c₂ = natToByte 2 (s≤s (s≤s (s≤s z≤n))) BS.∷ BS.[]
 ```
 
-`unionValue v₁ v₂` adds the quantities of `v₁` and `v₂` token by token. It fails if one
-of the resulting quantities is not a signed 128-bit integer; its keys are those of `v₁`
-and `v₂`, so they are valid. The quantities of tokens in only one of the values are
-already in range, so this happens exactly when the sum of the quantities of a token in
-both values is out of range.
+**Builtin.** `unionValue v₁ v₂` adds the quantities of `v₁` and `v₂` token by token. It
+fails if one of the resulting quantities is not a signed 128-bit integer; its keys are
+those of `v₁` and `v₂`, so they are valid. The quantities of tokens in only one of the
+values are already in range, so this happens exactly when the sum of the quantities of a
+token in both values is out of range.
 
 ```
 unionValue : Value → Value → Maybe Value
@@ -203,18 +217,21 @@ private
   _ = refl
 ```
 
-`scaleValue n v` multiplies every quantity of `v` by `n`, which may be any integer. It
-fails if one of the products is not a signed 128-bit integer; scaling keeps the keys, so
-they are valid. Scaling by zero gives the empty value, whatever `v` is.
+**Builtin.** `scaleValue n v` multiplies every quantity of `v` by `n`, which may be any
+integer. It fails if one of the products is not a signed 128-bit integer; scaling keeps
+the keys, so they are valid. Scaling by zero gives the empty value, whatever `v` is.
 
 ```
 scaleValue : ℤ → Value → Maybe Value
 scaleValue n (mkValue v k _) =
-  fromValue∞ (scale∞ n v) (scale∞-keys {P = λ (c , t) → ValidKey c × ValidKey t} n v k)
+  fromValue∞
+    (scale∞ n v)
+    (scale∞-keys {P = λ (c , t) → ValidKey c × ValidKey t} n v k)
 ```
 
-`valueContains v₁ v₂` checks that `v₁` holds at least as much of every token as `v₂`
-does. It fails if either value has a negative quantity.
+**Builtin.** `valueContains v₁ v₂` checks that `v₁` holds at least as much of every token
+as `v₂` does. It fails if either value has a negative quantity. In particular, if `v₁` and
+`v₂` have no tokens in common, `v₁` contains `v₂` only if `v₂` is empty.
 
 ```
 valueContains : Value → Value → Maybe Bool
@@ -224,27 +241,28 @@ valueContains v₁ v₂
 ... | no  _ = nothing
 ```
 
-## Policies
+## Policies and asset counts
 
-`policies v` lists the currency symbols of `v`, in increasing order, each once.
+**Builtin.** `policies v` lists the currency symbols of `v`, in increasing order, each
+once.
 
 ```
 policies : Value → List CurrencySymbol
 policies = List.map proj₁ ∘ toNested∞ ∘ value∞
 ```
 
-`assetCount v` is the number of tokens of `v`.
+**Builtin.** `assetCount v` is the number of tokens of `v`.
 
 ```
 assetCount : Value → ℤ
 assetCount v = + List.length (Value∞.map (value∞ v))
 ```
 
-`keepPolicies ps v` keeps the tokens of `v` whose currency symbol is in `ps`, and
-`dropPolicies ps v` the others (see `Builtin.Value.Base`). Currency symbols in `ps` that
-are not in `v`, including those that are too long, have no effect. Both only remove
-tokens, so they keep the bounds, but they fail if `ps` has more than
-`policyFilterMaxIds` elements, counting repetitions.
+**Builtin.** `keepPolicies ps v` keeps the tokens of `v` whose currency symbol is in `ps`,
+and `dropPolicies ps v` the others (see `Builtin.Value.Base`). Currency symbols in `ps`
+that are not in `v`, including those that are too long, have no effect. Both only remove
+tokens, so they keep the bounds, but they fail if `ps` has more than `policyFilterMaxIds`
+elements, counting repetitions.
 
 ```
 policyFilterMaxIds : ℕ
@@ -252,21 +270,19 @@ policyFilterMaxIds = 256
 
 keepPolicies : List CurrencySymbol → Value → Maybe Value
 keepPolicies ps v with List.length ps ℕ.≤? policyFilterMaxIds
-... | yes _ = just (filterValue (λ k → proj₁ k ∈? ps) v)
+... | yes _ = just (filterValue (λ (c , _) → c ∈? ps) v)
 ... | no  _ = nothing
 
 dropPolicies : List CurrencySymbol → Value → Maybe Value
 dropPolicies ps v with List.length ps ℕ.≤? policyFilterMaxIds
-... | yes _ = just (filterValue (λ k → proj₁ k ∉? ps) v)
+... | yes _ = just (filterValue (λ (c , _) → c ∉? ps) v)
 ... | no  _ = nothing
 ```
 
 ## Conversion to and from Data
 
-`valueData` and `unValueData` are `valueData∞` and `unValueData∞` (see
-`Builtin.Value.Data`), with the bounds of the builtin type. `valueData v` fails if `v`
-has more than `valueDataMaxSize` tokens. `unValueData d` has no limit on the size of the
-value, but fails if one of its keys is too long or one of its quantities is out of range.
+**Builtin.** `valueData v` encodes `v` as `Data`, as `valueData∞` does (see
+`Builtin.Value.Data`). It fails if `v` has more than `valueDataMaxSize` tokens.
 
 ```
 valueDataMaxSize : ℕ
@@ -276,13 +292,22 @@ valueData : Value → Maybe D.Data
 valueData v with List.length (Value∞.map (value∞ v)) ℕ.≤? valueDataMaxSize
 ... | yes _ = just (valueData∞ (value∞ v))
 ... | no  _ = nothing
+```
 
--- Checks that a `Value∞` fits the bounds of the builtin type.
+`checkBounds v` checks that a `Value∞` fits the bounds of the builtin type.
+
+```
 checkBounds : Value∞ → Maybe Value
 checkBounds v with all? valid-keys? (Value∞.map v)
 ... | yes k = fromValue∞ v k
 ... | no  _ = nothing
+```
 
+**Builtin.** `unValueData d` decodes a value from `d`, as `unValueData∞` does. It has no
+limit on the size of the value, but fails if one of its keys is too long or one of its
+quantities is out of range.
+
+```
 unValueData : D.Data → Maybe Value
 unValueData d = unValueData∞ d >>= checkBounds
 ```
@@ -403,6 +428,13 @@ private
   _ = refl
 
   _ : valueContains empty p ≡ just false
+  _ = refl
+
+  -- Values with no tokens in common don't contain each other, unless one is empty.
+  _ : valueContains p (ins c₀ c₀ (+ 1) empty) ≡ just false
+  _ = refl
+
+  _ : valueContains (ins c₀ c₀ (+ 1) empty) p ≡ just false
   _ = refl
 
   -- A negative quantity in either value fails, even if it is not compared.

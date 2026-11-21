@@ -34,8 +34,6 @@ open import Builtin.Value.Base
 `mergeEntries kvs₁ kvs₂` adds two sorted association lists pointwise: an entry whose key
 is in only one of them is kept, and the entries of a key in both are replaced by a
 single entry with the sum of their quantities, or dropped if that sum is zero.
-`mergeEntries-∷ e kvs₁ kvs₂` is `mergeEntries (e ∷ kvs₁) kvs₂`, defined separately so
-that each recursive call is on a smaller list.
 
 ```
 mergeEntries   : List Entry → List Entry → List Entry
@@ -53,7 +51,7 @@ mergeEntries-∷ (k₁ , q₁) kvs₁ ((k₂ , q₂) ∷ kvs₂) with compareᵏ
 ...   | no  _ = (k₁ , q₁ ℤ.+ q₂) ∷ mergeEntries kvs₁ kvs₂
 ```
 
-## Well-formedness
+## Merging keeps values well-formed
 
 `mergeEntries` keeps the keys sorted. A property of all entries holds of the result if it
 holds of both inputs and is preserved by adding the quantities of entries with the same
@@ -61,12 +59,6 @@ key, when the sum is non-zero.
 
 ```
 private
-  -- Sortedness is preserved by dropping the second entry.
-  drop-second
-    : ∀ {e e' kvs} → Linked _<ᵉ_ (e ∷ e' ∷ kvs) → Linked _<ᵉ_ (e ∷ kvs)
-  drop-second (_ ∷ [-])                       = [-]
-  drop-second {e} {e'} {e'' ∷ _} (r ∷ r' ∷ l) = <ᵉ-trans {e} {e'} {e''} r r' ∷ l
-
   -- Merging lists with a lower bound `e` keeps that bound.
   mergeEntries-linked-∷
     : ∀ e kvs₁ kvs₂
@@ -93,6 +85,10 @@ private
   ... | tri≈ _ refl _ with q₁ ℤ.+ q₂ ℤ.≟ 0ℤ
   ...   | yes _ =
     mergeEntries-linked-∷ e kvs₁ kvs₂ (drop-second (r₁ ∷ l₁)) (drop-second (r₂ ∷ l₂))
+    where
+      drop-second : ∀ {e e' kvs} → Linked _<ᵉ_ (e ∷ e' ∷ kvs) → Linked _<ᵉ_ (e ∷ kvs)
+      drop-second (_ ∷ [-])                       = [-]
+      drop-second {e} {e'} {e'' ∷ _} (r ∷ r' ∷ l) = <ᵉ-trans {e} {e'} {e''} r r' ∷ l
   ...   | no  _ =
     r₁ ∷ mergeEntries-linked-∷ (k₁ , q₁ ℤ.+ q₂) kvs₁ kvs₂
            (replace-head l₁) (replace-head l₂)

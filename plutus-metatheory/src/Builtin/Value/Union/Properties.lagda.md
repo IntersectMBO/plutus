@@ -14,7 +14,7 @@ module Builtin.Value.Union.Properties where
 ## Imports
 
 ```
-open import Algebra.Module.Structures using (IsLeftModule)
+open import Algebra.Module.Structures using (IsLeftModule; IsRightModule; IsModule)
 open import Algebra.Structures using (IsCommutativeMonoid; IsAbelianGroup)
 open import Data.List using (_∷_; [])
 open import Data.List.Relation.Unary.Linked
@@ -36,10 +36,12 @@ open import Builtin.Value.Base.Properties
 open import Builtin.Value.Union
 ```
 
-## Lookup
+## Lookup after merging
 
-The quantity of a token in the merge of two sorted association lists is the sum of its
-quantities in each of them.
+`merge∞` walks the two sorted lists together. `lookup∞-merge∞` shows that this adds
+values token by token: the quantity of a token in `merge∞ v₁ v₂` is the sum of its
+quantities in `v₁` and `v₂`, including when that sum is zero and the token is dropped.
+It is proved for the underlying association lists by `lookupEntry-merge`.
 
 ```
 lookupEntry-merge
@@ -80,12 +82,7 @@ lookupEntry-merge-∷ k (k₁ , q₁) kvs₁ ((k₁ , q₂) ∷ kvs₂) l₁ l�
     | tri≈ _ refl _ | no _ with k₁ ≟ᵏ k
 ...     | yes refl = refl
 ...     | no  _    = lookupEntry-merge k kvs₁ kvs₂ (Linked-tail l₁) (Linked-tail l₂)
-```
 
-For `Value∞`s, the sortedness of the association lists is irrelevant, but equality of
-integers is decidable, so it can be recomputed.
-
-```
 lookup∞-merge∞
   : ∀ c t v₁ v₂
   → lookup∞ c t (merge∞ v₁ v₂) ≡ lookup∞ c t v₁ ℤ.+ lookup∞ c t v₂
@@ -93,7 +90,7 @@ lookup∞-merge∞ c t (mkValue∞ m₁ s₁ _) (mkValue∞ m₂ s₂ _) =
   recompute (_ ℤ.≟ _) (lookupEntry-merge (c , t) m₁ m₂ s₁ s₂)
 ```
 
-## Algebra
+## Values form a commutative group
 
 Since a `Value∞` is determined by the quantities of its tokens, the laws of `merge∞` and
 `negate∞` follow from those of the addition and negation of integers. In the proofs,
@@ -160,11 +157,19 @@ merge∞-isAbelianGroup = record
   }
 ```
 
-## Scaling
+## Values form a module over the integers
+
+A *module* over a ring is like a vector space, except that its scalars come from a ring
+rather than a field: it is a commutative group with a scaling by the elements of the
+ring, which distributes over both additions and is compatible with their
+multiplication. Here the ring is the integers, the group is that of values under
+`merge∞`, and the scaling is `scale∞`. A *left* module scales on the left, a *right*
+module on the right, and a module over a commutative ring is both, with the two
+scalings agreeing.
 
 Scaling distributes over `merge∞` and over the addition of integers, and scaling the
 empty value gives the empty value. Together with the laws of
-`Builtin.Value.Base.Properties`, this makes `Value∞` a module over the integers.
+`Builtin.Value.Base.Properties`, this makes `Value∞` a left module over the integers.
 
 ```
 scale∞-zeroʳ : ∀ n → scale∞ n empty∞ ≡ empty∞
@@ -217,5 +222,60 @@ scale∞-isLeftModule = record
     }
   ; -ᴹ‿cong    = cong negate∞
   ; -ᴹ‿inverse = merge∞-inverseˡ , merge∞-inverseʳ
+  }
+```
+
+The integers are commutative, so scaling on the right, by `scaleʳ∞`, satisfies the same
+laws, and `Value∞` is also a right module over the integers.
+
+```
+scaleʳ∞ : Value∞ → ℤ.ℤ → Value∞
+scaleʳ∞ v n = scale∞ n v
+
+-- Scalings by two integers commute.
+scale∞-comm : ∀ m n v → scale∞ m (scale∞ n v) ≡ scale∞ n (scale∞ m v)
+scale∞-comm m n v = begin
+  scale∞ m (scale∞ n v)  ≡⟨ scale∞-assoc m n v ⟨
+  scale∞ (m ℤ.* n) v     ≡⟨ cong (λ k → scale∞ k v) (ℤ.*-comm m n) ⟩
+  scale∞ (n ℤ.* m) v     ≡⟨ scale∞-assoc n m v ⟩
+  scale∞ n (scale∞ m v)  ∎
+
+scale∞-isRightModule : IsRightModule ℤ.+-*-ring _≡_ merge∞ empty∞ negate∞ scaleʳ∞
+scale∞-isRightModule = record
+  { isRightSemimodule = record
+    { +ᴹ-isCommutativeMonoid = merge∞-isCommutativeMonoid
+    ; isPrerightSemimodule = record
+      { *ᵣ-cong      = cong₂ scaleʳ∞
+      ; *ᵣ-zeroʳ     = scale∞-zero
+      ; *ᵣ-distribˡ  = scale∞-distribʳ
+      ; *ᵣ-identityʳ = scale∞-identity
+      ; *ᵣ-assoc     = λ v m n → trans (scale∞-comm n m v) (sym (scale∞-assoc m n v))
+      ; *ᵣ-zeroˡ     = scale∞-zeroʳ
+      ; *ᵣ-distribʳ  = scale∞-distribˡ
+      }
+    }
+  ; -ᴹ‿cong    = cong negate∞
+  ; -ᴹ‿inverse = merge∞-inverseˡ , merge∞-inverseʳ
+  }
+```
+
+The two scalings agree, and scaling on the left then on the right is the same in either
+order, so `Value∞` is a module over the commutative ring of integers.
+
+```
+scale∞-isModule
+  : IsModule ℤ.+-*-commutativeRing _≡_ merge∞ empty∞ negate∞ scale∞ scaleʳ∞
+scale∞-isModule = record
+  { isBimodule = record
+    { isBisemimodule = record
+      { +ᴹ-isCommutativeMonoid = merge∞-isCommutativeMonoid
+      ; isPreleftSemimodule    = IsLeftModule.isPreleftSemimodule scale∞-isLeftModule
+      ; isPrerightSemimodule   = IsRightModule.isPrerightSemimodule scale∞-isRightModule
+      ; *ₗ-*ᵣ-assoc            = λ m v n → scale∞-comm n m v
+      }
+    ; -ᴹ‿cong    = cong negate∞
+    ; -ᴹ‿inverse = merge∞-inverseˡ , merge∞-inverseʳ
+    }
+  ; *ₗ-*ᵣ-coincident = λ _ _ → refl
   }
 ```

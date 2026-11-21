@@ -36,10 +36,10 @@ open import Builtin.Value.Nested
 open import Builtin.Value.Nested.Properties
 ```
 
-## Bounds
+## Checking the bounds
 
 Checking the bounds of a `Value∞` that fits them gives back the `Value`. The bounds are
-irrelevant in a `Value`, but decidable, so they can be recomputed.
+irrelevant in a `Value`, so they are recomputed.
 
 ```
 checkBounds-value∞ : ∀ v → checkBounds (value∞ v) ≡ just v
@@ -48,11 +48,7 @@ checkBounds-value∞ (mkValue v k r) with all? valid-keys? (Value∞.map v)
 ... | yes _ with all? (in-range? ∘ proj₂) (Value∞.map v)
 ...   | yes _ = refl
 ...   | no ¬r = ⊥-elim (¬r (recompute (all? (in-range? ∘ proj₂) (Value∞.map v)) r))
-```
 
-If checking the bounds of a `Value∞` succeeds, it gives a `Value` with the same entries.
-
-```
 checkBounds-just : ∀ {v' v} → checkBounds v' ≡ just v → value∞ v ≡ v'
 checkBounds-just {v'} eq with all? valid-keys? (Value∞.map v')
 checkBounds-just {v'} eq | yes _ with all? (in-range? ∘ proj₂) (Value∞.map v')
@@ -61,10 +57,7 @@ checkBounds-just ()   | yes _ | no  _
 checkBounds-just ()   | no  _
 ```
 
-## Policies
-
-The policies of a value are strictly increasing, as are the currency symbols of its
-grouping (see `Builtin.Value.Nested.Properties`).
+## Policies are sorted
 
 ```
 policies-sorted : ∀ v → Linked BS._<_ (policies v)
