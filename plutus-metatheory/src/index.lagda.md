@@ -128,6 +128,10 @@ import Builtin.ByteString.Properties
 The specification of Values.
 
 ```
+import Builtin.Value.Base
+import Builtin.Value.Base.Properties
+import Builtin.Value.Union
+import Builtin.Value.Union.Properties
 import Builtin.Value
 ```
 

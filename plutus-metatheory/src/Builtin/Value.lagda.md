@@ -11,76 +11,38 @@ module Builtin.Value where
 
 ```
 open import Data.List using (List; _∷_; [])
-open import Data.List.Relation.Unary.All using (All; []; _∷_)
-open import Data.List.Relation.Unary.Linked using (Linked; []; [-]; _∷_)
-open import Data.Product using (_×_; _,_; proj₁; proj₂)
-open import Data.Product.Properties using (≡-dec)
-open import Data.Product.Relation.Binary.Lex.Strict using (×-Lex; ×-isStrictTotalOrder)
-open import Data.Product.Relation.Binary.Pointwise.NonDependent using (Pointwise; ≡×≡⇒≡)
+open import Data.List.Relation.Unary.All using (All; []; all?)
+open import Data.Product using (_×_; _,_; proj₂)
 open import Data.Integer using (ℤ; 0ℤ; +_; -_)
+open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Nat using (ℕ; _^_; _∸_; s≤s; z≤n)
-open import Function.Base using (_∘_; _on_)
-open import Relation.Binary.Definitions
-  using (DecidableEquality; Transitive; Trichotomous; tri<; tri≈; tri>)
+open import Function.Base using (_∘_)
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
-open import Relation.Binary.Structures using (IsStrictTotalOrder)
-open import Relation.Nullary using (Dec; ¬?; _×-dec_)
+open import Relation.Nullary using (Dec; yes; no; _×-dec_)
 open import Relation.Nullary.Decidable using (True; toWitness)
 
 import Data.Integer as ℤ
-import Data.List as List
-import Data.List.Relation.Unary.All.Properties as All
-import Data.List.Relation.Unary.Linked.Properties as Linked
+import Data.Maybe as Maybe
 import Data.Nat as ℕ
 import Builtin.ByteString.Base as BS
-import Builtin.ByteString.Order as BS
 
 open import Builtin.Binary using (natToByte)
 open import Builtin.ByteString.Base using (ByteString; length)
+open import Builtin.Value.Base
+open import Builtin.Value.Union using (mergeEntries-all; merge∞)
 ```
 
 ## Value
 
-A `Value` is a finitely supported map from pairs of a currency symbol and a token name to
-an integer quantity. We represent it as a flat association list from such pairs, which we
-call *keys*, to quantities. The list is required to be *well-formed*, so that every value
-has exactly one representation:
+A `Value` is a `Value∞` (see `Builtin.Value.Base`) that fits the bounds of the builtin
+type:
 
-* the keys are strictly increasing (so there are no duplicates);
 * every currency symbol and token name is at most 32 bytes long. (Real currency symbols
   are either empty or 28 bytes long, but any length up to 32 bytes is allowed.)
-* every quantity is non-zero;
 * every quantity is a signed 128-bit integer, i.e. it lies in the range
   [-2¹²⁷, 2¹²⁷ - 1].
 
-ByteStrings are ordered lexicographically, as described in `Builtin.ByteString.Order`,
-and keys are ordered lexicographically by currency symbol, then by token name. A
-well-formed list therefore contains the tokens of each currency next to each other, in
-increasing order, and grouping them by currency gives the nested association list used
-as the concrete representation of values, in which every inner list is non-empty.
-
 ```
-CurrencySymbol : Set
-CurrencySymbol = ByteString
-
-TokenName : Set
-TokenName = ByteString
-
-Quantity : Set
-Quantity = ℤ
-
-Key : Set
-Key = CurrencySymbol × TokenName
-
-Entry : Set
-Entry = Key × Quantity
-
-_<ᵏ_ : Key → Key → Set
-_<ᵏ_ = ×-Lex _≡_ BS._<_ BS._<_
-
-_<ᵉ_ : Entry → Entry → Set
-_<ᵉ_ = _<ᵏ_ on proj₁
-
 maxKeyLen : ℕ
 maxKeyLen = 32
 
@@ -102,111 +64,41 @@ InRange q = minQuantity ℤ.≤ q × q ℤ.≤ maxQuantity
 record Value : Set where
   constructor mkValue
   field
-    map : List Entry
-    .<-keys : Linked _<ᵉ_ map
-    .keys-≤-maxKeyLen : All ValidKeys map
-    .quantity-≢-zero : All (λ e → proj₂ e ≢ 0ℤ) map
-    .quantity-in-range : All (InRange ∘ proj₂) map
+    value∞ : Value∞
+    .keys-≤-maxKeyLen : All ValidKeys (Value∞.map value∞)
+    .quantity-in-range : All (InRange ∘ proj₂) (Value∞.map value∞)
+
+open Value public
 
 empty : Value
-empty = mkValue [] [] [] [] []
+empty = mkValue empty∞ [] []
 ```
 
-The conditions on keys and quantities are decidable.
+The bounds are decidable.
 
 ```
 valid-key? : (k : ByteString) → Dec (ValidKey k)
 valid-key? k = length k ℕ.≤? maxKeyLen
 
-≢-zero? : (q : Quantity) → Dec (q ≢ 0ℤ)
-≢-zero? q = ¬? (q ℤ.≟ 0ℤ)
-
 in-range? : (q : Quantity) → Dec (InRange q)
 in-range? q = (minQuantity ℤ.≤? q) ×-dec (q ℤ.≤? maxQuantity)
 ```
 
-## Comparing keys
-
-The order on keys is a strict total order, since it is the lexicographic product of two
-strict total orders. `compareᵏ` decides it, and `_≟ᵏ_` decides equality of keys.
+`fromValue∞ v` checks that the quantities of `v`, whose keys are valid, are in range.
 
 ```
-<ᵏ-isStrictTotalOrder : IsStrictTotalOrder (Pointwise _≡_ _≡_) _<ᵏ_
-<ᵏ-isStrictTotalOrder =
-  ×-isStrictTotalOrder BS.<-isStrictTotalOrder BS.<-isStrictTotalOrder
-
-<ᵉ-trans : Transitive _<ᵉ_
-<ᵉ-trans = IsStrictTotalOrder.trans <ᵏ-isStrictTotalOrder
-
-_≟ᵏ_ : DecidableEquality Key
-_≟ᵏ_ = ≡-dec BS._≟_ BS._≟_
-
-compareᵏ : Trichotomous _≡_ _<ᵏ_
-compareᵏ k k' with IsStrictTotalOrder.compare <ᵏ-isStrictTotalOrder k k'
-... | tri< a ¬b ¬c = tri< a (¬b ∘ λ { refl → refl , refl }) ¬c
-... | tri≈ ¬a b ¬c = tri≈ ¬a (≡×≡⇒≡ b) ¬c
-... | tri> ¬a ¬b c = tri> ¬a (¬b ∘ λ { refl → refl , refl }) c
+fromValue∞ : (v : Value∞) → .(All ValidKeys (Value∞.map v)) → Maybe Value
+fromValue∞ v k with all? (in-range? ∘ proj₂) (Value∞.map v)
+... | yes r = just (mkValue v k r)
+... | no  _ = nothing
 ```
 
-## Insertion
+## Operations
 
-`insertEntry k q kvs` sets the quantity at the key `k` in the sorted association list
-`kvs` to `q`: if `k` is present its quantity is replaced, and otherwise the entry
-`(k , q)` is added at the position that keeps the keys sorted.
-
-```
-insertEntry : Key → Quantity → List Entry → List Entry
-insertEntry k q [] = (k , q) ∷ []
-insertEntry k q ((k' , q') ∷ kvs) with compareᵏ k k'
-... | tri< _ _ _ = (k , q) ∷ (k' , q') ∷ kvs
-... | tri≈ _ _ _ = (k' , q) ∷ kvs
-... | tri> _ _ _ = (k' , q') ∷ insertEntry k q kvs
-```
-
-`insertEntry` keeps the keys sorted, and a property of all entries holds after
-inserting `(k , q)` if it holds for `(k , q)`.
-
-```
-private
-  -- Sortedness only depends on the keys.
-  replace-head
-    : ∀ {k q q' kvs} → Linked _<ᵉ_ ((k , q') ∷ kvs) → Linked _<ᵉ_ ((k , q) ∷ kvs)
-  replace-head [-]     = [-]
-  replace-head (r ∷ l) = r ∷ l
-
-  insertEntry-linked-∷
-    : ∀ {e} k q kvs
-    → e <ᵉ (k , q)
-    → Linked _<ᵉ_ (e ∷ kvs)
-    → Linked _<ᵉ_ (e ∷ insertEntry k q kvs)
-  insertEntry-linked-∷ k q []                r _        = r ∷ [-]
-  insertEntry-linked-∷ k q ((k' , q') ∷ kvs) r (r' ∷ l) with compareᵏ k k'
-  ... | tri< k<k' _ _ = r ∷ k<k' ∷ l
-  ... | tri≈ _ refl _ = r' ∷ replace-head l
-  ... | tri> _ _ k'<k = r' ∷ insertEntry-linked-∷ k q kvs k'<k l
-
-insertEntry-linked
-  : ∀ k q kvs → Linked _<ᵉ_ kvs → Linked _<ᵉ_ (insertEntry k q kvs)
-insertEntry-linked k q []                _ = [-]
-insertEntry-linked k q ((k' , q') ∷ kvs) l with compareᵏ k k'
-... | tri< k<k' _ _ = k<k' ∷ l
-... | tri≈ _ refl _ = replace-head l
-... | tri> _ _ k'<k = insertEntry-linked-∷ k q kvs k'<k l
-
-insertEntry-all
-  : ∀ {P : Entry → Set} k q kvs → All P kvs → P (k , q) → All P (insertEntry k q kvs)
-insertEntry-all k q []                _        p = p ∷ []
-insertEntry-all k q ((k' , q') ∷ kvs) (p' ∷ a) p with compareᵏ k k'
-... | tri< _ _ _    = p ∷ p' ∷ a
-... | tri≈ _ refl _ = p ∷ a
-... | tri> _ _ _    = p' ∷ insertEntry-all k q kvs a p
-```
-
-`insert c t q v` sets the quantity of the token `t` of the currency `c` in `v` to `q`,
-replacing the previous quantity, if any. The inputs must satisfy the invariants of
-`Value`: `c` and `t` must be at most `maxKeyLen` bytes long, and `q` must be a non-zero
-signed 128-bit integer. Setting a quantity to zero amounts to deleting the token, which is
-done by `delete`.
+`insert`, `delete` and `lookup` are the corresponding operations on `Value∞`. `insert`
+also requires the key to be valid and the quantity to be in range, and `delete` keeps
+the bounds, since it only removes entries. `lookup` has no conditions on its key: a key
+that is too long cannot be in a value, so its quantity is zero.
 
 ```
 insert
@@ -215,56 +107,28 @@ insert
   → (q : Quantity) → .(q ≢ 0ℤ) → .(InRange q)
   → Value
   → Value
-insert c vc t vt q nz r (mkValue m s k z ir) =
+insert c vc t vt q nz r (mkValue v k ir) =
   mkValue
-    (insertEntry (c , t) q m)
-    (insertEntry-linked (c , t) q m s)
-    (insertEntry-all (c , t) q m k (vc , vt))
-    (insertEntry-all (c , t) q m z nz)
-    (insertEntry-all (c , t) q m ir r)
-```
-
-## Deletion
-
-`delete c t v` removes the token `t` of the currency `c` from `v`, if it is present. It
-keeps the entries whose key is not `(c , t)`. Removing entries from a list keeps it
-sorted and keeps every property of all its entries, so the result is well-formed.
-
-```
--- Whether an entry's key differs from `k`.
-≢ᵏ? : (k : Key) (e : Entry) → Dec (proj₁ e ≢ k)
-≢ᵏ? k e = ¬? (proj₁ e ≟ᵏ k)
-
-deleteEntry : Key → List Entry → List Entry
-deleteEntry k = List.filter (≢ᵏ? k)
+    (insert∞ c t q nz v)
+    (insertEntry-all (c , t) q (Value∞.map v) k (vc , vt))
+    (insertEntry-all (c , t) q (Value∞.map v) ir r)
 
 delete : CurrencySymbol → TokenName → Value → Value
-delete c t (mkValue m s k z ir) =
+delete c t (mkValue v k ir) =
   mkValue
-    (deleteEntry (c , t) m)
-    -- `<ᵉ-trans` is eta-expanded, as its implicit entries can't be inferred through
-    -- `proj₁` once `_<ᵉ_` unfolds.
-    (Linked.filter⁺ (≢ᵏ? (c , t)) (λ {e₁ e₂ e₃} → <ᵉ-trans {e₁} {e₂} {e₃}) s)
-    (All.filter⁺ (≢ᵏ? (c , t)) k)
-    (All.filter⁺ (≢ᵏ? (c , t)) z)
-    (All.filter⁺ (≢ᵏ? (c , t)) ir)
+    (delete∞ c t v)
+    (deleteEntry-all (c , t) (Value∞.map v) k)
+    (deleteEntry-all (c , t) (Value∞.map v) ir)
+
+lookup : CurrencySymbol → TokenName → Value → Quantity
+lookup c t = lookup∞ c t ∘ value∞
 ```
 
-## Conversion
-
-`toFlatList` forgets the invariants, giving the entries of a `Value` as a flat list of
-triples.
-
-```
-toFlatList : Value → List (CurrencySymbol × TokenName × Quantity)
-toFlatList v = List.map (λ ((c , t) , q) → c , t , q) (Value.map v)
-```
-
-Some tests:
+The examples in this module build values with `ins`, which is `insert` with its side
+conditions checked by computation.
 
 ```
 private
-  -- `insert` on literals, with the side conditions checked by computation.
   ins
     : (c t : ByteString) (q : Quantity)
     → {True (valid-key? c)} → {True (valid-key? t)}
@@ -277,7 +141,53 @@ private
   c₀ = BS.[]
   c₁ = natToByte 1 (s≤s (s≤s z≤n)) BS.∷ BS.[]
   c₂ = natToByte 2 (s≤s (s≤s (s≤s z≤n))) BS.∷ BS.[]
+```
 
+`union v₁ v₂` adds the quantities of `v₁` and `v₂` token by token. It fails if one of the
+resulting quantities is not a signed 128-bit integer; its keys are those of `v₁` and
+`v₂`, so they are valid. The quantities of tokens in only one
+of the values are already in range, so this happens exactly when the sum of the
+quantities of a token in both values is out of range.
+
+```
+union : Value → Value → Maybe Value
+union (mkValue v₁ k₁ _) (mkValue v₂ k₂ _) =
+  fromValue∞
+    (merge∞ v₁ v₂)
+    (mergeEntries-all (λ vk _ _ → vk) (Value∞.map v₁) (Value∞.map v₂) k₁ k₂)
+```
+
+Because of this, `union` is commutative and has `empty` as its identity, but it is not
+associative: with `q` the maximum quantity, `(q + 1) - 1` fails, since `q + 1` is out of
+range, while `q + (1 - 1)` is `q`. The sum of values without the range condition,
+`merge∞`, is associative.
+
+```
+private
+  big one minusOne : Value
+  big      = ins c₁ c₁ maxQuantity empty
+  one      = ins c₁ c₁ (+ 1) empty
+  minusOne = ins c₁ c₁ (- (+ 1)) empty
+
+  _ : (union big one Maybe.>>= λ x → union x minusOne) ≡ nothing
+  _ = refl
+
+  _ : (union one minusOne Maybe.>>= union big) ≡ just big
+  _ = refl
+```
+
+`toFlatList` forgets the invariants, giving the entries of a `Value` as a flat list of
+triples.
+
+```
+toFlatList : Value → List (CurrencySymbol × TokenName × Quantity)
+toFlatList = toFlatList∞ ∘ value∞
+```
+
+Some tests:
+
+```
+private
   -- A value with three tokens, inserted out of order.
   v : Value
   v = ins c₂ c₀ (+ 5) (ins c₁ c₂ (+ 1) (ins c₁ c₁ (- (+ 3)) empty))
@@ -300,5 +210,58 @@ private
 
   -- Deleting every token gives the empty value.
   _ : toFlatList (delete c₂ c₀ (delete c₁ c₂ (delete c₁ c₁ v))) ≡ []
+  _ = refl
+
+  -- Looking up a present token gives its quantity.
+  _ : lookup c₁ c₂ v ≡ + 1
+  _ = refl
+
+  _ : lookup c₁ c₁ v ≡ - (+ 3)
+  _ = refl
+
+  -- Looking up an absent token gives zero, even if its currency is present.
+  _ : lookup c₁ c₀ v ≡ 0ℤ
+  _ = refl
+
+  _ : lookup c₀ c₀ empty ≡ 0ℤ
+  _ = refl
+
+  -- A deleted token is absent.
+  _ : lookup c₁ c₂ (delete c₁ c₂ v) ≡ 0ℤ
+  _ = refl
+
+  w : Value
+  w = ins c₂ c₂ (+ 2) (ins c₁ c₁ (+ 3) empty)
+
+  -- Quantities of the same token are added, and tokens whose sum is zero are dropped.
+  _ : Maybe.map toFlatList (union v w)
+      ≡ just ((c₁ , c₂ , + 1) ∷ (c₂ , c₀ , + 5) ∷ (c₂ , c₂ , + 2) ∷ [])
+  _ = refl
+
+  _ : Maybe.map toFlatList (union w v) ≡ Maybe.map toFlatList (union v w)
+  _ = refl
+
+  _ : Maybe.map toFlatList (union empty v) ≡ just (toFlatList v)
+  _ = refl
+
+  -- A sum out of range fails.
+  _ : Maybe.map toFlatList (union big big) ≡ nothing
+  _ = refl
+
+  _ : Maybe.map toFlatList (union big minusOne)
+      ≡ just ((c₁ , c₁ , + (2 ^ 127 ∸ 2)) ∷ [])
+  _ = refl
+
+  -- Negation negates every quantity, and a value plus its negation is empty.
+  _ : toFlatList∞ (negate∞ (value∞ v))
+      ≡ (c₁ , c₁ , + 3) ∷ (c₁ , c₂ , - (+ 1)) ∷ (c₂ , c₀ , - (+ 5)) ∷ []
+  _ = refl
+
+  _ : toFlatList∞ (merge∞ (negate∞ (value∞ v)) (value∞ v)) ≡ []
+  _ = refl
+
+  -- The sum of the underlying `Value∞`s is defined, but out of range.
+  _ : toFlatList∞ (merge∞ (value∞ big) (value∞ big))
+      ≡ (c₁ , c₁ , + (2 ^ 128 ∸ 2)) ∷ []
   _ = refl
 ```
