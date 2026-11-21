@@ -105,10 +105,13 @@ executable plc
 
 executable uplc
   import:          lang, os-support, ghc-version-support
-  main-is:         uplc/Main.hs
-  other-modules:   Paths_plutus_executables
+  main-is:         Main.hs
+  other-modules:
+    Lint
+    Paths_plutus_executables
+
   autogen-modules: Paths_plutus_executables
-  hs-source-dirs:  executables
+  hs-source-dirs:  executables/uplc
   build-depends:
     , base                              >=4.9   && <5
     , base16-bytestring
@@ -118,6 +121,7 @@ executable uplc
     , extra
     , filepath
     , haskeline
+    , lens
     , mtl
     , optparse-applicative
     , plutus-core                       ^>=1.72
