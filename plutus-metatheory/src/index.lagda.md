@@ -120,8 +120,30 @@ on ByteStrings.
 ```
 import Builtin.Binary
 import Builtin.ByteString.Base
+import Builtin.ByteString.Order
 import Builtin.ByteString
 import Builtin.ByteString.Properties
+```
+
+The specification of Data.
+
+```
+import Builtin.Data
+```
+
+The specification of Values.
+
+```
+import Builtin.Value.Base
+import Builtin.Value.Base.Properties
+import Builtin.Value.Union
+import Builtin.Value.Union.Properties
+import Builtin.Value.Nested
+import Builtin.Value.Nested.Properties
+import Builtin.Value.Data
+import Builtin.Value.Data.Properties
+import Builtin.Value
+import Builtin.Value.Properties
 ```
 
 The types of the built-in operations are defined by a signature.
