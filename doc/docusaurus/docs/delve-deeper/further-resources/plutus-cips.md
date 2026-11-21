@@ -37,4 +37,5 @@ This page lists all Cardano Improvement Proposals (CIPs) that are substantially 
 | [152](https://cips.cardano.org/cip/CIP-0152) | **Modules in UPLC** - Introduces module system to Untyped Plutus Core | Proposed |
 | [153](https://cips.cardano.org/cip/CIP-0153) | **Plutus Core Builtin Type - MaryEraValue** - Adds MaryEraValue as a builtin type | Proposed |
 | [156](https://cips.cardano.org/cip/CIP-0156) | **Plutus Core Builtin Function - multiIndexArray** - Adds multi-dimensional array indexing builtin | Proposed |
+| [168](https://cips.cardano.org/cip/CIP-0168) | **More `BuiltinValue` Functions** - Adds `policies`, `assetCount`, `keepPolicies` and `dropPolicies` builtins | Proposed |
 | [381](https://cips.cardano.org/cip/CIP-0381) | **Plutus support for Pairings over BLS12-381** - Adds elliptic curve pairing operations for cryptography | Active |

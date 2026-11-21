@@ -1111,6 +1111,9 @@ expModInteger b e m =
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ toInteger bs
 {-# OPAQUE expModInteger #-}
 
+{-| Sets the quantity of the given currency symbol and token name; a quantity of zero removes
+  the entry. Fails if the quantity is nonzero and either key is longer than 'Value.maxKeyLen'
+  bytes or the quantity is outside the signed 128-bit range. -}
 insertCoin
   :: BuiltinByteString
   -> BuiltinByteString
@@ -1126,6 +1129,7 @@ insertCoin (BuiltinByteString c) (BuiltinByteString t) amt (BuiltinValue v0) =
         Haskell.error "insertCoin errored."
 {-# OPAQUE insertCoin #-}
 
+-- | The quantity of the given currency symbol and token name, or zero if the value has none.
 lookupCoin
   :: BuiltinByteString
   -> BuiltinByteString
@@ -1135,6 +1139,8 @@ lookupCoin (BuiltinByteString c) (BuiltinByteString t) (BuiltinValue v) =
   Value.lookupCoin c t v
 {-# OPAQUE lookupCoin #-}
 
+{-| Adds the quantities of two values. Fails if any sum is outside the signed 128-bit
+  range. -}
 unionValue :: BuiltinValue -> BuiltinValue -> BuiltinValue
 unionValue (BuiltinValue v1) (BuiltinValue v2) =
   case Value.unionValue v1 v2 of
@@ -1144,6 +1150,8 @@ unionValue (BuiltinValue v1) (BuiltinValue v2) =
       traceAll (logs <> pure (display err)) $ Haskell.error "unionValue errored."
 {-# OPAQUE unionValue #-}
 
+{-| Whether the first value holds every entry of the second with at least its quantity. Fails
+  if either value holds a negative quantity. -}
 valueContains :: BuiltinValue -> BuiltinValue -> Bool
 valueContains (BuiltinValue v1) (BuiltinValue v2) =
   case Value.valueContains v1 v2 of
@@ -1154,6 +1162,9 @@ valueContains (BuiltinValue v1) (BuiltinValue v2) =
         Haskell.error "valueContains errored."
 {-# OPAQUE valueContains #-}
 
+{-| Encodes a value as 'BuiltinData', the same way as the ledger's @Value@: a map from currency
+  symbols to maps from token names to quantities, keys in ascending order. Fails on a value
+  with more than 'Value.valueDataMaxSize' entries. -}
 mkValue :: BuiltinValue -> BuiltinData
 mkValue (BuiltinValue v) =
   case Value.valueData v of
@@ -1163,6 +1174,9 @@ mkValue (BuiltinValue v) =
       traceAll (logs <> pure (display err)) $ Haskell.error "mkValue failed."
 {-# OPAQUE mkValue #-}
 
+{-| Decodes a value from the encoding 'mkValue' produces. Fails unless both levels of maps have
+  strictly ascending keys of at most 'Value.maxKeyLen' bytes, no inner map is empty, and every
+  quantity is nonzero and within the signed 128-bit range. -}
 unsafeDataAsValue :: BuiltinData -> BuiltinValue
 unsafeDataAsValue (BuiltinData d) =
   case Value.unValueData d of
@@ -1173,6 +1187,8 @@ unsafeDataAsValue (BuiltinData d) =
         Haskell.error "Data to Value conversion errored."
 {-# OPAQUE unsafeDataAsValue #-}
 
+{-| Multiplies every quantity by the given integer. Fails if any product is outside the signed
+  128-bit range. -}
 scaleValue :: Integer -> BuiltinValue -> BuiltinValue
 scaleValue c (BuiltinValue val) =
   case Value.scaleValue c val of
@@ -1183,14 +1199,20 @@ scaleValue c (BuiltinValue val) =
         Haskell.error "scaleValue errored."
 {-# OPAQUE scaleValue #-}
 
+{-| The currency symbols of the value in ascending order, including the empty one when the
+  value holds ada. -}
 policies :: BuiltinValue -> BuiltinList BuiltinByteString
 policies (BuiltinValue v) = BuiltinList (BuiltinByteString <$> Value.policies v)
 {-# OPAQUE policies #-}
 
+-- | The number of (currency symbol, token name) entries in the value.
 assetCount :: BuiltinValue -> BuiltinInteger
 assetCount (BuiltinValue v) = fromIntegral (Value.totalSize v)
 {-# OPAQUE assetCount #-}
 
+{-| The value restricted to the listed currency symbols. Ids the value does not hold, including
+  ids longer than 'Value.maxKeyLen' bytes, are ignored, and a repeated id acts once. Fails if
+  the list has more than 'Value.policyFilterMaxIds' elements, every element counted. -}
 keepPolicies :: BuiltinList BuiltinByteString -> BuiltinValue -> BuiltinValue
 keepPolicies (BuiltinList ps) (BuiltinValue v0) =
   case Value.keepPolicies (fmap (\(BuiltinByteString b) -> b) ps) v0 of
@@ -1201,6 +1223,9 @@ keepPolicies (BuiltinList ps) (BuiltinValue v0) =
         Haskell.error "keepPolicies errored."
 {-# OPAQUE keepPolicies #-}
 
+{-| The value without the listed currency symbols. Ids the value does not hold, including ids
+  longer than 'Value.maxKeyLen' bytes, are ignored, and a repeated id acts once. Fails if the
+  list has more than 'Value.policyFilterMaxIds' elements, every element counted. -}
 dropPolicies :: BuiltinList BuiltinByteString -> BuiltinValue -> BuiltinValue
 dropPolicies (BuiltinList ps) (BuiltinValue v0) =
   case Value.dropPolicies (fmap (\(BuiltinByteString b) -> b) ps) v0 of
