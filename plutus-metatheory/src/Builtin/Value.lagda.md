@@ -12,24 +12,30 @@ module Builtin.Value where
 ```
 open import Data.List using (List; _∷_; [])
 open import Data.List.Relation.Unary.All using (All; []; all?)
-open import Data.Product using (_×_; _,_; proj₂)
+open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Data.Bool using (Bool; true; false)
 open import Data.Integer using (ℤ; 0ℤ; +_; -_)
-open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Maybe using (Maybe; just; nothing; _>>=_)
 open import Data.Nat using (ℕ; _^_; _∸_; s≤s; z≤n)
 open import Function.Base using (_∘_)
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
-open import Relation.Nullary using (Dec; yes; no; _×-dec_)
+open import Relation.Nullary using (Dec; yes; no; ¬?; _×-dec_)
 open import Relation.Nullary.Decidable using (True; toWitness)
 
 import Data.Integer as ℤ
+import Data.List as List
 import Data.Maybe as Maybe
 import Data.Nat as ℕ
 import Builtin.ByteString.Base as BS
+import Relation.Unary as U
+import Builtin.Data as D
 
 open import Builtin.Binary using (natToByte)
 open import Builtin.ByteString.Base using (ByteString; length)
+open import Data.List.Membership.DecPropositional BS._≟_ using (_∈?_; _∉?_)
 open import Builtin.Value.Base
+open import Builtin.Value.Data using (valueData∞; unValueData∞)
+open import Builtin.Value.Nested using (toNested∞)
 open import Builtin.Value.Union using (mergeEntries-all; merge∞)
 ```
 
@@ -83,6 +89,9 @@ valid-key? k = length k ℕ.≤? maxKeyLen
 
 in-range? : (q : Quantity) → Dec (InRange q)
 in-range? q = (minQuantity ℤ.≤? q) ×-dec (q ℤ.≤? maxQuantity)
+
+valid-keys? : (e : Entry) → Dec (ValidKeys e)
+valid-keys? ((c , t) , _) = valid-key? c ×-dec valid-key? t
 ```
 
 `fromValue∞ v` checks that the quantities of `v`, whose keys are valid, are in range.
@@ -96,10 +105,11 @@ fromValue∞ v k with all? (in-range? ∘ proj₂) (Value∞.map v)
 
 ## Operations
 
-`insert`, `delete` and `lookup` are the corresponding operations on `Value∞`. `insert`
-also requires the key to be valid and the quantity to be in range, and `delete` keeps
-the bounds, since it only removes entries. `lookup` has no conditions on its key: a key
-that is too long cannot be in a value, so its quantity is zero.
+`insert`, `filterValue`, `delete` and `lookupCoin` are the corresponding operations on
+`Value∞`. `insert` also requires the key to be valid and the quantity to be in range.
+`filterValue`, and so `delete`, keeps the bounds, since it only removes entries.
+`lookupCoin` has no conditions on its key: a key that is too long cannot be in a value,
+so its quantity is zero.
 
 ```
 insert
@@ -114,15 +124,31 @@ insert c vc t vt q nz r (mkValue v k ir) =
     (insertEntry-all (c , t) q (Value∞.map v) k (vc , vt))
     (insertEntry-all (c , t) q (Value∞.map v) ir r)
 
-delete : CurrencySymbol → TokenName → Value → Value
-delete c t (mkValue v k ir) =
+filterValue : ∀ {P : Key → Set} → U.Decidable P → Value → Value
+filterValue P? (mkValue v k r) =
   mkValue
-    (delete∞ c t v)
-    (deleteEntry-all (c , t) (Value∞.map v) k)
-    (deleteEntry-all (c , t) (Value∞.map v) ir)
+    (filter∞ P? v)
+    (filterEntries-all P? (Value∞.map v) k)
+    (filterEntries-all P? (Value∞.map v) r)
 
-lookup : CurrencySymbol → TokenName → Value → Quantity
-lookup c t = lookup∞ c t ∘ value∞
+delete : CurrencySymbol → TokenName → Value → Value
+delete c t = filterValue λ k → ¬? (k ≟ᵏ (c , t))
+
+lookupCoin : CurrencySymbol → TokenName → Value → Quantity
+lookupCoin c t = lookup∞ c t ∘ value∞
+```
+
+`insertCoin c t q v` is the builtin that sets the quantity of a token: it deletes the
+token if `q` is zero, whatever its keys, and otherwise fails unless its keys are valid
+and `q` is in range.
+
+```
+insertCoin : CurrencySymbol → TokenName → Quantity → Value → Maybe Value
+insertCoin c t q v with q ℤ.≟ 0ℤ
+... | yes _   = just (delete c t v)
+... | no  q≢0 with valid-key? c | valid-key? t | in-range? q
+...   | yes vc | yes vt | yes r = just (insert c vc t vt q q≢0 r v)
+...   | _      | _      | _     = nothing
 ```
 
 The examples in this module build values with `ins`, which is `insert` with its side
@@ -144,23 +170,23 @@ private
   c₂ = natToByte 2 (s≤s (s≤s (s≤s z≤n))) BS.∷ BS.[]
 ```
 
-`union v₁ v₂` adds the quantities of `v₁` and `v₂` token by token. It fails if one of the
-resulting quantities is not a signed 128-bit integer; its keys are those of `v₁` and
-`v₂`, so they are valid. The quantities of tokens in only one
-of the values are already in range, so this happens exactly when the sum of the
-quantities of a token in both values is out of range.
+`unionValue v₁ v₂` adds the quantities of `v₁` and `v₂` token by token. It fails if one
+of the resulting quantities is not a signed 128-bit integer; its keys are those of `v₁`
+and `v₂`, so they are valid. The quantities of tokens in only one of the values are
+already in range, so this happens exactly when the sum of the quantities of a token in
+both values is out of range.
 
 ```
-union : Value → Value → Maybe Value
-union (mkValue v₁ k₁ _) (mkValue v₂ k₂ _) =
+unionValue : Value → Value → Maybe Value
+unionValue (mkValue v₁ k₁ _) (mkValue v₂ k₂ _) =
   fromValue∞
     (merge∞ v₁ v₂)
     (mergeEntries-all (λ vk _ _ → vk) (Value∞.map v₁) (Value∞.map v₂) k₁ k₂)
 ```
 
-Because of this, `union` is commutative and has `empty` as its identity, but it is not
-associative: with `q` the maximum quantity, `(q + 1) - 1` fails, since `q + 1` is out of
-range, while `q + (1 - 1)` is `q`. The sum of values without the range condition,
+Because of this, `unionValue` is commutative and has `empty` as its identity, but it is
+not associative: with `q` the maximum quantity, `(q + 1) - 1` fails, since `q + 1` is out
+of range, while `q + (1 - 1)` is `q`. The sum of values without the range condition,
 `merge∞`, is associative.
 
 ```
@@ -170,10 +196,10 @@ private
   one      = ins c₁ c₁ (+ 1) empty
   minusOne = ins c₁ c₁ (- (+ 1)) empty
 
-  _ : (union big one Maybe.>>= λ x → union x minusOne) ≡ nothing
+  _ : (unionValue big one Maybe.>>= λ x → unionValue x minusOne) ≡ nothing
   _ = refl
 
-  _ : (union one minusOne Maybe.>>= union big) ≡ just big
+  _ : (unionValue one minusOne Maybe.>>= unionValue big) ≡ just big
   _ = refl
 ```
 
@@ -192,9 +218,73 @@ does. It fails if either value has a negative quantity.
 
 ```
 valueContains : Value → Value → Maybe Bool
-valueContains v₁ v₂ with nonNegative? (value∞ v₁) ×-dec nonNegative? (value∞ v₂)
+valueContains v₁ v₂
+  with nonNegative? (Value∞.map (value∞ v₁)) ×-dec nonNegative? (Value∞.map (value∞ v₂))
 ... | yes _ = just (contains∞ (value∞ v₁) (value∞ v₂))
 ... | no  _ = nothing
+```
+
+## Policies
+
+`policies v` lists the currency symbols of `v`, in increasing order, each once.
+
+```
+policies : Value → List CurrencySymbol
+policies = List.map proj₁ ∘ toNested∞ ∘ value∞
+```
+
+`assetCount v` is the number of tokens of `v`.
+
+```
+assetCount : Value → ℤ
+assetCount v = + List.length (Value∞.map (value∞ v))
+```
+
+`keepPolicies ps v` keeps the tokens of `v` whose currency symbol is in `ps`, and
+`dropPolicies ps v` the others (see `Builtin.Value.Base`). Currency symbols in `ps` that
+are not in `v`, including those that are too long, have no effect. Both only remove
+tokens, so they keep the bounds, but they fail if `ps` has more than
+`policyFilterMaxIds` elements, counting repetitions.
+
+```
+policyFilterMaxIds : ℕ
+policyFilterMaxIds = 256
+
+keepPolicies : List CurrencySymbol → Value → Maybe Value
+keepPolicies ps v with List.length ps ℕ.≤? policyFilterMaxIds
+... | yes _ = just (filterValue (λ k → proj₁ k ∈? ps) v)
+... | no  _ = nothing
+
+dropPolicies : List CurrencySymbol → Value → Maybe Value
+dropPolicies ps v with List.length ps ℕ.≤? policyFilterMaxIds
+... | yes _ = just (filterValue (λ k → proj₁ k ∉? ps) v)
+... | no  _ = nothing
+```
+
+## Conversion to and from Data
+
+`valueData` and `unValueData` are `valueData∞` and `unValueData∞` (see
+`Builtin.Value.Data`), with the bounds of the builtin type. `valueData v` fails if `v`
+has more than `valueDataMaxSize` tokens. `unValueData d` has no limit on the size of the
+value, but fails if one of its keys is too long or one of its quantities is out of range.
+
+```
+valueDataMaxSize : ℕ
+valueDataMaxSize = 40000
+
+valueData : Value → Maybe D.Data
+valueData v with List.length (Value∞.map (value∞ v)) ℕ.≤? valueDataMaxSize
+... | yes _ = just (valueData∞ (value∞ v))
+... | no  _ = nothing
+
+-- Checks that a `Value∞` fits the bounds of the builtin type.
+checkBounds : Value∞ → Maybe Value
+checkBounds v with all? valid-keys? (Value∞.map v)
+... | yes k = fromValue∞ v k
+... | no  _ = nothing
+
+unValueData : D.Data → Maybe Value
+unValueData d = unValueData∞ d >>= checkBounds
 ```
 
 `toFlatList` forgets the invariants, giving the entries of a `Value` as a flat list of
@@ -234,42 +324,42 @@ private
   _ = refl
 
   -- Looking up a present token gives its quantity.
-  _ : lookup c₁ c₂ v ≡ + 1
+  _ : lookupCoin c₁ c₂ v ≡ + 1
   _ = refl
 
-  _ : lookup c₁ c₁ v ≡ - (+ 3)
+  _ : lookupCoin c₁ c₁ v ≡ - (+ 3)
   _ = refl
 
   -- Looking up an absent token gives zero, even if its currency is present.
-  _ : lookup c₁ c₀ v ≡ 0ℤ
+  _ : lookupCoin c₁ c₀ v ≡ 0ℤ
   _ = refl
 
-  _ : lookup c₀ c₀ empty ≡ 0ℤ
+  _ : lookupCoin c₀ c₀ empty ≡ 0ℤ
   _ = refl
 
   -- A deleted token is absent.
-  _ : lookup c₁ c₂ (delete c₁ c₂ v) ≡ 0ℤ
+  _ : lookupCoin c₁ c₂ (delete c₁ c₂ v) ≡ 0ℤ
   _ = refl
 
   w : Value
   w = ins c₂ c₂ (+ 2) (ins c₁ c₁ (+ 3) empty)
 
   -- Quantities of the same token are added, and tokens whose sum is zero are dropped.
-  _ : Maybe.map toFlatList (union v w)
+  _ : Maybe.map toFlatList (unionValue v w)
       ≡ just ((c₁ , c₂ , + 1) ∷ (c₂ , c₀ , + 5) ∷ (c₂ , c₂ , + 2) ∷ [])
   _ = refl
 
-  _ : Maybe.map toFlatList (union w v) ≡ Maybe.map toFlatList (union v w)
+  _ : Maybe.map toFlatList (unionValue w v) ≡ Maybe.map toFlatList (unionValue v w)
   _ = refl
 
-  _ : Maybe.map toFlatList (union empty v) ≡ just (toFlatList v)
+  _ : Maybe.map toFlatList (unionValue empty v) ≡ just (toFlatList v)
   _ = refl
 
   -- A sum out of range fails.
-  _ : Maybe.map toFlatList (union big big) ≡ nothing
+  _ : Maybe.map toFlatList (unionValue big big) ≡ nothing
   _ = refl
 
-  _ : Maybe.map toFlatList (union big minusOne)
+  _ : Maybe.map toFlatList (unionValue big minusOne)
       ≡ just ((c₁ , c₁ , + (2 ^ 127 ∸ 2)) ∷ [])
   _ = refl
 
@@ -352,5 +442,168 @@ private
   _ = refl
 
   _ : Maybe.map toFlatList (scaleValue (- (+ 1)) (ins c₁ c₁ minQuantity empty)) ≡ nothing
+  _ = refl
+
+  -- Values are encoded as maps of maps, grouped by currency symbol.
+  _ : valueData empty ≡ just (D.Map [])
+  _ = refl
+
+  _ : valueData p
+      ≡ just (D.Map ( (D.B c₁ , D.Map ((D.B c₁ , D.I (+ 3)) ∷ (D.B c₂ , D.I (+ 1)) ∷ []))
+                    ∷ (D.B c₂ , D.Map ((D.B c₀ , D.I (+ 5)) ∷ []))
+                    ∷ []))
+  _ = refl
+
+  -- Negative quantities are encoded too.
+  _ : valueData (ins c₁ c₁ (- (+ 1)) empty)
+      ≡ just (D.Map ((D.B c₁ , D.Map ((D.B c₁ , D.I (- (+ 1))) ∷ [])) ∷ []))
+  _ = refl
+
+  -- Decoding an encoded value gives it back.
+  _ : (valueData v >>= unValueData) ≡ just v
+  _ = refl
+
+  _ : (valueData p >>= unValueData) ≡ just p
+  _ = refl
+
+  _ : unValueData (D.Map []) ≡ just empty
+  _ = refl
+
+  -- An encoding of a single token.
+  tok : ByteString → ByteString → ℤ → D.Data × D.Data
+  tok c t q = D.B c , D.Map ((D.B t , D.I q) ∷ [])
+
+  -- Decoding fails on other shapes of data.
+  _ : unValueData (D.List []) ≡ nothing
+  _ = refl
+
+  _ : unValueData (D.Map ((D.I (+ 1) , D.Map []) ∷ [])) ≡ nothing
+  _ = refl
+
+  _ : unValueData (D.Map ((D.B c₁ , D.List []) ∷ [])) ≡ nothing
+  _ = refl
+
+  _ : unValueData (D.Map ((D.B c₁ , D.Map ((D.B c₁ , D.B c₁) ∷ [])) ∷ [])) ≡ nothing
+  _ = refl
+
+  -- It fails on repeated or unsorted currency symbols, even if their tokens differ.
+  _ : unValueData (D.Map (tok c₁ c₁ (+ 1) ∷ tok c₁ c₂ (+ 1) ∷ [])) ≡ nothing
+  _ = refl
+
+  _ : unValueData (D.Map (tok c₂ c₁ (+ 1) ∷ tok c₁ c₁ (+ 1) ∷ [])) ≡ nothing
+  _ = refl
+
+  -- It fails on repeated or unsorted token names.
+  _ : unValueData
+        (D.Map ((D.B c₁ , D.Map ((D.B c₁ , D.I (+ 1)) ∷ (D.B c₁ , D.I (+ 2)) ∷ [])) ∷ []))
+      ≡ nothing
+  _ = refl
+
+  _ : unValueData
+        (D.Map ((D.B c₁ , D.Map ((D.B c₂ , D.I (+ 1)) ∷ (D.B c₁ , D.I (+ 2)) ∷ [])) ∷ []))
+      ≡ nothing
+  _ = refl
+
+  -- It fails on a currency symbol without tokens.
+  _ : unValueData (D.Map ((D.B c₁ , D.Map []) ∷ [])) ≡ nothing
+  _ = refl
+
+  -- It fails on zero quantities, and quantities out of range.
+  _ : unValueData (D.Map (tok c₁ c₁ 0ℤ ∷ [])) ≡ nothing
+  _ = refl
+
+  _ : unValueData (D.Map (tok c₁ c₁ (maxQuantity ℤ.+ + 1) ∷ [])) ≡ nothing
+  _ = refl
+
+  _ : unValueData (D.Map (tok c₁ c₁ (minQuantity ℤ.- + 1) ∷ [])) ≡ nothing
+  _ = refl
+
+  -- Keys may be up to 32 bytes long.
+  k₃₂ k₃₃ : ByteString
+  k₃₂ = BS.replicate 32 (natToByte 1 (s≤s (s≤s z≤n)))
+  k₃₃ = BS.replicate 33 (natToByte 1 (s≤s (s≤s z≤n)))
+
+  _ : Maybe.map toFlatList (unValueData (D.Map (tok k₃₂ c₁ (+ 1) ∷ [])))
+      ≡ just ((k₃₂ , c₁ , + 1) ∷ [])
+  _ = refl
+
+  _ : unValueData (D.Map (tok k₃₃ c₁ (+ 1) ∷ [])) ≡ nothing
+  _ = refl
+
+  _ : unValueData (D.Map (tok c₁ k₃₃ (+ 1) ∷ [])) ≡ nothing
+  _ = refl
+
+  -- Policies are listed in increasing order, each once, including the empty currency
+  -- symbol.
+  _ : policies v ≡ c₁ ∷ c₂ ∷ []
+  _ = refl
+
+  _ : policies (ins c₀ c₂ (+ 1) (ins c₂ c₁ (+ 1) v)) ≡ c₀ ∷ c₁ ∷ c₂ ∷ []
+  _ = refl
+
+  _ : policies empty ≡ []
+  _ = refl
+
+  -- `insertCoin` sets a quantity, and deletes the token if it is zero.
+  _ : Maybe.map toFlatList (insertCoin c₁ c₂ (+ 7) v)
+      ≡ just ((c₁ , c₁ , - (+ 3)) ∷ (c₁ , c₂ , + 7) ∷ (c₂ , c₀ , + 5) ∷ [])
+  _ = refl
+
+  _ : Maybe.map toFlatList (insertCoin c₁ c₂ 0ℤ v)
+      ≡ just ((c₁ , c₁ , - (+ 3)) ∷ (c₂ , c₀ , + 5) ∷ [])
+  _ = refl
+
+  -- Deleting does not check the keys, but inserting does.
+  _ : Maybe.map toFlatList (insertCoin k₃₃ c₁ 0ℤ v) ≡ just (toFlatList v)
+  _ = refl
+
+  _ : Maybe.map toFlatList (insertCoin k₃₃ c₁ (+ 1) v) ≡ nothing
+  _ = refl
+
+  _ : Maybe.map toFlatList (insertCoin c₁ k₃₃ (+ 1) v) ≡ nothing
+  _ = refl
+
+  _ : Maybe.map toFlatList (insertCoin k₃₂ k₃₂ (+ 1) empty)
+      ≡ just ((k₃₂ , k₃₂ , + 1) ∷ [])
+  _ = refl
+
+  -- Quantities out of range fail.
+  _ : Maybe.map toFlatList (insertCoin c₁ c₁ (maxQuantity ℤ.+ + 1) v) ≡ nothing
+  _ = refl
+
+  _ : lookupCoin c₂ c₀ v ≡ + 5
+  _ = refl
+
+  -- `assetCount` counts tokens, not currencies.
+  _ : assetCount v ≡ + 3
+  _ = refl
+
+  _ : assetCount empty ≡ 0ℤ
+  _ = refl
+
+  -- Keeping and dropping policies, ignoring absent or invalid ones and repetitions.
+  _ : Maybe.map toFlatList (keepPolicies (c₁ ∷ k₃₃ ∷ c₀ ∷ c₁ ∷ []) v)
+      ≡ just ((c₁ , c₁ , - (+ 3)) ∷ (c₁ , c₂ , + 1) ∷ [])
+  _ = refl
+
+  _ : Maybe.map toFlatList (dropPolicies (c₁ ∷ k₃₃ ∷ c₀ ∷ c₁ ∷ []) v)
+      ≡ just ((c₂ , c₀ , + 5) ∷ [])
+  _ = refl
+
+  _ : Maybe.map toFlatList (keepPolicies [] v) ≡ just []
+  _ = refl
+
+  _ : Maybe.map toFlatList (dropPolicies [] v) ≡ just (toFlatList v)
+  _ = refl
+
+  -- Up to 256 policy ids are allowed, counting repetitions.
+  _ : Maybe.map toFlatList (keepPolicies (List.replicate 256 c₂) v)
+      ≡ just ((c₂ , c₀ , + 5) ∷ [])
+  _ = refl
+
+  _ : Maybe.map toFlatList (keepPolicies (List.replicate 257 c₂) v) ≡ nothing
+  _ = refl
+
+  _ : Maybe.map toFlatList (dropPolicies (List.replicate 257 c₂) empty) ≡ nothing
   _ = refl
 ```

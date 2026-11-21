@@ -187,6 +187,33 @@ mkNilPairData : ⊤ → L.List (Data × Data)
 mkNilPairData _ = []
 ```
 
+## Inversion
+
+If inspecting `Data` succeeds, it has the corresponding constructor.
+
+```
+unMapData-just : ∀ {d ps} → unMapData d ≡ just ps → d ≡ Map ps
+unMapData-just {Map _} refl = refl
+unMapData-just {Constr _ _} ()
+unMapData-just {List _} ()
+unMapData-just {I _} ()
+unMapData-just {B _} ()
+
+unIData-just : ∀ {d i} → unIData d ≡ just i → d ≡ I i
+unIData-just {I _} refl = refl
+unIData-just {Constr _ _} ()
+unIData-just {Map _} ()
+unIData-just {List _} ()
+unIData-just {B _} ()
+
+unBData-just : ∀ {d b} → unBData d ≡ just b → d ≡ B b
+unBData-just {B _} refl = refl
+unBData-just {Constr _ _} ()
+unBData-just {Map _} ()
+unBData-just {List _} ()
+unBData-just {I _} ()
+```
+
 ## Tests
 
 ```

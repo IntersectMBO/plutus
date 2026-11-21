@@ -24,6 +24,7 @@ open import Data.Integer using (0ℤ)
 open import Relation.Binary.Definitions using (tri<; tri≈; tri>)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; isEquivalence)
+open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Decidable using (recompute)
 
@@ -95,23 +96,27 @@ lookup∞-merge∞ c t (mkValue∞ m₁ s₁ _) (mkValue∞ m₂ s₂ _) =
 ## Algebra
 
 Since a `Value∞` is determined by the quantities of its tokens, the laws of `merge∞` and
-`negate∞` follow from those of the addition and negation of integers.
+`negate∞` follow from those of the addition and negation of integers. In the proofs,
+`q v` is the quantity of the token under consideration in `v`.
 
 ```
+open ≡-Reasoning
+
 merge∞-comm : ∀ v₁ v₂ → merge∞ v₁ v₂ ≡ merge∞ v₂ v₁
-merge∞-comm v₁ v₂ = lookup∞-injective λ c t →
-  trans (lookup∞-merge∞ c t v₁ v₂)
-        (trans (ℤ.+-comm (lookup∞ c t v₁) (lookup∞ c t v₂))
-               (sym (lookup∞-merge∞ c t v₂ v₁)))
+merge∞-comm v₁ v₂ = lookup∞-injective λ c t → let q = lookup∞ c t in begin
+  q (merge∞ v₁ v₂)  ≡⟨ lookup∞-merge∞ c t v₁ v₂ ⟩
+  q v₁ ℤ.+ q v₂     ≡⟨ ℤ.+-comm (q v₁) (q v₂) ⟩
+  q v₂ ℤ.+ q v₁     ≡⟨ lookup∞-merge∞ c t v₂ v₁ ⟨
+  q (merge∞ v₂ v₁)  ∎
 
 merge∞-assoc : ∀ v₁ v₂ v₃ → merge∞ (merge∞ v₁ v₂) v₃ ≡ merge∞ v₁ (merge∞ v₂ v₃)
-merge∞-assoc v₁ v₂ v₃ = lookup∞-injective λ c t →
-  trans (lookup∞-merge∞ c t (merge∞ v₁ v₂) v₃)
-        (trans (cong (ℤ._+ lookup∞ c t v₃) (lookup∞-merge∞ c t v₁ v₂))
-               (trans (ℤ.+-assoc (lookup∞ c t v₁) (lookup∞ c t v₂) (lookup∞ c t v₃))
-                      (trans (cong (λ x → lookup∞ c t v₁ ℤ.+ x)
-                                   (sym (lookup∞-merge∞ c t v₂ v₃)))
-                             (sym (lookup∞-merge∞ c t v₁ (merge∞ v₂ v₃))))))
+merge∞-assoc v₁ v₂ v₃ = lookup∞-injective λ c t → let q = lookup∞ c t in begin
+  q (merge∞ (merge∞ v₁ v₂) v₃)  ≡⟨ lookup∞-merge∞ c t (merge∞ v₁ v₂) v₃ ⟩
+  q (merge∞ v₁ v₂) ℤ.+ q v₃     ≡⟨ cong (ℤ._+ q v₃) (lookup∞-merge∞ c t v₁ v₂) ⟩
+  (q v₁ ℤ.+ q v₂) ℤ.+ q v₃      ≡⟨ ℤ.+-assoc (q v₁) (q v₂) (q v₃) ⟩
+  q v₁ ℤ.+ (q v₂ ℤ.+ q v₃)      ≡⟨ cong (λ x → q v₁ ℤ.+ x) (lookup∞-merge∞ c t v₂ v₃) ⟨
+  q v₁ ℤ.+ q (merge∞ v₂ v₃)     ≡⟨ lookup∞-merge∞ c t v₁ (merge∞ v₂ v₃) ⟨
+  q (merge∞ v₁ (merge∞ v₂ v₃))  ∎
 
 merge∞-identityˡ : ∀ v → merge∞ empty∞ v ≡ v
 merge∞-identityˡ v = refl
@@ -135,10 +140,11 @@ merge∞-isCommutativeMonoid = record
   }
 
 merge∞-inverseˡ : ∀ v → merge∞ (negate∞ v) v ≡ empty∞
-merge∞-inverseˡ v = lookup∞-injective λ c t →
-  trans (lookup∞-merge∞ c t (negate∞ v) v)
-        (trans (cong (ℤ._+ lookup∞ c t v) (lookup∞-negate∞ c t v))
-               (ℤ.+-inverseˡ (lookup∞ c t v)))
+merge∞-inverseˡ v = lookup∞-injective λ c t → let q = lookup∞ c t in begin
+  q (merge∞ (negate∞ v) v)  ≡⟨ lookup∞-merge∞ c t (negate∞ v) v ⟩
+  q (negate∞ v) ℤ.+ q v     ≡⟨ cong (ℤ._+ q v) (lookup∞-negate∞ c t v) ⟩
+  ℤ.- q v ℤ.+ q v           ≡⟨ ℤ.+-inverseˡ (q v) ⟩
+  0ℤ                        ∎
 
 merge∞-inverseʳ : ∀ v → merge∞ v (negate∞ v) ≡ empty∞
 merge∞-inverseʳ v = trans (merge∞-comm v (negate∞ v)) (merge∞-inverseˡ v)
@@ -167,20 +173,33 @@ scale∞-zeroʳ n = lookup∞-injective λ c t →
 
 scale∞-distribˡ
   : ∀ n v₁ v₂ → scale∞ n (merge∞ v₁ v₂) ≡ merge∞ (scale∞ n v₁) (scale∞ n v₂)
-scale∞-distribˡ n v₁ v₂ = lookup∞-injective λ c t →
-  trans (lookup∞-scale∞ n c t (merge∞ v₁ v₂))
-    (trans (cong (n ℤ.*_) (lookup∞-merge∞ c t v₁ v₂))
-      (trans (ℤ.*-distribˡ-+ n (lookup∞ c t v₁) (lookup∞ c t v₂))
-        (sym (trans (lookup∞-merge∞ c t (scale∞ n v₁) (scale∞ n v₂))
-                    (cong₂ ℤ._+_ (lookup∞-scale∞ n c t v₁) (lookup∞-scale∞ n c t v₂))))))
+scale∞-distribˡ n v₁ v₂ = lookup∞-injective λ c t → let q = lookup∞ c t in begin
+  q (scale∞ n (merge∞ v₁ v₂))
+    ≡⟨ lookup∞-scale∞ n c t (merge∞ v₁ v₂) ⟩
+  n ℤ.* q (merge∞ v₁ v₂)
+    ≡⟨ cong (n ℤ.*_) (lookup∞-merge∞ c t v₁ v₂) ⟩
+  n ℤ.* (q v₁ ℤ.+ q v₂)
+    ≡⟨ ℤ.*-distribˡ-+ n (q v₁) (q v₂) ⟩
+  n ℤ.* q v₁ ℤ.+ n ℤ.* q v₂
+    ≡⟨ cong₂ ℤ._+_ (lookup∞-scale∞ n c t v₁) (lookup∞-scale∞ n c t v₂) ⟨
+  q (scale∞ n v₁) ℤ.+ q (scale∞ n v₂)
+    ≡⟨ lookup∞-merge∞ c t (scale∞ n v₁) (scale∞ n v₂) ⟨
+  q (merge∞ (scale∞ n v₁) (scale∞ n v₂))
+    ∎
 
 scale∞-distribʳ
   : ∀ v m n → scale∞ (m ℤ.+ n) v ≡ merge∞ (scale∞ m v) (scale∞ n v)
-scale∞-distribʳ v m n = lookup∞-injective λ c t →
-  trans (lookup∞-scale∞ (m ℤ.+ n) c t v)
-    (trans (ℤ.*-distribʳ-+ (lookup∞ c t v) m n)
-      (sym (trans (lookup∞-merge∞ c t (scale∞ m v) (scale∞ n v))
-                  (cong₂ ℤ._+_ (lookup∞-scale∞ m c t v) (lookup∞-scale∞ n c t v)))))
+scale∞-distribʳ v m n = lookup∞-injective λ c t → let q = lookup∞ c t in begin
+  q (scale∞ (m ℤ.+ n) v)
+    ≡⟨ lookup∞-scale∞ (m ℤ.+ n) c t v ⟩
+  (m ℤ.+ n) ℤ.* q v
+    ≡⟨ ℤ.*-distribʳ-+ (q v) m n ⟩
+  m ℤ.* q v ℤ.+ n ℤ.* q v
+    ≡⟨ cong₂ ℤ._+_ (lookup∞-scale∞ m c t v) (lookup∞-scale∞ n c t v) ⟨
+  q (scale∞ m v) ℤ.+ q (scale∞ n v)
+    ≡⟨ lookup∞-merge∞ c t (scale∞ m v) (scale∞ n v) ⟨
+  q (merge∞ (scale∞ m v) (scale∞ n v))
+    ∎
 
 scale∞-isLeftModule : IsLeftModule ℤ.+-*-ring _≡_ merge∞ empty∞ negate∞ scale∞
 scale∞-isLeftModule = record

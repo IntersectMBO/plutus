@@ -28,7 +28,7 @@ open import Data.Sum using ([_,_]′)
 open import Function.Base using (_∘_; _on_)
 open import Relation.Binary.Definitions
   using (DecidableEquality; Transitive; Trichotomous; tri<; tri≈; tri>)
-open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; sym; trans; cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 open import Relation.Binary.Structures using (IsStrictTotalOrder)
 open import Relation.Nullary using (Dec; yes; no; ¬?; isYes)
 
@@ -37,10 +37,12 @@ import Data.Integer.Properties as ℤ
 import Data.List as List
 import Data.List.Relation.Unary.All.Properties as All
 import Data.List.Relation.Unary.Linked.Properties as Linked
+import Relation.Unary as U
 import Builtin.ByteString.Base as BS
 import Builtin.ByteString.Order as BS
 
 open import Builtin.ByteString.Base using (ByteString)
+open import Data.List.Membership.DecPropositional BS._≟_ using (_∈?_; _∉?_)
 ```
 
 ## Values
@@ -57,7 +59,8 @@ ByteStrings are ordered lexicographically, as described in `Builtin.ByteString.O
 and keys are ordered lexicographically by currency symbol, then by token name. A
 well-formed list therefore contains the tokens of each currency next to each other, in
 increasing order, and grouping them by currency gives the nested association list used
-as the concrete representation of values, in which every inner list is non-empty.
+as the concrete representation of values, in which every inner list is non-empty (see
+`Builtin.Value.Nested`).
 
 `Value∞` places no bound on the lengths of keys or on quantities; the bounds of the
 builtin type are imposed in `Builtin.Value`. This makes adding and negating values
@@ -86,12 +89,15 @@ _<ᵏ_ = ×-Lex _≡_ BS._<_ BS._<_
 _<ᵉ_ : Entry → Entry → Set
 _<ᵉ_ = _<ᵏ_ on proj₁
 
+NonZero : List Entry → Set
+NonZero = All (λ e → proj₂ e ≢ 0ℤ)
+
 record Value∞ : Set where
   constructor mkValue∞
   field
     map : List Entry
     .<-keys : Linked _<ᵉ_ map
-    .quantity-≢-zero : All (λ e → proj₂ e ≢ 0ℤ) map
+    .quantity-≢-zero : NonZero map
 
 empty∞ : Value∞
 empty∞ = mkValue∞ [] [] []
@@ -102,6 +108,9 @@ Being non-zero is decidable.
 ```
 ≢-zero? : (q : Quantity) → Dec (q ≢ 0ℤ)
 ≢-zero? q = ¬? (q ℤ.≟ 0ℤ)
+
+nonZero? : ∀ kvs → Dec (NonZero kvs)
+nonZero? = all? (≢-zero? ∘ proj₂)
 ```
 
 ## Comparing keys
@@ -187,7 +196,7 @@ insertEntry-all k q ((k' , q') ∷ kvs) (p' ∷ a) p with compareᵏ k k'
 
 `insert∞ c t q v` sets the quantity of the token `t` of the currency `c` in `v` to `q`,
 replacing the previous quantity, if any. `q` must be non-zero: setting a quantity to zero
-amounts to deleting the token, which is done by `delete∞`.
+amounts to deleting the token, which is done by `delete∞` (see below).
 
 ```
 insert∞ : CurrencySymbol → TokenName → (q : Quantity) → .(q ≢ 0ℤ) → Value∞ → Value∞
@@ -198,35 +207,50 @@ insert∞ c t q nz (mkValue∞ m s z) =
     (insertEntry-all (c , t) q m z nz)
 ```
 
-## Deletion
+## Filtering
 
-`delete∞ c t v` removes the token `t` of the currency `c` from `v`, if it is present. It
-keeps the entries whose key is not `(c , t)`. Removing entries from a list keeps it
-sorted and keeps every property of all its entries, so the result is well-formed.
+`filter∞ P? v` keeps the tokens of `v` whose key satisfies the decidable property `P`.
+Removing entries from a list keeps it sorted and keeps every property of all its
+entries, so the result is well-formed.
 
 ```
--- Whether an entry's key differs from `k`.
-≢ᵏ? : (k : Key) (e : Entry) → Dec (proj₁ e ≢ k)
-≢ᵏ? k e = ¬? (proj₁ e ≟ᵏ k)
+filterEntries : ∀ {P : Key → Set} → U.Decidable P → List Entry → List Entry
+filterEntries P? = List.filter (P? ∘ proj₁)
 
-deleteEntry : Key → List Entry → List Entry
-deleteEntry k = List.filter (≢ᵏ? k)
-
-deleteEntry-linked
-  : ∀ k kvs → Linked _<ᵉ_ kvs → Linked _<ᵉ_ (deleteEntry k kvs)
+filterEntries-linked
+  : ∀ {P : Key → Set} (P? : U.Decidable P) kvs
+  → Linked _<ᵉ_ kvs → Linked _<ᵉ_ (filterEntries P? kvs)
 -- `<ᵉ-trans` is eta-expanded, as its implicit entries can't be inferred through `proj₁`
 -- once `_<ᵉ_` unfolds.
-deleteEntry-linked k _ = Linked.filter⁺ (≢ᵏ? k) (λ {e₁ e₂ e₃} → <ᵉ-trans {e₁} {e₂} {e₃})
+filterEntries-linked P? _ =
+  Linked.filter⁺ (P? ∘ proj₁) (λ {e₁ e₂ e₃} → <ᵉ-trans {e₁} {e₂} {e₃})
 
-deleteEntry-all : ∀ {P : Entry → Set} k kvs → All P kvs → All P (deleteEntry k kvs)
-deleteEntry-all k _ = All.filter⁺ (≢ᵏ? k)
+filterEntries-all
+  : ∀ {P : Key → Set} {Q : Entry → Set} (P? : U.Decidable P) kvs
+  → All Q kvs → All Q (filterEntries P? kvs)
+filterEntries-all P? _ = All.filter⁺ (P? ∘ proj₁)
 
+filter∞ : ∀ {P : Key → Set} → U.Decidable P → Value∞ → Value∞
+filter∞ P? (mkValue∞ m s z) =
+  mkValue∞ (filterEntries P? m) (filterEntries-linked P? m s) (filterEntries-all P? m z)
+```
+
+`delete∞ c t v` removes the token `t` of the currency `c` from `v`, if it is present.
+
+```
 delete∞ : CurrencySymbol → TokenName → Value∞ → Value∞
-delete∞ c t (mkValue∞ m s z) =
-  mkValue∞
-    (deleteEntry (c , t) m)
-    (deleteEntry-linked (c , t) m s)
-    (deleteEntry-all (c , t) m z)
+delete∞ c t = filter∞ λ k → ¬? (k ≟ᵏ (c , t))
+```
+
+`keepPolicies∞ ps v` keeps the tokens of `v` whose currency symbol is in `ps`, and
+`dropPolicies∞ ps v` the others.
+
+```
+keepPolicies∞ : List CurrencySymbol → Value∞ → Value∞
+keepPolicies∞ ps = filter∞ λ k → proj₁ k ∈? ps
+
+dropPolicies∞ : List CurrencySymbol → Value∞ → Value∞
+dropPolicies∞ ps = filter∞ λ k → proj₁ k ∉? ps
 ```
 
 ## Lookup
@@ -241,31 +265,6 @@ lookupEntry k kvs = maybe′ proj₂ 0ℤ (List.find (λ e → proj₁ e ≟ᵏ 
 
 lookup∞ : CurrencySymbol → TokenName → Value∞ → Quantity
 lookup∞ c t v = lookupEntry (c , t) (Value∞.map v)
-```
-
-## Negation
-
-`negate∞ v` negates every quantity of `v`. Negative quantities are meaningful: for
-example, the tokens minted by a transaction are given as a value, in which burnt tokens
-have negative quantities. Negation keeps the keys, so it keeps them sorted, and the
-negation of a non-zero quantity is non-zero.
-
-```
-negateEntry : Entry → Entry
-negateEntry (k , q) = k , ℤ.- q
-
-negateEntries : List Entry → List Entry
-negateEntries = List.map negateEntry
-
-negate∞ : Value∞ → Value∞
-negate∞ (mkValue∞ m s z) =
-  mkValue∞
-    (negateEntries m)
-    (Linked.map⁺ {R = _<ᵉ_} {f = negateEntry} s)
-    (All.map⁺ (All-map (λ {e} nz → nz ∘ -q≡0⇒q≡0 (proj₂ e)) z))
-  where
-    -q≡0⇒q≡0 : ∀ q → ℤ.- q ≡ 0ℤ → q ≡ 0ℤ
-    -q≡0⇒q≡0 q -q≡0 = trans (sym (ℤ.neg-involutive q)) (cong ℤ.-_ -q≡0)
 ```
 
 ## Scaling
@@ -302,6 +301,17 @@ scale∞-keys n (mkValue∞ m _ _) a with n ℤ.≟ 0ℤ
 ... | no  _ = All.map⁺ a
 ```
 
+## Negation
+
+`negate∞ v` negates every quantity of `v`. Negative quantities are meaningful: for
+example, the tokens minted by a transaction are given as a value, in which burnt tokens
+have negative quantities. Negation is scaling by `-1`.
+
+```
+negate∞ : Value∞ → Value∞
+negate∞ = scale∞ ℤ.-1ℤ
+```
+
 ## Containment
 
 `contains∞ v₁ v₂` checks that `v₁` contains `v₂`, that is, that every entry `(k , q)` of
@@ -320,11 +330,11 @@ containsEntries? kvs₁ = all? (λ e → proj₂ e ℤ.≤? lookupEntry (proj₁
 contains∞ : Value∞ → Value∞ → Bool
 contains∞ v₁ v₂ = isYes (containsEntries? (Value∞.map v₁) (Value∞.map v₂))
 
-NonNegative : Value∞ → Set
-NonNegative v = All (λ e → 0ℤ ℤ.≤ proj₂ e) (Value∞.map v)
+NonNegative : List Entry → Set
+NonNegative = All (λ e → 0ℤ ℤ.≤ proj₂ e)
 
-nonNegative? : ∀ v → Dec (NonNegative v)
-nonNegative? v = all? (λ e → 0ℤ ℤ.≤? proj₂ e) (Value∞.map v)
+nonNegative? : ∀ kvs → Dec (NonNegative kvs)
+nonNegative? = all? (λ e → 0ℤ ℤ.≤? proj₂ e)
 ```
 
 ## Conversion
