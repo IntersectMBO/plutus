@@ -480,6 +480,16 @@ instance
   KnownBuiltinTypeIn DefaultUni term Value
   => ReadKnownIn DefaultUni term Value
 
+-- With GHC 9.6, fromValue True/False leaves Some's unsafeEqualityProof case in makeKnown.
+-- Its coercion binder prevents floating the surrounding value and result constructors, and
+-- GHC does not float the whole case out of a strict context. These CAFs contain the coercion,
+-- allowing the outer constructors to be shared after specialization.
+falseSomeValue :: Some (ValueOf DefaultUni)
+falseSomeValue = Some $ ValueOf DefaultUniBool False
+
+trueSomeValue :: Some (ValueOf DefaultUni)
+trueSomeValue = Some $ ValueOf DefaultUniBool True
+
 instance
   KnownBuiltinTypeIn DefaultUni term Integer
   => MakeKnownIn DefaultUni term Integer
@@ -495,6 +505,10 @@ instance
 instance
   KnownBuiltinTypeIn DefaultUni term Bool
   => MakeKnownIn DefaultUni term Bool
+  where
+  makeKnown False = pure $ fromConstant falseSomeValue
+  makeKnown True = pure $ fromConstant trueSomeValue
+  {-# INLINE makeKnown #-}
 instance
   KnownBuiltinTypeIn DefaultUni term Data
   => MakeKnownIn DefaultUni term Data
