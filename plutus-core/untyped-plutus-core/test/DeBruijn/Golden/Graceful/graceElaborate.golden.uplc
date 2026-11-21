@@ -1,1 +1,1 @@
-(Right (program 1.2.0 (lam i [ [ [ i i ] i ] (lam i [ [ [ i i ] i ] i ]) ])))
+(Right (program 1.3.0 (lam i [ [ [ i i ] i ] (lam i [ [ [ i i ] i ] i ]) ])))

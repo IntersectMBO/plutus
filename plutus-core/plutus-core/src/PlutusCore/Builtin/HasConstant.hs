@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -15,6 +16,8 @@ module PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.Result
 import PlutusCore.Core
 import PlutusCore.Name.Unique
+import PlutusCore.SnocList (SnocList)
+import PlutusCore.SnocList qualified as SnocList
 
 import Universe
 
@@ -42,6 +45,12 @@ class HasConstant term where
   -- | Wrap a Haskell value as a @term@.
   fromConstant :: Some (ValueOf (UniOf term)) -> term
 
+  {-| Read structural list elements as a snoc-list without discharging values to syntax.
+  Syntax instances also support constant folding. -}
+  asSnocList :: term -> Either BuiltinError (SnocList term)
+  asSnocList _ = throwError $ structuralUnliftingError "Expected a structural list"
+  {-# INLINE asSnocList #-}
+
 {-| Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
 and connects @term@ and its @uni@. -}
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
@@ -61,3 +70,6 @@ instance HasConstant (Term TyName Name uni fun ()) where
   asConstant _ = throwError notAConstant
 
   fromConstant = Constant ()
+
+  asSnocList (List _ _ xs) = pure $ SnocList.fromList xs
+  asSnocList _ = throwError $ structuralUnliftingError "Expected a structural list"

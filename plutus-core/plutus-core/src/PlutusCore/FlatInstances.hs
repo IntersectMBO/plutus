@@ -63,8 +63,8 @@ tags and their used/available encoding possibilities.
 \|------------------|-------------------|-----------|-------|------|-----------|
 \| default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
 \| Kinds            | encodeKind        | 1         | 2     | 2    | 0         |
-\| Types            | encodeType        | 3         | 8     | 7    | 1         |
-\| Terms            | encodeTerm        | 4         | 16    | 12   | 4         |
+\| Types            | encodeType        | 4         | 16    | 9    | 7         |
+\| Terms            | encodeTerm        | 4         | 16    | 13   | 3         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
@@ -207,9 +207,11 @@ instance Flat ann => Flat (Kind ann) where
         Type ann -> size ann sz'
         KindArrow ann k k' -> size ann $ size k $ size k' sz'
 
--- | Use 3 bits to encode type tags.
+-- Typed PLC needs a fourth tag bit for TyList. This changes the off-chain typed format;
+-- on-chain UPLC has no type tags and keeps its existing encoding.
+-- | Use 4 bits to encode typed PLC type tags, including structural lists.
 typeTagWidth :: NumBits
-typeTagWidth = 3
+typeTagWidth = 4
 
 encodeType :: Word8 -> Encoding
 encodeType = safeEncodeBits typeTagWidth
@@ -229,6 +231,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
     -- Note that this relies on the instance for lists. We shouldn't use this in the
     -- serious on-chain version but it's okay here.
     TySOP ann tyls -> encodeType 7 <> encode ann <> encode tyls
+    TyList ann ty -> encodeType 8 <> encode ann <> encode ty
 
   decode = go =<< decodeType
     where
@@ -240,6 +243,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
       go 5 = TyLam <$> decode <*> decode <*> decode <*> decode
       go 6 = TyApp <$> decode <*> decode <*> decode
       go 7 = TySOP <$> decode <*> decode
+      go 8 = TyList <$> decode <*> decode
       go _ = fail "Failed to decode Type TyName ()"
 
   size tm sz =
@@ -255,6 +259,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyLam ann n k t -> size ann $ size n $ size k $ size t sz'
         TyApp ann t t' -> size ann $ size t $ size t' sz'
         TySOP ann tyls -> size ann $ size tyls sz'
+        TyList ann ty -> size ann $ size ty sz'
 
 termTagWidth :: NumBits
 termTagWidth = 4
@@ -286,6 +291,7 @@ instance
     IWrap ann pat arg t -> encodeTerm 7 <> encode ann <> encode pat <> encode arg <> encode t
     Error ann ty -> encodeTerm 8 <> encode ann <> encode ty
     Builtin ann bn -> encodeTerm 9 <> encode ann <> encode bn
+    List ann ty xs -> encodeTerm 12 <> encode ann <> encode ty <> encode xs
     Constr ann ty i es ->
       encodeTerm 10
         <> encode ann
@@ -313,6 +319,7 @@ instance
       go 9 = Builtin <$> decode <*> decode
       go 10 = Constr <$> decode <*> decode <*> decode <*> decode
       go 11 = Case <$> decode <*> decode <*> decode <*> decode
+      go 12 = List <$> decode <*> decode <*> decode
       go _ = fail "Failed to decode Term TyName Name ()"
 
   size tm sz =
@@ -330,6 +337,7 @@ instance
         IWrap ann pat arg t -> size ann $ size pat $ size arg $ size t sz'
         Error ann ty -> size ann $ size ty sz'
         Builtin ann bn -> size ann $ size bn sz'
+        List ann ty xs -> size ann $ size ty $ size xs sz'
         Constr ann ty i es -> size ann $ size ty $ size i $ size es sz'
         Case ann ty arg cs -> size ann $ size ty $ size arg $ size cs sz'
 

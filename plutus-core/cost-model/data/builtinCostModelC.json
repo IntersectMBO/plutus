@@ -1414,5 +1414,21 @@
       },
       "type": "multiplied_sizes"
     }
+  },
+  "termAppend": {
+    "cpu": {
+      "arguments": {
+        "intercept": 100000,
+        "slope": 100000
+      },
+      "type": "linear_in_x"
+    },
+    "memory": {
+      "arguments": {
+        "intercept": 1,
+        "slope": 3
+      },
+      "type": "linear_in_x"
+    }
   }
 }

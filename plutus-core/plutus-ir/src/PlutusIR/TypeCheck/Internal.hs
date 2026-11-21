@@ -232,6 +232,15 @@ inferTypeM (Error ann ty) = do
   mapReaderT (modifyError PLCTypeError) $ checkKindM ann ty $ Type ()
   normalizeTypeM $ void ty
 
+-- [check| G !- ty :: *]    ty ~> vTy    [check| G !- t_i : vTy] for each i
+-- ----------------------------------------------------------------------
+-- [infer| G !- list ty t_0 ... t_n : list vTy]
+inferTypeM (List ann elemTy xs) = do
+  mapReaderT (modifyError PLCTypeError) $ checkKindM ann elemTy (Type ())
+  elemTyN <- normalizeTypeM $ void elemTy
+  for_ xs $ \x -> checkTypeM ann x elemTyN
+  pure $ TyList () <$> elemTyN
+
 -- resTy ~> vResTy     vResTy = sop s_0 ... s_i ... s_n
 -- s_i = [p_i_0 ... p_i_m]   [check| G !- t_0 : p_i_0] ... [check| G !- t_m : p_i_m]
 -- ---------------------------------------------------------------------------------

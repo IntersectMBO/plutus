@@ -104,6 +104,12 @@ errorTerm :: Parametric
 errorTerm _tm = withSpan $ \sp ->
   inParens $ PIR.error sp <$> (symbol "error" *> pType)
 
+listTerm :: Parametric
+listTerm tm = withSpan $ \sp -> inParens $ do
+  ty <- symbol "list" *> pType
+  whenVersion (< plcVersion130) $ fail "'list' is not allowed before version 1.3.0"
+  PIR.structuralList sp ty <$> many tm
+
 constrTerm :: Parametric
 constrTerm tm = withSpan $ \sp ->
   inParens $ do
@@ -158,6 +164,7 @@ pTerm = leadingWhitespace go
               , errorTerm go
               , tyInstTerm go
               , appTerm go
+              , listTerm go
               , constrTerm go
               , caseTerm go
               ]

@@ -81,6 +81,7 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
   iWrap :: ann -> Type tyname uni ann -> Type tyname uni ann -> term ann -> term ann
   error :: ann -> Type tyname uni ann -> term ann
   constr :: ann -> Type tyname uni ann -> Word64 -> [term ann] -> term ann
+  structuralList :: ann -> Type tyname uni ann -> [term ann] -> term ann
   kase :: ann -> Type tyname uni ann -> term ann -> [term ann] -> term ann
 
   termLet :: ann -> TermDef term tyname name uni ann -> term ann -> term ann
@@ -121,6 +122,7 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
   iWrap = IWrap
   error = Error
   constr = Constr
+  structuralList = List
   kase = Case
 
 embedTerm :: TermLike term tyname name uni fun => Term tyname name uni fun ann -> term ann
@@ -135,6 +137,7 @@ embedTerm = \case
   Error a ty -> error a ty
   Unwrap a t -> unwrap a (embedTerm t)
   IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embedTerm t)
+  List a ty xs -> structuralList a ty (fmap embedTerm xs)
   Constr a ty i es -> constr a ty i (fmap embedTerm es)
   Case a ty arg cs -> kase a ty (embedTerm arg) (fmap embedTerm cs)
 

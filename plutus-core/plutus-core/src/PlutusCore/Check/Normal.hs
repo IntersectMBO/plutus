@@ -42,6 +42,7 @@ check (Unwrap _ t) = check t
 check (LamAbs _ _ ty t) = normalType ty >> check t
 check (Apply _ t1 t2) = check t1 >> check t2
 check (TyAbs _ _ _ t) = check t
+check (List _ ty xs) = normalType ty >> traverse_ check xs
 check (Constr _ ty _ es) = normalType ty >> traverse_ check es
 check (Case _ ty arg cs) = normalType ty >> check arg >> traverse_ check cs
 check Var {} = pure ()
@@ -57,6 +58,7 @@ normalType
 normalType (TyFun _ i o) = normalType i >> normalType o
 normalType (TyForall _ _ _ ty) = normalType ty
 normalType (TyIFix _ pat arg) = normalType pat >> normalType arg
+normalType (TyList _ ty) = normalType ty
 normalType (TySOP _ tyls) = traverse_ (traverse_ normalType) tyls
 normalType (TyLam _ _ _ ty) = normalType ty
 normalType ty = neutralType ty

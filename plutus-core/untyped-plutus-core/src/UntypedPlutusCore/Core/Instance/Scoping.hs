@@ -37,6 +37,7 @@ instance name ~ Name => EstablishScoping (Term name uni fun) where
     pure $ Var (registerFree name) name
   establishScoping (Constant _ con) = pure $ Constant NotAName con
   establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
+  establishScoping (List _ xs) = List NotAName <$> traverse establishScoping xs
   establishScoping (Constr _ i es) = Constr NotAName <$> pure i <*> traverse establishScoping es
   establishScoping (Case _ a es) = do
     esScoped <- traverse establishScoping es
@@ -63,6 +64,7 @@ instance name ~ Name => CollectScopeInfo (Term name uni fun) where
   collectScopeInfo (Var ann name) = handleSname ann name
   collectScopeInfo (Constant _ _) = mempty
   collectScopeInfo (Builtin _ _) = mempty
+  collectScopeInfo (List _ xs) = foldMap collectScopeInfo xs
   collectScopeInfo (Constr _ _ es) = foldMap collectScopeInfo es
   collectScopeInfo (Case _ arg cs) = collectScopeInfo arg <> foldMap collectScopeInfo cs
 

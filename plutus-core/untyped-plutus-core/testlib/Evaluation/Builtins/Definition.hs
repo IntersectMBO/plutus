@@ -39,7 +39,7 @@ import Evaluation.Builtins.SignatureVerification
   , schnorrSecp256k1Prop
   )
 
-import PlutusCore hiding (Constr)
+import PlutusCore hiding (Constr, List)
 import PlutusCore qualified as PLC
 import PlutusCore.Arrays qualified as Arrays (maximumIndexCount)
 import PlutusCore.Builtin

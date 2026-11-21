@@ -39,6 +39,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , singletonRose
   )
 import PlutusCore.Pretty (PrettyConfigPlc)
+import PlutusCore.SnocList (SnocList (..))
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
 
@@ -227,6 +228,7 @@ data DefaultFun
   | AssetCount
   | KeepPolicies
   | DropPolicies
+  | TermAppend
   deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
   deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1711,6 +1713,31 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           mkConsDenotation
           (runCostingFunTwoArguments . paramMkCons)
+  toBuiltinMeaning _semvar TermAppend =
+    let termAppendDenotation
+          :: TermSnocList val a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
+        termAppendDenotation (TermSnocList prefix) (SomeConstant (Some (ValueOf uniTail suffix))) =
+          case uniTail of
+            DefaultUniList (uniElem :: uni (Esc b)) ->
+              let
+                -- Peeling the prefix from the right and consing preserves source order.
+                prepend :: SnocList val -> [b] -> BuiltinResult [b]
+                prepend SNil xs = pure xs
+                prepend (Snoc vs v) xs = case asConstant v of
+                  Left err -> throwError err
+                  Right (Some (ValueOf uniValue x)) -> case geq uniElem uniValue of
+                    Just Refl -> prepend vs (x : xs)
+                    Nothing ->
+                      throwError $
+                        structuralUnliftingError
+                          "The element type does not match the builtin list tail"
+               in
+                fromValueOf uniTail <$> prepend prefix suffix
+            _ -> throwError $ structuralUnliftingError "Expected a builtin list tail"
+        {-# INLINE termAppendDenotation #-}
+     in makeBuiltinMeaning
+          termAppendDenotation
+          (runCostingFunTwoArguments . paramTermAppend)
   toBuiltinMeaning _semvar HeadList =
     let headListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val a)
         headListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
@@ -2690,6 +2717,7 @@ instance Flat DefaultFun where
       AssetCount -> 103
       KeepPolicies -> 104
       DropPolicies -> 105
+      TermAppend -> 106
 
   decode = go =<< decodeBuiltin
     where
@@ -2799,6 +2827,7 @@ instance Flat DefaultFun where
       go 103 = pure AssetCount
       go 104 = pure KeepPolicies
       go 105 = pure DropPolicies
+      go 106 = pure TermAppend
       go t = fail $ "Failed to decode builtin tag, got: " ++ show t
 
   size _ n = n + builtinTagWidth

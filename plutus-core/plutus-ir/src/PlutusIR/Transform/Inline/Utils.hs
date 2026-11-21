@@ -26,7 +26,7 @@ import PlutusIR.Purity (EvalTerm (..), Purity (..), isPure, termEvaluationOrder,
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
-import Control.Lens hiding (Strict)
+import Control.Lens hiding (List, Strict)
 import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
@@ -386,6 +386,7 @@ costIsAcceptable = \case
     [] -> True
     [e] -> costIsAcceptable e
     _ -> False
+  List {} -> False
   -- Inlining a case means redoing the match at each use site
   Case {} -> False
   -- Arguably we could allow these two, but they're uncommon anyway
@@ -410,6 +411,7 @@ sizeIsAcceptable inlineConstants = \case
     [] -> True
     [e] -> sizeIsAcceptable inlineConstants e
     _ -> False
+  List {} -> False
   -- Cases are pretty big, due to the case branches
   Case {} -> False
   -- Arguably we could allow these two, but they're uncommon anyway

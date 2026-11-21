@@ -95,6 +95,7 @@ instance
             ann
             [prettyBy config n, prettyBy config k, prettyBy config t]
         )
+    TyList ann ty -> sexp "list" (consAnnIf config ann [prettyBy config ty])
     TySOP ann tyls ->
       sexp "sop" (consAnnIf config ann (fmap prettyTyl tyls))
       where
@@ -162,6 +163,8 @@ instance
         )
     Unwrap ann t ->
       sexp "unwrap" (consAnnIf config ann [prettyBy config t])
+    List ann ty xs ->
+      sexp "list" (consAnnIf config ann (prettyBy config ty : map (prettyBy config) xs))
     Constr ann ty i es ->
       sexp
         "constr"

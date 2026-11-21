@@ -12,7 +12,8 @@ module PlutusCore.Generators.Hedgehog.Builtin
   , genConstant
   ) where
 
-import PlutusCore hiding (Constr)
+import PlutusCore hiding (Constr, List)
+import PlutusCore qualified as PLC
 import PlutusCore.Builtin
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -80,6 +81,14 @@ instance GenTypedTerm DefaultUni where
         | trOpaque `App` _ `App` trEl <- tr
         , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
             go sch trEl
+      go (TyList _ _) tr
+        | trTermSnocList `App` _ `App` trEl <- tr
+        , Just HRefl <- eqTypeRep trTermSnocList (typeRep @TermSnocList) =
+            case genConstant trEl of
+              SomeGen (genElem :: Gen b) ->
+                PLC.List () (TyBuiltin () $ someType @_ @b)
+                  . map (Constant () . someValue)
+                  <$> Gen.list (Range.linear 0 10) genElem
       go (TyFun _ dom cod) tr
         | trFun `App` _ `App` trCod <- tr
         , Just HRefl <- eqTypeRep trFun (typeRep @(->)) =

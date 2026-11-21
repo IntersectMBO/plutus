@@ -204,6 +204,7 @@ library
     PlutusCore.Rename
     PlutusCore.Rename.Internal
     PlutusCore.Rename.Monad
+    PlutusCore.SnocList
     PlutusCore.StdLib.Data.Bool
     PlutusCore.StdLib.Data.ChurchNat
     PlutusCore.StdLib.Data.Data
@@ -442,6 +443,7 @@ test-suite plutus-core-test
     Parser.Spec
     Pretty.Readable
     TypeSynthesis.Spec
+    Universe.Spec
     Value.Spec
 
   default-language: Haskell2010
@@ -543,6 +545,7 @@ library untyped-plutus-core-testlib
     Evaluation.Helpers
     Evaluation.Machines
     Evaluation.Regressions
+    Evaluation.StructuralLists
     Flat.Spec
     Generators.Spec
     Scoping.Spec

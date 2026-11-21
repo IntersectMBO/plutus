@@ -17,7 +17,7 @@ import PlutusIR.Purity
 import PlutusIR.Subst
 
 import Control.Arrow ((>>>))
-import Control.Lens hiding (Strict)
+import Control.Lens hiding (List, Strict)
 import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.Writer
@@ -323,6 +323,7 @@ removeLets marks term = runWriter $ go term
         LamAbs a name ty t -> LamAbs a name ty <$> go t
         IWrap a ty1 ty2 t -> IWrap a ty1 ty2 <$> go t
         Unwrap a t -> Unwrap a <$> go t
+        List a ty xs -> List a ty <$> traverse go xs
         Constr a ty i es -> Constr a ty i <$> traverse go es
         Case a ty arg cs -> Case a ty <$> go arg <*> traverse go cs
         -- no term inside here, nothing to do

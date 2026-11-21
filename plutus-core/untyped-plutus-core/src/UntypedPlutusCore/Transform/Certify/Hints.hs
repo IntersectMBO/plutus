@@ -15,6 +15,7 @@ data Inline
   | InlCon
   | InlBuiltin
   | InlError
+  | InlList [Inline]
   | InlConstr [Inline]
   | InlCase Inline [Inline]
   | InlExpand Inline

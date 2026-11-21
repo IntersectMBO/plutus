@@ -104,6 +104,12 @@ constrTerm = withSpan $ \sp ->
     args <- many term
     pure $ Constr sp ty (fromIntegral tag) args
 
+listTerm :: Parser PTerm
+listTerm = withSpan $ \sp -> inParens $ do
+  ty <- symbol "list" *> pType
+  whenVersion (< plcVersion130) $ fail "'list' is not allowed before version 1.3.0"
+  List sp ty <$> many term
+
 caseTerm :: Parser PTerm
 caseTerm = withSpan $ \sp ->
   inParens $ do
@@ -130,6 +136,7 @@ term = leadingWhitespace go
           , errorTerm
           , varTerm
           , constrTerm
+          , listTerm
           , caseTerm
           ]
 

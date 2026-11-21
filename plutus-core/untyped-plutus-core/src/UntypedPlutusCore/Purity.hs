@@ -200,6 +200,9 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
             Delay _ body -> goTerm body
             -- unknown delayed term
             _ -> evalThis Unknown
+      t@(List _ xs) ->
+        foldMap goTerm xs
+          <> evalThis (EvalTerm Pure (if null xs then WorkFree else MaybeWork) t)
       t@(Constr _ _ ts) ->
         -- first the arguments, in left-to-right order
         foldMap goTerm ts

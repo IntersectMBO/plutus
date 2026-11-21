@@ -46,6 +46,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
+import PlutusCore.SnocList (SnocList (..))
 import PlutusPrelude
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
@@ -55,7 +56,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn)
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
-import Control.Lens hiding (Context)
+import Control.Lens hiding (Context, List)
 import Control.Monad
 import Control.Monad.Primitive
 import Data.Proxy
@@ -110,6 +111,12 @@ data Context uni fun ann
       ![NTerm uni fun ann]
       !(ArgStack uni fun ann)
       !(Context uni fun ann)
+  | FrameList
+      ann
+      !(CekValEnv uni fun ann)
+      ![NTerm uni fun ann]
+      !(SnocList (CekValue uni fun ann))
+      !(Context uni fun ann)
   | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
   | NoFrame
 
@@ -154,6 +161,11 @@ computeCek !ctx !_ (Builtin _ bn) = do
   let meaning = lookupBuiltin bn ?cekRuntime
   -- 'Builtin' is fully discharged.
   pure $ Returning ctx (VBuiltin bn (Builtin () bn) meaning)
+computeCek !ctx !env (List ann xs) = do
+  stepAndMaybeSpend BList
+  pure $ case xs of
+    t : rest -> Computing (FrameList ann env rest SNil ctx) env t
+    [] -> Returning ctx $ VSnocList SNil
 -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
 computeCek !ctx !env (Constr ann i es) = do
   stepAndMaybeSpend BConstr
@@ -202,6 +214,9 @@ returnCek (FrameAwaitFunValueN ann args ctx) fun =
       applyEvaluate ctx fun arg
     ConsStackNonEmpty arg rest ->
       applyEvaluate (FrameAwaitFunValueN ann rest ctx) fun arg
+returnCek (FrameList ann env todo done ctx) e = pure $ case todo of
+  next : rest -> Computing (FrameList ann env rest (Snoc done e) ctx) env next
+  [] -> Returning ctx $ VSnocList (Snoc done e)
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
   case todo of
@@ -410,6 +425,7 @@ contextAnn = \case
   FrameAwaitFunConN ann _ _ -> pure ann
   FrameAwaitFunValueN ann _ _ -> pure ann
   FrameForce ann _ -> pure ann
+  FrameList ann _ _ _ _ -> pure ann
   FrameConstr ann _ _ _ _ _ -> pure ann
   FrameCases ann _ _ _ -> pure ann
   NoFrame -> empty
@@ -424,6 +440,7 @@ lenContext = go 0
       FrameAwaitFunConN _ _ k -> go (n + 1) k
       FrameAwaitFunValueN _ _ k -> go (n + 1) k
       FrameForce _ k -> go (n + 1) k
+      FrameList _ _ _ _ k -> go (n + 1) k
       FrameConstr _ _ _ _ _ k -> go (n + 1) k
       FrameCases _ _ _ k -> go (n + 1) k
       NoFrame -> 0
@@ -446,6 +463,7 @@ cekStepCost costs =
     BBuiltin -> cekBuiltinCost costs
     BConstr -> cekConstrCost costs
     BCase -> cekCaseCost costs
+    BList -> cekListCost costs
 
 {-| Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 'throwErrorWithCause' as the cause of the failure. -}

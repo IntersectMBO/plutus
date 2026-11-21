@@ -53,6 +53,7 @@ instance
     -- anyway.
     Constr _ i es -> iterAppDocM $ \_ prettyArg ->
       ("constr" <+> prettyArg i) :| [prettyArg es]
+    List _ xs -> iterAppDocM $ \_ prettyArg -> "list" :| [prettyArg xs]
     Case _ arg cs -> iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg arg, prettyArg (toList cs)]
 
 instance
