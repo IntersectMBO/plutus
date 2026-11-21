@@ -5,7 +5,7 @@ layout: page
 
 This module proves that `merge∞` adds quantities token by token, and that `Value∞` is a
 commutative group under `merge∞`, with `empty∞` as its identity and `negate∞` as
-inverse.
+inverse. With `scale∞`, it is a module over the integers.
 
 ```
 module Builtin.Value.Union.Properties where
@@ -14,6 +14,7 @@ module Builtin.Value.Union.Properties where
 ## Imports
 
 ```
+open import Algebra.Module.Structures using (IsLeftModule)
 open import Algebra.Structures using (IsCommutativeMonoid; IsAbelianGroup)
 open import Data.List using (_∷_; [])
 open import Data.List.Relation.Unary.Linked
@@ -150,5 +151,52 @@ merge∞-isAbelianGroup = record
     ; ⁻¹-cong  = cong negate∞
     }
   ; comm = merge∞-comm
+  }
+```
+
+## Scaling
+
+Scaling distributes over `merge∞` and over the addition of integers, and scaling the
+empty value gives the empty value. Together with the laws of
+`Builtin.Value.Base.Properties`, this makes `Value∞` a module over the integers.
+
+```
+scale∞-zeroʳ : ∀ n → scale∞ n empty∞ ≡ empty∞
+scale∞-zeroʳ n = lookup∞-injective λ c t →
+  trans (lookup∞-scale∞ n c t empty∞) (ℤ.*-zeroʳ n)
+
+scale∞-distribˡ
+  : ∀ n v₁ v₂ → scale∞ n (merge∞ v₁ v₂) ≡ merge∞ (scale∞ n v₁) (scale∞ n v₂)
+scale∞-distribˡ n v₁ v₂ = lookup∞-injective λ c t →
+  trans (lookup∞-scale∞ n c t (merge∞ v₁ v₂))
+    (trans (cong (n ℤ.*_) (lookup∞-merge∞ c t v₁ v₂))
+      (trans (ℤ.*-distribˡ-+ n (lookup∞ c t v₁) (lookup∞ c t v₂))
+        (sym (trans (lookup∞-merge∞ c t (scale∞ n v₁) (scale∞ n v₂))
+                    (cong₂ ℤ._+_ (lookup∞-scale∞ n c t v₁) (lookup∞-scale∞ n c t v₂))))))
+
+scale∞-distribʳ
+  : ∀ v m n → scale∞ (m ℤ.+ n) v ≡ merge∞ (scale∞ m v) (scale∞ n v)
+scale∞-distribʳ v m n = lookup∞-injective λ c t →
+  trans (lookup∞-scale∞ (m ℤ.+ n) c t v)
+    (trans (ℤ.*-distribʳ-+ (lookup∞ c t v) m n)
+      (sym (trans (lookup∞-merge∞ c t (scale∞ m v) (scale∞ n v))
+                  (cong₂ ℤ._+_ (lookup∞-scale∞ m c t v) (lookup∞-scale∞ n c t v)))))
+
+scale∞-isLeftModule : IsLeftModule ℤ.+-*-ring _≡_ merge∞ empty∞ negate∞ scale∞
+scale∞-isLeftModule = record
+  { isLeftSemimodule = record
+    { +ᴹ-isCommutativeMonoid = merge∞-isCommutativeMonoid
+    ; isPreleftSemimodule = record
+      { *ₗ-cong      = cong₂ scale∞
+      ; *ₗ-zeroˡ     = scale∞-zero
+      ; *ₗ-distribʳ  = scale∞-distribʳ
+      ; *ₗ-identityˡ = scale∞-identity
+      ; *ₗ-assoc     = scale∞-assoc
+      ; *ₗ-zeroʳ     = scale∞-zeroʳ
+      ; *ₗ-distribˡ  = scale∞-distribˡ
+      }
+    }
+  ; -ᴹ‿cong    = cong negate∞
+  ; -ᴹ‿inverse = merge∞-inverseˡ , merge∞-inverseʳ
   }
 ```

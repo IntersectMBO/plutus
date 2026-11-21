@@ -13,6 +13,7 @@ module Builtin.Value where
 open import Data.List using (List; _∷_; [])
 open import Data.List.Relation.Unary.All using (All; []; all?)
 open import Data.Product using (_×_; _,_; proj₂)
+open import Data.Bool using (Bool; true; false)
 open import Data.Integer using (ℤ; 0ℤ; +_; -_)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Nat using (ℕ; _^_; _∸_; s≤s; z≤n)
@@ -176,6 +177,26 @@ private
   _ = refl
 ```
 
+`scaleValue n v` multiplies every quantity of `v` by `n`, which may be any integer. It
+fails if one of the products is not a signed 128-bit integer; scaling keeps the keys, so
+they are valid. Scaling by zero gives the empty value, whatever `v` is.
+
+```
+scaleValue : ℤ → Value → Maybe Value
+scaleValue n (mkValue v k _) =
+  fromValue∞ (scale∞ n v) (scale∞-keys {P = λ (c , t) → ValidKey c × ValidKey t} n v k)
+```
+
+`valueContains v₁ v₂` checks that `v₁` holds at least as much of every token as `v₂`
+does. It fails if either value has a negative quantity.
+
+```
+valueContains : Value → Value → Maybe Bool
+valueContains v₁ v₂ with nonNegative? (value∞ v₁) ×-dec nonNegative? (value∞ v₂)
+... | yes _ = just (contains∞ (value∞ v₁) (value∞ v₂))
+... | no  _ = nothing
+```
+
 `toFlatList` forgets the invariants, giving the entries of a `Value` as a flat list of
 triples.
 
@@ -263,5 +284,73 @@ private
   -- The sum of the underlying `Value∞`s is defined, but out of range.
   _ : toFlatList∞ (merge∞ (value∞ big) (value∞ big))
       ≡ (c₁ , c₁ , + (2 ^ 128 ∸ 2)) ∷ []
+  _ = refl
+
+  -- A value with non-negative quantities.
+  p : Value
+  p = ins c₂ c₀ (+ 5) (ins c₁ c₂ (+ 1) (ins c₁ c₁ (+ 3) empty))
+
+  -- Every value contains the empty value and itself.
+  _ : valueContains p empty ≡ just true
+  _ = refl
+
+  _ : valueContains p p ≡ just true
+  _ = refl
+
+  _ : valueContains empty empty ≡ just true
+  _ = refl
+
+  -- Smaller quantities of some of the tokens are contained.
+  _ : valueContains p (ins c₂ c₀ (+ 4) (ins c₁ c₂ (+ 1) empty)) ≡ just true
+  _ = refl
+
+  -- A larger quantity is not.
+  _ : valueContains p (ins c₂ c₀ (+ 6) empty) ≡ just false
+  _ = refl
+
+  -- Neither is a token that is absent, even if its currency is present.
+  _ : valueContains p (ins c₁ c₀ (+ 1) empty) ≡ just false
+  _ = refl
+
+  _ : valueContains empty p ≡ just false
+  _ = refl
+
+  -- A negative quantity in either value fails, even if it is not compared.
+  _ : valueContains v empty ≡ nothing
+  _ = refl
+
+  _ : valueContains p (ins c₁ c₁ (- (+ 1)) empty) ≡ nothing
+  _ = refl
+
+  -- Scaling multiplies every quantity, and keeps the keys.
+  _ : Maybe.map toFlatList (scaleValue (+ 2) v)
+      ≡ just ((c₁ , c₁ , - (+ 6)) ∷ (c₁ , c₂ , + 2) ∷ (c₂ , c₀ , + 10) ∷ [])
+  _ = refl
+
+  _ : Maybe.map toFlatList (scaleValue (- (+ 2)) v)
+      ≡ just ((c₁ , c₁ , + 6) ∷ (c₁ , c₂ , - (+ 2)) ∷ (c₂ , c₀ , - (+ 10)) ∷ [])
+  _ = refl
+
+  -- Scaling by zero gives the empty value.
+  _ : Maybe.map toFlatList (scaleValue 0ℤ v) ≡ just []
+  _ = refl
+
+  -- Scaling the empty value succeeds, even by a factor out of range.
+  _ : Maybe.map toFlatList (scaleValue (+ (2 ^ 200)) empty) ≡ just []
+  _ = refl
+
+  -- Products out of range fail, at both ends of the range.
+  _ : Maybe.map toFlatList (scaleValue (+ 2) (ins c₁ c₁ (+ (2 ^ 126)) empty)) ≡ nothing
+  _ = refl
+
+  _ : Maybe.map toFlatList (scaleValue (+ 2) (ins c₁ c₁ (- (+ (2 ^ 126))) empty))
+      ≡ just ((c₁ , c₁ , minQuantity) ∷ [])
+  _ = refl
+
+  _ : Maybe.map toFlatList (scaleValue (+ 2) (ins c₁ c₁ (- (+ (2 ^ 126 ℕ.+ 1))) empty))
+      ≡ nothing
+  _ = refl
+
+  _ : Maybe.map toFlatList (scaleValue (- (+ 1)) (ins c₁ c₁ minQuantity empty)) ≡ nothing
   _ = refl
 ```

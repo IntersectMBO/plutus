@@ -14,7 +14,9 @@ module Builtin.Value.Base where
 
 ```
 open import Data.List using (List; _∷_; [])
-open import Data.List.Relation.Unary.All using (All; []; _∷_) renaming (map to All-map)
+open import Data.Bool using (Bool)
+open import Data.List.Relation.Unary.All
+  using (All; []; _∷_; all?) renaming (map to All-map)
 open import Data.List.Relation.Unary.Linked using (Linked; []; [-]; _∷_)
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Data.Product.Properties using (≡-dec)
@@ -22,12 +24,13 @@ open import Data.Product.Relation.Binary.Lex.Strict using (×-Lex; ×-isStrictTo
 open import Data.Product.Relation.Binary.Pointwise.NonDependent using (Pointwise; ≡×≡⇒≡)
 open import Data.Integer using (ℤ; 0ℤ)
 open import Data.Maybe using (maybe′)
+open import Data.Sum using ([_,_]′)
 open import Function.Base using (_∘_; _on_)
 open import Relation.Binary.Definitions
   using (DecidableEquality; Transitive; Trichotomous; tri<; tri≈; tri>)
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; sym; trans; cong)
 open import Relation.Binary.Structures using (IsStrictTotalOrder)
-open import Relation.Nullary using (Dec; ¬?)
+open import Relation.Nullary using (Dec; yes; no; ¬?; isYes)
 
 import Data.Integer as ℤ
 import Data.Integer.Properties as ℤ
@@ -263,6 +266,65 @@ negate∞ (mkValue∞ m s z) =
   where
     -q≡0⇒q≡0 : ∀ q → ℤ.- q ≡ 0ℤ → q ≡ 0ℤ
     -q≡0⇒q≡0 q -q≡0 = trans (sym (ℤ.neg-involutive q)) (cong ℤ.-_ -q≡0)
+```
+
+## Scaling
+
+`scale∞ n v` multiplies every quantity of `v` by `n`. Scaling by zero gives the empty
+value. Otherwise, scaling keeps the keys, so it keeps them sorted, and the product of two
+non-zero integers is non-zero.
+
+```
+scaleEntry : Quantity → Entry → Entry
+scaleEntry n (k , q) = k , n ℤ.* q
+
+scaleEntries : Quantity → List Entry → List Entry
+scaleEntries n = List.map (scaleEntry n)
+
+scale∞ : Quantity → Value∞ → Value∞
+scale∞ n (mkValue∞ m s z) with n ℤ.≟ 0ℤ
+... | yes _   = empty∞
+... | no  n≢0 =
+  mkValue∞
+    (scaleEntries n m)
+    (Linked.map⁺ {R = _<ᵉ_} {f = scaleEntry n} s)
+    (All.map⁺ (All-map (λ q≢0 → [ n≢0 , q≢0 ]′ ∘ ℤ.i*j≡0⇒i≡0∨j≡0 n) z))
+```
+
+Scaling keeps every property of the keys.
+
+```
+scale∞-keys
+  : ∀ {P : Key → Set} n v
+  → All (P ∘ proj₁) (Value∞.map v) → All (P ∘ proj₁) (Value∞.map (scale∞ n v))
+scale∞-keys n (mkValue∞ m _ _) a with n ℤ.≟ 0ℤ
+... | yes _ = []
+... | no  _ = All.map⁺ a
+```
+
+## Containment
+
+`contains∞ v₁ v₂` checks that `v₁` contains `v₂`, that is, that every entry `(k , q)` of
+`v₂` has `q ≤ lookupEntry k` in `v₁`. When the quantities of `v₁` are non-negative, this
+means that `v₁` holds at least as much of every token as `v₂` does (see
+`Builtin.Value.Base.Properties`). The builtin requires the quantities of both values to
+be non-negative.
+
+```
+ContainsEntries : List Entry → List Entry → Set
+ContainsEntries kvs₁ = All (λ e → proj₂ e ℤ.≤ lookupEntry (proj₁ e) kvs₁)
+
+containsEntries? : ∀ kvs₁ kvs₂ → Dec (ContainsEntries kvs₁ kvs₂)
+containsEntries? kvs₁ = all? (λ e → proj₂ e ℤ.≤? lookupEntry (proj₁ e) kvs₁)
+
+contains∞ : Value∞ → Value∞ → Bool
+contains∞ v₁ v₂ = isYes (containsEntries? (Value∞.map v₁) (Value∞.map v₂))
+
+NonNegative : Value∞ → Set
+NonNegative v = All (λ e → 0ℤ ℤ.≤ proj₂ e) (Value∞.map v)
+
+nonNegative? : ∀ v → Dec (NonNegative v)
+nonNegative? v = all? (λ e → 0ℤ ℤ.≤? proj₂ e) (Value∞.map v)
 ```
 
 ## Conversion
