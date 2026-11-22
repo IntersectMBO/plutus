@@ -18,7 +18,6 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE UnboxedSums #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -1084,9 +1083,9 @@ enterComputeCek = computeCek
     lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
       Env.contIndexOne
         ( \case
-            (# (# #) | #) ->
+            Nothing ->
               throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName
-            (# | val #) -> pure val
+            Just val -> pure val
         )
         varEnv
         (coerce varIx)
