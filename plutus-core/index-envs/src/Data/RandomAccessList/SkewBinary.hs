@@ -91,14 +91,18 @@ uncons = \case
 {- Note [Optimizations of contIndexZero]
 The lookup passes its result to a continuation: 'Nothing' when the index is out of bounds,
 or 'Just' the element when it is found. Callers construct their failure result in the
-'Nothing' branch. Passing a failure result as a separate argument previously let GHC
-allocate the CEK error and its cause before the lookup, even when the lookup succeeded.
+'Nothing' branch. Passing a failure result as a separate argument previously made GHC
+allocate the CEK error and its cause before the lookup, wasting those allocations on every
+successful lookup.
 
 The local search functions use the continuation, which keeps them inside 'contIndexZero'
 until it is inlined at the call site. GHC can then inline the continuation into the search
 and turn the recursive calls into local jumps (join points). When the continuation matches
 on the 'Maybe', the 'Just' and 'Nothing' constructors are eliminated along with that match;
 the intermediate 'Maybe' does not need to be allocated.
+
+In the CEK machine, 'lookupVarName' and the continuation's 'pure' also inline away:
+a successful lookup jumps straight to 'returnCek' with the value and the current state token.
 
 The bangs on the index and tree size tell GHC that the search is strict in these arguments.
 This lets it use unboxed 'Word64' values throughout the traversal.
