@@ -744,7 +744,7 @@ argument as a 'Bool', we could do that:
     toBuiltinMeaning _ IdAssumeCheckBool =
         let idAssumeCheckBoolDenotation :: Opaque val Bool -> BuiltinResult Bool
             idAssumeCheckBoolDenotation val = asConstant val of
-                Right (Some (ValueOf DefaultUniBool b)) -> pure b
+                Right (SomeValueOf DefaultUniBool b) -> pure b
                 _                                       -> evaluationFailure
             {-# INLINE idAssumeCheckBoolDenotation #-}
         in makeBuiltinMeaning
@@ -770,7 +770,7 @@ automatically as a constant and then unlift the result manually to 'Bool' using 
 wrapper:
 
     newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
-        { unSomeConstant :: Some (ValueOf uni)
+        { unSomeConstant :: SomeValueOf uni
         }
 
 'SomeConstant' is similar to 'Opaque' in that it has a @rep@ representing a Plutus type.
@@ -781,7 +781,7 @@ built-in function as a constant with all 'asConstant' business kept behind the s
     toBuiltinMeaning _ IdSomeConstantBool =
         let idSomeConstantBoolDenotation :: SomeConstant uni Bool -> BuiltinResult Bool
             idSomeConstantBoolDenotation = \case
-                SomeConstant (Some (ValueOf DefaultUniBool b)) -> pure b
+                SomeConstant (SomeValueOf DefaultUniBool b) -> pure b
                 _                                              -> evaluationFailure
             {-# INLINE idSomeConstantBoolDenotation #-}
         in makeBuiltinMeaning
@@ -812,7 +812,7 @@ check that the value inside of it is a list (by matching on the type tag):
 
     toBuiltinMeaning _ NullList =
         let nullListDenotation :: SomeConstant uni [a] -> BuiltinResult Bool
-            nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
+            nullListDenotation (SomeConstant (SomeValueOf uniListA xs)) = do
                 case uniListA of
                     DefaultUniList _ -> pure $ null xs
                     _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
@@ -831,7 +831,7 @@ Here's a similar built-in function:
 
     toBuiltinMeaning _ FstPair =
         let fstPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val a)
-            fstPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
+            fstPairDenotation (SomeConstant (SomeValueOf uniPairAB xy)) = do
                 case uniPairAB of
                     DefaultUniPair uniA _ ->              -- [1]
                         pure . fromValueOf uniA $ fst xy  -- [2]
@@ -851,7 +851,7 @@ manual unlifting for arguments having non-monomorphized polymorphic built-in typ
 
     toBuiltinMeaning _ ChooseList =
         let chooseListDenotation :: SomeConstant uni [a] -> b -> b -> BuiltinResult b
-            chooseListDenotation (SomeConstant (Some (ValueOf uniListA xs))) a b = do
+            chooseListDenotation (SomeConstant (SomeValueOf uniListA xs)) a b = do
                 case uniListA of
                     DefaultUniList _ -> pure $ case xs of
                         []    -> a
@@ -874,8 +874,8 @@ Our final example is this:
         let mkConsDenotation
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation
-              (SomeConstant (Some (ValueOf uniA x)))
-              (SomeConstant (Some (ValueOf uniListA xs))) =
+              (SomeConstant (SomeValueOf uniA x))
+              (SomeConstant (SomeValueOf uniListA xs)) =
                 case uniListA of
                     DefaultUniList uniA' -> case uniA `geq` uniA' of       -- [1]
                         Just Refl ->                                       -- [2]
@@ -920,7 +920,7 @@ actually does. Let's look at some examples.
         let idIntegerAsBoolDenotation
                 :: SomeConstant uni Integer -> BuiltinResult (SomeConstant uni Integer)
             idIntegerAsBoolDenotation = \case
-                con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -> pure con
+                con@(SomeConstant (SomeValueOf DefaultUniBool _)) -> pure con
                 _                                                    -> evaluationFailure
             {-# INLINE idIntegerAsBoolDenotation #-}
         in makeBuiltinMeaning
@@ -1655,7 +1655,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
   -- Pairs
   toBuiltinMeaning _semvar FstPair =
     let fstPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val a)
-        fstPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) =
+        fstPairDenotation (SomeConstant (SomeValueOf uniPairAB xy)) =
           case uniPairAB of
             DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
             _ ->
@@ -1667,7 +1667,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunOneArgument . paramFstPair)
   toBuiltinMeaning _semvar SndPair =
     let sndPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val b)
-        sndPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) =
+        sndPairDenotation (SomeConstant (SomeValueOf uniPairAB xy)) =
           case uniPairAB of
             DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
             _ ->
@@ -1680,7 +1680,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
   -- Lists
   toBuiltinMeaning _semvar ChooseList =
     let chooseListDenotation :: SomeConstant uni [a] -> b -> b -> BuiltinResult b
-        chooseListDenotation (SomeConstant (Some (ValueOf uniListA xs))) a b =
+        chooseListDenotation (SomeConstant (SomeValueOf uniListA xs)) a b =
           case uniListA of
             DefaultUniList _ -> pure $ case xs of
               [] -> a
@@ -1696,8 +1696,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     let mkConsDenotation
           :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
         mkConsDenotation
-          (SomeConstant (Some (ValueOf uniA x)))
-          (SomeConstant (Some (ValueOf uniListA xs))) =
+          (SomeConstant (SomeValueOf uniA x))
+          (SomeConstant (SomeValueOf uniListA xs)) =
             -- See Note [Structural vs operational errors within builtins].
             case uniListA of
               DefaultUniList uniA' -> case uniA `geq` uniA' of
@@ -1713,7 +1713,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunTwoArguments . paramMkCons)
   toBuiltinMeaning _semvar HeadList =
     let headListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val a)
-        headListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
+        headListDenotation (SomeConstant (SomeValueOf uniListA xs)) =
           case uniListA of
             DefaultUniList uniA -> case xs of
               [] -> fail "Expected a non-empty list but got an empty one"
@@ -1725,7 +1725,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunOneArgument . paramHeadList)
   toBuiltinMeaning _semvar TailList =
     let tailListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
-        tailListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
+        tailListDenotation (SomeConstant (SomeValueOf uniListA xs)) =
           case uniListA of
             DefaultUniList _argUni ->
               case xs of
@@ -1738,7 +1738,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunOneArgument . paramTailList)
   toBuiltinMeaning _semvar NullList =
     let nullListDenotation :: SomeConstant uni [a] -> BuiltinResult Bool
-        nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
+        nullListDenotation (SomeConstant (SomeValueOf uniListA xs)) =
           case uniListA of
             DefaultUniList _uniA -> pure $ null xs
             _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
@@ -2346,7 +2346,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
   toBuiltinMeaning _semvar DropList =
     let dropListDenotation
           :: IntegerCostedLiterally -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
-        dropListDenotation i (SomeConstant (Some (ValueOf uniListA xs))) = do
+        dropListDenotation i (SomeConstant (SomeValueOf uniListA xs)) = do
           -- See Note [Structural vs operational errors within builtins].
           case uniListA of
             DefaultUniList _ ->
@@ -2395,7 +2395,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunTwoArguments . paramDropList)
   toBuiltinMeaning _semvar LengthOfArray =
     let lengthOfArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
-        lengthOfArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
+        lengthOfArrayDenotation (SomeConstant (SomeValueOf uni vec)) =
           case uni of
             DefaultUniArray _uniA -> pure $ Vector.length vec
             _ -> throwError $ structuralUnliftingError "Expected an array but got something else"
@@ -2403,7 +2403,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning lengthOfArrayDenotation (runCostingFunOneArgument . paramLengthOfArray)
   toBuiltinMeaning _semvar ListToArray =
     let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
-        listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
+        listToArrayDenotation (SomeConstant (SomeValueOf uniListA xs)) =
           case uniListA of
             DefaultUniList uniA ->
               pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromListN (length xs) xs
@@ -2412,7 +2412,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . paramListToArray)
   toBuiltinMeaning _semvar IndexArray =
     let indexArrayDenotation :: SomeConstant uni (Vector a) -> Int -> BuiltinResult (Opaque val a)
-        indexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) n =
+        indexArrayDenotation (SomeConstant (SomeValueOf uni vec)) n =
           case uni of
             DefaultUniArray arg -> do
               case vec Vector.!? n of
@@ -2504,7 +2504,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- lands in the denotation). So indices stay '[Integer]', checked in the 'Integer' domain.
     let multiIndexArrayDenotation
           :: SomeConstant uni (Vector a) -> [Integer] -> BuiltinResult (Opaque val [a])
-        multiIndexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) indices =
+        multiIndexArrayDenotation (SomeConstant (SomeValueOf uni vec)) indices =
           case uni of
             DefaultUniArray uniA ->
               fromValueOf (DefaultUniList uniA) <$> Arrays.multiIndexArray vec indices

@@ -37,10 +37,10 @@ class HasConstant term where
   -- Switching from 'MonadError' to 'Either' here gave us a speedup of 2-4%.
   {-| Unwrap from a 'Constant'-like constructor throwing an 'UnliftingError' if the provided
   @term@ is not a wrapped Haskell value. -}
-  asConstant :: term -> Either BuiltinError (Some (ValueOf (UniOf term)))
+  asConstant :: term -> Either BuiltinError (SomeValueOf (UniOf term))
 
   -- | Wrap a Haskell value as a @term@.
-  fromConstant :: Some (ValueOf (UniOf term)) -> term
+  fromConstant :: SomeValueOf (UniOf term) -> term
 
 {-| Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
 and connects @term@ and its @uni@. -}

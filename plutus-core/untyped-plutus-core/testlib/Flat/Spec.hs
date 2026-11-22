@@ -24,7 +24,7 @@ import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck hiding (Some)
-import Universe (Some (..), ValueOf (..))
+import Universe (SomeValueOf (..))
 import UntypedPlutusCore.Core.Type
 
 -- Also brings the Flat (Strict.Vector a) orphan instance into scope:
@@ -419,7 +419,7 @@ test_uplcProgramFlat =
       Program
         ()
         (Version 1 1 0)
-        (Constant () (Some (ValueOf DefaultUniInteger (0 :: Integer))))
+        (Constant () (SomeValueOf DefaultUniInteger (0 :: Integer)))
 
 test_flat :: TestTree
 test_flat =

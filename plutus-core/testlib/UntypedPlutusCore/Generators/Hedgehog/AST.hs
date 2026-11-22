@@ -21,7 +21,7 @@ import Universe
 
 regenConstantsUntil
   :: MonadGen m
-  => (Some (ValueOf DefaultUni) -> Bool)
+  => (SomeValueOf DefaultUni -> Bool)
   -> Program name DefaultUni fun ann
   -> m (Program name DefaultUni fun ann)
 regenConstantsUntil p =

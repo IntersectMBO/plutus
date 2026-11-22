@@ -151,18 +151,18 @@ instance Closed uni => Flat (SomeTypeIn uni) where
       -- List Nil (1 bit)
 
 -- See Note [The G, the Tag and the Auto].
-instance (Closed uni, uni `Everywhere` Flat) => Flat (Some (ValueOf uni)) where
-  encode (Some (ValueOf uni x)) = encode (SomeTypeIn uni) <> bring (Proxy @Flat) uni (encode x)
+instance (Closed uni, uni `Everywhere` Flat) => Flat (SomeValueOf uni) where
+  encode (SomeValueOf uni x) = encode (SomeTypeIn uni) <> bring (Proxy @Flat) uni (encode x)
 
   decode =
     decodeKindedUniFlat @uni >>= \(SomeTypeIn (Kinded uni)) ->
       -- See Note [Decoding universes].
       case checkStar uni of
         Nothing -> fail "A non-star type can't have a value to decode"
-        Just Refl -> Some . ValueOf uni <$> bring (Proxy @Flat) uni decode
+        Just Refl -> SomeValueOf uni <$> bring (Proxy @Flat) uni decode
 
   -- We need to get the flat instance in scope.
-  size (Some (ValueOf uni x)) acc =
+  size (SomeValueOf uni x) acc =
     size (SomeTypeIn uni) acc
       + bring (Proxy @Flat) uni (size x 0)
 

@@ -99,7 +99,7 @@ data Context uni fun ann
     FrameAwaitArg ann !(CekValue uni fun ann) !(Context uni fun ann)
   | -- | @[_ N]@
     FrameAwaitFunTerm ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
-  | FrameAwaitFunConN ann !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
+  | FrameAwaitFunConN ann !(Spine (SomeValueOf uni)) !(Context uni fun ann)
   | FrameAwaitFunValueN ann !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
   | -- | @(force _)@
     FrameForce ann !(Context uni fun ann)

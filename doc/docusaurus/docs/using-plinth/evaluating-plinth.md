@@ -118,7 +118,7 @@ EvalResult
                             )
                             ( Constant
                                 ()
-                                (Some (ValueOf DefaultUniString "Evaluating x"))
+                                (SomeValueOf DefaultUniString "Evaluating x")
                             )
                         )
                         (Var () (NamedDeBruijn{ndbnString = "x", ndbnIndex = 1}))
@@ -129,9 +129,9 @@ EvalResult
                     ( Apply
                         ()
                         (Force () (Builtin () Trace))
-                        (Constant () (Some (ValueOf DefaultUniString "Evaluating constant")))
+                        (Constant () (SomeValueOf DefaultUniString "Evaluating constant"))
                     )
-                    (Constant () (Some (ValueOf DefaultUniInteger 2)))
+                    (Constant () (SomeValueOf DefaultUniInteger 2))
                 )
             )
         )

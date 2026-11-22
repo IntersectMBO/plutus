@@ -159,7 +159,7 @@ built-in type
 The @rep@ parameter specifies how the type looks on the PLC side (i.e. just like with
 @Opaque val rep@). -}
 newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
-  { unSomeConstant :: Some (ValueOf uni)
+  { unSomeConstant :: SomeValueOf uni
   }
 
 deriving newtype instance

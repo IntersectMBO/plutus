@@ -38,7 +38,7 @@ import Universe
 
 regenConstantsUntil
   :: MonadGen m
-  => (Some (ValueOf PLC.DefaultUni) -> Bool)
+  => (SomeValueOf PLC.DefaultUni -> Bool)
   -> Program tyname name PLC.DefaultUni fun ann
   -> m (Program tyname name PLC.DefaultUni fun ann)
 regenConstantsUntil p =

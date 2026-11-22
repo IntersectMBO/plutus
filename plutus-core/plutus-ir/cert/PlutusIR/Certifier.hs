@@ -11,9 +11,8 @@ module PlutusIR.Certifier (is_dead_code, is_unique) where
 import PlutusCore qualified as P
   ( DefaultFun (..)
   , DefaultUni (..)
-  , Some (..)
   , SomeTypeIn (..)
-  , ValueOf (..)
+  , SomeValueOf (..)
   )
 import PlutusIR qualified as P
 import PlutusIR.Certifier.Extracted qualified as E
@@ -118,8 +117,8 @@ glueDefaultFun = \case
   -- TODO: support current set of builtin functions
   _ -> E.Trace
 
-glueConstant :: P.Some (P.ValueOf P.DefaultUni) -> E.Some0 E.ValueOf
-glueConstant (P.Some (P.ValueOf u _x)) =
+glueConstant :: P.SomeValueOf P.DefaultUni -> E.Some0 E.ValueOf
+glueConstant (P.SomeValueOf u _x) =
   let anyU = case u of
         _ -> E.unsafeCoerce ()
    in -- P.DefaultUniInteger    -> E.unsafeCoerce (glueInteger x)

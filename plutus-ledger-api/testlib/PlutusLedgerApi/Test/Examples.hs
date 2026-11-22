@@ -11,7 +11,6 @@ import PlutusLedgerApi.V1
 import UntypedPlutusCore qualified as UPLC
 
 import Numeric.Natural
-import Universe (Some (Some))
 
 {- Note [Manually constructing scripts]
 The scripts we provide here are *manually* constructed Plutus Core. Why not use our great machinery for easily creating
@@ -56,7 +55,7 @@ saltFunction salt b0 = serialiseUPLC $ UPLC.Program () version body
       UPLC.Apply
         ()
         (UPLC.LamAbs () (UPLC.DeBruijn 0) b1)
-        (UPLC.Constant () $ Some $ PLC.ValueOf PLC.DefaultUniInteger salt)
+        (UPLC.Constant () $ PLC.SomeValueOf PLC.DefaultUniInteger salt)
 
 integerToByteStringFunction :: SerialisedScript
 integerToByteStringFunction = serialiseUPLC $ UPLC.Program () PLC.plcVersion110 body

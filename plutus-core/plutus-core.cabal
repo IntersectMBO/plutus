@@ -442,6 +442,7 @@ test-suite plutus-core-test
     Parser.Spec
     Pretty.Readable
     TypeSynthesis.Spec
+    Universe.Spec
     Value.Spec
 
   default-language: Haskell2010
@@ -456,8 +457,10 @@ test-suite plutus-core-test
     , cardano-base:testlib             >=0.1.5
     , containers
     , data-default-class
+    , deepseq
     , extra
     , filepath
+    , hashable
     , hedgehog
     , mmorph
     , mtl

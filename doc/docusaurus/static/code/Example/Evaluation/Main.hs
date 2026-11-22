@@ -43,9 +43,7 @@ compiledCode = $$(compile [||plinthCode||])
 EvalResult
     { evalResult = Right
         ( Constant ()
-            ( Some
-                ( ValueOf DefaultUniInteger 4 )
-            )
+            (SomeValueOf DefaultUniInteger 4)
         )
     , evalResultBudget = ExBudget
         { exBudgetCPU = ExCPU 508304

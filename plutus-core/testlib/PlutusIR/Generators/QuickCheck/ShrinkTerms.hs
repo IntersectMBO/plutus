@@ -407,7 +407,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) =
                  , let fun' = fixupTerm tyctx ctx tyctx ctx (TyFun () argTy' ty) fun
                  ]
         Constant _ val ->
-          shrink val <&> \val'@(Some (ValueOf uni _)) ->
+          shrink val <&> \val'@(SomeValueOf uni _) ->
             (mkTyBuiltinOf () uni, Constant () val')
         Error _ _ -> shrinkType tyctx ty <&> \ty' -> (ty', Error () ty')
         -- TODO: allow structural shrinking for some of these.

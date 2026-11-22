@@ -147,12 +147,12 @@ and the "just compute the damn thing" behavior.
 This function:
 
     f :: Integer -> CkValue DefaultUni fun
-    f = VCon . Some . ValueOf DefaultUniInteger
+    f = VCon . SomeValueOf DefaultUniInteger
 
 lifts an 'Integer' to 'CkValue'. Unlifting is the opposite:
 
     g :: CkValue DefaultUni fun -> Maybe Integer
-    g (VCon (Some (ValueOf uni x))) = case uni of
+    g (VCon (SomeValueOf uni x)) = case uni of
         DefaultUniInteger -> Just x
         _                 -> Nothing
 
@@ -311,7 +311,7 @@ readKnownConstant :: forall val a. KnownBuiltinType val a => val -> ReadKnownM a
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances]
 readKnownConstant val =
   asConstant val >>= oneShot \case
-    Some (ValueOf uniAct x) -> do
+    SomeValueOf uniAct x -> do
       let uniExp = knownUni @_ @(UniOf val) @a
       -- 'geq' matches on its first argument first, so we make the type tag that will be known
       -- statically (because this function will be inlined) go first in order for GHC to

@@ -318,7 +318,7 @@ processLogsAndErrors ll logs res = do
   case res of
     UPLC.CekFailure err -> throwError $ CekError err
     -- If evaluation result is '()', then that's correct for all Plutus versions.
-    UPLC.CekSuccessConstant (Some (ValueOf DefaultUniUnit ())) -> pure ()
+    UPLC.CekSuccessConstant (SomeValueOf DefaultUniUnit ()) -> pure ()
     -- If evaluation result is any other constant or term, then it's only correct for V1 and V2.
     UPLC.CekSuccessConstant {} -> handleOldVersions
     UPLC.CekSuccessNonConstant {} -> handleOldVersions

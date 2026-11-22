@@ -63,9 +63,9 @@ runAstGen a = do
 
 regenConstantUntil
   :: MonadGen m
-  => (Some (ValueOf DefaultUni) -> Bool)
-  -> Some (ValueOf DefaultUni)
-  -> m (Maybe (Some (ValueOf DefaultUni)))
+  => (SomeValueOf DefaultUni -> Bool)
+  -> SomeValueOf DefaultUni
+  -> m (Maybe (SomeValueOf DefaultUni))
 regenConstantUntil p = go $ \_ -> Nothing
   where
     go ret val
@@ -77,7 +77,7 @@ are guaranteed to satisfy the predicate (if such constants cannot be generated, 
 will fail). -}
 regenConstantsUntil
   :: MonadGen m
-  => (Some (ValueOf DefaultUni) -> Bool)
+  => (SomeValueOf DefaultUni -> Bool)
   -> Program tyname name DefaultUni fun ann
   -> m (Program tyname name DefaultUni fun ann)
 regenConstantsUntil p =
@@ -130,7 +130,7 @@ genKind = simpleRecursive nonRecursive recursive
 genBuiltin :: (MonadGen m, Bounded fun, Enum fun) => m fun
 genBuiltin = Gen.element [minBound .. maxBound]
 
-genConstant :: MonadGen m => m (Some (ValueOf DefaultUni))
+genConstant :: MonadGen m => m (SomeValueOf DefaultUni)
 -- The @QuickCheck@ generator is a good one, so we reuse it in @hedgehog@ via @hedgehog-quickcheck@.
 genConstant = arbitrary
 

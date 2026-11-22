@@ -296,7 +296,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
       idAssumeCheckBoolPlc :: Opaque val Bool -> BuiltinResult Bool
       idAssumeCheckBoolPlc val =
         case asConstant val of
-          Right (Some (ValueOf DefaultUniBool b)) -> pure b
+          Right (SomeValueOf DefaultUniBool b) -> pure b
           _ -> builtinResultFailure
   toBuiltinMeaning _semvar IdSomeConstantBool =
     makeBuiltinMeaning
@@ -305,7 +305,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     where
       idSomeConstantBoolPlc :: SomeConstant uni Bool -> BuiltinResult Bool
       idSomeConstantBoolPlc = \case
-        SomeConstant (Some (ValueOf DefaultUniBool b)) -> pure b
+        SomeConstant (SomeValueOf DefaultUniBool b) -> pure b
         _ -> builtinResultFailure
   toBuiltinMeaning _semvar IdIntegerAsBool =
     makeBuiltinMeaning
@@ -314,7 +314,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     where
       idIntegerAsBool :: SomeConstant uni Integer -> BuiltinResult (SomeConstant uni Integer)
       idIntegerAsBool = \case
-        con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -> pure con
+        con@(SomeConstant (SomeValueOf DefaultUniBool _)) -> pure con
         _ -> builtinResultFailure
   toBuiltinMeaning _semvar IdFInteger =
     makeBuiltinMeaning
@@ -381,7 +381,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     where
       unsafeCoerceElPlc
         :: SomeConstant DefaultUni [a] -> BuiltinResult (SomeConstant DefaultUni [b])
-      unsafeCoerceElPlc (SomeConstant (Some (ValueOf uniList xs))) = do
+      unsafeCoerceElPlc (SomeConstant (SomeValueOf uniList xs)) = do
         DefaultUniList _ <- pure uniList
         pure $ fromValueOf uniList xs
   toBuiltinMeaning _semvar Undefined =
@@ -405,7 +405,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         :: SomeConstant uni a
         -> SomeConstant uni b
         -> SomeConstant uni (a, b)
-      commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
+      commaPlc (SomeConstant (SomeValueOf uniA x)) (SomeConstant (SomeValueOf uniB y)) =
         fromValueOf (DefaultUniPair uniA uniB) (x, y)
   toBuiltinMeaning _semvar BiconstPair =
     makeBuiltinMeaning
@@ -418,9 +418,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         -> SomeConstant uni (a, b)
         -> BuiltinResult (SomeConstant uni (a, b))
       biconstPairPlc
-        (SomeConstant (Some (ValueOf uniA x)))
-        (SomeConstant (Some (ValueOf uniB y)))
-        (SomeConstant (Some (ValueOf uniPairAB _))) = do
+        (SomeConstant (SomeValueOf uniA x))
+        (SomeConstant (SomeValueOf uniB y))
+        (SomeConstant (SomeValueOf uniPairAB _)) = do
           DefaultUniPair uniA' uniB' <- pure uniPairAB
           Just Refl <- pure $ uniA `geq` uniA'
           Just Refl <- pure $ uniB `geq` uniB'
@@ -433,7 +433,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
       swapPlc
         :: SomeConstant uni (a, b)
         -> BuiltinResult (SomeConstant uni (b, a))
-      swapPlc (SomeConstant (Some (ValueOf uniPairAB p))) = do
+      swapPlc (SomeConstant (SomeValueOf uniPairAB p)) = do
         DefaultUniPair uniA uniB <- pure uniPairAB
         pure $ fromValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
   toBuiltinMeaning _semvar SwapEls =
@@ -445,7 +445,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
       swapElsPlc
         :: SomeConstant uni [SomeConstant uni (a, Bool)]
         -> BuiltinResult (SomeConstant uni [SomeConstant uni (Bool, a)])
-      swapElsPlc (SomeConstant (Some (ValueOf uniList xs))) = do
+      swapElsPlc (SomeConstant (SomeValueOf uniList xs)) = do
         DefaultUniList (DefaultUniPair uniA DefaultUniBool) <- pure uniList
         let uniList' = DefaultUniList $ DefaultUniPair DefaultUniBool uniA
         pure . fromValueOf uniList' $ map swap xs

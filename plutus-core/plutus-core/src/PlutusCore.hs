@@ -12,10 +12,9 @@ module PlutusCore
   , SrcSpans
 
     -- * Builtins
-  , Some (..)
   , SomeTypeIn (..)
   , Kinded (..)
-  , ValueOf (..)
+  , SomeValueOf (..)
   , someValueOf
   , someValue
   , someValueType

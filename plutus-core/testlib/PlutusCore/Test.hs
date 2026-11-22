@@ -146,8 +146,8 @@ checkFails = checkQuiet . withAtLeastTests 100000 >=> \res -> res @?= False
 parser\/deserializer where we need to filter out unprintable\/unserialisable terms. Technically,
 G1, G2 elements etc can be printed but not serialised, but here for simplicity we just assume
 that all unserialisable terms are unprintable too. -}
-isSerialisable :: Some (ValueOf TPLC.DefaultUni) -> Bool
-isSerialisable (Some (ValueOf uni0 x0)) = go uni0 x0
+isSerialisable :: SomeValueOf TPLC.DefaultUni -> Bool
+isSerialisable (SomeValueOf uni0 x0) = go uni0 x0
   where
     go :: TPLC.DefaultUni (TPLC.Esc a) -> a -> Bool
     go TPLC.DefaultUniInteger _ = True

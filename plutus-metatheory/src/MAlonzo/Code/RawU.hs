@@ -55,8 +55,8 @@ pattern TagArray ta              = DefaultUniArray ta
 pattern TagBLS12_381_G1_Element = DefaultUniBLS12_381_G1_Element
 pattern TagBLS12_381_G2_Element = DefaultUniBLS12_381_G2_Element
 pattern TagBLS12_381_MlResult   = DefaultUniBLS12_381_MlResult
-type TagCon = Some (ValueOf DefaultUni)
-pattern TagCon t x = Some (ValueOf t x)
+type TagCon = SomeValueOf DefaultUni
+pattern TagCon t x = SomeValueOf t x
 -- RawU._.SigTy
 d_SigTy_4 a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 = ()
 -- RawU._.convSigTy

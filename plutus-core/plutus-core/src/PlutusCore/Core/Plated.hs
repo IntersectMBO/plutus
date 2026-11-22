@@ -120,7 +120,7 @@ varDeclSubtypes f (VarDecl a n ty) = VarDecl a n <$> f ty
 {-# INLINE varDeclSubtypes #-}
 
 -- | Get all the direct constants of the given 'Term' from 'Constant's.
-termConstants :: Traversal' (Term tyname name uni fun ann) (Some (ValueOf uni))
+termConstants :: Traversal' (Term tyname name uni fun ann) (SomeValueOf uni)
 termConstants f term0 = case term0 of
   Constant ann val -> Constant ann <$> f val
   Var {} -> pure term0
@@ -235,7 +235,7 @@ termSubtypes f term0 = case term0 of
 {-# INLINE termSubtypes #-}
 
 -- | Get all the transitive child 'Constant's of the given 'Term'.
-termConstantsDeep :: Fold (Term tyname name uni fun ann) (Some (ValueOf uni))
+termConstantsDeep :: Fold (Term tyname name uni fun ann) (SomeValueOf uni)
 termConstantsDeep = termSubtermsDeep . termConstants
 
 -- | Get all the transitive child 'Type's of the given 'Term'.

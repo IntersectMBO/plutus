@@ -15,7 +15,7 @@ module Main (main) where
 import LoadScriptEvents (eventsOf, loadEvents)
 
 import PlutusCore.Data as Data (Data (..))
-import PlutusCore.Default (DefaultUni (DefaultUniData), Some (..), ValueOf (..))
+import PlutusCore.Default (DefaultUni (DefaultUniData), SomeValueOf (..))
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, flattenCostRose, memoryUsage)
 import PlutusCore.Pretty (display)
@@ -345,7 +345,7 @@ analyseTermDataObjects = go
         Delay _ t -> go t
         Constant _ c ->
           case c of
-            Some (ValueOf DefaultUniData d) -> printDataInfoFor d
+            SomeValueOf DefaultUniData d -> printDataInfoFor d
             _ -> pure ()
         Builtin _ _ -> pure ()
         Error _ -> pure ()

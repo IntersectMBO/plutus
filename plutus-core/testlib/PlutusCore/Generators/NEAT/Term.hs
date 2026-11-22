@@ -296,13 +296,13 @@ convertTypeToTypeG _ _ = Nothing
        that this function is only called on a well-typed
        term. Violating this would point to an error in the
        generator/checker. -}
-convertTermConstant :: TermConstantG -> Some (ValueOf DefaultUni)
-convertTermConstant (TmByteStringG b) = Some $ ValueOf DefaultUniByteString b
-convertTermConstant (TmIntegerG i) = Some $ ValueOf DefaultUniInteger i
-convertTermConstant (TmStringG s) = Some $ ValueOf DefaultUniString s
-convertTermConstant (TmBoolG b) = Some $ ValueOf DefaultUniBool b
-convertTermConstant (TmUnitG u) = Some $ ValueOf DefaultUniUnit u
-convertTermConstant (TmDataG d) = Some $ ValueOf DefaultUniData d
+convertTermConstant :: TermConstantG -> SomeValueOf DefaultUni
+convertTermConstant (TmByteStringG b) = SomeValueOf DefaultUniByteString b
+convertTermConstant (TmIntegerG i) = SomeValueOf DefaultUniInteger i
+convertTermConstant (TmStringG s) = SomeValueOf DefaultUniString s
+convertTermConstant (TmBoolG b) = SomeValueOf DefaultUniBool b
+convertTermConstant (TmUnitG u) = SomeValueOf DefaultUniUnit u
+convertTermConstant (TmDataG d) = SomeValueOf DefaultUniData d
 
 convertTerm
   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)

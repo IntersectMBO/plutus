@@ -63,7 +63,7 @@ errorScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Error ()
 
 v100script :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 v100script =
-  UPLC.Program () PLC.plcVersion100 $ UPLC.Constant () (PLC.Some (PLC.ValueOf PLC.DefaultUniUnit ()))
+  UPLC.Program () PLC.plcVersion100 $ UPLC.Constant () (PLC.SomeValueOf PLC.DefaultUniUnit ())
 
 v110script :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 v110script = UPLC.Program () PLC.plcVersion110 $ UPLC.Constr () 0 mempty

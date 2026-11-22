@@ -50,8 +50,7 @@ import PlutusCore.Default
   ( DefaultFun (..)
   , DefaultUni (..)
   , Esc
-  , Some (..)
-  , ValueOf (..)
+  , SomeValueOf (..)
   , pattern DefaultUniArray
   , pattern DefaultUniList
   , pattern DefaultUniPair
@@ -215,8 +214,8 @@ data Problem
   | Unprintable String
   deriving stock (Eq, Ord, Show)
 
-constantProblems :: Some (ValueOf DefaultUni) -> [Problem]
-constantProblems (Some (ValueOf uni0 x0)) = go uni0 x0
+constantProblems :: SomeValueOf DefaultUni -> [Problem]
+constantProblems (SomeValueOf uni0 x0) = go uni0 x0
   where
     go :: DefaultUni (Esc a) -> a -> [Problem]
     go DefaultUniInteger _ = []
@@ -246,7 +245,7 @@ constantProblems (Some (ValueOf uni0 x0)) = go uni0 x0
 
 type Term = UPLC.Term NamedDeBruijn DefaultUni DefaultFun ()
 
-termConstants :: Term -> [Some (ValueOf DefaultUni)]
+termConstants :: Term -> [SomeValueOf DefaultUni]
 termConstants = \case
   UPLC.Constant _ c -> [c]
   t -> concatMap termConstants (subterms t)

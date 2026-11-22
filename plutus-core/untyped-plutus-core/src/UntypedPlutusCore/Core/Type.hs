@@ -91,7 +91,7 @@ data Term name uni fun ann
   | Apply !ann !(Term name uni fun ann) !(Term name uni fun ann)
   | Force !ann !(Term name uni fun ann)
   | Delay !ann !(Term name uni fun ann)
-  | Constant !ann !(Some (ValueOf uni))
+  | Constant !ann !(SomeValueOf uni)
   | Builtin !ann !fun
   | -- This is the cutoff at which constructors won't get pointer tags
     -- See Note [Term constructor ordering and numbers]

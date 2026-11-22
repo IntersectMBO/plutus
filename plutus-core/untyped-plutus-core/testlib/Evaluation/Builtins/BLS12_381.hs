@@ -429,7 +429,7 @@ test_compression_bit_set =
     $ do
       p <- arbitraryPlcConst @g
       case evalTerm (compressTerm @g p) of
-        CekSuccess (UPLC.Constant _ (Some (ValueOf DefaultUniByteString bs))) ->
+        CekSuccess (UPLC.Constant _ (SomeValueOf DefaultUniByteString bs)) ->
           pure $ isSet compressionBit bs
         _ -> pure False
 

@@ -194,8 +194,8 @@ instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
     parens ("array" <+> agdaUnparse t)
   agdaUnparse (PLC.DefaultUniApply _ _) = error "Application of an unknown type is not supported."
 
-instance AgdaUnparse (PLC.Some (PLC.ValueOf UPLC.DefaultUni)) where
-  agdaUnparse (PLC.Some (PLC.ValueOf univ val)) =
+instance AgdaUnparse (PLC.SomeValueOf UPLC.DefaultUni) where
+  agdaUnparse (PLC.SomeValueOf univ val) =
     parens $
       "tagCon"
         <+> agdaUnparse univ

@@ -458,7 +458,7 @@ containing a negative cost. -}
 test_costsAreNeverNegative :: TestTree
 test_costsAreNeverNegative =
   testProperty "costs coming from 'memoryUsage' are never negative" $
-    BaseQC.withNumTests 1000 $ \(val :: Some (ValueOf DefaultUni)) ->
+    BaseQC.withNumTests 1000 $ \(val :: SomeValueOf DefaultUni) ->
       all (>= 0) . toCostList . flattenCostRose $ memoryUsage val
 
 test_listMemoryUsage :: TestTree

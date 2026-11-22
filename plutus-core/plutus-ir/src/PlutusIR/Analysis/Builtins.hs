@@ -54,7 +54,7 @@ data BuiltinsInfo (uni :: Type -> Type) fun = BuiltinsInfo
   { _biSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
   , _biMatcherLike :: Map.Map fun (BuiltinMatcherLike uni fun)
   , -- See Note [Unserializable constants]
-    _biUnserializableConstants :: Some (ValueOf uni) -> Bool
+    _biUnserializableConstants :: SomeValueOf uni -> Bool
   }
 
 makeLenses ''BuiltinsInfo
@@ -79,7 +79,7 @@ builtinArityInfo binfo = builtinArity (Proxy @uni) (binfo ^. biSemanticsVariant)
 constantIsSerializable
   :: forall uni fun
    . BuiltinsInfo uni fun
-  -> Some (ValueOf uni)
+  -> SomeValueOf uni
   -> Bool
 constantIsSerializable bi v = not $ _biUnserializableConstants bi v
 
@@ -199,11 +199,11 @@ defaultUniMatcherLike =
     chooseListBranchArities = [[], []]
 
 -- See Note [Unserializable constants]
-defaultUniUnserializableConstants :: Some (ValueOf DefaultUni) -> Bool
+defaultUniUnserializableConstants :: SomeValueOf DefaultUni -> Bool
 defaultUniUnserializableConstants = \case
-  Some (ValueOf DefaultUniBLS12_381_G1_Element _) -> True
-  Some (ValueOf DefaultUniBLS12_381_G2_Element _) -> True
-  Some (ValueOf DefaultUniBLS12_381_MlResult _) -> True
+  SomeValueOf DefaultUniBLS12_381_G1_Element _ -> True
+  SomeValueOf DefaultUniBLS12_381_G2_Element _ -> True
+  SomeValueOf DefaultUniBLS12_381_MlResult _ -> True
   _ -> False
 
 {- Note [Unserializable constants]

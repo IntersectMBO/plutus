@@ -56,7 +56,7 @@ instance Show (BuiltinRuntime (CkValue uni fun)) where
   show _ = "<builtin_runtime>"
 
 data CkValue uni fun
-  = VCon (Some (ValueOf uni))
+  = VCon (SomeValueOf uni)
   | VTyAbs TyName (Kind ()) (Term TyName Name uni fun ())
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
@@ -262,7 +262,7 @@ FrameCase cs : stack <| e = case e of
       HeadSpine f xs -> transferConstantSpine xs stack |> f
   _ -> throwErrorWithCause (StructuralError NonConstrScrutinizedMachineError) $ ckValueToTerm e
 
-transferConstantSpine :: Spine (Some (ValueOf uni)) -> Context uni fun -> Context uni fun
+transferConstantSpine :: Spine (SomeValueOf uni) -> Context uni fun -> Context uni fun
 transferConstantSpine args ctx = foldr ((:) . FrameAwaitFunValue . VCon) ctx args
 
 {-| Take a possibly partial builtin application and

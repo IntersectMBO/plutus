@@ -152,7 +152,7 @@ decodeTerm decodeValue version constantPred builtinPred constrPred = go
         Nothing -> fail "A non-star type can't have a value to decode"
         Just Refl ->
           case constantPred (SomeTypeIn uni) of
-            Nothing -> Constant ann . Some . ValueOf uni <$> decodeValue uni
+            Nothing -> Constant ann . SomeValueOf uni <$> decodeValue uni
             Just e -> fail e
     handleTerm 5 = Force <$> decode <*> go
     handleTerm 6 = Error <$> decode

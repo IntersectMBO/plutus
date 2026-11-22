@@ -24,6 +24,7 @@ import Normalization.Type
 import Parser.Spec qualified as Parser
 import Pretty.Readable
 import TypeSynthesis.Spec (test_typecheck)
+import Universe.Spec qualified as Universe
 import Value.Spec qualified as Value
 
 import PlutusCore
@@ -118,7 +119,7 @@ testLexConstant =
   characters, and also Latin-1 ones (characters 0-255, including standard ASCII
   from 0-127); there is also a generator for UTF8-encoded Unicode. -}
 -- TODO: replace PlutusCore.Generators.AST.genConstant with this
-genConstantForTest :: AstGen (Some (ValueOf DefaultUni))
+genConstantForTest :: AstGen (SomeValueOf DefaultUni)
 genConstantForTest =
   Gen.frequency
     [ (3, pure (someValue ()))
@@ -270,6 +271,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , NEAT.tests
     , Parser.tests
     , Value.tests
+    , Universe.tests
     , test_utils
     , FlatSpec.tests
     ]
