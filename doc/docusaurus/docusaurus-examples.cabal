@@ -99,8 +99,9 @@ executable example-builtin-array
     -fno-spec-constr -fno-specialise -fno-strictness
     -fno-unbox-small-strict-fields -fno-unbox-strict-fields
 
-executable example-builtin-value
+test-suite example-builtin-value
   import:           lang, ghc-version-support, os-support
+  type:             exitcode-stdio-1.0
   main-is:          Example/Builtin/Value/Main.hs
   hs-source-dirs:   static/code
   default-language: Haskell2010
@@ -118,19 +119,6 @@ executable example-builtin-value
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     -fno-spec-constr -fno-specialise -fno-strictness
     -fno-unbox-small-strict-fields -fno-unbox-strict-fields
-
-test-suite docusaurus-examples-test
-  import:             lang, ghc-version-support, os-support
-  type:               exitcode-stdio-1.0
-  main-is:            Spec.hs
-  hs-source-dirs:     test
-  build-depends:
-    , base         ^>=4.18
-    , process
-    , tasty
-    , tasty-hunit
-
-  build-tool-depends: docusaurus-examples:example-builtin-value
 
 executable quickstart
   import:           lang, ghc-version-support, os-support
