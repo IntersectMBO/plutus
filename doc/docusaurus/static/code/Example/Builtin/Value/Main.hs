@@ -2,24 +2,22 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:target-version=1.1.0 #-}
 
 module Main where
 
-import Control.Monad (unless)
+import Control.Monad qualified as Haskell (unless)
 import Data.ByteString (ByteString)
 import Data.Text.IO qualified as Text
 import PlutusCore.Data (Data (B, I, Map))
 import PlutusCore.Version (plcVersion110)
 import PlutusTx qualified as Plinth
 import PlutusTx.Builtins
-  ( BuiltinByteString
-  , BuiltinData
-  , assetCount
+  ( assetCount
   , dataToBuiltinData
   , keepPolicies
-  , toOpaque
   , unsafeDataAsValue
   , valueContains
   )
@@ -29,19 +27,20 @@ import PlutusTx.Eval
   , evaluatesToError
   , evaluatesWithoutError
   )
-import PlutusTx.Prelude qualified as P
+import PlutusTx.Prelude
 import System.Exit (exitFailure)
+import Prelude qualified as Haskell
 
 --------------------------------------------------------------------------------
 -- Plinth ----------------------------------------------------------------------
 
 {-| Accepts an output that still holds every token the input holds under the
 protocol's policy, and that holds at most ten distinct assets. Fails otherwise. -}
-checkOutput :: BuiltinByteString -> BuiltinData -> BuiltinData -> P.BuiltinUnit
+checkOutput :: BuiltinByteString -> BuiltinData -> BuiltinData -> BuiltinUnit
 checkOutput protocol inputValue outputValue =
-  P.check
+  check
     ( valueContains output (keepPolicies (toOpaque [protocol]) input)
-        P.&& (assetCount output P.<= 10)
+        && (assetCount output <= 10)
     )
   where
     input = unsafeDataAsValue inputValue
@@ -49,13 +48,13 @@ checkOutput protocol inputValue outputValue =
 {-# INLINEABLE checkOutput #-}
 
 compiledCheckOutput
-  :: Plinth.CompiledCode (BuiltinByteString -> BuiltinData -> BuiltinData -> P.BuiltinUnit)
+  :: Plinth.CompiledCode (BuiltinByteString -> BuiltinData -> BuiltinData -> BuiltinUnit)
 compiledCheckOutput = $$(Plinth.compile [||checkOutput||])
 
 --------------------------------------------------------------------------------
 -- Main ------------------------------------------------------------------------
 
-main :: IO ()
+main :: Haskell.IO ()
 main = do
   let input =
         value
@@ -63,13 +62,13 @@ main = do
           , ("other", [("coin", 7)])
           , ("protocol", [("state", 1)])
           ]
-      keepsState = check input (value [("", [("", 2000000)]), ("protocol", [("state", 1)])])
-      dropsState = check input (value [("", [("", 2000000)]), ("other", [("coin", 7)])])
+      keepsState = appliedCheck input (value [("", [("", 2000000)]), ("protocol", [("state", 1)])])
+      dropsState = appliedCheck input (value [("", [("", 2000000)]), ("other", [("coin", 7)])])
   Text.putStrLn . displayEvalResult . evaluateCompiledCode $ keepsState
   Text.putStrLn . displayEvalResult . evaluateCompiledCode $ dropsState
-  unless (evaluatesWithoutError keepsState && evaluatesToError dropsState) exitFailure
+  Haskell.unless (evaluatesWithoutError keepsState && evaluatesToError dropsState) exitFailure
   where
-    check input output =
+    appliedCheck input output =
       compiledCheckOutput
         `Plinth.unsafeApplyCode` Plinth.liftCode plcVersion110 "protocol"
         `Plinth.unsafeApplyCode` Plinth.liftCode plcVersion110 (dataToBuiltinData input)
