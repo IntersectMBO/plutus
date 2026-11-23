@@ -914,9 +914,10 @@ modelFun <- function(path) {
         # unionValue merges the larger map first in either argument order.
         m <- lm(t ~ pmin(x_mem, y_mem) + pmax(x_mem, y_mem) + I(x_mem * y_mem), filtered)
 
-        # The ledger model has a slope for each argument position. A shared slope
-        # bounds the fitted linear terms for every small <= large if it covers
-        # both endpoints: small = 0 (large slope) and small = large (mean slope).
+        # For smaller size s and larger size L, require k*(s+L) >= a*s + b*L,
+        # where a and b are their fitted slopes. Both sides are linear in s on [0,L].
+        # At s=0 we need k >= b, and at s=L we need k >= (a+b)/2,
+        # so the smallest shared slope is max(b, (a+b)/2).
         slopes <- m$coefficients[c("pmin(x_mem, y_mem)", "pmax(x_mem, y_mem)")]
         m$coefficients[names(slopes)] <- max(slopes[[2]], mean(slopes))
         mk.result(m, "symmetric_with_interaction")

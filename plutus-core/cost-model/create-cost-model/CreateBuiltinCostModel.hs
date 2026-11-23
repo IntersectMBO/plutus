@@ -476,12 +476,9 @@ readCF2AtType ty e = do
       ModelTwoArgumentsWithInteractionInXAndY
         <$> readTwoVariableWithInteractionFunction "x_mem" "y_mem" "x_mem:y_mem" e
     "symmetric_with_interaction" ->
-      ModelTwoArgumentsWithInteractionInXAndY
-        <$> readTwoVariableWithInteractionFunction
-          "pmin(x_mem, y_mem)"
-          "pmax(x_mem, y_mem)"
-          "I(x_mem * y_mem)"
-          e
+      let sharedSlope = "pmax(x_mem, y_mem)"
+       in ModelTwoArgumentsWithInteractionInXAndY
+            <$> readTwoVariableWithInteractionFunction sharedSlope sharedSlope "I(x_mem * y_mem)" e
     _ -> error $ "Unknown two-variable model type: " ++ ty
 
 readCF2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
