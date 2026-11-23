@@ -91,7 +91,7 @@ const config: Config = {
           type: "html",
           position: "right",
           value:
-            '<a href="https://github.com/IntersectMBO/plutus" class="github-link" target="_blank"></a>'
+            '<a href="https://github.com/IntersectMBO/plutus" class="github-link" target="_blank" aria-label="Github"></a>'
         }
       ]
     },
