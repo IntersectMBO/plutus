@@ -19,6 +19,9 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
 
+  if impl(ghc >=9.8)
+    ghc-options: -Wno-x-partial
+
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
   if !((impl(ghc >=9.6) && impl(ghc <9.7)) || (impl(ghc >=9.12) && impl(ghc <9.13)))

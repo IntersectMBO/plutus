@@ -81,6 +81,9 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
 
+  if impl(ghc >=9.8)
+    ghc-options: -Wno-x-partial
+
 ---------------- Common code for benchmarking ----------------
 
 library plutus-benchmark-common

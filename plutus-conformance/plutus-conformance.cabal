@@ -40,6 +40,9 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
 
+  if impl(ghc >=9.8)
+    ghc-options: -Wno-x-partial
+
 common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
