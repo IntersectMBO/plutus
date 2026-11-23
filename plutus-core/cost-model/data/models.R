@@ -911,8 +911,15 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        m <- lm(t ~ x_mem*y_mem, filtered)
-        mk.result(m, "with_interaction_in_x_and_y")
+        # unionValue merges the larger map first in either argument order.
+        m <- lm(t ~ pmin(x_mem, y_mem) + pmax(x_mem, y_mem) + I(x_mem * y_mem), filtered)
+
+        # The ledger model has a slope for each argument position. A shared slope
+        # bounds the fitted linear terms for every small <= large if it covers
+        # both endpoints: small = 0 (large slope) and small = large (mean slope).
+        slopes <- m$coefficients[c("pmin(x_mem, y_mem)", "pmax(x_mem, y_mem)")]
+        m$coefficients[names(slopes)] <- max(slopes[[2]], mean(slopes))
+        mk.result(m, "symmetric_with_interaction")
     }
 
     # X wrapped with `ValueTotalSize` (container total entry count)

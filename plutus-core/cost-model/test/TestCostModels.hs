@@ -552,6 +552,14 @@ main =
         $(genTest 4 "insertCoin")
       , $(genTest 3 "lookupCoin")
       , $(genTest 2 "unionValue") Everywhere
+      ,
+        ( "unionValue is symmetric"
+        , property $ do
+            x <- ExM <$> forAll memUsageGen
+            y <- ExM <$> forAll memUsageGen
+            let budget a b = sumExBudgetStream $ runCostingFunTwoArguments (paramUnionValue modelsH) a b
+            budget x y === budget y x
+        )
       , $(genTest 2 "valueContains") BelowDiagonal
       , $(genTest 1 "valueData")
       , $(genTest 1 "policies")
