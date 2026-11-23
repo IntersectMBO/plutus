@@ -21,7 +21,7 @@ common lang
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
-  if (impl(ghc <9.6) || impl(ghc >=9.7))
+  if !((impl(ghc >=9.6) && impl(ghc <9.7)) || (impl(ghc >=9.12) && impl(ghc <9.13)))
     buildable: False
 
 common os-support
@@ -52,7 +52,7 @@ executable example-cip57
   default-language: Haskell2010
   other-modules:    Paths_docusaurus_examples
   build-depends:
-    , base               ^>=4.18
+    , base               >=4.9   && <5
     , containers
     , plutus-ledger-api  ^>=1.72
     , plutus-tx          ^>=1.72
@@ -65,7 +65,7 @@ executable example-evaluation
   default-language: Haskell2010
   other-modules:    Paths_docusaurus_examples
   build-depends:
-    , base                         ^>=4.18
+    , base                         >=4.9   && <5
     , plutus-ledger-api            ^>=1.72
     , plutus-tx                    ^>=1.72
     , plutus-tx-plugin             ^>=1.72
@@ -85,7 +85,7 @@ executable example-builtin-array
   default-language: Haskell2010
   other-modules:    Paths_docusaurus_examples
   build-depends:
-    , base                         ^>=4.18
+    , base                         >=4.9   && <5
     , colourista
     , plutus-core                  ^>=1.72
     , plutus-tx                    ^>=1.72

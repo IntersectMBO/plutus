@@ -13,18 +13,22 @@ import PlutusBenchmark.Marlowe.BenchUtil
   ( rolePayoutBenchmarks
   , semanticsBenchmarks
   , tabulateResults
+  , validatorFile
   , writeFlat
   , writeFlatUPLCs
   )
 import PlutusBenchmark.Marlowe.RolePayout qualified as RolePayout
-import PlutusBenchmark.Marlowe.Scripts.Data.RolePayout qualified as DataRolePayout (rolePayoutValidator)
+import PlutusBenchmark.Marlowe.Scripts.Data.RolePayout qualified as DataRolePayout
+  ( rolePayoutValidator
+  )
 import PlutusBenchmark.Marlowe.Scripts.Data.Semantics qualified as DataSemantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Scripts.RolePayout qualified as SOPRolePayout (rolePayoutValidator)
 import PlutusBenchmark.Marlowe.Scripts.Semantics qualified as SOPSemantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Semantics qualified as Semantics
 import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
 import PlutusTx.Code (getPlc)
-import System.FilePath (normalise, (</>))
+import System.Directory (createDirectoryIfMissing)
+import System.FilePath (normalise, takeDirectory, (</>))
 
 {-
 Generates .flat files of the compiled marlowe validators.
@@ -49,14 +53,15 @@ main = do
   -- Write .flat files for validators
   let
     vs =
-      [ (semanticsUplcDir </> "validator/sop.flat", SOPSemantics.marloweValidator)
-      , (semanticsUplcDir </> "validator/data.flat", DataSemantics.marloweValidator)
-      , (rolePayoutUplcDir </> "validator/sop.flat", SOPRolePayout.rolePayoutValidator)
-      , (rolePayoutUplcDir </> "validator/data.flat", DataRolePayout.rolePayoutValidator)
+      [ (validatorFile semanticsUplcDir "sop.flat", SOPSemantics.marloweValidator)
+      , (validatorFile semanticsUplcDir "data.flat", DataSemantics.marloweValidator)
+      , (validatorFile rolePayoutUplcDir "sop.flat", SOPRolePayout.rolePayoutValidator)
+      , (validatorFile rolePayoutUplcDir "data.flat", DataRolePayout.rolePayoutValidator)
       ]
 
   for_ vs $ \(path, validator) -> do
     putStrLn $ "Writing " <> path
+    createDirectoryIfMissing True (takeDirectory path)
     writeFlat path (void . getPlc $ validator)
 
   -- Read the benchmark arguments for semantics validator

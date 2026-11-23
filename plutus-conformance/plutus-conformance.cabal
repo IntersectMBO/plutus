@@ -45,7 +45,7 @@ common os-support
     buildable: False
 
 common ghc-version-support
-  if (impl(ghc <9.6) || impl(ghc >=9.7))
+  if !((impl(ghc >=9.6) && impl(ghc <9.7)) || (impl(ghc >=9.12) && impl(ghc <9.13)))
     buildable: False
 
 library

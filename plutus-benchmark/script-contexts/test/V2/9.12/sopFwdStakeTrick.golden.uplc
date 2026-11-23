@@ -1,0 +1,545 @@
+(program
+   1.2.0
+   ((\forced
+      forced ->
+       (\`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData` ->
+          (\`$fEqStakingCredential0_$c==`
+            obsScriptCred
+            ctx ->
+             (\`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ->
+                (\`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData` ->
+                   case
+                     (case
+                        ctx
+                        [ (\ds ->
+                             case
+                               ds
+                               [ (\ds
+                                   ds ->
+                                    (\`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData` ->
+                                       (\`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` ->
+                                          (\`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData` ->
+                                             (\`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` ->
+                                                constr 0
+                                                  [ (case
+                                                       ds
+                                                       [ (\ds ->
+                                                            case
+                                                              ds
+                                                              [ (\ds
+                                                                  ds ->
+                                                                   case
+                                                                     ds
+                                                                     [ (\ds
+                                                                         ds ->
+                                                                          case
+                                                                            ds
+                                                                            [ (\ds
+                                                                                ds ->
+                                                                                 case
+                                                                                   ds
+                                                                                   [ (\ds
+                                                                                       ds ->
+                                                                                        case
+                                                                                          ds
+                                                                                          [ (\ds
+                                                                                              ds ->
+                                                                                               case
+                                                                                                 ds
+                                                                                                 [ (\ds
+                                                                                                     ds ->
+                                                                                                      case
+                                                                                                        ds
+                                                                                                        [ (\ds
+                                                                                                            ds ->
+                                                                                                             case
+                                                                                                               ds
+                                                                                                               [ (\ds
+                                                                                                                   ds ->
+                                                                                                                    case
+                                                                                                                      ds
+                                                                                                                      [ (\ds
+                                                                                                                          ds ->
+                                                                                                                           case
+                                                                                                                             ds
+                                                                                                                             [ (\ds
+                                                                                                                                 ds ->
+                                                                                                                                  case
+                                                                                                                                    ds
+                                                                                                                                    [ (\ds
+                                                                                                                                        ds ->
+                                                                                                                                         (\`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` ->
+                                                                                                                                            (\`$fUnsafeFromDataList_$cunsafeFromBuiltinData` ->
+                                                                                                                                               (\cse ->
+                                                                                                                                                  (\cse ->
+                                                                                                                                                     (\`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` ->
+                                                                                                                                                        (\cse ->
+                                                                                                                                                           (\arg_0 ->
+                                                                                                                                                              (\arg_1 ->
+                                                                                                                                                                 (\arg_2 ->
+                                                                                                                                                                    (\arg_3 ->
+                                                                                                                                                                       (\arg_4 ->
+                                                                                                                                                                          (\arg_5 ->
+                                                                                                                                                                             (\arg_6 ->
+                                                                                                                                                                                (\arg_7 ->
+                                                                                                                                                                                   constr 0
+                                                                                                                                                                                     [ arg_0
+                                                                                                                                                                                     , arg_1
+                                                                                                                                                                                     , arg_2
+                                                                                                                                                                                     , arg_3
+                                                                                                                                                                                     , arg_4
+                                                                                                                                                                                     , arg_5
+                                                                                                                                                                                     , arg_6
+                                                                                                                                                                                     , arg_7
+                                                                                                                                                                                     , (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
+                                                                                                                                                                                          unBData
+                                                                                                                                                                                          ds)
+                                                                                                                                                                                     , (case
+                                                                                                                                                                                          (constr 0
+                                                                                                                                                                                             [ `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                                                                                                                                                             , (\d ->
+                                                                                                                                                                                                  d)
+                                                                                                                                                                                             , ds ])
+                                                                                                                                                                                          [ `$fUnsafeFromDataMap_$cunsafeFromBuiltinData` ])
+                                                                                                                                                                                     , (cse
+                                                                                                                                                                                          (\d ->
+                                                                                                                                                                                             d)
+                                                                                                                                                                                          ds)
+                                                                                                                                                                                     , (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
+                                                                                                                                                                                          (forced
+                                                                                                                                                                                             ds)) ])
+                                                                                                                                                                                  (case
+                                                                                                                                                                                     ds
+                                                                                                                                                                                     [ (\ds ->
+                                                                                                                                                                                          case
+                                                                                                                                                                                            ds
+                                                                                                                                                                                            [ (\ds
+                                                                                                                                                                                                ds ->
+                                                                                                                                                                                                 constr 0
+                                                                                                                                                                                                   [ (case
+                                                                                                                                                                                                        ds
+                                                                                                                                                                                                        [ (\ds ->
+                                                                                                                                                                                                             case
+                                                                                                                                                                                                               ds
+                                                                                                                                                                                                               [ (\ds
+                                                                                                                                                                                                                   ds ->
+                                                                                                                                                                                                                    constr 0
+                                                                                                                                                                                                                      [ (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                                           unIData
+                                                                                                                                                                                                                           ds)
+                                                                                                                                                                                                                      , (case
+                                                                                                                                                                                                                           (forced
+                                                                                                                                                                                                                              ds)
+                                                                                                                                                                                                                           [ (\ds ->
+                                                                                                                                                                                                                                False)
+                                                                                                                                                                                                                           , (\ds ->
+                                                                                                                                                                                                                                True) ]) ]) ]) ])
+                                                                                                                                                                                                   , (case
+                                                                                                                                                                                                        (forced
+                                                                                                                                                                                                           ds)
+                                                                                                                                                                                                        [ (\ds ->
+                                                                                                                                                                                                             case
+                                                                                                                                                                                                               ds
+                                                                                                                                                                                                               [ (\ds
+                                                                                                                                                                                                                   ds ->
+                                                                                                                                                                                                                    constr 0
+                                                                                                                                                                                                                      [ (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                                           unIData
+                                                                                                                                                                                                                           ds)
+                                                                                                                                                                                                                      , (case
+                                                                                                                                                                                                                           (forced
+                                                                                                                                                                                                                              ds)
+                                                                                                                                                                                                                           [ (\ds ->
+                                                                                                                                                                                                                                False)
+                                                                                                                                                                                                                           , (\ds ->
+                                                                                                                                                                                                                                True) ]) ]) ]) ]) ]) ]) ]))
+                                                                                                                                                                               (case
+                                                                                                                                                                                  (constr 0
+                                                                                                                                                                                     [ `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                                                                                                                     , unIData
+                                                                                                                                                                                     , ds ])
+                                                                                                                                                                                  [ `$fUnsafeFromDataMap_$cunsafeFromBuiltinData` ]))
+                                                                                                                                                                            (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
+                                                                                                                                                                               `$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
+                                                                                                                                                                               ds))
+                                                                                                                                                                         (cse
+                                                                                                                                                                            ds))
+                                                                                                                                                                      (cse
+                                                                                                                                                                         ds))
+                                                                                                                                                                   (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
+                                                                                                                                                                      `$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
+                                                                                                                                                                      ds))
+                                                                                                                                                                (cse
+                                                                                                                                                                   ds))
+                                                                                                                                                             (cse
+                                                                                                                                                                ds))
+                                                                                                                                                          (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
+                                                                                                                                                             (\d ->
+                                                                                                                                                                case
+                                                                                                                                                                  d
+                                                                                                                                                                  [ (\ds ->
+                                                                                                                                                                       case
+                                                                                                                                                                         ds
+                                                                                                                                                                         [ (\ds
+                                                                                                                                                                             ds ->
+                                                                                                                                                                              constr 0
+                                                                                                                                                                                [ (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                                                                                                                                                                                     ds)
+                                                                                                                                                                                , (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
+                                                                                                                                                                                     (forced
+                                                                                                                                                                                        ds)) ]) ]) ])))
+                                                                                                                                                       (\eta ->
+                                                                                                                                                          case
+                                                                                                                                                            eta
+                                                                                                                                                            [ (\ds ->
+                                                                                                                                                                 case
+                                                                                                                                                                   ds
+                                                                                                                                                                   [ (\ds
+                                                                                                                                                                       ds ->
+                                                                                                                                                                        case
+                                                                                                                                                                          ds
+                                                                                                                                                                          [ (\ds
+                                                                                                                                                                              ds ->
+                                                                                                                                                                               case
+                                                                                                                                                                                 ds
+                                                                                                                                                                                 [ (\ds
+                                                                                                                                                                                     ds ->
+                                                                                                                                                                                      (\`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` ->
+                                                                                                                                                                                         constr 0
+                                                                                                                                                                                           [ (case
+                                                                                                                                                                                                ds
+                                                                                                                                                                                                [ (\ds ->
+                                                                                                                                                                                                     case
+                                                                                                                                                                                                       ds
+                                                                                                                                                                                                       [ (\ds
+                                                                                                                                                                                                           ds ->
+                                                                                                                                                                                                            constr 0
+                                                                                                                                                                                                              [ (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                                   ds)
+                                                                                                                                                                                                              , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                                   `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                                   (forced
+                                                                                                                                                                                                                      ds)) ]) ]) ])
+                                                                                                                                                                                           , (cse
+                                                                                                                                                                                                ds)
+                                                                                                                                                                                           , (case
+                                                                                                                                                                                                ds
+                                                                                                                                                                                                [ (\ds ->
+                                                                                                                                                                                                     constr 0
+                                                                                                                                                                                                       [  ])
+                                                                                                                                                                                                , (\ds ->
+                                                                                                                                                                                                     constr 2
+                                                                                                                                                                                                       [ (unBData
+                                                                                                                                                                                                            (forced
+                                                                                                                                                                                                               ds)) ])
+                                                                                                                                                                                                , (\ds ->
+                                                                                                                                                                                                     constr 1
+                                                                                                                                                                                                       [ (forced
+                                                                                                                                                                                                            ds) ]) ])
+                                                                                                                                                                                           , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                unBData
+                                                                                                                                                                                                (forced
+                                                                                                                                                                                                   ds)) ])
+                                                                                                                                                                                        (\`$dUnsafeFromData`
+                                                                                                                                                                                          d ->
+                                                                                                                                                                                           case
+                                                                                                                                                                                             d
+                                                                                                                                                                                             [ (\ds ->
+                                                                                                                                                                                                  constr 0
+                                                                                                                                                                                                    [ (`$dUnsafeFromData`
+                                                                                                                                                                                                         (forced
+                                                                                                                                                                                                            ds)) ])
+                                                                                                                                                                                             , (\ds ->
+                                                                                                                                                                                                  constr 1
+                                                                                                                                                                                                    [  ]) ])) ]) ]) ]) ]))
+                                                                                                                                                    (cse
+                                                                                                                                                       (cse
+                                                                                                                                                          unIData)))
+                                                                                                                                                 (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                                                    unBData))
+                                                                                                                                              (\`$dUnsafeFromData` ->
+                                                                                                                                                 (\go
+                                                                                                                                                   d ->
+                                                                                                                                                    go
+                                                                                                                                                      (unListData
+                                                                                                                                                         d))
+                                                                                                                                                   ((\s ->
+                                                                                                                                                       s
+                                                                                                                                                         s)
+                                                                                                                                                      (\s
+                                                                                                                                                        xs ->
+                                                                                                                                                         case
+                                                                                                                                                           xs
+                                                                                                                                                           [ (\x
+                                                                                                                                                               xs ->
+                                                                                                                                                                constr 1
+                                                                                                                                                                  [ (`$dUnsafeFromData`
+                                                                                                                                                                       x)
+                                                                                                                                                                  , (s
+                                                                                                                                                                       s
+                                                                                                                                                                       xs) ])
+                                                                                                                                                           , (constr 0
+                                                                                                                                                                [  ]) ]))))
+                                                                                                                                           (\`$dUnsafeFromData`
+                                                                                                                                             `$dUnsafeFromData` ->
+                                                                                                                                              (\go
+                                                                                                                                                d ->
+                                                                                                                                                 go
+                                                                                                                                                   (unMapData
+                                                                                                                                                      d))
+                                                                                                                                                ((\s ->
+                                                                                                                                                    s
+                                                                                                                                                      s)
+                                                                                                                                                   (\s
+                                                                                                                                                     xs ->
+                                                                                                                                                      case
+                                                                                                                                                        xs
+                                                                                                                                                        [ (\tup
+                                                                                                                                                            tups ->
+                                                                                                                                                             constr 1
+                                                                                                                                                               [ (constr 0
+                                                                                                                                                                    [ (`$dUnsafeFromData`
+                                                                                                                                                                         (case
+                                                                                                                                                                            tup
+                                                                                                                                                                            [ (\l
+                                                                                                                                                                                r ->
+                                                                                                                                                                                 l) ]))
+                                                                                                                                                                    , (`$dUnsafeFromData`
+                                                                                                                                                                         (case
+                                                                                                                                                                            tup
+                                                                                                                                                                            [ (\l
+                                                                                                                                                                                r ->
+                                                                                                                                                                                 r) ])) ])
+                                                                                                                                                               , (s
+                                                                                                                                                                    s
+                                                                                                                                                                    tups) ])
+                                                                                                                                                        , (constr 0
+                                                                                                                                                             [  ]) ])))) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ])
+                                                  , (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                       (forced ds)) ])
+                                               (\d ->
+                                                  case
+                                                    d
+                                                    [ (\ds ->
+                                                         constr 1
+                                                           [ (unBData
+                                                                (forced ds)) ])
+                                                    , (\ds ->
+                                                         constr 3
+                                                           [ (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                                                                (forced ds)) ])
+                                                    , (\ds ->
+                                                         constr 2
+                                                           [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                (forced ds)) ])
+                                                    , (\ds ->
+                                                         constr 0
+                                                           [ (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
+                                                                (forced
+                                                                   ds)) ]) ]))
+                                            (\d ->
+                                               case
+                                                 d
+                                                 [ (\ds ->
+                                                      constr 2
+                                                        [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                             (forced ds)) ])
+                                                 , (\ds ->
+                                                      constr 0
+                                                        [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                             (forced ds)) ])
+                                                 , (\ds ->
+                                                      case
+                                                        ds
+                                                        [ (\ds
+                                                            ds ->
+                                                             constr 1
+                                                               [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                    ds)
+                                                               , (unBData
+                                                                    (forced
+                                                                       ds)) ]) ])
+                                                 , (\ds ->
+                                                      case
+                                                        ds
+                                                        [ (\ds
+                                                            ds ->
+                                                             constr 5
+                                                               [ (unBData ds)
+                                                               , (unBData
+                                                                    (forced
+                                                                       ds)) ]) ])
+                                                 , (\ds ->
+                                                      case
+                                                        ds
+                                                        [ (\ds
+                                                            ds ->
+                                                             constr 6
+                                                               [ (unBData ds)
+                                                               , (unIData
+                                                                    (forced
+                                                                       ds)) ]) ])
+                                                 , (\ds -> constr 3 [])
+                                                 , (\ds -> constr 4 []) ]))
+                                         (\d ->
+                                            case
+                                              d
+                                              [ (\ds ->
+                                                   case
+                                                     ds
+                                                     [ (\ds
+                                                         ds ->
+                                                          constr 0
+                                                            [ (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
+                                                                 ds)
+                                                            , (unIData
+                                                                 (forced
+                                                                    ds)) ]) ]) ]))
+                                      (\d ->
+                                         case
+                                           d
+                                           [ (\ds ->
+                                                unBData (forced ds)) ])) ]) ])
+                     [ (\ds
+                         ds ->
+                          case
+                            ds
+                            [ (\ds
+                                ds
+                                ds
+                                ds
+                                ds
+                                ds
+                                ds
+                                ds
+                                ds
+                                ds
+                                ds
+                                ds ->
+                                 (\`$j` ->
+                                    case
+                                      ds
+                                      [ ((\x -> case error [(\a ds -> `$j` a)])
+                                           (forced "PT8" ()))
+                                      , (\x ds -> case x [(\a ds -> `$j` a)]) ])
+                                   (\a ->
+                                      (\`$j` ->
+                                         case
+                                           ds
+                                           [ (`$j`
+                                                ((\x -> error)
+                                                   (forced "PT9" ())))
+                                           , (\ds as -> `$j` as) ])
+                                        (\rest ->
+                                           (\`$j` ->
+                                              case
+                                                rest
+                                                [ ((\x ->
+                                                      case
+                                                        error
+                                                        [(\a ds -> `$j` a)])
+                                                     (forced "PT8" ()))
+                                                , (\x ds ->
+                                                     case
+                                                       x
+                                                       [(\a ds -> `$j` a)]) ])
+                                             (\a ->
+                                                (\obsScriptCred' ->
+                                                   (\go ->
+                                                      (\cse ->
+                                                         case
+                                                           (cse a)
+                                                           [ (case
+                                                                (cse a)
+                                                                [(go ds), ()])
+                                                           , () ])
+                                                        (`$fEqStakingCredential0_$c==`
+                                                           obsScriptCred'))
+                                                     ((\s ->
+                                                         s s)
+                                                        (\s
+                                                          ds ->
+                                                           case
+                                                             ds
+                                                             [ ((\x -> error)
+                                                                  (forced
+                                                                     "not found"
+                                                                     ()))
+                                                             , (\ds
+                                                                 xs' ->
+                                                                  case
+                                                                    ds
+                                                                    [ (\c'
+                                                                        i ->
+                                                                         case
+                                                                           (`$fEqStakingCredential0_$c==`
+                                                                              c'
+                                                                              obsScriptCred')
+                                                                           [ (s
+                                                                                s
+                                                                                xs')
+                                                                           , () ]) ]) ])))
+                                                  (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                     obsScriptCred))))) ]) ])
+                  (\d ->
+                     case
+                       d
+                       [ (\ds ->
+                            constr 0
+                              [ (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                   (forced ds)) ])
+                       , (\ds ->
+                            case
+                              ds
+                              [ (\ds ds ->
+                                   case
+                                     ds
+                                     [ (\ds ds ->
+                                          constr 1
+                                            [ (unIData ds)
+                                            , (unIData ds)
+                                            , (unIData (forced ds)) ]) ]) ]) ]))
+               (\d ->
+                  case
+                    d
+                    [ (\ds -> constr 0 [(unBData (forced ds))])
+                    , (\ds -> constr 1 [(unBData (forced ds))]) ]))
+            (\ds ds ->
+               case
+                 ds
+                 [ (\l1l ->
+                      case
+                        ds
+                        [ (\r1r ->
+                             case
+                               l1l
+                               [ (\l1l ->
+                                    case
+                                      r1r
+                                      [ (\r1r -> equalsByteString l1l r1r)
+                                      , (\ipv -> False) ])
+                               , (\l1l ->
+                                    case
+                                      r1r
+                                      [ (\ipv -> False)
+                                      , (\r1r -> equalsByteString l1l r1r) ]) ])
+                        , (\ipv ipv ipv -> False) ])
+                 , (\l1l l2l l3l ->
+                      case
+                        ds
+                        [ (\ipv -> False)
+                        , (\r1r r2r r3r ->
+                             case
+                               (equalsInteger l1l r1r)
+                               [ False
+                               , (case
+                                    (equalsInteger l2l r2r)
+                                    [False, (equalsInteger l3l r3r)]) ]) ]) ]))
+         (\`$dUnsafeFromData` d ->
+            case
+              d
+              [ (\ds -> constr 1 [])
+              , (\ds -> constr 0 [(`$dUnsafeFromData` (forced ds))])
+              , (\ds -> constr 2 []) ]))
+      (force headList)
+      (force trace)))

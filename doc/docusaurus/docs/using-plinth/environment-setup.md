@@ -7,7 +7,9 @@ sidebar_position: 5
 Plinth is a subset of Haskell, so configuring the development environment for Plinth is similar to a regular Haskell environment setup.
 However, there are a few additional requirements:
 
-- Plinth supports a specific major version of GHC (currently 9.6).
+- Plinth supports specific major versions of GHC: currently 9.6 and 9.12.
+  These are the version used by the current Cardano node and the next version the node is expected to adopt.
+  The same Plinth code may compile to different scripts under different GHC versions; see [Understanding Script Hashes](../delve-deeper/understanding-script-hashes.md).
 - You’ll need some specific packages, such as `plutus-tx` and `plutus-tx-plugin`, which are hosted on the [Cardano Haskell Package repository](https://github.com/IntersectMBO/cardano-haskell-packages) (CHaP), rather than Hackage, Haskell's default package archive.
 - You'll also need a few C libraries such as `secp256k1` and `blst`, which are required by the `plutus-tx` library.
 
