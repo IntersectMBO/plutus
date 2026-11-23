@@ -822,6 +822,10 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
         m <- lm(t ~ y_mem + z_mem, filtered)
+        # Swapping the bytestrings preserves the copy and traversal lengths.
+        # Use the larger slope to cover the fitted cost in either order.
+        slopes <- c("y_mem", "z_mem")
+        m$coefficients[slopes] <- max(coef(m)[slopes])
         mk.result(m, "linear_in_y_and_z")
     }
     orByteStringModel         <- andByteStringModel
