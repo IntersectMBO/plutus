@@ -219,18 +219,18 @@ returnCek (FrameCases ann env cs ctx) e = case e of
   -- "apparently good" value.
   (VConstr i _)
     | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
-        throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+        throwErrorWithValue (StructuralError $ MissingCaseBranchMachineError i) e
   (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
     Just t ->
       case args of
         EmptyStack -> computeCek ctx env t
         MultiStack rest -> computeCek (FrameAwaitFunValueN ann rest ctx) env t
-    Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+    Nothing -> throwErrorWithValue (StructuralError $ MissingCaseBranchMachineError i) e
   VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
-    HeadError err -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+    HeadError err -> throwErrorWithValue (OperationalError $ CekCaseBuiltinError err) e
     HeadOnly fX -> pure $ Computing ctx env fX
     HeadSpine f xs -> pure $ Computing (FrameAwaitFunConN ann xs ctx) env f
-  _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
+  _ -> throwErrorWithValue (StructuralError NonConstrScrutinizedMachineError) e
 
 {-| @force@ a term and proceed.
 If v is a delay then compute the body of v;
@@ -258,9 +258,9 @@ forceEvaluate !ctx (VBuiltin fun term runtime) = do
       -- application.
       evalBuiltinApp ctx fun term' runtime'
     _ ->
-      throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) term'
+      throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) (Builtin () fun)
 forceEvaluate !_ val =
-  throwErrorDischarged (StructuralError NonPolymorphicInstantiationMachineError) val
+  throwErrorWithValue (StructuralError NonPolymorphicInstantiationMachineError) val
 
 {-| Apply a function to an argument and proceed.
 If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
@@ -290,9 +290,9 @@ applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
     -- argument next.
     BuiltinExpectArgument f -> evalBuiltinApp ctx fun term' $ f arg
     _ ->
-      throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
+      throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) (Builtin () fun)
 applyEvaluate !_ val _ =
-  throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
+  throwErrorWithValue (StructuralError NonFunctionalApplicationMachineError) val
 
 -- MAYBE: runCekDeBruijn can be shared between original&debug ceks by passing a `enterComputeCek` func.
 runCekDeBruijn
@@ -447,15 +447,6 @@ cekStepCost costs =
     BConstr -> cekConstrCost costs
     BCase -> cekCaseCost costs
 
-{-| Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
-'throwErrorWithCause' as the cause of the failure. -}
-throwErrorDischarged
-  :: ThrowableBuiltins uni fun
-  => EvaluationError (MachineError fun) CekUserError
-  -> CekValue uni fun ann
-  -> CekM uni fun s x
-throwErrorDischarged err = throwErrorWithCause err . dischargeResultToTerm . dischargeCekValue
-
 -- | Look up a variable name in the environment.
 lookupVarName
   :: forall uni fun ann s
@@ -497,7 +488,7 @@ evalBuiltinApp ctx fun term runtime = case runtime of
         returnCek ctx y
       BuiltinFailure logs err -> do
         ?cekEmitter logs
-        throwBuiltinErrorWithCause term err
+        throwBuiltinErrorWithCause (Builtin () fun) err
   _ -> returnCek ctx $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
