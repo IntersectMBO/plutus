@@ -344,7 +344,7 @@ maxUnionValueEntries = 50_000
 {-| Generate argument pairs for UnionValue benchmarking.
 The worst case is when both Values share as many keys as possible,
 so we generate a sub-value of a larger Value. Benchmarking the same pair in
-both orders measures the cost of swapping the arguments.
+both orders checks whether argument order affects the running time.
 Experiments have also shown that the worst case execution time for UnionValue
 occurs for flat maps with a single token name per policy ID.
 Therefore, we fix the number of token names to 1 for both Values.

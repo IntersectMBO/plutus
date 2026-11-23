@@ -1,3 +1,3 @@
 ### Changed
 
-- The default CPU cost of `unionValue` is the same in both argument orders.
+- The default CPU cost of `unionValue` was recalibrated to charge the same amount in both argument orders.
