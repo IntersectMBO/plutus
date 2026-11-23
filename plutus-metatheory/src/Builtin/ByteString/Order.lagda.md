@@ -96,11 +96,7 @@ data _<_ : ByteString → ByteString → Set where
   []<∷  : ∀ {y ys}      → [] < y ∷ ys
   head< : ∀ {x y xs ys} → x Byte.< y → x ∷ xs < y ∷ ys
   tail< : ∀ {x xs ys}   → xs < ys → x ∷ xs < x ∷ ys
-```
 
-The lexicographic extension of a strict total order is again a strict total order.
-
-```
 <-irrefl : Irreflexive _≡_ _<_
 <-irrefl refl (head< x<x)   = Byte.<-irrefl refl x<x
 <-irrefl refl (tail< xs<xs) = <-irrefl refl xs<xs
