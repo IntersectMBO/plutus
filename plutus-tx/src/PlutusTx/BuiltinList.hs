@@ -48,6 +48,12 @@ module PlutusTx.BuiltinList
   , nub
   , nubBy
   , zipWith
+  , partition
+  , sort
+  , sortBy
+  , splitAt
+  , zip
+  , unzip
   ) where
 
 import PlutusTx.Builtins qualified as B
@@ -282,28 +288,28 @@ reverse xs = revAppend xs empty
 {-# INLINEABLE reverse #-}
 
 -- | Plutus Tx version of 'Data.List.zip' for 'BuiltinList'.
-_zip
+zip
   :: forall a b
    . (MkNil a, MkNil b)
   => BuiltinList a
   -> BuiltinList b
   -> BuiltinList (BuiltinPair a b)
-_zip = zipWith (curry BI.BuiltinPair)
-{-# INLINEABLE _zip #-}
+zip = zipWith (curry BI.BuiltinPair)
+{-# INLINEABLE zip #-}
 
 -- | Plutus Tx version of 'Data.List.unzip' for 'BuiltinList'.
-_unzip
+unzip
   :: forall a b
    . (MkNil a, MkNil b)
   => BuiltinList (BuiltinPair a b)
   -> BuiltinPair (BuiltinList a) (BuiltinList b)
-_unzip =
+unzip =
   caseList'
     emptyPair
     ( \p l -> do
         let x = BI.fst p
         let y = BI.snd p
-        let l' = _unzip l
+        let l' = unzip l
         let xs' = BI.fst l'
         let ys' = BI.snd l'
         BI.BuiltinPair (x <| xs', y <| ys')
@@ -311,7 +317,7 @@ _unzip =
   where
     emptyPair :: BuiltinPair (BuiltinList a) (BuiltinList b)
     emptyPair = BI.BuiltinPair (empty, empty)
-{-# INLINEABLE _unzip #-}
+{-# INLINEABLE unzip #-}
 
 -- | Plutus Tx version of 'Data.List.head' for 'BuiltinList'.
 head :: forall a. BuiltinList a -> a
@@ -357,20 +363,20 @@ drop n l
 {-# INLINEABLE drop #-}
 
 -- | Plutus Tx version of 'Data.List.splitAt' for 'BuiltinList'.
-_splitAt
+splitAt
   :: forall a
    . MkNil a
   => Integer
   -> BuiltinList a
   -> BuiltinPair (BuiltinList a) (BuiltinList a)
-_splitAt n xs
+splitAt n xs
   | n `B.lessThanEqualsInteger` 0 = BI.BuiltinPair (empty, xs)
   | B.null xs = BI.BuiltinPair (empty, empty)
   | otherwise = do
       let (x, xs') = B.unsafeUncons xs
-      let BI.BuiltinPair (xs'', xs''') = _splitAt (n `B.subtractInteger` 1) xs'
+      let BI.BuiltinPair (xs'', xs''') = splitAt (n `B.subtractInteger` 1) xs'
       BI.BuiltinPair (x <| xs'', xs''')
-{-# INLINEABLE _splitAt #-}
+{-# INLINEABLE splitAt #-}
 
 -- | Plutus Tx version of 'Data.List.nub' for 'BuiltinList'.
 nub :: forall a. (Eq a, MkNil a) => BuiltinList a -> BuiltinList a
@@ -443,26 +449,26 @@ replicate n0 x = go n0
 {-# INLINEABLE replicate #-}
 
 -- | Plutus Tx version of 'Data.List.partition' for 'BuiltinList'.
-_partition
+partition
   :: forall a
    . MkNil a
   => (a -> Bool)
   -> BuiltinList a
   -> BuiltinPair (BuiltinList a) (BuiltinList a)
-_partition p = BI.BuiltinPair . foldr select (empty, empty)
+partition p = BI.BuiltinPair . foldr select (empty, empty)
   where
     select :: a -> (BuiltinList a, BuiltinList a) -> (BuiltinList a, BuiltinList a)
     select x ~(ts, fs) = if p x then (x <| ts, fs) else (ts, x <| fs)
-{-# INLINEABLE _partition #-}
+{-# INLINEABLE partition #-}
 
 -- | Plutus Tx version of 'Data.List.sort' for 'BuiltinList'.
-_sort :: (MkNil a, Ord a) => BuiltinList a -> BuiltinList a
-_sort = _sortBy compare
-{-# INLINEABLE _sort #-}
+sort :: (MkNil a, Ord a) => BuiltinList a -> BuiltinList a
+sort = sortBy compare
+{-# INLINEABLE sort #-}
 
 -- | Plutus Tx version of 'Data.List.sortBy' for 'BuiltinList'.
-_sortBy :: MkNil a => (a -> a -> Ordering) -> BuiltinList a -> BuiltinList a
-_sortBy cmp = mergeAll . sequences
+sortBy :: MkNil a => (a -> a -> Ordering) -> BuiltinList a -> BuiltinList a
+sortBy cmp = mergeAll . sequences
   where
     sequences = caseList'' empty (singleton . singleton) f
       where
@@ -511,4 +517,4 @@ _sortBy cmp = mergeAll . sequences
 
     caseList'' :: forall a r. r -> (a -> r) -> (a -> a -> BuiltinList a -> r) -> BuiltinList a -> r
     caseList'' f0 f1 f2 = caseList' f0 (\x xs -> caseList' (f1 x) (\y ys -> f2 x y ys) xs)
-{-# INLINEABLE _sortBy #-}
+{-# INLINEABLE sortBy #-}
