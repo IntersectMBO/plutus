@@ -919,8 +919,14 @@ modelFun <- function(path) {
         # At s=0 we need k >= b, and at s=L we need k >= (a+b)/2,
         # so the smallest shared slope is max(b, (a+b)/2).
         slopes <- m$coefficients[c("pmin(x_mem, y_mem)", "pmax(x_mem, y_mem)")]
-        m$coefficients[names(slopes)] <- max(slopes[[2]], mean(slopes))
-        mk.result(m, "symmetric_with_interaction")
+        k <- max(slopes[[2]], mean(slopes))
+
+        # The ledger model has positional coefficients. Use the shared slope for both.
+        positional <- lm(t ~ x_mem * y_mem, filtered)
+        positional$coefficients <- c("(Intercept)" = m$coefficients[["(Intercept)"]],
+                                     "x_mem" = k, "y_mem" = k,
+                                     "x_mem:y_mem" = m$coefficients[["I(x_mem * y_mem)"]])
+        mk.result(positional, "with_interaction_in_x_and_y")
     }
 
     # X wrapped with `ValueTotalSize` (container total entry count)

@@ -395,13 +395,12 @@ readTwoVariableLinearFunction var1 var2 e = do
   pure $ TwoVariableLinearFunction intercept slopeX slopeY
 
 readTwoVariableWithInteractionFunction
-  :: MonadR m
-  => String -> String -> String -> SomeSEXP (Region m) -> m TwoVariableWithInteractionFunction
-readTwoVariableWithInteractionFunction var1 var2 interaction e = do
+  :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableWithInteractionFunction
+readTwoVariableWithInteractionFunction var1 var2 e = do
   c00 <- Coefficient00 <$> getCoeff "(Intercept)" e
   c10 <- Coefficient10 <$> getCoeff var1 e
   c01 <- Coefficient01 <$> getCoeff var2 e
-  c11 <- Coefficient11 <$> getCoeff interaction e
+  c11 <- Coefficient11 <$> getCoeff (printf "%s:%s" var1 var2) e
   pure $ TwoVariableWithInteractionFunction c00 c10 c01 c11
 
 readTwoVariableQuadraticFunction
@@ -473,12 +472,7 @@ readCF2AtType ty e = do
     "quadratic_in_y" -> ModelTwoArgumentsQuadraticInY <$> readOneVariableQuadraticFunction "y_mem" e
     "quadratic_in_x_and_y" -> ModelTwoArgumentsQuadraticInXAndY <$> readTwoVariableQuadraticFunction "x_mem" "y_mem" e
     "with_interaction_in_x_and_y" ->
-      ModelTwoArgumentsWithInteractionInXAndY
-        <$> readTwoVariableWithInteractionFunction "x_mem" "y_mem" "x_mem:y_mem" e
-    "symmetric_with_interaction" ->
-      let sharedSlope = "pmax(x_mem, y_mem)"
-       in ModelTwoArgumentsWithInteractionInXAndY
-            <$> readTwoVariableWithInteractionFunction sharedSlope sharedSlope "I(x_mem * y_mem)" e
+      ModelTwoArgumentsWithInteractionInXAndY <$> readTwoVariableWithInteractionFunction "x_mem" "y_mem" e
     _ -> error $ "Unknown two-variable model type: " ++ ty
 
 readCF2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
