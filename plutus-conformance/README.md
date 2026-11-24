@@ -79,6 +79,40 @@ By default this overwrites the `.uplc.expected` (and `.budget.expected`) files, 
 
 `cabal test haskell-conformance --test-options="--format=flat --accept"`
 
+## Generated test cases
+
+Besides the checked-in cases, a tree of cases in the same layout can be
+generated from the builtin property tests with the
+[`generate-conformance-tests`](../plutus-executables/executables/generate-conformance-tests/README.md)
+tool in the `plutus-executables` package:
+
+`cabal run generate-conformance-tests -- --output-dir /tmp/cases --num-files 50`
+
+The generated tree has the same structure as `test-cases/uplc/evaluation`:
+directories containing `<name>.uplc` and/or `<name>.flat`, a matching
+`.uplc.expected`/`.flat.expected` golden file and a `.budget.expected` file.
+At its root it also writes `info.json`, which records the generation options,
+the cost-model parameters used for the budgets, a timestamp, and counts, plus a
+`completeTree` flag that is true only when the directory is exactly the output
+of that unfiltered run. The tool refuses to write into a non-empty
+directory unless `--force` is given. Each case is checked against the property
+it came from before it is written, so a reference implementation that
+contradicts a property stops generation instead of being recorded as expected
+behaviour.
+
+The standard test runners always discover cases under `test-cases/uplc/evaluation`,
+so a generated tree is either copied there or fed to `discoverTests` directly.
+The `generated-conformance-cases-roundtrip` test suite does the latter: it
+generates a small sample, using both check modes, and runs it through the same
+discovery and golden comparison as the checked-in cases, in both textual and Flat
+formats; it also checks that `info.json` is consistent with the files written:
+
+`cabal test generated-conformance-cases-roundtrip`
+
+Generated cases record expected results and budgets, not the relational
+assertions of the properties they come from, and some properties are expensive
+per case; see the tool's README for details.
+
 ## The Plutus Conformance Test Suite Library
 
 The library provides functions that users can import and run conformance tests with their own implementation. At the moment the tests can only be run against another Haskell implementation. More support will be added later. Of course, one can wrap an arbitrary executable in Haskell. See the [typed-process tutorial](https://github.com/fpco/typed-process#readme) and [the related documentation](https://www.stackage.org/haddock/lts-19.11/typed-process-0.2.10.1/System-Process-Typed.html).
