@@ -18,7 +18,7 @@ open import Data.List using ([]; _∷_)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (_×_; _,_)
 open import Data.Integer using (ℤ; +_; -_)
-open import Data.Nat using (s≤s; z≤n)
+open import Data.Nat using (ℕ; _<_; _^_; _∸_; s≤s; z≤n)
 open import Data.Unit using (⊤)
 open import Relation.Binary.Definitions using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
@@ -26,6 +26,7 @@ open import Relation.Nullary using (yes; no; isYes)
 
 import Data.Integer as ℤ
 import Data.List as L
+import Data.Nat as ℕ
 import Builtin.ByteString.Base as BS
 
 open import Builtin.Binary using (natToByte)
@@ -128,9 +129,17 @@ chooseData (B _)        _ _ _ _ b = b
 
 The builtins that build `Data` are its constructors.
 
+`constrData` fails unless the input integer fits in an unsigned 64-bit integer.
+
 ```
-constrData : ℤ → L.List Data → Data
-constrData = Constr
+constrData : ℤ → L.List Data → Maybe Data
+constrData (+ n) ds with n ℕ.<? 2 ^ 64
+... | yes p = just (mkConstr n p ds)
+  where
+    mkConstr : (n : ℕ) → .(n < 2 ^ 64) → L.List Data → Data
+    mkConstr n _ ds = Constr (+ n) ds
+... | no _  = nothing
+constrData (ℤ.-[1+ _ ]) _ = nothing
 
 mapData : L.List (Data × Data) → Data
 mapData = Map
@@ -230,6 +239,19 @@ private
   _ = refl
 
   _ : chooseData (B b₀) 0 1 2 3 4 ≡ 4
+  _ = refl
+
+  -- `constrData` accepts exactly the tags that fit in an unsigned 64-bit integer.
+  _ : constrData (+ 0) [] ≡ just (Constr (+ 0) [])
+  _ = refl
+
+  _ : constrData (+ (2 ^ 64 ∸ 1)) [] ≡ just (Constr (+ (2 ^ 64 ∸ 1)) [])
+  _ = refl
+
+  _ : constrData (+ (2 ^ 64)) [] ≡ nothing
+  _ = refl
+
+  _ : constrData (- (+ 1)) [] ≡ nothing
   _ = refl
 
   -- Inspecting gives the arguments of the right constructor, and fails otherwise.
