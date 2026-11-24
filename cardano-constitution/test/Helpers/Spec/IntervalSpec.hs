@@ -7,7 +7,7 @@ import Helpers.Intervals
 import Test.Tasty
 
 -- import Test.QuickCheck.Property (Result(testCase))
-import Data.List (foldl')
+import Data.List qualified as List
 import Data.Ratio
 import Helpers.TestBuilders
 import Test.Tasty.HUnit
@@ -24,7 +24,7 @@ intervalTest domain' constraints expected =
       @?= expected
   where
     testStr = inputStr ++ " => " ++ expectedStr
-    inputStr = removeLastAnd $ foldl' f "not: " constraints
+    inputStr = removeLastAnd $ List.foldl' f "not: " constraints
     f acc (NL a) = acc ++ "(< " ++ show a ++ ") && "
     f acc (NG a) = acc ++ "( > " ++ show a ++ ") && "
     f acc (NEQ a) = acc ++ "(!= " ++ show a ++ ") && "
@@ -79,9 +79,9 @@ internalTests =
             gapsWithinRange @Rational (-1, 1) [NL (50 % 100), NG (100 % 100), NL (65 % 100), NG (90 % 100)]
               @?= [(Closed (65 % 100), Closed (90 % 100))]
         , TSQ.testProperty
-            "[NL (50 % 100), NG (100 % 100), NL (65 % 100) , NG (90 % 100) ] should generate within the boundaries" $
-            TSQ.forAll (rationalGenerator [NL (50 % 100), NG (100 % 100), NL (65 % 100), NG (90 % 100)]) $
-              \x -> x >= 65 % 100 && x <= 90 % 100
+            "[NL (50 % 100), NG (100 % 100), NL (65 % 100) , NG (90 % 100) ] should generate within the boundaries"
+            $ TSQ.forAll (rationalGenerator [NL (50 % 100), NG (100 % 100), NL (65 % 100), NG (90 % 100)])
+            $ \x -> x >= 65 % 100 && x <= 90 % 100
         , TSQ.testProperty "rationals should be generated within the boundaries" $
             TSQ.forAll (choose' @Rational (0, 1)) $
               \x -> x >= 0 && x <= 100

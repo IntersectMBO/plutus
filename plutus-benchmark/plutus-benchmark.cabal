@@ -19,9 +19,11 @@ data-files:
   common/templates/*.tpl
   force-delay/data/*.flat
   marlowe/scripts/rolepayout/*.benchmark
-  marlowe/scripts/rolepayout/validator/*.flat
+  marlowe/scripts/rolepayout/validator/9.12/*.flat
+  marlowe/scripts/rolepayout/validator/9.6/*.flat
   marlowe/scripts/semantics/*.benchmark
-  marlowe/scripts/semantics/validator/*.flat
+  marlowe/scripts/semantics/validator/9.12/*.flat
+  marlowe/scripts/semantics/validator/9.6/*.flat
   validation/data/*.flat
 
 source-repository head
@@ -42,7 +44,7 @@ source-repository head
 -- environment" if e.g. the nix shell supplies an unsupported GCH version.  See
 -- the section on GHC versions in `CONTRIBUTING.md`.
 common ghc-version-support
-  if (impl(ghc <9.6) || impl(ghc >=9.7))
+  if !((impl(ghc >=9.6) && impl(ghc <9.7)) || (impl(ghc >=9.12) && impl(ghc <9.13)))
     buildable: False
 
 common os-support
@@ -78,6 +80,9 @@ common lang
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
+
+  if impl(ghc >=9.8)
+    ghc-options: -Wno-x-partial
 
 ---------------- Common code for benchmarking ----------------
 
@@ -626,6 +631,7 @@ executable marlowe-validators
     , base16-bytestring
     , bytestring
     , cardano-binary
+    , directory
     , filepath
     , marlowe-internal
     , plutus-benchmark-common
