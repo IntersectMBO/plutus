@@ -3,6 +3,7 @@
 module Main (main) where
 
 import Cardano.Binary (serialize')
+import Control.Monad (unless)
 import Data.ByteString qualified as BS (writeFile)
 import Data.ByteString.Base16 qualified as B16 (encode)
 import Data.Foldable
@@ -13,18 +14,23 @@ import PlutusBenchmark.Marlowe.BenchUtil
   ( rolePayoutBenchmarks
   , semanticsBenchmarks
   , tabulateResults
+  , validatorFile
   , writeFlat
   , writeFlatUPLCs
   )
 import PlutusBenchmark.Marlowe.RolePayout qualified as RolePayout
-import PlutusBenchmark.Marlowe.Scripts.Data.RolePayout qualified as DataRolePayout (rolePayoutValidator)
+import PlutusBenchmark.Marlowe.Scripts.Data.RolePayout qualified as DataRolePayout
+  ( rolePayoutValidator
+  )
 import PlutusBenchmark.Marlowe.Scripts.Data.Semantics qualified as DataSemantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Scripts.RolePayout qualified as SOPRolePayout (rolePayoutValidator)
 import PlutusBenchmark.Marlowe.Scripts.Semantics qualified as SOPSemantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Semantics qualified as Semantics
 import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
 import PlutusTx.Code (getPlc)
-import System.FilePath (normalise, (</>))
+import System.Directory (createDirectoryIfMissing)
+import System.Environment (getArgs)
+import System.FilePath (normalise, takeDirectory, (</>))
 
 {-
 Generates .flat files of the compiled marlowe validators.
@@ -33,9 +39,13 @@ Additionally:
 - Generates .flat files of validators applied to a all benchmark arguments
 - Saves the validators to .plutus files in base-16 encoded CBOR format
 - Writes .tsv files with tables of the reference costs
+
+With @--validators-only@, only the validator .flat files are written: these are
+the fixtures the golden tests read, and they are kept per GHC version.
 -}
 main :: IO ()
 main = do
+  validatorsOnly <- ("--validators-only" `elem`) <$> getArgs
   dir <- normalise <$> getDataDir
 
   let semanticsUplcDir = dir </> "marlowe/scripts/semantics"
@@ -49,57 +59,60 @@ main = do
   -- Write .flat files for validators
   let
     vs =
-      [ (semanticsUplcDir </> "validator/sop.flat", SOPSemantics.marloweValidator)
-      , (semanticsUplcDir </> "validator/data.flat", DataSemantics.marloweValidator)
-      , (rolePayoutUplcDir </> "validator/sop.flat", SOPRolePayout.rolePayoutValidator)
-      , (rolePayoutUplcDir </> "validator/data.flat", DataRolePayout.rolePayoutValidator)
+      [ (validatorFile semanticsUplcDir "sop.flat", SOPSemantics.marloweValidator)
+      , (validatorFile semanticsUplcDir "data.flat", DataSemantics.marloweValidator)
+      , (validatorFile rolePayoutUplcDir "sop.flat", SOPRolePayout.rolePayoutValidator)
+      , (validatorFile rolePayoutUplcDir "data.flat", DataRolePayout.rolePayoutValidator)
       ]
 
   for_ vs $ \(path, validator) -> do
     putStrLn $ "Writing " <> path
+    createDirectoryIfMissing True (takeDirectory path)
     writeFlat path (void . getPlc $ validator)
 
-  -- Read the benchmark arguments for semantics validator
-  benchmarks <- either error id <$> semanticsBenchmarks
+  -- Benchmark reports and exports: written to paths shared by all GHC versions.
+  unless validatorsOnly $ do
+    -- Read the benchmark arguments for semantics validator
+    benchmarks <- either error id <$> semanticsBenchmarks
 
-  -- Write the tabulation of semantics benchmark results.
-  writeFile semanticsValidatorResults . unlines . (intercalate "\t" <$>) $
-    tabulateResults
+    -- Write the tabulation of semantics benchmark results.
+    writeFile semanticsValidatorResults . unlines . (intercalate "\t" <$>) $
+      tabulateResults
+        "Semantics"
+        Semantics.validatorHash
+        Semantics.validatorBytes
+        benchmarks
+
+    -- Write the flat UPLC files for the semantics benchmarks.
+    writeFlatUPLCs Semantics.writeUPLC benchmarks semanticsUplcDir
+
+    -- Print the semantics validator, and write the plutus file.
+    printValidator
       "Semantics"
+      semanticsValidatorExportDir
       Semantics.validatorHash
       Semantics.validatorBytes
-      benchmarks
 
-  -- Write the flat UPLC files for the semantics benchmarks.
-  writeFlatUPLCs Semantics.writeUPLC benchmarks semanticsUplcDir
+    -- Read the role-payout benchmarks.
+    benchmarks' <- either error id <$> rolePayoutBenchmarks
 
-  -- Print the semantics validator, and write the plutus file.
-  printValidator
-    "Semantics"
-    semanticsValidatorExportDir
-    Semantics.validatorHash
-    Semantics.validatorBytes
+    -- Write the tabulation of role-payout benchmark results.
+    writeFile rolePayoutValidatorResults . unlines . (intercalate "\t" <$>) $
+      tabulateResults
+        "Role Payout"
+        RolePayout.validatorHash
+        RolePayout.validatorBytes
+        benchmarks'
 
-  -- Read the role-payout benchmarks.
-  benchmarks' <- either error id <$> rolePayoutBenchmarks
+    -- Write the flat UPLC files for the role-payout benchmarks.
+    writeFlatUPLCs RolePayout.writeUPLC benchmarks' rolePayoutUplcDir
 
-  -- Write the tabulation of role-payout benchmark results.
-  writeFile rolePayoutValidatorResults . unlines . (intercalate "\t" <$>) $
-    tabulateResults
-      "Role Payout"
+    -- Print the role-payout validator, and write the plutus file.
+    printValidator
+      "Role payout"
+      rolePayoutValidatorExportDir
       RolePayout.validatorHash
       RolePayout.validatorBytes
-      benchmarks'
-
-  -- Write the flat UPLC files for the role-payout benchmarks.
-  writeFlatUPLCs RolePayout.writeUPLC benchmarks' rolePayoutUplcDir
-
-  -- Print the role-payout validator, and write the plutus file.
-  printValidator
-    "Role payout"
-    rolePayoutValidatorExportDir
-    RolePayout.validatorHash
-    RolePayout.validatorBytes
 
 -- | Print information about a validator.
 printValidator

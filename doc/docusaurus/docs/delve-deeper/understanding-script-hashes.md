@@ -19,7 +19,8 @@ This means, for example, you can't supply a Plutus V3 script when performing an 
 Different Plinth compiler versions may compile and optimize the same Plinth code differently, leading to different UPLC programs and, therefore, different script hashes.
 
 Additionally, the version of GHC can affect the resulting UPLC program and script hashes.
-While the Plinth compiler currently supports only one major GHC version, different minor GHC versions may lead to slightly different UPLC programs.
+The Plinth compiler currently supports two major GHC versions, 9.6 and 9.12.
+Compiling the same Plinth code with GHC 9.6 and with GHC 9.12 will often produce different UPLC programs, and even different minor GHC versions may lead to slightly different UPLC programs.
 
 If you plan to use your script in the future, the best approach is to save the compiled script in a blueprint file.
 For further information, refer to [Producing a Plutus contract blueprint](../working-with-scripts/producing-a-blueprint.md).

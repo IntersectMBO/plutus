@@ -62,7 +62,8 @@ module Helpers.Guardrail
 import Helpers.TestBuilders hiding (Range (..))
 
 import Data.Aeson
-import Data.List (foldl', sortOn)
+import Data.List (sortOn)
+import Data.List qualified as List
 import Helpers.Farey
 import Helpers.Intervals
 import PlutusTx.IsData.Class
@@ -755,7 +756,7 @@ negateOneConstraint
   :: [(String, RangeConstraint a)]
   -> Integer
   -> (String, [RangeConstraint a])
-negateOneConstraint xs ix = foldl' f ("", []) $ zip xs [0 ..]
+negateOneConstraint xs ix = List.foldl' f ("", []) $ zip xs [0 ..]
   where
     f
       :: (String, [RangeConstraint a])
