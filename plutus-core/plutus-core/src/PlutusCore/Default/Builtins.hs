@@ -1242,21 +1242,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               lessThanEqualsIntegerD
               (runCostingFunTwoArguments . paramLessThanEqualsInteger)
   -- Bytestrings
-  toBuiltinMeaning semvar AppendByteString
-    | ensurableByteString semvar =
-        let appendByteStringD :: CByteString -> CByteString -> BS.ByteString
-            appendByteStringD (CByteString x) (CByteString y) = BS.append x y
-            {-# INLINE appendByteStringD #-}
-         in makeBuiltinMeaning
-              appendByteStringD
-              (runCostingFunTwoArguments . paramAppendByteString)
-    | otherwise =
-        let appendByteStringD :: BS.ByteString -> BS.ByteString -> BS.ByteString
-            appendByteStringD = BS.append
-            {-# INLINE appendByteStringD #-}
-         in makeBuiltinMeaning
-              appendByteStringD
-              (runCostingFunTwoArguments . paramAppendByteString)
+  toBuiltinMeaning _semvar AppendByteString =
+    let appendByteStringD :: CByteString -> CByteString -> BS.ByteString
+        appendByteStringD (CByteString x) (CByteString y) = BS.append x y
+        {-# INLINE appendByteStringD #-}
+     in makeBuiltinMeaning
+          appendByteStringD
+          (runCostingFunTwoArguments . paramAppendByteString)
   -- See Note [Builtin semantics variants]
   toBuiltinMeaning semvar ConsByteString =
     -- The costing function is the same for all variants of this builtin,
@@ -1267,6 +1259,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           :: (ExMemoryUsage a, ExMemoryUsage b) => BuiltinCostModel -> a -> b -> ExBudgetStream
         costingFun = runCostingFunTwoArguments . paramConsByteString
         {-# INLINE costingFun #-}
+        -- This version reduces the integer modulo 256.
         consByteStringMeaning_V1
           | ensurableInteger semvar =
               let consByteStringD :: CInteger -> CByteString -> BS.ByteString
@@ -1275,41 +1268,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                in makeBuiltinMeaning
                     consByteStringD
                     costingFun
-          | ensurableByteString semvar =
+          | otherwise =
               let consByteStringD :: Integer -> CByteString -> BS.ByteString
                   consByteStringD x (CByteString xs) = BS.cons (fromIntegral x) xs
                   {-# INLINE consByteStringD #-}
                in makeBuiltinMeaning
                     consByteStringD
                     costingFun
-          | otherwise =
-              let consByteStringD :: Integer -> BS.ByteString -> BS.ByteString
-                  consByteStringD = BS.cons . fromIntegral
-                  -- Earlier instructions say never to use `fromIntegral` in the definition of a
-                  -- builtin; however in this case it reduces its argument modulo 256 to get a
-                  -- `Word8`, which is exactly what we want.
-                  {-# INLINE consByteStringD #-}
-               in makeBuiltinMeaning
-                    consByteStringD
-                    costingFun
 
-        -- For builtin semantics variants larger than 'DefaultFunSemanticsVariantA', the first
-        -- input must be in range @[0..255]@.
-        consByteStringMeaning_V2
-          | ensurableByteString semvar =
-              let consByteStringD :: Word8 -> CByteString -> BS.ByteString
-                  consByteStringD x (CByteString xs) = BS.cons x xs
-                  {-# INLINE consByteStringD #-}
-               in makeBuiltinMeaning
-                    consByteStringD
-                    costingFun
-          | otherwise =
-              let consByteStringD :: Word8 -> BS.ByteString -> BS.ByteString
-                  consByteStringD = BS.cons
-                  {-# INLINE consByteStringD #-}
-               in makeBuiltinMeaning
-                    consByteStringD
-                    costingFun
+        -- This version requires the integer to be in range @[0..255]@.
+        consByteStringMeaning_V2 =
+          let consByteStringD :: Word8 -> CByteString -> BS.ByteString
+              consByteStringD x (CByteString xs) = BS.cons x xs
+              {-# INLINE consByteStringD #-}
+           in makeBuiltinMeaning
+                consByteStringD
+                costingFun
      in case semvar of
           DefaultFunSemanticsVariantA -> consByteStringMeaning_V1
           DefaultFunSemanticsVariantB -> consByteStringMeaning_V1
@@ -1318,21 +1292,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           DefaultFunSemanticsVariantE -> consByteStringMeaning_V2
           DefaultFunSemanticsVariantF -> consByteStringMeaning_V1
           DefaultFunSemanticsVariantG -> consByteStringMeaning_V2
-  toBuiltinMeaning semvar SliceByteString
-    | ensurableByteString semvar =
-        let sliceByteStringD :: Int -> Int -> CByteString -> BS.ByteString
-            sliceByteStringD start n (CByteString xs) = BS.take n (BS.drop start xs)
-            {-# INLINE sliceByteStringD #-}
-         in makeBuiltinMeaning
-              sliceByteStringD
-              (runCostingFunThreeArguments . paramSliceByteString)
-    | otherwise =
-        let sliceByteStringD :: Int -> Int -> BS.ByteString -> BS.ByteString
-            sliceByteStringD start n xs = BS.take n (BS.drop start xs)
-            {-# INLINE sliceByteStringD #-}
-         in makeBuiltinMeaning
-              sliceByteStringD
-              (runCostingFunThreeArguments . paramSliceByteString)
+  toBuiltinMeaning _semvar SliceByteString =
+    let sliceByteStringD :: Int -> Int -> CByteString -> BS.ByteString
+        sliceByteStringD start n (CByteString xs) = BS.take n (BS.drop start xs)
+        {-# INLINE sliceByteStringD #-}
+     in makeBuiltinMeaning
+          sliceByteStringD
+          (runCostingFunThreeArguments . paramSliceByteString)
   toBuiltinMeaning _semvar LengthOfByteString =
     let lengthOfByteStringD :: BS.ByteString -> BuiltinResult Int
         lengthOfByteStringD = pure . BS.length
@@ -1340,138 +1306,69 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           lengthOfByteStringD
           (runCostingFunOneArgument . paramLengthOfByteString)
-  toBuiltinMeaning semvar IndexByteString
-    | ensurableByteString semvar =
-        let indexByteStringD :: CByteString -> Int -> BuiltinResult Word8
-            indexByteStringD (CByteString xs) n =
-              -- See Note [Structural vs operational errors within builtins].
-              -- The arguments are going to be printed in the "cause" part of the error
-              -- message, so we don't need to repeat them here.
-              maybe (fail "Index out of bounds") pure $ BS.indexMaybe xs n
-            {-# INLINE indexByteStringD #-}
-         in makeBuiltinMeaning
-              indexByteStringD
-              (runCostingFunTwoArguments . paramIndexByteString)
-    | otherwise =
-        let indexByteStringD :: BS.ByteString -> Int -> BuiltinResult Word8
-            indexByteStringD xs n =
-              maybe (fail "Index out of bounds") pure $ BS.indexMaybe xs n
-            {-# INLINE indexByteStringD #-}
-         in makeBuiltinMeaning
-              indexByteStringD
-              (runCostingFunTwoArguments . paramIndexByteString)
-  toBuiltinMeaning semvar EqualsByteString
-    | ensurableByteString semvar =
-        let equalsByteStringD :: CByteString -> CByteString -> Bool
-            equalsByteStringD (CByteString x) (CByteString y) = x == y
-            {-# INLINE equalsByteStringD #-}
-         in makeBuiltinMeaning
-              equalsByteStringD
-              (runCostingFunTwoArguments . paramEqualsByteString)
-    | otherwise =
-        let equalsByteStringD :: BS.ByteString -> BS.ByteString -> Bool
-            equalsByteStringD = (==)
-            {-# INLINE equalsByteStringD #-}
-         in makeBuiltinMeaning
-              equalsByteStringD
-              (runCostingFunTwoArguments . paramEqualsByteString)
-  toBuiltinMeaning semvar LessThanByteString
-    | ensurableByteString semvar =
-        let lessThanByteStringD :: CByteString -> CByteString -> Bool
-            lessThanByteStringD (CByteString x) (CByteString y) = x < y
-            {-# INLINE lessThanByteStringD #-}
-         in makeBuiltinMeaning
-              lessThanByteStringD
-              (runCostingFunTwoArguments . paramLessThanByteString)
-    | otherwise =
-        let lessThanByteStringD :: BS.ByteString -> BS.ByteString -> Bool
-            lessThanByteStringD = (<)
-            {-# INLINE lessThanByteStringD #-}
-         in makeBuiltinMeaning
-              lessThanByteStringD
-              (runCostingFunTwoArguments . paramLessThanByteString)
-  toBuiltinMeaning semvar LessThanEqualsByteString
-    | ensurableByteString semvar =
-        let lessThanEqualsByteStringD :: CByteString -> CByteString -> Bool
-            lessThanEqualsByteStringD (CByteString x) (CByteString y) = x <= y
-            {-# INLINE lessThanEqualsByteStringD #-}
-         in makeBuiltinMeaning
-              lessThanEqualsByteStringD
-              (runCostingFunTwoArguments . paramLessThanEqualsByteString)
-    | otherwise =
-        let lessThanEqualsByteStringD :: BS.ByteString -> BS.ByteString -> Bool
-            lessThanEqualsByteStringD = (<=)
-            {-# INLINE lessThanEqualsByteStringD #-}
-         in makeBuiltinMeaning
-              lessThanEqualsByteStringD
-              (runCostingFunTwoArguments . paramLessThanEqualsByteString)
+  toBuiltinMeaning _semvar IndexByteString =
+    let indexByteStringD :: CByteString -> Int -> BuiltinResult Word8
+        indexByteStringD (CByteString xs) n =
+          -- See Note [Structural vs operational errors within builtins].
+          -- The arguments are going to be printed in the "cause" part of the error
+          -- message, so we don't need to repeat them here.
+          maybe (fail "Index out of bounds") pure $ BS.indexMaybe xs n
+        {-# INLINE indexByteStringD #-}
+     in makeBuiltinMeaning
+          indexByteStringD
+          (runCostingFunTwoArguments . paramIndexByteString)
+  toBuiltinMeaning _semvar EqualsByteString =
+    let equalsByteStringD :: CByteString -> CByteString -> Bool
+        equalsByteStringD (CByteString x) (CByteString y) = x == y
+        {-# INLINE equalsByteStringD #-}
+     in makeBuiltinMeaning
+          equalsByteStringD
+          (runCostingFunTwoArguments . paramEqualsByteString)
+  toBuiltinMeaning _semvar LessThanByteString =
+    let lessThanByteStringD :: CByteString -> CByteString -> Bool
+        lessThanByteStringD (CByteString x) (CByteString y) = x < y
+        {-# INLINE lessThanByteStringD #-}
+     in makeBuiltinMeaning
+          lessThanByteStringD
+          (runCostingFunTwoArguments . paramLessThanByteString)
+  toBuiltinMeaning _semvar LessThanEqualsByteString =
+    let lessThanEqualsByteStringD :: CByteString -> CByteString -> Bool
+        lessThanEqualsByteStringD (CByteString x) (CByteString y) = x <= y
+        {-# INLINE lessThanEqualsByteStringD #-}
+     in makeBuiltinMeaning
+          lessThanEqualsByteStringD
+          (runCostingFunTwoArguments . paramLessThanEqualsByteString)
   -- Cryptography and hashes
-  toBuiltinMeaning semvar Sha2_256
-    | ensurableByteString semvar =
-        let sha2_256D :: CByteString -> BS.ByteString
-            sha2_256D (CByteString x) = Hash.sha2_256 x
-            {-# INLINE sha2_256D #-}
-         in makeBuiltinMeaning
-              sha2_256D
-              (runCostingFunOneArgument . paramSha2_256)
-    | otherwise =
-        let sha2_256D :: BS.ByteString -> BS.ByteString
-            sha2_256D = Hash.sha2_256
-            {-# INLINE sha2_256D #-}
-         in makeBuiltinMeaning
-              sha2_256D
-              (runCostingFunOneArgument . paramSha2_256)
-  toBuiltinMeaning semvar Sha3_256
-    | ensurableByteString semvar =
-        let sha3_256D :: CByteString -> BS.ByteString
-            sha3_256D (CByteString x) = Hash.sha3_256 x
-            {-# INLINE sha3_256D #-}
-         in makeBuiltinMeaning
-              sha3_256D
-              (runCostingFunOneArgument . paramSha3_256)
-    | otherwise =
-        let sha3_256D :: BS.ByteString -> BS.ByteString
-            sha3_256D = Hash.sha3_256
-            {-# INLINE sha3_256D #-}
-         in makeBuiltinMeaning
-              sha3_256D
-              (runCostingFunOneArgument . paramSha3_256)
-  toBuiltinMeaning semvar Blake2b_256
-    | ensurableByteString semvar =
-        let blake2b_256D :: CByteString -> BS.ByteString
-            blake2b_256D (CByteString x) = Hash.blake2b_256 x
-            {-# INLINE blake2b_256D #-}
-         in makeBuiltinMeaning
-              blake2b_256D
-              (runCostingFunOneArgument . paramBlake2b_256)
-    | otherwise =
-        let blake2b_256D :: BS.ByteString -> BS.ByteString
-            blake2b_256D = Hash.blake2b_256
-            {-# INLINE blake2b_256D #-}
-         in makeBuiltinMeaning
-              blake2b_256D
-              (runCostingFunOneArgument . paramBlake2b_256)
-  toBuiltinMeaning semvar VerifyEd25519Signature
-    | ensurableByteString semvar =
-        let verifyEd25519SignatureD
-              :: BS.ByteString -> CByteString -> BS.ByteString -> BuiltinResult Bool
-            verifyEd25519SignatureD pk (CByteString msg) =
-              verifyEd25519Signature pk msg
-            {-# INLINE verifyEd25519SignatureD #-}
-         in makeBuiltinMeaning
-              verifyEd25519SignatureD
-              (runCostingFunThreeArguments . paramVerifyEd25519Signature)
-    | otherwise =
-        let verifyEd25519SignatureD
-              :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
-            verifyEd25519SignatureD = verifyEd25519Signature
-            {-# INLINE verifyEd25519SignatureD #-}
-         in makeBuiltinMeaning
-              verifyEd25519SignatureD
-              -- Benchmarks indicate that the two variants have very similar
-              -- execution times, so it's safe to use the same costing function for
-              -- both.
-              (runCostingFunThreeArguments . paramVerifyEd25519Signature)
+  toBuiltinMeaning _semvar Sha2_256 =
+    let sha2_256D :: CByteString -> BS.ByteString
+        sha2_256D (CByteString x) = Hash.sha2_256 x
+        {-# INLINE sha2_256D #-}
+     in makeBuiltinMeaning
+          sha2_256D
+          (runCostingFunOneArgument . paramSha2_256)
+  toBuiltinMeaning _semvar Sha3_256 =
+    let sha3_256D :: CByteString -> BS.ByteString
+        sha3_256D (CByteString x) = Hash.sha3_256 x
+        {-# INLINE sha3_256D #-}
+     in makeBuiltinMeaning
+          sha3_256D
+          (runCostingFunOneArgument . paramSha3_256)
+  toBuiltinMeaning _semvar Blake2b_256 =
+    let blake2b_256D :: CByteString -> BS.ByteString
+        blake2b_256D (CByteString x) = Hash.blake2b_256 x
+        {-# INLINE blake2b_256D #-}
+     in makeBuiltinMeaning
+          blake2b_256D
+          (runCostingFunOneArgument . paramBlake2b_256)
+  toBuiltinMeaning _semvar VerifyEd25519Signature =
+    let verifyEd25519SignatureD
+          :: BS.ByteString -> CByteString -> BS.ByteString -> BuiltinResult Bool
+        verifyEd25519SignatureD pk (CByteString msg) =
+          verifyEd25519Signature pk msg
+        {-# INLINE verifyEd25519SignatureD #-}
+     in makeBuiltinMeaning
+          verifyEd25519SignatureD
+          (runCostingFunThreeArguments . paramVerifyEd25519Signature)
   {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
      consists of a pair of values (r,s), and for each value of r there are in
      fact two valid values of s, one effectively the negative of the other.
@@ -1496,24 +1393,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           verifyEcdsaSecp256k1SignatureD
           (runCostingFunThreeArguments . paramVerifyEcdsaSecp256k1Signature)
-  toBuiltinMeaning semvar VerifySchnorrSecp256k1Signature
-    | ensurableByteString semvar =
-        let verifySchnorrSecp256k1SignatureD
-              :: BS.ByteString -> CByteString -> BS.ByteString -> BuiltinResult Bool
-            verifySchnorrSecp256k1SignatureD pk (CByteString msg) =
-              verifySchnorrSecp256k1Signature pk msg
-            {-# INLINE verifySchnorrSecp256k1SignatureD #-}
-         in makeBuiltinMeaning
-              verifySchnorrSecp256k1SignatureD
-              (runCostingFunThreeArguments . paramVerifySchnorrSecp256k1Signature)
-    | otherwise =
-        let verifySchnorrSecp256k1SignatureD
-              :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
-            verifySchnorrSecp256k1SignatureD = verifySchnorrSecp256k1Signature
-            {-# INLINE verifySchnorrSecp256k1SignatureD #-}
-         in makeBuiltinMeaning
-              verifySchnorrSecp256k1SignatureD
-              (runCostingFunThreeArguments . paramVerifySchnorrSecp256k1Signature)
+  toBuiltinMeaning _semvar VerifySchnorrSecp256k1Signature =
+    let verifySchnorrSecp256k1SignatureD
+          :: BS.ByteString -> CByteString -> BS.ByteString -> BuiltinResult Bool
+        verifySchnorrSecp256k1SignatureD pk (CByteString msg) =
+          verifySchnorrSecp256k1Signature pk msg
+        {-# INLINE verifySchnorrSecp256k1SignatureD #-}
+     in makeBuiltinMeaning
+          verifySchnorrSecp256k1SignatureD
+          (runCostingFunThreeArguments . paramVerifySchnorrSecp256k1Signature)
   -- Strings
   -- See Note [Builtin semantics variants]
   toBuiltinMeaning semvar AppendString =
@@ -1603,29 +1491,17 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           DefaultFunSemanticsVariantE -> encodeUtf8Meaning_V2
           DefaultFunSemanticsVariantF -> encodeUtf8Meaning_V2
           DefaultFunSemanticsVariantG -> encodeUtf8Meaning_V2
-  toBuiltinMeaning semvar DecodeUtf8
-    | ensurableByteString semvar =
-        let decodeUtf8D :: CByteString -> BuiltinResult Text
-            decodeUtf8D (CByteString s)
-              | BS.isValidUtf8 s =
-                  let !(SBS.SBS arr) = SBS.toShort s
-                   in pure $ Text (ByteArray arr) 0 (BS.length s)
-              | otherwise = fail "decodeUtf8: invalid input"
-            {-# INLINE decodeUtf8D #-}
-         in makeBuiltinMeaning
-              decodeUtf8D
-              (runCostingFunOneArgument . paramDecodeUtf8)
-    | otherwise =
-        let decodeUtf8D :: BS.ByteString -> BuiltinResult Text
-            decodeUtf8D s
-              | BS.isValidUtf8 s =
-                  let !(SBS.SBS arr) = SBS.toShort s
-                   in pure $ Text (ByteArray arr) 0 (BS.length s)
-              | otherwise = fail "decodeUtf8: invalid input"
-            {-# INLINE decodeUtf8D #-}
-         in makeBuiltinMeaning
-              decodeUtf8D
-              (runCostingFunOneArgument . paramDecodeUtf8)
+  toBuiltinMeaning _semvar DecodeUtf8 =
+    let decodeUtf8D :: CByteString -> BuiltinResult Text
+        decodeUtf8D (CByteString s)
+          | BS.isValidUtf8 s =
+              let !(SBS.SBS arr) = SBS.toShort s
+               in pure $ Text (ByteArray arr) 0 (BS.length s)
+          | otherwise = fail "decodeUtf8: invalid input"
+        {-# INLINE decodeUtf8D #-}
+     in makeBuiltinMeaning
+          decodeUtf8D
+          (runCostingFunOneArgument . paramDecodeUtf8)
   -- Bool
   toBuiltinMeaning _semvar IfThenElse =
     let ifThenElseDenotation :: Bool -> a -> a -> a
@@ -1760,21 +1636,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           chooseDataDenotation
           (runCostingFunSixArguments . paramChooseData)
-  toBuiltinMeaning semvar ConstrData
-    | ensurableByteString semvar =
-        let constrDataD :: Word64 -> [Data] -> Data
-            constrDataD = Constr . toInteger
-            {-# INLINE constrDataD #-}
-         in makeBuiltinMeaning
-              constrDataD
-              (runCostingFunTwoArguments . paramConstrData)
-    | otherwise =
-        let constrDataD :: Integer -> [Data] -> Data
-            constrDataD = Constr
-            {-# INLINE constrDataD #-}
-         in makeBuiltinMeaning
-              constrDataD
-              (runCostingFunTwoArguments . paramConstrData)
+  toBuiltinMeaning _semvar ConstrData =
+    let constrDataD :: Word64 -> [Data] -> Data
+        constrDataD = Constr . toInteger
+        {-# INLINE constrDataD #-}
+     in makeBuiltinMeaning
+          constrDataD
+          (runCostingFunTwoArguments . paramConstrData)
   toBuiltinMeaning _semvar MapData =
     let mapDataDenotation :: [(Data, Data)] -> Data
         mapDataDenotation = Map
@@ -1916,23 +1784,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           bls12_381_G1_negDenotation
           (runCostingFunOneArgument . paramBls12_381_G1_neg)
-  toBuiltinMeaning semvar Bls12_381_G1_scalarMul
-    | ensurableByteString semvar =
-        let bls12_381_G1_scalarMulD
-              :: Integer -> BLS12_381.G1.Element -> BuiltinResult BLS12_381.G1.Element
-            bls12_381_G1_scalarMulD = BLS12_381.G1.scalarMulE
-            {-# INLINE bls12_381_G1_scalarMulD #-}
-         in makeBuiltinMeaning
-              bls12_381_G1_scalarMulD
-              (runCostingFunTwoArguments . paramBls12_381_G1_scalarMul)
-    | otherwise =
-        let bls12_381_G1_scalarMulD
-              :: Integer -> BLS12_381.G1.Element -> BLS12_381.G1.Element
-            bls12_381_G1_scalarMulD = BLS12_381.G1.scalarMul
-            {-# INLINE bls12_381_G1_scalarMulD #-}
-         in makeBuiltinMeaning
-              bls12_381_G1_scalarMulD
-              (runCostingFunTwoArguments . paramBls12_381_G1_scalarMul)
+  toBuiltinMeaning _semvar Bls12_381_G1_scalarMul =
+    let bls12_381_G1_scalarMulD
+          :: Integer -> BLS12_381.G1.Element -> BuiltinResult BLS12_381.G1.Element
+        bls12_381_G1_scalarMulD = BLS12_381.G1.scalarMulE
+        {-# INLINE bls12_381_G1_scalarMulD #-}
+     in makeBuiltinMeaning
+          bls12_381_G1_scalarMulD
+          (runCostingFunTwoArguments . paramBls12_381_G1_scalarMul)
   toBuiltinMeaning _semvar Bls12_381_G1_compress =
     let bls12_381_G1_compressDenotation :: BLS12_381.G1.Element -> BS.ByteString
         bls12_381_G1_compressDenotation = BLS12_381.G1.compress
@@ -1948,24 +1807,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           bls12_381_G1_uncompressD
           (runCostingFunOneArgument . paramBls12_381_G1_uncompress)
-  toBuiltinMeaning semvar Bls12_381_G1_hashToGroup
-    | ensurableByteString semvar =
-        let bls12_381_G1_hashToGroupD
-              :: CByteString -> BS.ByteString -> BuiltinResult BLS12_381.G1.Element
-            bls12_381_G1_hashToGroupD (CByteString xs) ys =
-              (eitherToBuiltinResult .* BLS12_381.G1.hashToGroup) xs ys
-            {-# INLINE bls12_381_G1_hashToGroupD #-}
-         in makeBuiltinMeaning
-              bls12_381_G1_hashToGroupD
-              (runCostingFunTwoArguments . paramBls12_381_G1_hashToGroup)
-    | otherwise =
-        let bls12_381_G1_hashToGroupD
-              :: BS.ByteString -> BS.ByteString -> BuiltinResult BLS12_381.G1.Element
-            bls12_381_G1_hashToGroupD = eitherToBuiltinResult .* BLS12_381.G1.hashToGroup
-            {-# INLINE bls12_381_G1_hashToGroupD #-}
-         in makeBuiltinMeaning
-              bls12_381_G1_hashToGroupD
-              (runCostingFunTwoArguments . paramBls12_381_G1_hashToGroup)
+  toBuiltinMeaning _semvar Bls12_381_G1_hashToGroup =
+    let bls12_381_G1_hashToGroupD
+          :: CByteString -> BS.ByteString -> BuiltinResult BLS12_381.G1.Element
+        bls12_381_G1_hashToGroupD (CByteString xs) ys =
+          (eitherToBuiltinResult .* BLS12_381.G1.hashToGroup) xs ys
+        {-# INLINE bls12_381_G1_hashToGroupD #-}
+     in makeBuiltinMeaning
+          bls12_381_G1_hashToGroupD
+          (runCostingFunTwoArguments . paramBls12_381_G1_hashToGroup)
   toBuiltinMeaning _semvar Bls12_381_G1_equal =
     let bls12_381_G1_equalDenotation :: BLS12_381.G1.Element -> BLS12_381.G1.Element -> Bool
         bls12_381_G1_equalDenotation = (==)
@@ -1989,23 +1839,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           bls12_381_G2_negDenotation
           (runCostingFunOneArgument . paramBls12_381_G2_neg)
-  toBuiltinMeaning semvar Bls12_381_G2_scalarMul
-    | ensurableByteString semvar =
-        let bls12_381_G2_scalarMulD
-              :: Integer -> BLS12_381.G2.Element -> BuiltinResult BLS12_381.G2.Element
-            bls12_381_G2_scalarMulD = BLS12_381.G2.scalarMulE
-            {-# INLINE bls12_381_G2_scalarMulD #-}
-         in makeBuiltinMeaning
-              bls12_381_G2_scalarMulD
-              (runCostingFunTwoArguments . paramBls12_381_G2_scalarMul)
-    | otherwise =
-        let bls12_381_G2_scalarMulD
-              :: Integer -> BLS12_381.G2.Element -> BLS12_381.G2.Element
-            bls12_381_G2_scalarMulD = BLS12_381.G2.scalarMul
-            {-# INLINE bls12_381_G2_scalarMulD #-}
-         in makeBuiltinMeaning
-              bls12_381_G2_scalarMulD
-              (runCostingFunTwoArguments . paramBls12_381_G2_scalarMul)
+  toBuiltinMeaning _semvar Bls12_381_G2_scalarMul =
+    let bls12_381_G2_scalarMulD
+          :: Integer -> BLS12_381.G2.Element -> BuiltinResult BLS12_381.G2.Element
+        bls12_381_G2_scalarMulD = BLS12_381.G2.scalarMulE
+        {-# INLINE bls12_381_G2_scalarMulD #-}
+     in makeBuiltinMeaning
+          bls12_381_G2_scalarMulD
+          (runCostingFunTwoArguments . paramBls12_381_G2_scalarMul)
   toBuiltinMeaning _semvar Bls12_381_G2_compress =
     let bls12_381_G2_compressDenotation :: BLS12_381.G2.Element -> BS.ByteString
         bls12_381_G2_compressDenotation = BLS12_381.G2.compress
@@ -2022,24 +1863,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           bls12_381_G2_uncompressD
           (runCostingFunOneArgument . paramBls12_381_G2_uncompress)
-  toBuiltinMeaning semvar Bls12_381_G2_hashToGroup
-    | ensurableByteString semvar =
-        let bls12_381_G2_hashToGroupD
-              :: CByteString -> BS.ByteString -> BuiltinResult BLS12_381.G2.Element
-            bls12_381_G2_hashToGroupD (CByteString xs) ys =
-              (eitherToBuiltinResult .* BLS12_381.G2.hashToGroup) xs ys
-            {-# INLINE bls12_381_G2_hashToGroupD #-}
-         in makeBuiltinMeaning
-              bls12_381_G2_hashToGroupD
-              (runCostingFunTwoArguments . paramBls12_381_G2_hashToGroup)
-    | otherwise =
-        let bls12_381_G2_hashToGroupD
-              :: BS.ByteString -> BS.ByteString -> BuiltinResult BLS12_381.G2.Element
-            bls12_381_G2_hashToGroupD = eitherToBuiltinResult .* BLS12_381.G2.hashToGroup
-            {-# INLINE bls12_381_G2_hashToGroupD #-}
-         in makeBuiltinMeaning
-              bls12_381_G2_hashToGroupD
-              (runCostingFunTwoArguments . paramBls12_381_G2_hashToGroup)
+  toBuiltinMeaning _semvar Bls12_381_G2_hashToGroup =
+    let bls12_381_G2_hashToGroupD
+          :: CByteString -> BS.ByteString -> BuiltinResult BLS12_381.G2.Element
+        bls12_381_G2_hashToGroupD (CByteString xs) ys =
+          (eitherToBuiltinResult .* BLS12_381.G2.hashToGroup) xs ys
+        {-# INLINE bls12_381_G2_hashToGroupD #-}
+     in makeBuiltinMeaning
+          bls12_381_G2_hashToGroupD
+          (runCostingFunTwoArguments . paramBls12_381_G2_hashToGroup)
   toBuiltinMeaning _semvar Bls12_381_G2_equal =
     let bls12_381_G2_equalDenotation :: BLS12_381.G2.Element -> BLS12_381.G2.Element -> Bool
         bls12_381_G2_equalDenotation = (==)
@@ -2074,36 +1906,20 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           bls12_381_finalVerifyDenotation
           (runCostingFunTwoArguments . paramBls12_381_finalVerify)
-  toBuiltinMeaning semvar Keccak_256
-    | ensurableByteString semvar =
-        let keccak_256D :: CByteString -> BS.ByteString
-            keccak_256D (CByteString x) = Hash.keccak_256 x
-            {-# INLINE keccak_256D #-}
-         in makeBuiltinMeaning
-              keccak_256D
-              (runCostingFunOneArgument . paramKeccak_256)
-    | otherwise =
-        let keccak_256D :: BS.ByteString -> BS.ByteString
-            keccak_256D = Hash.keccak_256
-            {-# INLINE keccak_256D #-}
-         in makeBuiltinMeaning
-              keccak_256D
-              (runCostingFunOneArgument . paramKeccak_256)
-  toBuiltinMeaning semvar Blake2b_224
-    | ensurableByteString semvar =
-        let blake2b_224D :: CByteString -> BS.ByteString
-            blake2b_224D (CByteString x) = Hash.blake2b_224 x
-            {-# INLINE blake2b_224D #-}
-         in makeBuiltinMeaning
-              blake2b_224D
-              (runCostingFunOneArgument . paramBlake2b_224)
-    | otherwise =
-        let blake2b_224D :: BS.ByteString -> BS.ByteString
-            blake2b_224D = Hash.blake2b_224
-            {-# INLINE blake2b_224D #-}
-         in makeBuiltinMeaning
-              blake2b_224D
-              (runCostingFunOneArgument . paramBlake2b_224)
+  toBuiltinMeaning _semvar Keccak_256 =
+    let keccak_256D :: CByteString -> BS.ByteString
+        keccak_256D (CByteString x) = Hash.keccak_256 x
+        {-# INLINE keccak_256D #-}
+     in makeBuiltinMeaning
+          keccak_256D
+          (runCostingFunOneArgument . paramKeccak_256)
+  toBuiltinMeaning _semvar Blake2b_224 =
+    let blake2b_224D :: CByteString -> BS.ByteString
+        blake2b_224D (CByteString x) = Hash.blake2b_224 x
+        {-# INLINE blake2b_224D #-}
+     in makeBuiltinMeaning
+          blake2b_224D
+          (runCostingFunOneArgument . paramBlake2b_224)
   -- Extra bytestring operations
 
   -- Conversions
@@ -2118,133 +1934,73 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           integerToByteStringDenotation
           (runCostingFunThreeArguments . paramIntegerToByteString)
-  toBuiltinMeaning semvar ByteStringToInteger
-    | ensurableByteString semvar =
-        let byteStringToIntegerD :: Bool -> CByteString -> Integer
-            byteStringToIntegerD b (CByteString s) = Bitwise.byteStringToInteger b s
-            {-# INLINE byteStringToIntegerD #-}
-         in makeBuiltinMeaning
-              byteStringToIntegerD
-              (runCostingFunTwoArguments . paramByteStringToInteger)
-    | otherwise =
-        let byteStringToIntegerD :: Bool -> BS.ByteString -> Integer
-            byteStringToIntegerD = Bitwise.byteStringToInteger
-            {-# INLINE byteStringToIntegerD #-}
-         in makeBuiltinMeaning
-              byteStringToIntegerD
-              (runCostingFunTwoArguments . paramByteStringToInteger)
+  toBuiltinMeaning _semvar ByteStringToInteger =
+    let byteStringToIntegerD :: Bool -> CByteString -> Integer
+        byteStringToIntegerD b (CByteString s) = Bitwise.byteStringToInteger b s
+        {-# INLINE byteStringToIntegerD #-}
+     in makeBuiltinMeaning
+          byteStringToIntegerD
+          (runCostingFunTwoArguments . paramByteStringToInteger)
   -- Logical
-  toBuiltinMeaning semvar AndByteString
-    | ensurableByteString semvar =
-        let andByteStringD :: Bool -> CByteString -> CByteString -> BS.ByteString
-            andByteStringD b (CByteString xs) (CByteString ys) =
-              Bitwise.andByteString b xs ys
-            {-# INLINE andByteStringD #-}
-         in makeBuiltinMeaning
-              andByteStringD
-              (runCostingFunThreeArguments . paramAndByteString)
-    | otherwise =
-        let andByteStringD :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
-            andByteStringD = Bitwise.andByteString
-            {-# INLINE andByteStringD #-}
-         in makeBuiltinMeaning
-              andByteStringD
-              (runCostingFunThreeArguments . paramAndByteString)
-  toBuiltinMeaning semvar OrByteString
-    | ensurableByteString semvar =
-        let orByteStringD :: Bool -> CByteString -> CByteString -> BS.ByteString
-            orByteStringD b (CByteString xs) (CByteString ys) =
-              Bitwise.orByteString b xs ys
-            {-# INLINE orByteStringD #-}
-         in makeBuiltinMeaning
-              orByteStringD
-              (runCostingFunThreeArguments . paramOrByteString)
-    | otherwise =
-        let orByteStringD :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
-            orByteStringD = Bitwise.orByteString
-            {-# INLINE orByteStringD #-}
-         in makeBuiltinMeaning
-              orByteStringD
-              (runCostingFunThreeArguments . paramOrByteString)
-  toBuiltinMeaning semvar XorByteString
-    | ensurableByteString semvar =
-        let xorByteStringD :: Bool -> CByteString -> CByteString -> BS.ByteString
-            xorByteStringD b (CByteString xs) (CByteString ys) =
-              Bitwise.xorByteString b xs ys
-            {-# INLINE xorByteStringD #-}
-         in makeBuiltinMeaning
-              xorByteStringD
-              (runCostingFunThreeArguments . paramXorByteString)
-    | otherwise =
-        let xorByteStringD :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
-            xorByteStringD = Bitwise.xorByteString
-            {-# INLINE xorByteStringD #-}
-         in makeBuiltinMeaning
-              xorByteStringD
-              (runCostingFunThreeArguments . paramXorByteString)
-  toBuiltinMeaning semvar ComplementByteString
-    | ensurableByteString semvar =
-        let complementByteStringD :: CByteString -> BS.ByteString
-            complementByteStringD (CByteString xs) = Bitwise.complementByteString xs
-            {-# INLINE complementByteStringD #-}
-         in makeBuiltinMeaning
-              complementByteStringD
-              (runCostingFunOneArgument . paramComplementByteString)
-    | otherwise =
-        let complementByteStringD :: BS.ByteString -> BS.ByteString
-            complementByteStringD = Bitwise.complementByteString
-            {-# INLINE complementByteStringD #-}
-         in makeBuiltinMeaning
-              complementByteStringD
-              (runCostingFunOneArgument . paramComplementByteString)
+  toBuiltinMeaning _semvar AndByteString =
+    let andByteStringD :: Bool -> CByteString -> CByteString -> BS.ByteString
+        andByteStringD b (CByteString xs) (CByteString ys) =
+          Bitwise.andByteString b xs ys
+        {-# INLINE andByteStringD #-}
+     in makeBuiltinMeaning
+          andByteStringD
+          (runCostingFunThreeArguments . paramAndByteString)
+  toBuiltinMeaning _semvar OrByteString =
+    let orByteStringD :: Bool -> CByteString -> CByteString -> BS.ByteString
+        orByteStringD b (CByteString xs) (CByteString ys) =
+          Bitwise.orByteString b xs ys
+        {-# INLINE orByteStringD #-}
+     in makeBuiltinMeaning
+          orByteStringD
+          (runCostingFunThreeArguments . paramOrByteString)
+  toBuiltinMeaning _semvar XorByteString =
+    let xorByteStringD :: Bool -> CByteString -> CByteString -> BS.ByteString
+        xorByteStringD b (CByteString xs) (CByteString ys) =
+          Bitwise.xorByteString b xs ys
+        {-# INLINE xorByteStringD #-}
+     in makeBuiltinMeaning
+          xorByteStringD
+          (runCostingFunThreeArguments . paramXorByteString)
+  toBuiltinMeaning _semvar ComplementByteString =
+    let complementByteStringD :: CByteString -> BS.ByteString
+        complementByteStringD (CByteString xs) = Bitwise.complementByteString xs
+        {-# INLINE complementByteStringD #-}
+     in makeBuiltinMeaning
+          complementByteStringD
+          (runCostingFunOneArgument . paramComplementByteString)
   -- Bitwise operations
 
-  toBuiltinMeaning semvar ReadBit
-    | ensurableByteString semvar =
-        let readBitD :: CByteString -> Int -> BuiltinResult Bool
-            readBitD (CByteString xs) = Bitwise.readBit xs
-            {-# INLINE readBitD #-}
-         in makeBuiltinMeaning
-              readBitD
-              (runCostingFunTwoArguments . paramReadBit)
-    | otherwise =
-        let readBitD :: BS.ByteString -> Int -> BuiltinResult Bool
-            readBitD = Bitwise.readBit
-            {-# INLINE readBitD #-}
-         in makeBuiltinMeaning
-              readBitD
-              (runCostingFunTwoArguments . paramReadBit)
-  toBuiltinMeaning semvar WriteBits
-    | ensurableByteString semvar =
-        let writeBitsD
-              :: BS.ByteString
-              -> [Integer]
-              -> Bool
-              -> BuiltinResult BS.ByteString
-            writeBitsD b xs bit
-              | BS.length b > fromInteger Bitwise.maximumInputLength = do
-                  emit . Text.pack $
-                    "writeBits: input too long (maximum is "
-                      ++ show Bitwise.maximumInputLength
-                      ++ " bytes)"
-                  emit $ "Length: " <> (Text.pack . show $ BS.length b)
-                  builtinResultFailure
-              | otherwise = Bitwise.writeBits b xs bit
-            {-# INLINE writeBitsD #-}
-         in makeBuiltinMeaning
-              writeBitsD
-              (runCostingFunThreeArguments . paramWriteBits)
-    | otherwise =
-        let writeBitsD
-              :: BS.ByteString
-              -> [Integer]
-              -> Bool
-              -> BuiltinResult BS.ByteString
-            writeBitsD = Bitwise.writeBits
-            {-# INLINE writeBitsD #-}
-         in makeBuiltinMeaning
-              writeBitsD
-              (runCostingFunThreeArguments . paramWriteBits)
+  toBuiltinMeaning _semvar ReadBit =
+    let readBitD :: CByteString -> Int -> BuiltinResult Bool
+        readBitD (CByteString xs) = Bitwise.readBit xs
+        {-# INLINE readBitD #-}
+     in makeBuiltinMeaning
+          readBitD
+          (runCostingFunTwoArguments . paramReadBit)
+  toBuiltinMeaning _semvar WriteBits =
+    let writeBitsD
+          :: BS.ByteString
+          -> [Integer]
+          -> Bool
+          -> BuiltinResult BS.ByteString
+        writeBitsD b xs bit
+          | BS.length b > fromInteger Bitwise.maximumInputLength = do
+              emit . Text.pack $
+                "writeBits: input too long (maximum is "
+                  ++ show Bitwise.maximumInputLength
+                  ++ " bytes)"
+              emit $ "Length: " <> (Text.pack . show $ BS.length b)
+              builtinResultFailure
+          | otherwise = Bitwise.writeBits b xs bit
+        {-# INLINE writeBitsD #-}
+     in makeBuiltinMeaning
+          writeBitsD
+          (runCostingFunThreeArguments . paramWriteBits)
   toBuiltinMeaning _semvar ReplicateByte =
     let replicateByteD :: NumBytesCostedAsNumWords -> Word8 -> BuiltinResult BS.ByteString
         replicateByteD (NumBytesCostedAsNumWords n) = Bitwise.replicateByte n
@@ -2252,81 +2008,41 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           replicateByteD
           (runCostingFunTwoArguments . paramReplicateByte)
-  toBuiltinMeaning semvar ShiftByteString
-    | ensurableByteString semvar =
-        let shiftByteStringD :: BS.ByteString -> Int -> BS.ByteString
-            shiftByteStringD s n = Bitwise.shiftByteString s (toInteger n)
-            {-# INLINE shiftByteStringD #-}
-         in makeBuiltinMeaning
-              shiftByteStringD
-              (runCostingFunTwoArguments . paramShiftByteString)
-    | otherwise =
-        let shiftByteStringD :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
-            shiftByteStringD s (IntegerCostedLiterally n) = Bitwise.shiftByteString s n
-            {-# INLINE shiftByteStringD #-}
-         in makeBuiltinMeaning
-              shiftByteStringD
-              (runCostingFunTwoArguments . paramShiftByteString)
-  toBuiltinMeaning semvar RotateByteString
-    | ensurableByteString semvar =
-        let rotateByteStringD :: BS.ByteString -> Int -> BS.ByteString
-            rotateByteStringD s n = Bitwise.rotateByteString s (toInteger n)
-            {-# INLINE rotateByteStringD #-}
-         in makeBuiltinMeaning
-              rotateByteStringD
-              (runCostingFunTwoArguments . paramRotateByteString)
-    | otherwise =
-        let rotateByteStringD :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
-            rotateByteStringD s (IntegerCostedLiterally n) = Bitwise.rotateByteString s n
-            {-# INLINE rotateByteStringD #-}
-         in makeBuiltinMeaning
-              rotateByteStringD
-              (runCostingFunTwoArguments . paramRotateByteString)
-  toBuiltinMeaning semvar CountSetBits
-    | ensurableByteString semvar =
-        let countSetBitsD :: CByteString -> Int
-            countSetBitsD (CByteString xs) = Bitwise.countSetBits xs
-            {-# INLINE countSetBitsD #-}
-         in makeBuiltinMeaning
-              countSetBitsD
-              (runCostingFunOneArgument . paramCountSetBits)
-    | otherwise =
-        let countSetBitsD :: BS.ByteString -> Int
-            countSetBitsD = Bitwise.countSetBits
-            {-# INLINE countSetBitsD #-}
-         in makeBuiltinMeaning
-              countSetBitsD
-              (runCostingFunOneArgument . paramCountSetBits)
-  toBuiltinMeaning semvar FindFirstSetBit
-    | ensurableByteString semvar =
-        let findFirstSetBitD :: CByteString -> Int
-            findFirstSetBitD (CByteString xs) = Bitwise.findFirstSetBit xs
-            {-# INLINE findFirstSetBitD #-}
-         in makeBuiltinMeaning
-              findFirstSetBitD
-              (runCostingFunOneArgument . paramFindFirstSetBit)
-    | otherwise =
-        let findFirstSetBitD :: BS.ByteString -> Int
-            findFirstSetBitD = Bitwise.findFirstSetBit
-            {-# INLINE findFirstSetBitD #-}
-         in makeBuiltinMeaning
-              findFirstSetBitD
-              (runCostingFunOneArgument . paramFindFirstSetBit)
-  toBuiltinMeaning semvar Ripemd_160
-    | ensurableByteString semvar =
-        let ripemd_160D :: CByteString -> BS.ByteString
-            ripemd_160D (CByteString xs) = Hash.ripemd_160 xs
-            {-# INLINE ripemd_160D #-}
-         in makeBuiltinMeaning
-              ripemd_160D
-              (runCostingFunOneArgument . paramRipemd_160)
-    | otherwise =
-        let ripemd_160D :: BS.ByteString -> BS.ByteString
-            ripemd_160D = Hash.ripemd_160
-            {-# INLINE ripemd_160D #-}
-         in makeBuiltinMeaning
-              ripemd_160D
-              (runCostingFunOneArgument . paramRipemd_160)
+  toBuiltinMeaning _semvar ShiftByteString =
+    let shiftByteStringD :: BS.ByteString -> Int -> BS.ByteString
+        shiftByteStringD s n = Bitwise.shiftByteString s (toInteger n)
+        {-# INLINE shiftByteStringD #-}
+     in makeBuiltinMeaning
+          shiftByteStringD
+          (runCostingFunTwoArguments . paramShiftByteString)
+  toBuiltinMeaning _semvar RotateByteString =
+    let rotateByteStringD :: BS.ByteString -> Int -> BS.ByteString
+        rotateByteStringD s n = Bitwise.rotateByteString s (toInteger n)
+        {-# INLINE rotateByteStringD #-}
+     in makeBuiltinMeaning
+          rotateByteStringD
+          (runCostingFunTwoArguments . paramRotateByteString)
+  toBuiltinMeaning _semvar CountSetBits =
+    let countSetBitsD :: CByteString -> Int
+        countSetBitsD (CByteString xs) = Bitwise.countSetBits xs
+        {-# INLINE countSetBitsD #-}
+     in makeBuiltinMeaning
+          countSetBitsD
+          (runCostingFunOneArgument . paramCountSetBits)
+  toBuiltinMeaning _semvar FindFirstSetBit =
+    let findFirstSetBitD :: CByteString -> Int
+        findFirstSetBitD (CByteString xs) = Bitwise.findFirstSetBit xs
+        {-# INLINE findFirstSetBitD #-}
+     in makeBuiltinMeaning
+          findFirstSetBitD
+          (runCostingFunOneArgument . paramFindFirstSetBit)
+  toBuiltinMeaning _semvar Ripemd_160 =
+    let ripemd_160D :: CByteString -> BS.ByteString
+        ripemd_160D (CByteString xs) = Hash.ripemd_160 xs
+        {-# INLINE ripemd_160D #-}
+     in makeBuiltinMeaning
+          ripemd_160D
+          (runCostingFunOneArgument . paramRipemd_160)
   -- Batch 6
 
   toBuiltinMeaning _semvar ExpModInteger =
@@ -2809,15 +2525,6 @@ ensurableInteger = \case
   DefaultFunSemanticsVariantE -> True
   _ -> False
 {-# INLINE ensurableInteger #-}
-
-ensurableByteString :: BuiltinSemanticsVariant DefaultFun -> Bool
-ensurableByteString = \case
-  DefaultFunSemanticsVariantD -> True
-  DefaultFunSemanticsVariantE -> True
-  DefaultFunSemanticsVariantF -> True
-  DefaultFunSemanticsVariantG -> True
-  _ -> False
-{-# INLINE ensurableByteString #-}
 
 {- Note [Legacy pattern matching on built-in types]
 We used to only support direct pattern matching on enumeration types: 'Void', 'Unit', 'Bool'
