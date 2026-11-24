@@ -56,7 +56,7 @@ import Control.Monad.Except (runExcept)
 import Data.Bits (xor)
 import Data.ByteString qualified as BS
 import Data.Char (ord)
-import Data.List (foldl', group, intercalate, nub, sort)
+import Data.List as List (foldl', group, intercalate, nub, sort)
 import Data.Text (Text)
 import Data.Text.Encoding qualified as Text
 import Data.Text.IO qualified as Text
@@ -129,7 +129,7 @@ propertySeed seed propertyId = mkQCGen (fromIntegral (base `xor` fnv1a (property
     base = unGen (chooseAny :: Gen Word64) seed 0
     -- FNV-1a, 64 bit.
     fnv1a :: String -> Word64
-    fnv1a = foldl' (\h c -> (h `xor` fromIntegral (ord c)) * 1099511628211) 14695981039346656037
+    fnv1a = List.foldl' (\h c -> (h `xor` fromIntegral (ord c)) * 1099511628211) 14695981039346656037
 
 {-| Location of a property relative to the output root, for example
 @integer/RingProperties/addition_associative@. Keeping the segments apart lets
