@@ -120,8 +120,16 @@ on ByteStrings.
 ```
 import Builtin.Binary
 import Builtin.ByteString.Base
+import Builtin.ByteString.Base.Properties
 import Builtin.ByteString
 import Builtin.ByteString.Properties
+```
+
+Cardano ByteStrings: ByteStrings within the length bound that most ByteString
+builtins impose on their arguments.
+
+```
+import Builtin.CByteString
 ```
 
 The types of the built-in operations are defined by a signature.

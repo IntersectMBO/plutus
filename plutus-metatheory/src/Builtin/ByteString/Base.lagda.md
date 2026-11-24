@@ -141,6 +141,16 @@ bitsToByteStringLE bs = bitsToByte (padTo 8 bs) ∷ []
   -- ^ fewer than 8 bits left
 ```
 
+Conversely, `toBitsLE` lists the bits of a ByteString in little-endian order: the bits of
+the first byte come first, each byte starting from its least significant bit. Grouping
+them back into bytes with `bitsToByteStringLE` gives back the ByteString.
+
+```
+toBitsLE : (bs : ByteString) → Bits (length bs * 8)
+toBitsLE []       = []
+toBitsLE (b ∷ bs) = byteToBits b Vec.++ toBitsLE bs
+```
+
 ### Natural Numbers as ByteStrings
 
 A natural number `n` is represented by its base-256 expansion
