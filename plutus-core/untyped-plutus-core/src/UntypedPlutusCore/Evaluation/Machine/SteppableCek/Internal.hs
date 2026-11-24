@@ -246,7 +246,7 @@ forceEvaluate
   -> CekM uni fun s (CekState uni fun ann)
 forceEvaluate !ctx (VDelay body env) =
   pure $ Computing ctx env body
-forceEvaluate !ctx (VBuiltin fun term runtime) = do
+forceEvaluate !ctx builtin@(VBuiltin fun term runtime) = do
   -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
   let term' = Force () term
   case runtime of
@@ -258,7 +258,7 @@ forceEvaluate !ctx (VBuiltin fun term runtime) = do
       -- application.
       evalBuiltinApp ctx fun term' runtime'
     _ ->
-      throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) (Builtin () fun)
+      throwErrorWithValue (StructuralError BuiltinTermArgumentExpectedMachineError) builtin
 forceEvaluate !_ val =
   throwErrorWithValue (StructuralError NonPolymorphicInstantiationMachineError) val
 
@@ -280,7 +280,7 @@ applyEvaluate !ctx (VLamAbs _ body env) arg =
   pure $ Computing ctx (Env.cons arg env) body
 -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
 -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
+applyEvaluate !ctx builtin@(VBuiltin fun term runtime) arg = do
   let argTerm = dischargeResultToTerm $ dischargeCekValue arg
       -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
       -- in a 'VBuiltin'.
@@ -290,7 +290,7 @@ applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
     -- argument next.
     BuiltinExpectArgument f -> evalBuiltinApp ctx fun term' $ f arg
     _ ->
-      throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) (Builtin () fun)
+      throwErrorWithValue (StructuralError UnexpectedBuiltinTermArgumentMachineError) builtin
 applyEvaluate !_ val _ =
   throwErrorWithValue (StructuralError NonFunctionalApplicationMachineError) val
 
