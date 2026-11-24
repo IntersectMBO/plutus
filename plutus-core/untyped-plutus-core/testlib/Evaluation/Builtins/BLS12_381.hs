@@ -636,6 +636,7 @@ generate_bls12_381_properties format mode include outputDir numCases seed = do
                   numCases
                   seed
                   propertyId
+                  (propertySpecDescription spec)
                   encodeResult
                   (propertySpecCheck spec)
             else pure Nothing

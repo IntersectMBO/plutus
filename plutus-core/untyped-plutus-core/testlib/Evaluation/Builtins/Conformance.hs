@@ -57,7 +57,9 @@ import Data.Bits (xor)
 import Data.ByteString qualified as BS
 import Data.Char (ord)
 import Data.List as List (foldl', group, intercalate, nub, sort)
+import Data.Maybe (isNothing)
 import Data.Text (Text)
+import Data.Text qualified as T
 import Data.Text.Encoding qualified as Text
 import Data.Text.IO qualified as Text
 import Data.Word (Word64)
@@ -190,7 +192,8 @@ type PropertyFilter = PropertyId -> Bool
 data TermCase
   = SingleTerm PlcTerm
   | EqualTerms PlcTerm PlcTerm
-  | -- | The reference implementation does not satisfy the property for this input.
+  | {-| Why the reference implementation does not satisfy the property for this
+    input. No files are written for such a case. -}
     ViolatedCase String
 
 {-| A property check expressed without performing it. Normal QuickCheck suites
@@ -263,32 +266,110 @@ the normal tests do; with 'FastCheck' they are evaluated by the untyped machine
 alone. A false precondition counts as satisfied, since such inputs are discarded
 rather than tested. -}
 checkHolds :: CheckMode -> Check -> Bool
-checkHolds mode = go
+checkHolds mode = isNothing . checkFailure mode
+
+{-| Why the reference implementation does not satisfy a check, if it does not.
+Evaluates the terms exactly as 'checkHolds' does, but reports what happened
+rather than only whether it passed. Rendered terms are shortened so that a
+failure in a case with large inputs stays readable. -}
+checkFailure :: CheckMode -> Check -> Maybe String
+checkFailure mode = go
   where
     eval = case mode of
       FastCheck -> fastEvalTerm
       FullCheck -> evalTerm
-    go (CheckEq t1 t2) = case eval t1 of
-      result@(CekSuccess _) -> result == eval t2
-      _ -> False
-    go (CheckEvaluatesTo t expected) = eval t == expected
-    go (CheckTrue t) = eval t == cekSuccessTrue
-    go (CheckOk t) = isCekSuccess (eval t)
-    go (CheckFails t) = eval t == CekError
-    go (CheckBoth a b) = go a && go b
-    go (CheckImplies condition check) = not condition || go check
+    go (CheckEq t1 t2) = case (eval t1, eval t2) of
+      (CekSuccess r1, CekSuccess r2)
+        | r1 == r2 -> Nothing
+        | otherwise ->
+            Just $
+              "the terms evaluated to different results: "
+                <> renderTerm r1
+                <> " and "
+                <> renderTerm r2
+      (r1, r2) ->
+        Just $
+          "the terms were expected to evaluate successfully to the same result, but the first "
+            <> outcome r1
+            <> " and the second "
+            <> outcome r2
+    go (CheckEvaluatesTo t expected) =
+      let actual = eval t
+       in if actual == expected
+            then Nothing
+            else
+              Just $
+                "the term "
+                  <> outcome actual
+                  <> ", but "
+                  <> describeExpected expected
+                  <> " was expected"
+    go (CheckTrue t) =
+      let actual = eval t
+       in if actual == cekSuccessTrue
+            then Nothing
+            else Just $ "the term " <> outcome actual <> ", but it was expected to evaluate to true"
+    go (CheckOk t) = case eval t of
+      CekSuccess _ -> Nothing
+      actual -> Just $ "the term was expected to evaluate successfully, but it " <> outcome actual
+    go (CheckFails t) =
+      let actual = eval t
+       in if actual == CekError
+            then Nothing
+            else Just $ "the term was expected to fail, but it " <> outcome actual
+    go (CheckBoth a b) = case go a of
+      Just reason -> Just $ "the first part of the check failed: " <> reason
+      Nothing -> fmap ("the second part of the check failed: " <>) (go b)
+    go (CheckImplies condition check) = if condition then go check else Nothing
     go (CheckDistinct terms) =
       let results = map eval terms
-       in all isCekSuccess results && length results == length (nub results)
-    go (CheckSatisfies _ t predicate) = predicate (eval t)
+       in case [actual | actual <- results, not (isCekSuccess actual)] of
+            actual : _ ->
+              Just $
+                "the terms were expected to evaluate successfully, but one "
+                  <> outcome actual
+            [] ->
+              if length results == length (nub results)
+                then Nothing
+                else
+                  Just $
+                    "the terms were expected to evaluate to distinct results, but some were equal: "
+                      <> abbreviate (intercalate ", " [renderTerm term | CekSuccess term <- results])
+    go (CheckSatisfies label t predicate) =
+      let actual = eval t
+       in if predicate actual
+            then Nothing
+            else Just $ "the result did not satisfy the check " <> show label <> ": it " <> outcome actual
+
+    renderTerm term = abbreviate (singleLine (T.unpack (display term)))
+    outcome (CekSuccess term) = "evaluated to " <> renderTerm term
+    outcome CekError = "failed to evaluate"
+    outcome (TypeCheckError err) = "failed to typecheck: " <> abbreviate (singleLine (show err))
+    describeExpected (CekSuccess term) = renderTerm term
+    describeExpected CekError = "an evaluation failure"
+    describeExpected (TypeCheckError _) = "a type error"
+
+-- | Maximum length of a rendered term in a failure message.
+maxDetail :: Int
+maxDetail = 300
+
+-- | Put a multi-line rendering on one line.
+singleLine :: String -> String
+singleLine = unwords . words
+
+-- | Shorten a string, marking that it has been cut.
+abbreviate :: String -> String
+abbreviate s
+  | length s <= maxDetail = s
+  | otherwise = take maxDetail s <> " ... (truncated)"
 
 {-| Replace the terms of a check by a violation if the reference implementation
 does not satisfy it. Writing such a case would record behaviour that
 contradicts the property as if it were the expected result. -}
 guardCheck :: CheckMode -> Check -> [TermCase] -> [TermCase]
 guardCheck mode check terms
-  | checkHolds mode check = terms
-  | otherwise = [ViolatedCase (take 400 (show check))]
+  | Just reason <- checkFailure mode check = [ViolatedCase reason]
+  | otherwise = terms
 
 {-| The terms to write for a check, after confirming that it holds. Preconditions
 still select suitable inputs. Kept lazy so reaching the case limit need not
@@ -332,8 +413,14 @@ cases emit one term without a suffix. Each term has its own result and budget
 files. A case that violates its property, or a stream with fewer cases than
 requested, is an error. -}
 generateTermFiles
-  :: OutputFormat -> FilePath -> Int -> PropertyId -> [TermCase] -> IO Generated
-generateTermFiles format outputDir numFiles propertyId cases = do
+  :: OutputFormat
+  -> FilePath
+  -> Int
+  -> PropertyId
+  -> String
+  -> [TermCase]
+  -> IO Generated
+generateTermFiles format outputDir numFiles propertyId description cases = do
   (available, programs) <- foldM writeCase (0, 0) (zip [1 :: Integer .. toInteger numFiles] cases)
   when (available < numFiles) $
     throwIO $
@@ -347,11 +434,11 @@ generateTermFiles format outputDir numFiles propertyId cases = do
       , generatedFiles = programs * filesPerProgram
       }
   where
-    writeCase (!count, _) (_, ViolatedCase message) =
+    writeCase (!count, _) (_, ViolatedCase reason) =
       throwIO $
         ConformanceError
           (propertyIdText propertyId <> " (case " <> show (count + 1) <> ")")
-          ("the reference implementation does not satisfy the property for input " <> message)
+          (description <> "\n  " <> reason)
     writeCase (!count, !programs) (n, termCase) = do
       let terms = termSuffixes termCase
       forM_ terms $ \(suffix, term) -> do

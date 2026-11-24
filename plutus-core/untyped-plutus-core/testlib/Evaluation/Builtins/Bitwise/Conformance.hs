@@ -97,9 +97,18 @@ QuickCheck seed. No property runner or assertions are involved. Discarded
 inputs are retried, and the lazy stream stops at the requested case count.
 Equality cases retain both terms, numbered together with -A/-B suffixes. -}
 generateBitwisePropertyFiles
-  :: OutputFormat -> CheckMode -> FilePath -> Int -> QCGen -> PropertyId -> Gen Check -> IO Generated
-generateBitwisePropertyFiles format mode outputDir numFiles seed propertyId gen =
-  generateTermFiles format outputDir numFiles propertyId $ concatMap (caseTerms mode) cases
+  :: OutputFormat
+  -> CheckMode
+  -> FilePath
+  -> Int
+  -> QCGen
+  -> PropertyId
+  -> String
+  -> Gen Check
+  -> IO Generated
+generateBitwisePropertyFiles format mode outputDir numFiles seed propertyId description gen =
+  generateTermFiles format outputDir numFiles propertyId description $
+    concatMap (caseTerms mode) cases
   where
     seeds = unGen (QC.infiniteListOf QC.arbitrary) (propertySeed seed propertyId) samplingSize
     cases = mapMaybe (\s -> treeValue <$> evalGen (Range.Size samplingSize) (Seed.from s) gen) seeds

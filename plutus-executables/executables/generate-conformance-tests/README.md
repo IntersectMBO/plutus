@@ -122,8 +122,13 @@ distinct. The same applies to other relational checks.
 
 Before a case is written it is checked against the property it came from. If
 the reference implementation does not satisfy the property for a sampled input,
-generation stops with an error naming the property and showing the input, rather
-than recording behaviour that contradicts the property as the expected result.
+generation stops at that case rather than recording behaviour that contradicts
+the property as the expected result. The error names the property, the case
+number, the property's description and what went wrong (for example, the two
+results that an equality check produced), and the tool warns that the generated
+test cases are incomplete. Cases written before the failure are left in place
+and no `info.json` is produced; rerunning into the same directory needs
+`--force` or `--clean`.
 
 There are two ways of doing this check:
 

@@ -17,6 +17,7 @@ import PlutusExecutables.Conformance.Info
   , writeInfo
   )
 
+import Control.Exception (SomeException, catch, throwIO)
 import Control.Monad (forM, forM_, when)
 import Data.List (intersperse, isInfixOf, nub)
 import Data.Version (showVersion)
@@ -24,6 +25,7 @@ import Options.Applicative
 import Options.Applicative.Help.Pretty (Doc, hardline, pretty)
 import System.Directory (doesDirectoryExist, doesPathExist, listDirectory, removePathForcibly)
 import System.FilePath ((</>))
+import System.IO (hPutStrLn, stderr)
 import System.Random (randomIO)
 import Test.QuickCheck.Random (mkQCGen)
 
@@ -197,33 +199,43 @@ main = do
             removePathForcibly (outputDir </> directory)
           else forM_ (filter include $ concatMap fst allSuites) $ \propertyId ->
             removePathForcibly (outputDir </> propertyIdPath propertyId)
-      reports <-
-        concat
-          <$> forM
-            allSuites
-            ( \(_, generate) ->
-                generate (outputFormat opts) (checkMode opts) include outputDir (numberOfFiles opts) seed
-            )
-      unrelated <- hasUnrelatedEntries outputDir
-      -- The directory holds exactly this run's cases if nothing was filtered
-      -- out, it was empty or cleaned beforehand, and nothing else is in it.
-      let completeTree =
-            null (namePatterns opts)
-              && (cleanOutput opts || startedEmpty)
-              && not unrelated
-      infoPath <-
-        writeInfo
-          outputDir
-          InfoDetails
-            { infoTool = "generate-conformance-tests"
-            , infoVersion = showVersion version
-            , infoFormat = formatName (outputFormat opts)
-            , infoNumFiles = numberOfFiles opts
-            , infoSeed = seedValue
-            , infoMatch = namePatterns opts
-            , infoClean = cleanOutput opts
-            , infoCheck = checkModeName (checkMode opts)
-            , infoCompleteTree = completeTree
-            }
-          reports
-      putStrLn ("Wrote " <> infoPath)
+      ( do
+          reports <-
+            concat
+              <$> forM
+                allSuites
+                ( \(_, generate) ->
+                    generate (outputFormat opts) (checkMode opts) include outputDir (numberOfFiles opts) seed
+                )
+          unrelated <- hasUnrelatedEntries outputDir
+          -- The directory holds exactly this run's cases if nothing was filtered
+          -- out, it was empty or cleaned beforehand, and nothing else is in it.
+          let completeTree =
+                null (namePatterns opts)
+                  && (cleanOutput opts || startedEmpty)
+                  && not unrelated
+          infoPath <-
+            writeInfo
+              outputDir
+              InfoDetails
+                { infoTool = "generate-conformance-tests"
+                , infoVersion = showVersion version
+                , infoFormat = formatName (outputFormat opts)
+                , infoNumFiles = numberOfFiles opts
+                , infoSeed = seedValue
+                , infoMatch = namePatterns opts
+                , infoClean = cleanOutput opts
+                , infoCheck = checkModeName (checkMode opts)
+                , infoCompleteTree = completeTree
+                }
+              reports
+          putStrLn ("Wrote " <> infoPath)
+        )
+        `catch` \(err :: SomeException) -> do
+          hPutStrLn stderr ""
+          hPutStrLn stderr "Generation failed: the generated test cases are incomplete."
+          hPutStrLn
+            stderr
+            "Files written before the failure have been left in place, and no info.json was written."
+          hPutStrLn stderr "Use --force (or --clean) to write into the same directory again."
+          throwIO err

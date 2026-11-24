@@ -56,11 +56,13 @@ generateBlsPropertyFiles
   -> Int
   -> QCGen
   -> PropertyId
+  -> String
   -> (PlcTerm -> PlcTerm)
   -> Gen Check
   -> IO Generated
-generateBlsPropertyFiles format mode outputDir numCases seed propertyId compressResult gen =
-  generateTermFiles format outputDir numCases propertyId $ concatMap termCases cases
+generateBlsPropertyFiles format mode outputDir numCases seed propertyId description compressResult gen =
+  generateTermFiles format outputDir numCases propertyId description $
+    concatMap termCases cases
   where
     cases = unGen (infiniteListOf gen) (propertySeed seed propertyId) samplingSize
     groupResult = portableTerm . compressResult

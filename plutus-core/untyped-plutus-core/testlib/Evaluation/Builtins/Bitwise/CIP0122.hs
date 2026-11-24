@@ -707,6 +707,7 @@ generate_bitwise_cip0122_properties format mode include outputDir numFiles seed 
                   numFiles
                   seed
                   propertyId
+                  (propertySpecDescription spec)
                   (propertySpecCheck spec)
             else pure Nothing
       )

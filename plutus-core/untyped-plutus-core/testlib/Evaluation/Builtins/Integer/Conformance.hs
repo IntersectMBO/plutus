@@ -89,10 +89,11 @@ generatePropertyFiles
   -> Int
   -> QCGen
   -> PropertyId
+  -> String
   -> Gen Check
   -> IO Generated
-generatePropertyFiles format mode outputDir numFiles seed propertyId gen =
-  generateTermFiles format outputDir numFiles propertyId terms
+generatePropertyFiles format mode outputDir numFiles seed propertyId description gen =
+  generateTermFiles format outputDir numFiles propertyId description terms
   where
     -- Match the size used by QuickCheck's 'generate', with an explicit seed.
     cases = unGen (infiniteListOf gen) (propertySeed seed propertyId) samplingSize
@@ -120,6 +121,14 @@ generatePropertySpecs format mode include outputDir numFiles seed suiteDirectory
           if include propertyId
             then
               Just . PropertyReport propertyId
-                <$> generatePropertyFiles format mode outputDir numFiles seed propertyId (propertySpecCheck spec)
+                <$> generatePropertyFiles
+                  format
+                  mode
+                  outputDir
+                  numFiles
+                  seed
+                  propertyId
+                  (propertySpecDescription spec)
+                  (propertySpecCheck spec)
             else pure Nothing
       )
