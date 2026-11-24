@@ -96,13 +96,18 @@ instance Pretty (CekState uni fun ann) where
 -- | Similar to 'Cek.Internal.Context', but augmented with an 'ann'
 data Context uni fun ann
   = -- | @[V _]@
-    FrameAwaitArg ann !(CekValue uni fun ann) !(Context uni fun ann)
+    FrameAwaitArg ann !(NTerm uni fun ann) !(CekValue uni fun ann) !(Context uni fun ann)
   | -- | @[_ N]@
-    FrameAwaitFunTerm ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
-  | FrameAwaitFunConN ann !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
-  | FrameAwaitFunValueN ann !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
+    FrameAwaitFunTerm
+      ann
+      !(CekValEnv uni fun ann)
+      !(NTerm uni fun ann) -- argument to evaluate
+      !(NTerm uni fun ann) -- original application for diagnostics
+      !(Context uni fun ann)
+  | FrameAwaitFunConN ann !(NTerm uni fun ann) !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
+  | FrameAwaitFunValueN ann !(NTerm uni fun ann) !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
   | -- | @(force _)@
-    FrameForce ann !(Context uni fun ann)
+    FrameForce ann !(NTerm uni fun ann) !(Context uni fun ann)
   | FrameConstr
       ann
       !(CekValEnv uni fun ann)
@@ -110,7 +115,12 @@ data Context uni fun ann
       ![NTerm uni fun ann]
       !(ArgStack uni fun ann)
       !(Context uni fun ann)
-  | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+  | FrameCases
+      ann
+      !(NTerm uni fun ann)
+      !(CekValEnv uni fun ann)
+      !(V.Vector (NTerm uni fun ann))
+      !(Context uni fun ann)
   | NoFrame
 
 deriving stock instance
@@ -139,13 +149,13 @@ computeCek !ctx !env (Delay _ body) = do
   stepAndMaybeSpend BDelay
   pure $ Returning ctx (VDelay body env)
 -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
-computeCek !ctx !env (Force _ body) = do
+computeCek !ctx !env source@(Force _ body) = do
   stepAndMaybeSpend BForce
-  pure $ Computing (FrameForce (getAnn body) ctx) env body
+  pure $ Computing (FrameForce (getAnn body) source ctx) env body
 -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
-computeCek !ctx !env (Apply _ fun arg) = do
+computeCek !ctx !env source@(Apply _ fun arg) = do
   stepAndMaybeSpend BApply
-  pure $ Computing (FrameAwaitFunTerm (getAnn fun) env arg ctx) env fun
+  pure $ Computing (FrameAwaitFunTerm (getAnn fun) env arg source ctx) env fun
 -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
@@ -161,9 +171,9 @@ computeCek !ctx !env (Constr ann i es) = do
     (t : rest) -> Computing (FrameConstr ann env i rest NilStack ctx) env t
     [] -> Returning ctx $ VConstr i EmptyStack
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
-computeCek !ctx !env (Case ann scrut cs) = do
+computeCek !ctx !env source@(Case ann scrut cs) = do
   stepAndMaybeSpend BCase
-  pure $ Computing (FrameCases ann env cs ctx) env scrut
+  pure $ Computing (FrameCases ann source env cs ctx) env scrut
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek !_ !_ (Error _) =
   throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
@@ -180,28 +190,28 @@ returnCek NoFrame val = do
   spendAccumulatedBudget
   pure $ Terminating (dischargeCekValue val)
 -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
-returnCek (FrameForce _ ctx) fun = forceEvaluate ctx fun
+returnCek (FrameForce _ source ctx) fun = forceEvaluate ctx source fun
 -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-returnCek (FrameAwaitFunTerm _funAnn argVarEnv arg ctx) fun =
+returnCek (FrameAwaitFunTerm _funAnn argVarEnv arg source ctx) fun =
   -- MAYBE: perhaps it is worth here to merge the _funAnn with argAnn
-  pure $ Computing (FrameAwaitArg (getAnn arg) fun ctx) argVarEnv arg
+  pure $ Computing (FrameAwaitArg (getAnn arg) source fun ctx) argVarEnv arg
 -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
 -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1878):
 -- add rule for VBuiltin once it's in the specification.
-returnCek (FrameAwaitArg _ fun ctx) arg =
-  applyEvaluate ctx fun arg
+returnCek (FrameAwaitArg _ source fun ctx) arg =
+  applyEvaluate ctx source fun arg
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-returnCek (FrameAwaitFunConN ann args ctx) fun =
+returnCek (FrameAwaitFunConN ann source args ctx) fun =
   case args of
-    SpineLast arg -> applyEvaluate ctx fun (VCon arg)
-    SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN ann rest ctx) fun (VCon arg)
+    SpineLast arg -> applyEvaluate ctx source fun (VCon arg)
+    SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN ann source rest ctx) source fun (VCon arg)
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-returnCek (FrameAwaitFunValueN ann args ctx) fun =
+returnCek (FrameAwaitFunValueN ann source args ctx) fun =
   case args of
     LastStackNonEmpty arg ->
-      applyEvaluate ctx fun arg
+      applyEvaluate ctx source fun arg
     ConsStackNonEmpty arg rest ->
-      applyEvaluate (FrameAwaitFunValueN ann rest ctx) fun arg
+      applyEvaluate (FrameAwaitFunValueN ann source rest ctx) source fun arg
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
   case todo of
@@ -212,25 +222,25 @@ returnCek (FrameConstr ann env i todo done ctx) e = do
           go acc (ConsStack x xs) = go (ConsStackNonEmpty x acc) xs
        in pure $ Returning ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
-returnCek (FrameCases ann env cs ctx) e = case e of
+returnCek (FrameCases ann source env cs ctx) e = case e of
   -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
   -- As it happens, this will currently never trigger, since i is a Word64, and the largest
   -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
   -- "apparently good" value.
   (VConstr i _)
     | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
-        throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+        throwErrorWithCause (StructuralError $ MissingCaseBranchMachineError i) (void source)
   (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
     Just t ->
       case args of
         EmptyStack -> computeCek ctx env t
-        MultiStack rest -> computeCek (FrameAwaitFunValueN ann rest ctx) env t
-    Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+        MultiStack rest -> computeCek (FrameAwaitFunValueN ann source rest ctx) env t
+    Nothing -> throwErrorWithCause (StructuralError $ MissingCaseBranchMachineError i) (void source)
   VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
-    HeadError err -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+    HeadError err -> throwErrorWithCause (OperationalError $ CekCaseBuiltinError err) (void source)
     HeadOnly fX -> pure $ Computing ctx env fX
-    HeadSpine f xs -> pure $ Computing (FrameAwaitFunConN ann xs ctx) env f
-  _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
+    HeadSpine f xs -> pure $ Computing (FrameAwaitFunConN ann source xs ctx) env f
+  _ -> throwErrorWithCause (StructuralError NonConstrScrutinizedMachineError) (void source)
 
 {-| @force@ a term and proceed.
 If v is a delay then compute the body of v;
@@ -242,11 +252,12 @@ forceEvaluate
   :: forall uni fun ann s
    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
   => Context uni fun ann
+  -> NTerm uni fun ann
   -> CekValue uni fun ann
   -> CekM uni fun s (CekState uni fun ann)
-forceEvaluate !ctx (VDelay body env) =
+forceEvaluate !ctx _ (VDelay body env) =
   pure $ Computing ctx env body
-forceEvaluate !ctx (VBuiltin fun term runtime) = do
+forceEvaluate !ctx source (VBuiltin fun term runtime) = do
   -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
   let term' = Force () term
   case runtime of
@@ -256,11 +267,11 @@ forceEvaluate !ctx (VBuiltin fun term runtime) = do
       -- We allow a type argument to appear last in the type of a built-in function,
       -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
       -- application.
-      evalBuiltinApp ctx fun term' runtime'
+      evalBuiltinApp ctx fun term' source runtime'
     _ ->
-      throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) term'
-forceEvaluate !_ val =
-  throwErrorDischarged (StructuralError NonPolymorphicInstantiationMachineError) val
+      throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) (void source)
+forceEvaluate !_ source _ =
+  throwErrorWithCause (StructuralError NonPolymorphicInstantiationMachineError) (void source)
 
 {-| Apply a function to an argument and proceed.
 If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
@@ -273,14 +284,15 @@ applyEvaluate
   :: forall uni fun ann s
    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
   => Context uni fun ann
+  -> NTerm uni fun ann
   -> CekValue uni fun ann -- lhs of application
   -> CekValue uni fun ann -- rhs of application
   -> CekM uni fun s (CekState uni fun ann)
-applyEvaluate !ctx (VLamAbs _ body env) arg =
+applyEvaluate !ctx _ (VLamAbs _ body env) arg =
   pure $ Computing ctx (Env.cons arg env) body
 -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
 -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
+applyEvaluate !ctx source (VBuiltin fun term runtime) arg = do
   let argTerm = dischargeResultToTerm $ dischargeCekValue arg
       -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
       -- in a 'VBuiltin'.
@@ -288,11 +300,11 @@ applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
   case runtime of
     -- It's only possible to apply a builtin application if the builtin expects a term
     -- argument next.
-    BuiltinExpectArgument f -> evalBuiltinApp ctx fun term' $ f arg
+    BuiltinExpectArgument f -> evalBuiltinApp ctx fun term' source $ f arg
     _ ->
-      throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
-applyEvaluate !_ val _ =
-  throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
+      throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) (void source)
+applyEvaluate !_ source _ _ =
+  throwErrorWithCause (StructuralError NonFunctionalApplicationMachineError) (void source)
 
 -- MAYBE: runCekDeBruijn can be shared between original&debug ceks by passing a `enterComputeCek` func.
 runCekDeBruijn
@@ -405,13 +417,13 @@ cekStateAnn = \case
 
 contextAnn :: Context uni fun ann -> Maybe ann
 contextAnn = \case
-  FrameAwaitArg ann _ _ -> pure ann
-  FrameAwaitFunTerm ann _ _ _ -> pure ann
-  FrameAwaitFunConN ann _ _ -> pure ann
-  FrameAwaitFunValueN ann _ _ -> pure ann
-  FrameForce ann _ -> pure ann
+  FrameAwaitArg ann _ _ _ -> pure ann
+  FrameAwaitFunTerm ann _ _ _ _ -> pure ann
+  FrameAwaitFunConN ann _ _ _ -> pure ann
+  FrameAwaitFunValueN ann _ _ _ -> pure ann
+  FrameForce ann _ _ -> pure ann
   FrameConstr ann _ _ _ _ _ -> pure ann
-  FrameCases ann _ _ _ -> pure ann
+  FrameCases ann _ _ _ _ -> pure ann
   NoFrame -> empty
 
 lenContext :: Context uni fun ann -> Word
@@ -419,13 +431,13 @@ lenContext = go 0
   where
     go :: Word -> Context uni fun ann -> Word
     go !n = \case
-      FrameAwaitArg _ _ k -> go (n + 1) k
-      FrameAwaitFunTerm _ _ _ k -> go (n + 1) k
-      FrameAwaitFunConN _ _ k -> go (n + 1) k
-      FrameAwaitFunValueN _ _ k -> go (n + 1) k
-      FrameForce _ k -> go (n + 1) k
+      FrameAwaitArg _ _ _ k -> go (n + 1) k
+      FrameAwaitFunTerm _ _ _ _ k -> go (n + 1) k
+      FrameAwaitFunConN _ _ _ k -> go (n + 1) k
+      FrameAwaitFunValueN _ _ _ k -> go (n + 1) k
+      FrameForce _ _ k -> go (n + 1) k
       FrameConstr _ _ _ _ _ k -> go (n + 1) k
-      FrameCases _ _ _ k -> go (n + 1) k
+      FrameCases _ _ _ _ k -> go (n + 1) k
       NoFrame -> 0
 
 -- * Duplicated functions from Cek.Internal module
@@ -446,15 +458,6 @@ cekStepCost costs =
     BBuiltin -> cekBuiltinCost costs
     BConstr -> cekConstrCost costs
     BCase -> cekCaseCost costs
-
-{-| Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
-'throwErrorWithCause' as the cause of the failure. -}
-throwErrorDischarged
-  :: ThrowableBuiltins uni fun
-  => EvaluationError (MachineError fun) CekUserError
-  -> CekValue uni fun ann
-  -> CekM uni fun s x
-throwErrorDischarged err = throwErrorWithCause err . dischargeResultToTerm . dischargeCekValue
 
 -- | Look up a variable name in the environment.
 lookupVarName
@@ -479,10 +482,11 @@ evalBuiltinApp
   :: (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
   => Context uni fun ann
   -> fun
-  -> NTerm uni fun ()
+  -> NTerm uni fun () -- discharged term for returning a partial application
+  -> NTerm uni fun ann -- source expression to report on failure
   -> BuiltinRuntime (CekValue uni fun ann)
   -> CekM uni fun s (CekState uni fun ann)
-evalBuiltinApp ctx fun term runtime = case runtime of
+evalBuiltinApp ctx fun term source runtime = case runtime of
   BuiltinCostedResult budgets0 getFXs -> do
     let exCat = BBuiltinApp fun
         spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
@@ -497,7 +501,7 @@ evalBuiltinApp ctx fun term runtime = case runtime of
         returnCek ctx y
       BuiltinFailure logs err -> do
         ?cekEmitter logs
-        throwBuiltinErrorWithCause term err
+        throwBuiltinErrorWithCause (void source) err
   _ -> returnCek ctx $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 

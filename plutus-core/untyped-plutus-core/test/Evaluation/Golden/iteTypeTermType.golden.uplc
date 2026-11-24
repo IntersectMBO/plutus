@@ -1,3 +1,8 @@
 (Left An error has occurred:
 A builtin expected a term argument, but something else was received
-Caused by: (force [ (force (builtin ifThenElse)) (con bool True) ]))
+Caused by: (force
+  [
+    (force (builtin ifThenElse))
+    [ [ (builtin lessThanEqualsInteger) (con integer 11) ] (con integer 22) ]
+  ]
+))
