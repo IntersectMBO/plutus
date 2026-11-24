@@ -48,7 +48,7 @@ projects=(
 # files), so `cabal run` for them fails outright under e.g. GHC 9.12.
 # They are all empty at present: every suite builds under both GHC 9.6 and 9.12.
 #
-# marlowe-validators runs before the Marlowe tests because the stored
+# marlowe-validators --validators-only runs before the Marlowe tests because the stored
 # validators are kept per GHC version (marlowe/scripts/*/validator/<ghc>/).
 #
 # NB: agda-conformance deliberately runs without --accept: some of its tests
@@ -80,7 +80,8 @@ tests_plutus_benchmark=(
   "cabal run ed25519-costs-test -- --accept"
   "cabal run bls12-381-costs-test -- --accept"
   "cabal run plutus-benchmark-script-contexts-tests -- --accept"
-  "cabal run marlowe-validators"
+  "cabal run validation-tests -- --accept"
+  "cabal run marlowe-validators -- --validators-only"
   "cabal run plutus-benchmark-marlowe-tests -- --accept"
   "cabal run bitwise-test -- --accept"
   "cabal run coop-test -- --accept"
