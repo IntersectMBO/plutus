@@ -301,16 +301,14 @@ d_maxBound_64
       (coe d_pow2pred_56 (coe (18 :: Integer))) (coe (1 :: Integer))
 -- Builtin.CInteger.CInteger
 d_CInteger_66 = ()
-data T_CInteger_66
-  = C_cInt_70 Integer MAlonzo.Code.Data.Integer.Base.T__'8804'__26
-              MAlonzo.Code.Data.Integer.Base.T__'8804'__26
+newtype T_CInteger_66 = C_cInt_70 Integer
 -- Builtin.CInteger.add
 d_add_72 :: T_CInteger_66 -> T_CInteger_66 -> Integer
 d_add_72 v0 v1
   = case coe v0 of
-      C_cInt_70 v2 v3 v4
+      C_cInt_70 v2
         -> case coe v1 of
-             C_cInt_70 v5 v6 v7
+             C_cInt_70 v5
                -> coe
                     MAlonzo.Code.Data.Integer.Base.d__'43'__284 (coe v2) (coe v5)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -319,9 +317,9 @@ d_add_72 v0 v1
 d_subtract_78 :: T_CInteger_66 -> T_CInteger_66 -> Integer
 d_subtract_78 v0 v1
   = case coe v0 of
-      C_cInt_70 v2 v3 v4
+      C_cInt_70 v2
         -> case coe v1 of
-             C_cInt_70 v5 v6 v7
+             C_cInt_70 v5
                -> coe
                     MAlonzo.Code.Data.Integer.Base.d__'45'__302 (coe v2) (coe v5)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -330,9 +328,9 @@ d_subtract_78 v0 v1
 d_multiply_84 :: T_CInteger_66 -> T_CInteger_66 -> Integer
 d_multiply_84 v0 v1
   = case coe v0 of
-      C_cInt_70 v2 v3 v4
+      C_cInt_70 v2
         -> case coe v1 of
-             C_cInt_70 v5 v6 v7
+             C_cInt_70 v5
                -> coe
                     MAlonzo.Code.Data.Integer.Base.d__'42'__316 (coe v2) (coe v5)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -341,9 +339,9 @@ d_multiply_84 v0 v1
 d_quot_90 :: T_CInteger_66 -> T_CInteger_66 -> Maybe Integer
 d_quot_90 v0 v1
   = case coe v0 of
-      C_cInt_70 v2 v3 v4
+      C_cInt_70 v2
         -> case coe v1 of
-             C_cInt_70 v5 v6 v7
+             C_cInt_70 v5
                -> coe
                     MAlonzo.Code.Builtin.Integer.Base.d_quotMaybe_94 (coe v2) (coe v5)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -352,9 +350,9 @@ d_quot_90 v0 v1
 d_rem_96 :: T_CInteger_66 -> T_CInteger_66 -> Maybe Integer
 d_rem_96 v0 v1
   = case coe v0 of
-      C_cInt_70 v2 v3 v4
+      C_cInt_70 v2
         -> case coe v1 of
-             C_cInt_70 v5 v6 v7
+             C_cInt_70 v5
                -> coe
                     MAlonzo.Code.Builtin.Integer.Base.d_remMaybe_120 (coe v2) (coe v5)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -365,9 +363,9 @@ d_divMod_102 ::
   T_CInteger_66 -> Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 d_divMod_102 v0 v1
   = case coe v0 of
-      C_cInt_70 v2 v3 v4
+      C_cInt_70 v2
         -> case coe v1 of
-             C_cInt_70 v5 v6 v7
+             C_cInt_70 v5
                -> coe
                     MAlonzo.Code.Builtin.Integer.Base.d_divModMaybe_146 (coe v2)
                     (coe v5)
@@ -391,9 +389,9 @@ d_mod_114 v0 v1
 d_lessThan_120 :: T_CInteger_66 -> T_CInteger_66 -> Bool
 d_lessThan_120 v0 v1
   = case coe v0 of
-      C_cInt_70 v2 v3 v4
+      C_cInt_70 v2
         -> case coe v1 of
-             C_cInt_70 v5 v6 v7
+             C_cInt_70 v5
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.du_isYes_132
                     (coe
@@ -405,9 +403,9 @@ d_lessThan_120 v0 v1
 d_lessThanEquals_126 :: T_CInteger_66 -> T_CInteger_66 -> Bool
 d_lessThanEquals_126 v0 v1
   = case coe v0 of
-      C_cInt_70 v2 v3 v4
+      C_cInt_70 v2
         -> case coe v1 of
-             C_cInt_70 v5 v6 v7
+             C_cInt_70 v5
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.du_isYes_132
                     (coe
