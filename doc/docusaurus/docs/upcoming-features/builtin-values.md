@@ -31,7 +31,7 @@ import PlutusTx.Builtins
   )
 ```
 
-The [Haddock documentation](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-tx/PlutusTx-Builtins.html) of these functions states what each returns and when it fails, and the [Plutus Core specification](https://plutus.cardano.intersectmbo.org/resources/plutus-core-spec.pdf) defines them precisely.
+The [Haddock documentation](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-tx/PlutusTx-Builtins.html#g:14) of these functions states what each returns and when it fails, and the [Plutus Core specification](https://plutus.cardano.intersectmbo.org/resources/plutus-core-spec.pdf) defines them precisely.
 
 <details>
   <summary>Example: an output that keeps a protocol's tokens</summary>
