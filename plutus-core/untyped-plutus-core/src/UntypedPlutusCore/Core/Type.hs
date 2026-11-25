@@ -71,8 +71,8 @@ See the @CaseBuiltin DefaultUni@ instance for how casing behaves for supported b
 -}
 
 {- Note [Case branch arrays]
-Terms and frames store the unpacked backing array, and built-in casers take Array# directly.
-This avoids allocating wrappers at the callback boundary.
+Terms and frames store the backing array directly. Built-in casers also take Array#,
+so passing an array to a caser doesn't require allocating an Array wrapper.
 -}
 
 {-| The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except

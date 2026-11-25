@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -39,7 +41,7 @@ module PlutusPrelude
   , coerceVia
   , coerceArg
   , coerceRes
-  , (#.)
+  , ( #. )
   , Generic
   , NFData
   , Natural
@@ -79,6 +81,7 @@ module PlutusPrelude
   , reoption
   , enumerate
   , tabulateArray
+  , unsafeIndexArray
   , (?)
   , ensure
   , asksM
@@ -158,6 +161,7 @@ import Data.Traversable (for)
 import Data.Typeable (Typeable)
 import Data.Word (Word64, Word8)
 import Debug.Trace (trace, traceShowId)
+import GHC.Exts (Array#, Int (I#), indexArray#)
 import GHC.Generics (Generic)
 import GHC.Natural (Natural)
 import Prettyprinter
@@ -168,8 +172,10 @@ import Text.PrettyBy.Internal
 class HasAnn f where
   -- | Get the outermost annotation.
   getAnn :: f a -> a
+
   -- | Modify the outermost annotation.
   modifyAnn :: (a -> a) -> f a -> f a
+
   -- | Set the outermost annotation.
   setAnn :: a -> f a -> f a
   setAnn = modifyAnn . const
@@ -222,9 +228,9 @@ coerceRes = coerce
 
 -- See Note "Function coercion" in GHC.Internal.Data.Functor.Utils.
 -- | Same as @(.)@, but ignores the first argument and uses a no-op coerction instead.
-(#.) :: Coercible b c => (b -> c) -> (a -> b) -> a -> c
-(#.) _ = coerce
-{-# INLINE (#.) #-}
+( #. ) :: Coercible b c => (b -> c) -> (a -> b) -> a -> c
+( #. ) _ = coerce
+{-# INLINE ( #. ) #-}
 
 (<<$>>) :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
 (<<$>>) = fmap . fmap
@@ -255,6 +261,13 @@ We can't provide an actual instance because of the @Distributive@ superclass: @A
 @Distributive@ unless we assume that indices in an array range over the entirety of @i@. -}
 tabulateArray :: (Bounded i, Enum i, Ix i) => (i -> a) -> Array i a
 tabulateArray f = listArray (minBound, maxBound) $ map f enumerate
+
+{-| Index a primitive array without bounds checking. The index must be non-negative and
+smaller than the array's length. -}
+unsafeIndexArray :: Array# a -> Int -> a
+unsafeIndexArray array (I# i) = case indexArray# array i of
+  (# x #) -> x
+{-# INLINE unsafeIndexArray #-}
 
 newtype PairT b f a = PairT
   { unPairT :: f (b, a)

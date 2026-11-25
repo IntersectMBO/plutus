@@ -15,7 +15,6 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 {-| The CEK machine.
@@ -65,7 +64,7 @@ import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.RandomAccessList.SkewBinary qualified as Env
 import Data.Semigroup (stimes)
-import GHC.Exts (Int (I#), indexArray#, sizeofArray#)
+import GHC.Exts (Int (I#), sizeofArray#)
 import GHC.TypeNats
 import Universe
 
@@ -223,10 +222,8 @@ returnCek (FrameCases ann env (Array cs) ctx) e = case e of
   VConstr i args
     -- Comparing before conversion keeps large Word64 tags out of the Int index.
     | i < fromIntegral (I# (sizeofArray# cs)) ->
-        -- The unboxed result avoids an indexing thunk without forcing branch contents.
-        case fromIntegral i of
-          I# j -> case indexArray# cs j of
-            (# t #) -> case args of
+        let !t = unsafeIndexArray cs (fromIntegral i)
+         in case args of
               EmptyStack -> computeCek ctx env t
               MultiStack rest -> computeCek (FrameAwaitFunValueN ann rest ctx) env t
     | otherwise -> throwErrorWithValue (StructuralError $ MissingCaseBranchMachineError i) e

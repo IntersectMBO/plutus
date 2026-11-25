@@ -19,7 +19,6 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -110,7 +109,7 @@ import Data.Primitive.Array (Array (..))
 import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
-import GHC.Exts (Int (I#), indexArray#, sizeofArray#)
+import GHC.Exts (Int (I#), sizeofArray#)
 import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
@@ -1003,10 +1002,8 @@ enterComputeCek = computeCek
       VConstr i args
         -- Comparing before conversion keeps large Word64 tags out of the Int index.
         | i < fromIntegral (I# (sizeofArray# cs)) ->
-            -- The unboxed result avoids an indexing thunk without forcing branch contents.
-            case fromIntegral i of
-              I# j -> case indexArray# cs j of
-                (# t #) -> case args of
+            let !t = unsafeIndexArray cs (fromIntegral i)
+             in case args of
                   EmptyStack -> computeCek ctx env t
                   MultiStack rest -> computeCek (FrameAwaitFunValueN rest ctx) env t
         | otherwise -> throwErrorWithValue (StructuralError $ MissingCaseBranchMachineError i) e

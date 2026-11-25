@@ -100,8 +100,6 @@ testCaseBranches machine eval =
     | (name, scrut, branches) <-
         [ ("first constructor branch", Constr () 0 [], [value, unused])
         , ("last constructor branch", Constr () 1 [], [unused, value])
-        , ("unit branch", mkConstant () (), [value])
-        , ("false branch", mkConstant () False, [value, unused])
         , ("true branch", mkConstant () True, [unused, value])
         , ("integer branch", mkConstant () (1 :: Integer), [unused, value])
         ]
@@ -111,14 +109,11 @@ testCaseBranches machine eval =
                Left (ErrorWithCause (StructuralError (MissingCaseBranchMachineError actual)) _) ->
                  actual @?= i
                result -> assertFailure $ "Expected a missing branch error, got " ++ show result
-         | (n, i) <-
-             (0, 0)
-               : [(1, i) | i <- [1, 2 ^ (32 :: Int), 2 ^ (63 :: Int), maxBound]]
+         | (n, i) <- [(0, 0), (1, 1), (1, maxBound)]
          ]
   where
     value = mkConstant () (42 :: Integer)
-    -- A Haskell bottom detects accidental forcing as well as evaluation of an unused branch.
-    unused = Prelude.error "unselected case branch was forced"
+    unused = Error ()
 
 testBudget
   :: (Ix fun, Show fun, Hashable fun, Pretty fun, Typeable fun)

@@ -9,9 +9,10 @@ module UntypedPlutusCore.Transform.CaseReduce
 
 import Control.Lens (transformOf)
 import Data.Bifunctor (second)
-import Data.Primitive.Array (Array (..), indexArray, sizeofArray)
+import Data.Primitive.Array (Array (..), sizeofArray)
 import PlutusCore.Builtin (CaseBuiltin (..))
 import PlutusCore.MkPlc
+import PlutusPrelude (unsafeIndexArray)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Optimizer
   ( OptimizerT
@@ -33,9 +34,9 @@ processTerm = \case
   -- We could've rewritten those patterns as 'Error' in the 'Nothing' cases, but that would turn a
   -- structural error into an operational one, which would be unfortunate, so instead we decided
   -- not to fully optimize such scripts, since they aren't valid anyway.
-  Case ann (Constr _ i args) cs
+  Case ann (Constr _ i args) cs@(Array branches)
     | i < fromIntegral (sizeofArray cs) ->
-        mkIterApp (indexArray cs $ fromIntegral i) ((ann,) <$> args)
+        mkIterApp (unsafeIndexArray branches $ fromIntegral i) ((ann,) <$> args)
   Case ann (Constant _ con) (Array cs)
     | Right t <- headSpineToTerm ann (second (Constant ann) (caseBuiltin con cs)) -> t
   t -> t
