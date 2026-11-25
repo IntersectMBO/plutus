@@ -21,7 +21,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -O2 -fno-warn-orphans #-}
 
 -- | The CEK machine.
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
