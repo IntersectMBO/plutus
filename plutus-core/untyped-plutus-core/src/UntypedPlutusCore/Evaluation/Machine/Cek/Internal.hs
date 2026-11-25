@@ -21,7 +21,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fno-warn-orphans -fspec-constr-count=9 #-}
+{-# OPTIONS_GHC -O2 -fno-warn-orphans -fspec-constr-count=9 #-}
 
 -- | The CEK machine.
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
@@ -808,6 +808,10 @@ runCekM
 {-# INLINE runCekM #-}
 
 {- Note [CEK transition continuations]
+The module enables @-O2@ because these transitions rely on SpecConstr, which is disabled
+at Cabal's default optimization level, @-O1@. Setting @-fspec-constr-count@ only changes
+the specialization limit; it does not enable the pass.
+
 Each computing, returning, forcing, application and builtin step takes its outgoing
 operations as arguments. The steps inline before the recursive workers become join points,
 so their unfoldings do not capture those workers. Computing exposes the value constructors
