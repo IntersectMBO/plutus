@@ -81,6 +81,8 @@ module PlutusPrelude
   , reoption
   , enumerate
   , tabulateArray
+  , sizeofArray
+  , indexArrayWord64
   , unsafeIndexArray
   , (?)
   , ensure
@@ -161,7 +163,7 @@ import Data.Traversable (for)
 import Data.Typeable (Typeable)
 import Data.Word (Word64, Word8)
 import Debug.Trace (trace, traceShowId)
-import GHC.Exts (Array#, Int (I#), indexArray#)
+import GHC.Exts (Array#, Int (I#), indexArray#, sizeofArray#)
 import GHC.Generics (Generic)
 import GHC.Natural (Natural)
 import Prettyprinter
@@ -261,6 +263,19 @@ We can't provide an actual instance because of the @Distributive@ superclass: @A
 @Distributive@ unless we assume that indices in an array range over the entirety of @i@. -}
 tabulateArray :: (Bounded i, Enum i, Ix i) => (i -> a) -> Array i a
 tabulateArray f = listArray (minBound, maxBound) $ map f enumerate
+
+-- | The number of elements in a primitive array.
+sizeofArray :: Array# a -> Int
+sizeofArray array = I# (sizeofArray# array)
+{-# INLINE sizeofArray #-}
+
+-- | Look up a primitive array element by a 'Word64' index, returning 'Nothing' if out of bounds.
+indexArrayWord64 :: Array# a -> Word64 -> Maybe a
+indexArrayWord64 array i
+  -- Checking before conversion prevents large tags from wrapping into a valid Int index.
+  | i < fromIntegral (sizeofArray array) = Just $ unsafeIndexArray array (fromIntegral i)
+  | otherwise = Nothing
+{-# INLINE indexArrayWord64 #-}
 
 {-| Index a primitive array without bounds checking. The index must be non-negative and
 smaller than the array's length. -}

@@ -90,7 +90,7 @@ import Data.Typeable (typeRep)
 import Data.Vector.Orphans ()
 import Data.Vector.Strict qualified as Strict (Vector, fromList)
 import Data.Word (Word16, Word32)
-import GHC.Exts (Array#, Int (I#), inline, oneShot, sizeofArray#)
+import GHC.Exts (Array#, inline, oneShot)
 import Text.PrettyBy.Fixity
   ( RenderContext
   , inContextM
@@ -947,7 +947,7 @@ outOfBoundsErr x branches =
     [ "'case "
     , display x
     , "' is out of bounds for the given number of branches: "
-    , display $ I# (sizeofArray# branches)
+    , display $ sizeofArray branches
     ]
 
 instance AnnotateCaseBuiltin DefaultUni where
@@ -1023,7 +1023,7 @@ caseBuiltinDefault caseData someVal@(Some (ValueOf uni x)) branches = case uni o
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   _ -> HeadError $ display uni <> " isn't supported in 'case'"
   where
-    !len = I# (sizeofArray# branches)
+    !len = sizeofArray branches
 {-# INLINE caseBuiltinDefault #-}
 
 -- | The built-in caser used when casing is available except on 'Data'.
@@ -1049,7 +1049,7 @@ caseBuiltinData x someVal branches = case x of
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   _ -> HeadError "Casing on data only supports Data.Constr values"
   where
-    !len = I# (sizeofArray# branches)
+    !len = sizeofArray branches
 {-# INLINE caseBuiltinData #-}
 
 instance CaseBuiltin DefaultUni where

@@ -8,7 +8,6 @@
 {-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NPlusKPatterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -109,7 +108,6 @@ import Data.Primitive.Array (Array (..))
 import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
-import GHC.Exts (Int (I#), sizeofArray#)
 import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
@@ -810,6 +808,7 @@ data Context uni fun ann
   | -- | @(case _ C0 .. Cn)@
     FrameCases
       !(CekValEnv uni fun ann)
+      -- See Note [Case branch arrays].
       {-# UNPACK #-} !(Array (NTerm uni fun ann))
       !(Context uni fun ann)
   | NoFrame
@@ -999,14 +998,11 @@ enterComputeCek = computeCek
            in returnCek ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env (Array cs) ctx) e = case e of
-      VConstr i args
-        -- Comparing before conversion keeps large Word64 tags out of the Int index.
-        | i < fromIntegral (I# (sizeofArray# cs)) ->
-            let !t = unsafeIndexArray cs (fromIntegral i)
-             in case args of
-                  EmptyStack -> computeCek ctx env t
-                  MultiStack rest -> computeCek (FrameAwaitFunValueN rest ctx) env t
-        | otherwise -> throwErrorWithValue (StructuralError $ MissingCaseBranchMachineError i) e
+      VConstr i args -> case indexArrayWord64 cs i of
+        Just t -> case args of
+          EmptyStack -> computeCek ctx env t
+          MultiStack rest -> computeCek (FrameAwaitFunValueN rest ctx) env t
+        Nothing -> throwErrorWithValue (StructuralError $ MissingCaseBranchMachineError i) e
       -- Proceed with caser when expression given is not Constr.
       VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
         HeadError err -> throwErrorWithValue (OperationalError $ CekCaseBuiltinError err) e
