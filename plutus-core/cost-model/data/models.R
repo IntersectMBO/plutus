@@ -925,9 +925,12 @@ modelFun <- function(path) {
         # (shared.slope >= (slope.small + slope.large) / 2).
         shared.slope <- max(slope.large, (slope.small + slope.large) / 2)
 
-        # The ledger model has positional coefficients. Fit its shape only to get
-        # the coefficient names, then put shared.slope in both slots.
-        # pmin * pmax = x * y, so the interaction coefficient carries over as is.
+        # The on-chain parameters are the c00, c10, c01, c11 of
+        # with_interaction_in_x_and_y (c00 + c10*x + c01*y + c11*x*y), so emit that
+        # shape. generate-cost-model reads coefficients by name and cost-model-test
+        # calls predict() on the object; as in equalsDataModel, fit that shape only
+        # for its names and overwrite the coefficients. pmin * pmax = x * y, so the
+        # interaction coefficient carries over as is.
         positional <- lm(t ~ x_mem * y_mem, filtered)
         positional$coefficients <- c("(Intercept)" = m$coefficients[["(Intercept)"]],
                                      "x_mem" = shared.slope, "y_mem" = shared.slope,
