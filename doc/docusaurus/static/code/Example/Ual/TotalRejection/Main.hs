@@ -21,7 +21,6 @@ import PlutusTx.Builtins (unsafeDataAsConstr)
 import PlutusTx.Prelude
 import PlutusTx.Ual (ModuleUal)
 import PlutusTx.Ual.TH (ualModule)
-import System.Environment (getArgs)
 import Prelude qualified as Haskell
 
 -- Inspect the V3 script purpose before testing a contradictory condition.
@@ -71,10 +70,6 @@ annotations = $(ualModule)
 
 main :: Haskell.IO ()
 main = do
-  args <- getArgs
-  environment <- case args of
-    [path] -> Haskell.pure path
-    _ -> Haskell.fail "usage: example-ual-total-rejection ENVIRONMENT.json"
   let preamble =
         MkAssurancePreamble
           "Plinth total rejection example"
@@ -83,4 +78,4 @@ main = do
           ["Plutus contributors"]
           "2026-11-05"
           Nothing
-  writeInterfaceBundle environment preamble "" [annotations] blueprint
+  defaultMainInterfaceBundle preamble "" [annotations] blueprint

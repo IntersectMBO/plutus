@@ -12,6 +12,31 @@ digest-bound checking contexts. The blueprint contains invocation roles and sche
 references; the contexts contain execution bounds and semantics. Compilation emits claims, not
 verification evidence.
 
+To stream the same bundle to stdout, run the following from the repository root.
+This example uses an illustrative environment manifest.
+
+```sh
+cabal run -v0 docusaurus-examples:exe:example-ual-game -- \
+  --ndjson --environment doc/docusaurus/static/code/Example/Ual/Blueprint/environment.json
+```
+
+Each NDJSON line has a `path`, an `encoding`, and a `content` string. For
+`utf8` records, `content` is the exact JSON file text including its final
+newline. Parse it as JSON to inspect the document, or encode it as UTF-8 to
+reproduce its digest. Generators with binary artifacts use `base16` for those
+records. Each record is flushed as it is produced. Check the exit status before
+treating the bundle as complete.
+
+To test streaming from the repository root, build Game and pass its executable
+to the smoke test. The test runs both output modes in a temporary directory,
+compares each artifact byte for byte, and checks the assurance references.
+
+```sh
+target=docusaurus-examples:exe:example-ual-game
+cabal build "$target" &&
+  python3 doc/docusaurus/static/code/Example/Ual/Game/test-stream.py "$(cabal list-bin "$target")"
+```
+
 The UAL 1.0 properties use the stable `gameValidator` binding; the display title
 is `Guess the secret`. SHA-256 is opaque to the solver, so the quantified claims
 state that matching hashes succeed and different hashes fail. They do not assert

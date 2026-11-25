@@ -20,7 +20,6 @@ import PlutusTx.Blueprint
 import PlutusTx.Prelude
 import PlutusTx.Ual (ModuleUal)
 import PlutusTx.Ual.TH (ualIdFor, ualModule)
-import System.Environment (getArgs)
 import Prelude qualified as Haskell
 
 -- The isGoodGuess rule from plutus-apps' Plutus.Contracts.Game.Alonzo:
@@ -93,10 +92,6 @@ annotations = $(ualModule)
 
 main :: Haskell.IO ()
 main = do
-  args <- getArgs
-  environment <- case args of
-    [path] -> Haskell.pure path
-    _ -> Haskell.fail "usage: example-ual-game ENVIRONMENT.json"
   let preamble =
         MkAssurancePreamble
           { assuranceTitle = "Guessing game assurance"
@@ -106,4 +101,4 @@ main = do
           , assuranceCreated = "2026-09-29"
           , assuranceLicense = Just "Apache-2.0"
           }
-  writeInterfaceBundle environment preamble "gameValidator" [annotations] blueprint
+  defaultMainInterfaceBundle preamble "gameValidator" [annotations] blueprint

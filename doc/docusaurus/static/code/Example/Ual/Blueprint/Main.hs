@@ -256,7 +256,7 @@ import PlutusLedgerApi.V3.Contexts (getContinuingOutputs, txSignedBy)
 import PlutusTx qualified
 import PlutusTx.Assurance
   ( AssurancePreamble (..)
-  , writeInterfaceBundle
+  , defaultMainInterfaceBundle
   )
 import PlutusTx.Blueprint
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
@@ -264,7 +264,6 @@ import PlutusTx.List (foldr)
 import PlutusTx.Prelude
 import PlutusTx.Ual (ModuleUal)
 import PlutusTx.Ual.TH (ualIdFor, ualModule)
-import System.Environment (getArgs)
 import Prelude qualified as Haskell
 
 {-| One instalment of the schedule.
@@ -584,20 +583,11 @@ above. Further declarations may follow, as 'main' does. -}
 contractUal :: ModuleUal
 contractUal = $(ualModule)
 
-{-| Write @plutus.json@ and @assurance.json@ into the current directory.
-
-The order is forced: 'blueprintRef' hashes the blueprint bytes on disk, so the
-blueprint must already have been written, and the assurance document embeds that
-hash. -}
+-- | Generate the vesting bundle as files or stream it with @--ndjson@.
 main :: Haskell.IO ()
 main = do
   _ <- either Haskell.fail Haskell.pure vestingInstance
-  args <- getArgs
-  environment <- case args of
-    [path] -> Haskell.pure path
-    _ -> Haskell.fail "usage: example-ual-blueprint ENVIRONMENT.json"
-  writeInterfaceBundle
-    environment
+  defaultMainInterfaceBundle
     myAssurancePreamble
     $(ualIdFor 'vestingValidator)
     [contractUal]

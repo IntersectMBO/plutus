@@ -21,7 +21,6 @@ import PlutusTx.Blueprint
 import PlutusTx.Prelude
 import PlutusTx.Ual (ModuleUal)
 import PlutusTx.Ual.TH (ualModule)
-import System.Environment (getArgs)
 import Prelude qualified as Haskell
 
 -- Equal host integer types with different UPLC representations.
@@ -107,10 +106,6 @@ annotations = $(ualModule)
 
 main :: Haskell.IO ()
 main = do
-  args <- getArgs
-  environment <- case args of
-    [path] -> Haskell.pure path
-    _ -> Haskell.fail "usage: example-ual-parameters ENVIRONMENT.json"
   let preamble =
         MkAssurancePreamble
           "Parameter encoding assurance"
@@ -133,4 +128,4 @@ main = do
         , (\a -> ("data_applied_seven", "dataParameter", a)) Haskell.<$> encoded 7
         , (\a -> ("data_applied_eight", "dataParameter", a)) Haskell.<$> encoded 8
         ]
-  writeInterfaceBundleWithBindings environment preamble "" [annotations] blueprint [] bindings
+  defaultMainInterfaceBundleWithBindings preamble "" [annotations] blueprint [] bindings

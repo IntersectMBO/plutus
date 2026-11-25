@@ -20,7 +20,6 @@ import PlutusTx qualified
 import PlutusTx.Assurance
 import PlutusTx.Blueprint
 import PlutusTx.Prelude (BuiltinData, BuiltinUnit)
-import System.Environment (getArgs)
 
 auctionCode :: PlutusTx.CompiledCode (BuiltinData -> BuiltinUnit)
 auctionCode = auctionValidatorScript params
@@ -47,10 +46,6 @@ blueprint =
 
 main :: IO ()
 main = do
-  args <- getArgs
-  environment <- case args of
-    [path] -> pure path
-    _ -> fail "usage: example-ual-auction ENVIRONMENT.json"
   let preamble =
         MkAssurancePreamble
           "Auction with detached specification"
@@ -59,10 +54,10 @@ main = do
           ["Plutus contributors"]
           "2026-10-06"
           Nothing
-  writeInterfaceBundleWithFunctions
-    environment
+  defaultMainInterfaceBundleWithBindings
     preamble
     ""
     [annotations]
     blueprint
     [compiledFunction "outbids" outbidsCode]
+    []

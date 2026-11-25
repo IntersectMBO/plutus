@@ -4,6 +4,7 @@ module PlutusTx.Assurance.Write
   ( encodeAssurance
   , writeAssurance
   , blueprintRef
+  , blueprintRefBytes
   ) where
 
 import Prelude
@@ -70,11 +71,13 @@ Order matters: the CIP requires the digest to be over the blueprint document
 exactly as retrieved, so this must run *after* 'PlutusTx.Blueprint.writeBlueprint'
 and before 'writeAssurance'. -}
 blueprintRef :: Text -> FilePath -> IO BlueprintRef
-blueprintRef uri path = do
-  bytes <- BS.readFile path
-  pure
-    MkBlueprintRef
-      { blueprintUri = uri
-      , blueprintHash =
-          Just (MkDigest "sha256" (Text.decodeUtf8 (Base16.encode (sha2_256 bytes))))
-      }
+blueprintRef uri path = blueprintRefBytes uri <$> BS.readFile path
+
+-- | Reference an artifact using its exact serialized bytes.
+blueprintRefBytes :: Text -> BS.ByteString -> BlueprintRef
+blueprintRefBytes uri bytes =
+  MkBlueprintRef
+    { blueprintUri = uri
+    , blueprintHash =
+        Just (MkDigest "sha256" (Text.decodeUtf8 (Base16.encode (sha2_256 bytes))))
+    }
