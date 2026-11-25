@@ -913,7 +913,7 @@ modelFun <- function(path) {
             discard.overhead ()
         # unionValue puts the larger map first, so the time depends on the
         # smaller and the larger size, not on the argument order.
-        m <- lm(t ~ pmin(x_mem, y_mem) + pmax(x_mem, y_mem) + I(x_mem * y_mem), filtered)
+        m <- lm(t ~ pmin(x_mem, y_mem) + pmax(x_mem, y_mem) + x_mem:y_mem, filtered)
         slope.small <- m$coefficients[["pmin(x_mem, y_mem)"]]
         slope.large <- m$coefficients[["pmax(x_mem, y_mem)"]]
 
@@ -932,9 +932,9 @@ modelFun <- function(path) {
         # for its names and overwrite the coefficients. pmin * pmax = x * y, so the
         # interaction coefficient carries over as is.
         positional <- lm(t ~ x_mem * y_mem, filtered)
-        positional$coefficients <- c("(Intercept)" = m$coefficients[["(Intercept)"]],
-                                     "x_mem" = shared.slope, "y_mem" = shared.slope,
-                                     "x_mem:y_mem" = m$coefficients[["I(x_mem * y_mem)"]])
+        positional$coefficients <- c(m$coefficients["(Intercept)"],
+                                     x_mem = shared.slope, y_mem = shared.slope,
+                                     m$coefficients["x_mem:y_mem"])
         mk.result(positional, "with_interaction_in_x_and_y")
     }
 
