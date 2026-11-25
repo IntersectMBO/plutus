@@ -71,10 +71,10 @@ See the @CaseBuiltin DefaultUni@ instance for how casing behaves for supported b
 -}
 
 {- Note [Case branch arrays]
-Array is a wrapper around Array#. The branch-array fields of Case and FrameCases have UNPACK
-annotations, so GHC stores the underlying Array# directly in those constructors. This saves
-allocating a separate Array wrapper. Built-in casers also take Array#, so passing the branches
-to a caser doesn't require allocating that wrapper again.
+@Array@ is a wrapper around @Array#@. The branch-array fields of @Case@ and @FrameCases@ have
+@UNPACK@ annotations, so GHC stores the underlying @Array#@ directly in those constructors.
+This saves allocating a separate @Array@ wrapper. Built-in casers also take @Array#@, so passing
+the branches to a caser doesn't require allocating that wrapper again.
 -}
 
 {-| The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except

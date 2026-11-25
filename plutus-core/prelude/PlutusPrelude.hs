@@ -81,9 +81,10 @@ module PlutusPrelude
   , reoption
   , enumerate
   , tabulateArray
-  , sizeofArray
+  , unArray
+  , lengthArray#
   , indexArrayWord64
-  , unsafeIndexArray
+  , unsafeIndexArray#
   , (?)
   , ensure
   , asksM
@@ -157,6 +158,7 @@ import Data.Functor.Identity (Identity (..))
 import Data.List.Extra (enumerate)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Primitive.Array qualified as Primitive
 import Data.Semigroup (Endo (..), stimes)
 import Data.Text qualified as T
 import Data.Traversable (for)
@@ -264,25 +266,30 @@ We can't provide an actual instance because of the @Distributive@ superclass: @A
 tabulateArray :: (Bounded i, Enum i, Ix i) => (i -> a) -> Array i a
 tabulateArray f = listArray (minBound, maxBound) $ map f enumerate
 
--- | The number of elements in a primitive array.
-sizeofArray :: Array# a -> Int
-sizeofArray array = I# (sizeofArray# array)
-{-# INLINE sizeofArray #-}
+-- | The underlying primitive array, without its @Primitive.Array@ wrapper.
+unArray :: Primitive.Array a -> Array# a
+unArray (Primitive.Array array) = array
+{-# INLINE unArray #-}
 
--- | Look up a primitive array element by a 'Word64' index, returning 'Nothing' if out of bounds.
+-- | The number of elements in a primitive array.
+lengthArray# :: Array# a -> Int
+lengthArray# array = I# (sizeofArray# array)
+{-# INLINE lengthArray# #-}
+
+-- | Look up a primitive array element by a @Word64@ index, returning @Nothing@ if out of bounds.
 indexArrayWord64 :: Array# a -> Word64 -> Maybe a
 indexArrayWord64 array i
-  -- Checking before conversion prevents large tags from wrapping into a valid Int index.
-  | i < fromIntegral (sizeofArray array) = Just $ unsafeIndexArray array (fromIntegral i)
+  -- Checking before conversion prevents large tags from wrapping into a valid @Int@ index.
+  | i < fromIntegral (lengthArray# array) = Just $ unsafeIndexArray# array (fromIntegral i)
   | otherwise = Nothing
 {-# INLINE indexArrayWord64 #-}
 
 {-| Index a primitive array without bounds checking. The index must be non-negative and
 smaller than the array's length. -}
-unsafeIndexArray :: Array# a -> Int -> a
-unsafeIndexArray array (I# i) = case indexArray# array i of
+unsafeIndexArray# :: Array# a -> Int -> a
+unsafeIndexArray# array (I# i) = case indexArray# array i of
   (# x #) -> x
-{-# INLINE unsafeIndexArray #-}
+{-# INLINE unsafeIndexArray# #-}
 
 newtype PairT b f a = PairT
   { unPairT :: f (b, a)

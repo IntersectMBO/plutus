@@ -947,7 +947,7 @@ outOfBoundsErr x branches =
     [ "'case "
     , display x
     , "' is out of bounds for the given number of branches: "
-    , display $ sizeofArray branches
+    , display $ lengthArray# branches
     ]
 
 instance AnnotateCaseBuiltin DefaultUni where
@@ -990,17 +990,17 @@ caseBuiltinDefault
   -> HeadSpine Text term (Some (ValueOf DefaultUni))
 caseBuiltinDefault caseData someVal@(Some (ValueOf uni x)) branches = case uni of
   DefaultUniUnit
-    | 1 == len -> HeadOnly $ unsafeIndexArray branches 0
+    | 1 == len -> HeadOnly $ unsafeIndexArray# branches 0
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   DefaultUniBool -> case x of
     -- We allow there to be only one branch as long as the scrutinee is 'False'.
     -- This is strictly to save size by not having the 'True' branch if it was gonna be
     -- 'Error' anyway.
-    False | len == 1 || len == 2 -> HeadOnly $ unsafeIndexArray branches 0
-    True | len == 2 -> HeadOnly $ unsafeIndexArray branches 1
+    False | len == 1 || len == 2 -> HeadOnly $ unsafeIndexArray# branches 0
+    True | len == 2 -> HeadOnly $ unsafeIndexArray# branches 1
     _ -> HeadError $ outOfBoundsErr someVal branches
   DefaultUniInteger
-    | 0 <= x && x < toInteger len -> HeadOnly $ unsafeIndexArray branches (fromInteger x)
+    | 0 <= x && x < toInteger len -> HeadOnly $ unsafeIndexArray# branches (fromInteger x)
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   DefaultUniData -> caseData x someVal branches
   DefaultUniList ty
@@ -1008,22 +1008,22 @@ caseBuiltinDefault caseData someVal@(Some (ValueOf uni x)) branches = case uni o
         case x of
           [] -> HeadError "Expected non-empty list, got empty list for casing list"
           (y : ys) ->
-            headSpine (unsafeIndexArray branches 0) [someValueOf ty y, someValueOf uni ys]
+            headSpine (unsafeIndexArray# branches 0) [someValueOf ty y, someValueOf uni ys]
     | len == 2 ->
         case x of
-          [] -> HeadOnly $ unsafeIndexArray branches 1
+          [] -> HeadOnly $ unsafeIndexArray# branches 1
           (y : ys) ->
-            headSpine (unsafeIndexArray branches 0) [someValueOf ty y, someValueOf uni ys]
+            headSpine (unsafeIndexArray# branches 0) [someValueOf ty y, someValueOf uni ys]
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   DefaultUniPair tyL tyR
     | len == 1 ->
         case x of
           (l, r) ->
-            headSpine (unsafeIndexArray branches 0) [someValueOf tyL l, someValueOf tyR r]
+            headSpine (unsafeIndexArray# branches 0) [someValueOf tyL l, someValueOf tyR r]
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   _ -> HeadError $ display uni <> " isn't supported in 'case'"
   where
-    !len = sizeofArray branches
+    !len = lengthArray# branches
 {-# INLINE caseBuiltinDefault #-}
 
 -- | The built-in caser used when casing is available except on 'Data'.
@@ -1044,12 +1044,12 @@ caseBuiltinData x someVal branches = case x of
   Data.Constr tag fields
     | 0 <= tag && tag < toInteger len ->
         headSpine
-          (unsafeIndexArray branches (fromInteger tag))
+          (unsafeIndexArray# branches (fromInteger tag))
           [someValueOf (DefaultUniList DefaultUniData) fields]
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
   _ -> HeadError "Casing on data only supports Data.Constr values"
   where
-    !len = sizeofArray branches
+    !len = lengthArray# branches
 {-# INLINE caseBuiltinData #-}
 
 instance CaseBuiltin DefaultUni where
