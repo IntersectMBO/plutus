@@ -911,20 +911,26 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        # unionValue merges the larger map first in either argument order.
+        # unionValue puts the larger map first, so the time depends on the
+        # smaller and the larger size, not on the argument order.
         m <- lm(t ~ pmin(x_mem, y_mem) + pmax(x_mem, y_mem) + I(x_mem * y_mem), filtered)
+        slope.small <- m$coefficients[["pmin(x_mem, y_mem)"]]
+        slope.large <- m$coefficients[["pmax(x_mem, y_mem)"]]
 
-        # For smaller size s and larger size L, require k*(s+L) >= a*s + b*L,
-        # where a and b are their fitted slopes. Both sides are linear in s on [0,L].
-        # At s=0 we need k >= b, and at s=L we need k >= (a+b)/2,
-        # so the smallest shared slope is max(b, (a+b)/2).
-        slopes <- m$coefficients[c("pmin(x_mem, y_mem)", "pmax(x_mem, y_mem)")]
-        k <- max(slopes[[2]], mean(slopes))
+        # To charge the same in both orders, both sizes get one shared.slope,
+        # which must not charge less than the fit for any small <= large:
+        #   shared.slope * (small + large) >= slope.small * small + slope.large * large
+        # For a fixed large both sides are linear in small, so it suffices to check
+        # small = 0 (shared.slope >= slope.large) and small = large
+        # (shared.slope >= (slope.small + slope.large) / 2).
+        shared.slope <- max(slope.large, (slope.small + slope.large) / 2)
 
-        # The ledger model has positional coefficients. Use the shared slope for both.
+        # The ledger model has positional coefficients. Fit its shape only to get
+        # the coefficient names, then put shared.slope in both slots.
+        # pmin * pmax = x * y, so the interaction coefficient carries over as is.
         positional <- lm(t ~ x_mem * y_mem, filtered)
         positional$coefficients <- c("(Intercept)" = m$coefficients[["(Intercept)"]],
-                                     "x_mem" = k, "y_mem" = k,
+                                     "x_mem" = shared.slope, "y_mem" = shared.slope,
                                      "x_mem:y_mem" = m$coefficients[["I(x_mem * y_mem)"]])
         mk.result(positional, "with_interaction_in_x_and_y")
     }
