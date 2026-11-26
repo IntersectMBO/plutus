@@ -119,10 +119,17 @@ on ByteStrings.
 
 ```
 import Builtin.Binary
+import Builtin.ByteString
 import Builtin.ByteString.Base
 import Builtin.ByteString.Order
-import Builtin.ByteString
 import Builtin.ByteString.Properties
+```
+
+Cardano ByteStrings: ByteStrings within the length bound that most ByteString
+builtins impose on their arguments.
+
+```
+import Builtin.CByteString
 ```
 
 The specification of Data.
@@ -144,6 +151,7 @@ import Builtin.Value.Data
 import Builtin.Value.Data.Properties
 import Builtin.Value
 import Builtin.Value.Properties
+>>>>>>> origin/master
 ```
 
 The types of the built-in operations are defined by a signature.
