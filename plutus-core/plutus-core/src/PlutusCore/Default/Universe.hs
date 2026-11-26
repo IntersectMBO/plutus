@@ -497,11 +497,6 @@ instance
 instance
   KnownBuiltinTypeIn DefaultUni term Bool
   => MakeKnownIn DefaultUni term Bool
-  where
-  -- See Note [Representing constants].
-  makeKnown False = pure $ fromValue False
-  makeKnown True = pure $ fromValue True
-  {-# INLINE makeKnown #-}
 instance
   KnownBuiltinTypeIn DefaultUni term Data
   => MakeKnownIn DefaultUni term Data

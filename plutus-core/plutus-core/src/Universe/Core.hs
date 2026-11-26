@@ -351,26 +351,10 @@ function. In specialized builtin code, the surrounding @VCon@ and @BuiltinSucces
 can depend on the coercion bound by that case and remain inside each call. @SomeValueOf@
 removes this obstacle without adding another wrapper around the tag and value.
 
-Removing the obstacle does not by itself make a result shareable. Consider Boolean lifting:
+The generic @makeKnown@ instance wraps a @Bool@ argument on each call. Its wrappers contain
+the argument, so GHC keeps them inside the function.
 
-@
-    makeKnown b = pure $ fromValue b
-@
-
-The wrappers contain the argument @b@, so GHC still constructs them on each call. GHC does not
-automatically turn this into a choice between two closed results. We expose that choice:
-
-@
-    makeKnown False = pure $ fromValue False
-    makeKnown True  = pure $ fromValue True
-@
-
-With @SomeValueOf@, GHC can lift each complete result out of the function, including @VCon@ and
-@BuiltinSuccess@. We do not need separate definitions for the Boolean constants. With the old
-representation, explicit top-level @Some@ values were a workaround: they kept the coercion
-outside @makeKnown@ and allowed the surrounding constructors to be shared.
-
-Unit already gets this treatment from the generic @makeKnown@ instance. Forcing its argument
+Unit behaves differently with the generic @makeKnown@ instance. Forcing its argument
 reveals the only possible value, @()@, so GHC shares the complete result without a special
 instance. Arbitrary @Integer@ and @Text@ arguments still need fresh wrappers: their values are
 not known until the call, and removing @unsafeEqualityProof@ saves no runtime allocation by
@@ -384,9 +368,7 @@ probe saved about 48 bytes per call too.
 
 These local improvements should not be confused with a general reduction in allocations.
 Across the 89 validation scripts, three runs with the same inputs and iteration counts gave
-about a 0.084% aggregate reduction from @SomeValueOf@ alone. Adding the Boolean split brought
-that to about 0.625%, effectively matching the old workaround of sharing explicit top-level
-@Some@ values for @False@ and @True@.
+about a 0.084% aggregate reduction from @SomeValueOf@ alone.
 
 The same idea could be applied to other frequent results: small @Integer@ values such as @0@,
 @1@ and @-1@; empty @ByteString@ and @Text@ values; empty lists and arrays; an empty @Value@;
