@@ -13,8 +13,10 @@ import Control.Monad.Except
 import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
 import Control.Monad.State (StateT, evalStateT)
 import Data.Map qualified as M
+import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as Text
+import Data.Text.Read qualified as TextRead
 import Text.Megaparsec hiding (ParseError, State, parse, some)
 import Text.Megaparsec.Char (char, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
@@ -218,8 +220,11 @@ name = try $ parseUnquoted <|> parseQuoted
     parseUnquoted :: Parser Name
     parseUnquoted = do
       _ <- lookAhead (satisfy isIdentifierStartingChar)
-      str <- takeWhileP (Just "identifier-unquoted") isIdentifierChar
-      Name str <$> uniqueSuffix str
+      base <- takeWhileP (Just "identifier-unquoted") isIdentifierChar
+      Name base <$> uniqueSuffix base
+
+    isNameExtensionChar :: Char -> Bool
+    isNameExtensionChar c = isIdentifierChar c || c == '-'
 
     parseQuoted :: Parser Name
     parseQuoted = do
@@ -229,11 +234,27 @@ name = try $ parseUnquoted <|> parseQuoted
       _ <- char '`'
       Name str <$> uniqueSuffix str
 
-    -- Tries to parse a `Unique` value.
-    -- If it fails then looks up the `Unique` value for the given name.
-    -- If lookup fails too then generates a fresh `Unique` value.
+    {- Parses an optional unique-suffix, committing on '-': if a '-' is seen,
+    the entire region up to the next word boundary must validate as a
+    non-empty digit-string, otherwise we raise 'MalformedUniqueSuffix'. If no
+    '-' is seen, the name has no explicit unique and we look one up (or
+    generate a fresh one). -}
     uniqueSuffix :: Text -> Parser Unique
-    uniqueSuffix nameStr = try (Unique <$> (char '-' *> Lex.decimal)) <|> uniqueForName nameStr
+    uniqueSuffix nameStr = do
+      mDash <- optional (char '-')
+      case mDash of
+        Nothing -> uniqueForName nameStr
+        Just _ -> do
+          suffixOff <- getOffset
+          suffixPos <- getSourcePos'
+          suffixText <- takeWhileP (Just "unique-suffix") isNameExtensionChar
+          case TextRead.decimal suffixText of
+            Right (n, rest) | Text.null rest -> pure (Unique n)
+            _ ->
+              parseError $
+                FancyError suffixOff $
+                  Set.singleton
+                    (ErrorCustom (MalformedUniqueSuffix nameStr suffixText suffixPos))
 
     -- Return the unique identifier of a name.
     -- If it's not in the current parser state, map the name to a fresh id and add it to the state.
