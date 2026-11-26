@@ -343,13 +343,14 @@ maxUnionValueEntries = 50_000
 
 {-| Generate argument pairs for UnionValue benchmarking.
 The worst case is when both Values share as many keys as possible,
-therefore we consider two Values where the first is a sub-value of the second.
+so we generate a sub-value of a larger Value. Benchmarking the same pair in
+both orders checks whether argument order affects the running time.
 Experiments have also shown that the worst case execution time for UnionValue
 occurs for flat maps with a single token name per policy ID.
 Therefore, we fix the number of token names to 1 for both Values.
 Every amount is negative, so the result holds a negative amount under every currency. -}
 unionValueArgs :: StatefulGen g m => g -> m [(Value, Value)]
-unionValueArgs gen = replicateM 200 $ do
+unionValueArgs gen = fmap concat $ replicateM 100 $ do
   numPolicyIdsV2 <- uniformRM (1, maxUnionValueEntries) gen
   policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
   tokenName <- generateKey gen
@@ -358,7 +359,10 @@ unionValueArgs gen = replicateM 200 $ do
   numPolicyIdsToKeep <- uniformRM (1, numPolicyIdsV2) gen
   let policyIdsV1 = take numPolicyIdsToKeep policyIdsV2
       value1 = buildValue policyIdsV1 [tokenName] (mkQuantity amt)
-  pure (value1, value2)
+  pure $
+    if numPolicyIdsToKeep == numPolicyIdsV2
+      then [(value1, value2)]
+      else [(value1, value2), (value2, value1)]
 
 ----------------------------------------------------------------------------------------------------
 -- ScaleValue --------------------------------------------------------------------------------------

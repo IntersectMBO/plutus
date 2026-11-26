@@ -20,6 +20,8 @@ on:
   pull_request:
     paths:
       - 'doc/cost-models/**'
+      - 'plutus-core/cost-model/data/benching-conway.csv'
+      - 'plutus-core/cost-model/data/builtinCostModelE.json'
       - '.github/workflows/cost-models-site.yml'
 
 jobs:
