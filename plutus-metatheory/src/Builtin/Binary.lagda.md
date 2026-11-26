@@ -247,6 +247,16 @@ natToBits-injective len {n} {m} n< m< eq =
         (trans (cong bitsToNat eq) (bitsToNat-natToBits len m m<))
 ```
 
+`byteToNat` is injective: different bytes have different numeric values.
+
+```
+byteToNat-injective : ∀ {b₁ b₂} → byteToNat b₁ ≡ byteToNat b₂ → b₁ ≡ b₂
+byteToNat-injective {b₁} {b₂} eq =
+  cong bitsToByte {byteToBits b₁} {byteToBits b₂}
+    (trans (sym (natToBits-bitsToNat 8 (byteToBits b₁)))
+           (trans (cong (natToBits 8) eq) (natToBits-bitsToNat 8 (byteToBits b₂))))
+```
+
 For a given length, the bits of a `BinaryOf n` are determined by `n`: they are exactly
 `natToBits len n`.
 
