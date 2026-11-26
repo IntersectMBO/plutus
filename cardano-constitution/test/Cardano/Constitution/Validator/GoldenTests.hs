@@ -25,6 +25,7 @@ import Data.Maybe
 import Data.String
 import System.FilePath
 import Test.Tasty
+import Test.Tasty.Extras (makeVersionedFilePath)
 import Test.Tasty.Golden
 
 import Helpers.Guardrail
@@ -115,9 +116,9 @@ tests =
 
 mkPath :: String -> [String] -> FilePath
 mkPath vName exts =
-  foldl1
-    (</>)
-    ["test", "Cardano", "Constitution", "Validator", "GoldenTests", foldl (<.>) vName ("golden" : exts)]
+  makeVersionedFilePath
+    ["test", "Cardano", "Constitution", "Validator", "GoldenTests"]
+    (foldl (<.>) vName ("golden" : exts))
 
 runForBudget
   :: ToData ctx

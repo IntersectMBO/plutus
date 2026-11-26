@@ -1,5 +1,5 @@
 An error has occurred:
 The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
-Caused by: expModInteger 500 -5 5
+Caused by: expModInteger
 Logs were:
 expMod: 500 is not invertible modulo 5

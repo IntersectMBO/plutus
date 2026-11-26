@@ -14,11 +14,12 @@ import PlutusLedgerApi.V3 (ExCPU (..), ExMemory (..))
 import System.FilePath ((</>))
 import System.IO (hPutStrLn)
 import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty.Extras (makeVersionedFilePath)
 import UntypedPlutusCore.AstSize (AstSize (..))
 
 main :: IO ()
 main = withUtf8 $ do
-  let dir = "marlowe" </> "test"
+  let dir = makeVersionedFilePath ["marlowe", "test"] ""
       scriptDir = "marlowe" </> "scripts"
       goldenFile = dir </> "budgets.golden.tsv"
       goldenFileData = dir </> "data.budgets.golden.tsv"
@@ -27,12 +28,12 @@ main = withUtf8 $ do
   checkGoldenFileExists goldenFile -- See Note [Paths to golden files]
   let
     benchSOP =
-      [ (scriptDir </> "semantics/validator/sop.flat", semanticsBenchmarks)
-      , (scriptDir </> "rolepayout/validator/sop.flat", rolePayoutBenchmarks)
+      [ (validatorFile (scriptDir </> "semantics") "sop.flat", semanticsBenchmarks)
+      , (validatorFile (scriptDir </> "rolepayout") "sop.flat", rolePayoutBenchmarks)
       ]
     benchData =
-      [ (scriptDir </> "semantics/validator/data.flat", semanticsBenchmarks)
-      , (scriptDir </> "rolepayout/validator/data.flat", rolePayoutBenchmarks)
+      [ (validatorFile (scriptDir </> "semantics") "data.flat", semanticsBenchmarks)
+      , (validatorFile (scriptDir </> "rolepayout") "data.flat", rolePayoutBenchmarks)
       ]
 
     measure (validatorPath, getCases) = do

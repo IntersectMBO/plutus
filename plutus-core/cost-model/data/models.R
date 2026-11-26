@@ -911,8 +911,26 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        m <- lm(t ~ x_mem*y_mem, filtered)
-        mk.result(m, "with_interaction_in_x_and_y")
+        # unionValue puts the larger map first, so the time depends on the
+        # smaller and the larger size, not on the argument order.
+        m <- lm(t ~ pmin(x_mem, y_mem) + pmax(x_mem, y_mem) + x_mem:y_mem, filtered)
+        slope.small <- m$coefficients[["pmin(x_mem, y_mem)"]]
+        slope.large <- m$coefficients[["pmax(x_mem, y_mem)"]]
+
+        # To charge the same in both orders, both sizes get one shared.slope,
+        # which must not charge less than the fit for any small <= large:
+        #   shared.slope * (small + large) >= slope.small * small + slope.large * large
+        # For a fixed large both sides are linear in small, so it suffices to check
+        # small = 0 (shared.slope >= slope.large) and small = large
+        # (shared.slope >= (slope.small + slope.large) / 2).
+        shared.slope <- max(slope.large, (slope.small + slope.large) / 2)
+
+        # Build an lm object for predict() with the coefficient names the generator expects.
+        positional <- lm(t ~ x_mem * y_mem, filtered)
+        positional$coefficients <- c(m$coefficients["(Intercept)"],
+                                     x_mem = shared.slope, y_mem = shared.slope,
+                                     m$coefficients["x_mem:y_mem"])
+        mk.result(positional, "with_interaction_in_x_and_y")
     }
 
     # X wrapped with `ValueTotalSize` (container total entry count)

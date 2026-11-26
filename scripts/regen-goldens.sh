@@ -46,6 +46,10 @@ projects=(
 # when the current compiler is GHC 9.6, because those components are marked
 # 'buildable: False' for other versions ('ghc-version-support' in the cabal
 # files), so `cabal run` for them fails outright under e.g. GHC 9.12.
+# They are all empty at present: every suite builds under both GHC 9.6 and 9.12.
+#
+# marlowe-validators --validators-only runs before the Marlowe tests because the stored
+# validators are kept per GHC version (marlowe/scripts/*/validator/<ghc>/).
 #
 # NB: agda-conformance deliberately runs without --accept: some of its tests
 # are expected failures, and accepting would overwrite the goldens that
@@ -56,11 +60,10 @@ tests_plutus_conformance=(
   "cabal run haskell-conformance -- --format=flat --accept"
   "cabal run haskell-steppable-conformance -- --accept"
   "cabal run haskell-steppable-conformance -- --format=flat --accept"
-)
-tests_plutus_conformance_ghc96=(
   "cabal run agda-conformance"
   "cabal run agda-conformance -- --format=flat"
 )
+tests_plutus_conformance_ghc96=()
 tests_plutus_tx_plugin=(
   "cabal run plutus-tx-plugin-tests -- --accept"
   "cabal run size -- --accept"
@@ -71,23 +74,25 @@ tests_plutus_ledger_api=(
   "cabal run plutus-ledger-api-test -- --accept"
 )
 tests_plutus_ledger_api_ghc96=()
-tests_plutus_benchmark=()
-tests_plutus_benchmark_ghc96=(
+tests_plutus_benchmark=(
   "cabal run plutus-benchmark-nofib-tests -- --accept"
   "cabal run plutus-benchmark-lists-tests -- --accept"
   "cabal run ed25519-costs-test -- --accept"
   "cabal run bls12-381-costs-test -- --accept"
   "cabal run plutus-benchmark-script-contexts-tests -- --accept"
+  "cabal run validation-tests -- --accept"
+  "cabal run marlowe-validators -- --validators-only"
   "cabal run plutus-benchmark-marlowe-tests -- --accept"
   "cabal run bitwise-test -- --accept"
   "cabal run coop-test -- --accept"
   "cabal run linear-vesting-test -- --accept"
   "cabal run cardano-loans-test -- --accept"
 )
-tests_cardano_constitution=()
-tests_cardano_constitution_ghc96=(
+tests_plutus_benchmark_ghc96=()
+tests_cardano_constitution=(
   "cabal run cardano-constitution-test -- --accept"
 )
+tests_cardano_constitution_ghc96=()
 tests_plutus_tx=(
   "cabal run plutus-tx-test -- --accept"
 )

@@ -55,6 +55,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
   , unsafeSplitStructuralOperational
   , runCekDeBruijn
   , dischargeCekValue
+  , throwErrorWithValue
   , Context (..)
   , CekValEnv
   , GivenCekReqs
@@ -610,14 +611,19 @@ But in our case this is okay, because:
 3. We *do* have ordering guarantees between the throws inside the ST action and the catch, since they are ultimately using the same thread token.
 -}
 
-{-| Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
+{-| Construct a 'Term' from the 'CekVal' and feed it to
 'throwErrorWithCause' as the cause of the failure. -}
-throwErrorDischarged
+throwErrorWithValue
   :: ThrowableBuiltins uni fun
   => EvaluationError (MachineError fun) CekUserError
   -> CekValue uni fun ann
   -> CekM uni fun s x
-throwErrorDischarged err = throwErrorWithCause err . dischargeResultToTerm . dischargeCekValue
+throwErrorWithValue err value = throwErrorWithCause err $ case value of
+  VCon val -> Constant () val
+  VDelay body _ -> Delay () (void body)
+  VLamAbs name body _ -> LamAbs () name (void body)
+  VBuiltin fun _ _ -> Builtin () fun
+  VConstr tag _ -> Constr () tag []
 
 instance
   ThrowableBuiltins uni fun
@@ -995,19 +1001,19 @@ enterComputeCek = computeCek
       -- "apparently good" value.
       (VConstr i _)
         | i > fromIntegral @Int @Word64 maxBound ->
-            throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
+            throwErrorWithValue (StructuralError (MissingCaseBranchMachineError i)) e
       -- Otherwise, we can safely convert the index to an Int and use it.
       (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
         Just t -> case args of
           EmptyStack -> computeCek ctx env t
           MultiStack rest -> computeCek (FrameAwaitFunValueN rest ctx) env t
-        Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+        Nothing -> throwErrorWithValue (StructuralError $ MissingCaseBranchMachineError i) e
       -- Proceed with caser when expression given is not Constr.
       VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
-        HeadError err -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+        HeadError err -> throwErrorWithValue (OperationalError $ CekCaseBuiltinError err) e
         HeadOnly fX -> computeCek ctx env fX
         HeadSpine f xs -> computeCek (FrameAwaitFunConN xs ctx) env f
-      _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
+      _ -> throwErrorWithValue (StructuralError NonConstrScrutinizedMachineError) e
 
     -- \| @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
@@ -1020,7 +1026,7 @@ enterComputeCek = computeCek
       -> CekValue uni fun ann
       -> CekM uni fun s (DischargeResult uni fun)
     forceEvaluate !ctx (VDelay body env) = computeCek ctx env body
-    forceEvaluate !ctx (VBuiltin fun term runtime) = do
+    forceEvaluate !ctx builtin@(VBuiltin fun term runtime) = do
       -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
       let term' = Force () term
       case runtime of
@@ -1032,9 +1038,9 @@ enterComputeCek = computeCek
           -- application.
           evalBuiltinApp ctx fun term' runtime'
         _ ->
-          throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) term'
+          throwErrorWithValue (StructuralError BuiltinTermArgumentExpectedMachineError) builtin
     forceEvaluate !_ val =
-      throwErrorDischarged (StructuralError NonPolymorphicInstantiationMachineError) val
+      throwErrorWithValue (StructuralError NonPolymorphicInstantiationMachineError) val
 
     -- \| Apply a function to an argument and proceed.
     -- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
@@ -1052,7 +1058,7 @@ enterComputeCek = computeCek
       computeCek ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-    applyEvaluate !ctx (VBuiltin fun funTerm runtime) arg = do
+    applyEvaluate !ctx builtin@(VBuiltin fun funTerm runtime) arg = do
       let argTerm = dischargeResultToTerm $ dischargeCekValue arg
           -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
           -- in a 'VBuiltin'.
@@ -1063,9 +1069,9 @@ enterComputeCek = computeCek
         BuiltinExpectArgument f ->
           evalBuiltinApp ctx fun term' $ f arg
         _ ->
-          throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
+          throwErrorWithValue (StructuralError UnexpectedBuiltinTermArgumentMachineError) builtin
     applyEvaluate !_ val _ =
-      throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
+      throwErrorWithValue (StructuralError NonFunctionalApplicationMachineError) val
 
     -- \| Spend the budget that has been accumulated for a number of machine steps.
     -- See Note [Spending accumulated budgets].
@@ -1136,7 +1142,7 @@ enterComputeCek = computeCek
             returnCek ctx y
           BuiltinFailure logs err -> do
             ?cekEmitter logs
-            throwBuiltinErrorWithCause term err
+            throwBuiltinErrorWithCause (Builtin () fun) err
       _ -> returnCek ctx $ VBuiltin fun term runtime
     {-# INLINE evalBuiltinApp #-}
 

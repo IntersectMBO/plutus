@@ -11,6 +11,7 @@ module PlutusBenchmark.Marlowe.BenchUtil
   , printResult
   , tabulateResults
   , readFlat
+  , validatorFile
   , writeFlat
   , writeFlatUPLC
   , writeFlatUPLCs
@@ -29,6 +30,7 @@ import Data.ByteString.Lazy qualified as LBS
 import Data.Either.Extras (unsafeFromEither)
 import Data.Int (Int64)
 import Data.List (isSuffixOf, sort)
+import Data.Version (showVersion)
 import PlutusBenchmark.Common (getDataDir)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics (MarloweData)
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidatorHash)
@@ -53,10 +55,19 @@ import PlutusPrelude ((.*))
 import PlutusTx.Code (CompiledCode, getPlc)
 import System.Directory (listDirectory)
 import System.FilePath ((<.>), (</>))
+import System.Info (compilerVersion)
 import UntypedPlutusCore (NamedDeBruijn, applyProgram)
 import UntypedPlutusCore qualified as UPLC
 
 type Program a = UPLC.Program NamedDeBruijn PLC.DefaultUni PLC.DefaultFun a
+
+{-| The stored validator @name@ (e.g. @sop.flat@) for the validator scripts in
+@scriptDir@, as compiled by the current GHC version. The compiled validators
+(and hence their hashes, which 'rescript' puts into the script contexts)
+depend on the GHC version, so a copy is kept for each supported GHC version. -}
+validatorFile :: FilePath -> FilePath -> FilePath
+validatorFile scriptDir name =
+  scriptDir </> "validator" </> showVersion compilerVersion </> name
 
 -- | Turn a `PlutusBenchmark.Marlowe.Types.Benchmark` to a UPLC program.
 benchmarkToUPLC

@@ -210,10 +210,9 @@ Supported versions older than the primary development version are deprecated, an
 
 At the moment, our supported GHC versions are:
 - 9.6 (primary)
-- 9.8
-- 9.10
 - 9.12
-- 9.14
+
+These are the versions defined as project variants in `nix/project.nix` (`ghc96` and `ghc912`), built by `.github/workflows/cabal-build-all.yml` and tested by Hydra.
 
 === Plugin support
 
@@ -252,9 +251,11 @@ nix develop ".#ghc<version>" --command cabal test plutus-tx-plugin --test-option
 ```
 
 where `<version>` is the GHC major version with the decimal points removed (eg
-`92` or `96`), so the full command will be `nix develop .#ghc96 ...` or
+`96` or `912`), so the full command will be `nix develop .#ghc96 ...` or
 something similar.  You can also just type `nix develop .#ghc<version>` to get a
 nix shell with the appropriate version of GHC.
+
+`scripts/regen-goldens.sh` does this for every sub-project under both supported GHC versions.
 
 == Working conventions
 

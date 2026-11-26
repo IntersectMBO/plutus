@@ -328,21 +328,6 @@ zipWithExtend f true  p []       (y ∷ ys) = f p y ∷ zipWithExtend f true p [
 zipWithExtend f true  p (x ∷ xs) []       = f x p ∷ zipWithExtend f true p xs []
 ```
 
-### Ordering
-
-ByteStrings are ordered lexicographically, comparing bytes as numbers. For example,
-`[0x23, 0x45, 0x67, 0x89] < [0x24]` and `[0x23, 0x45] < [0x23, 0x45, 0x00]`, and the
-empty ByteString is smaller than every other ByteString.
-
-```
-_≤ᵇ_ : ByteString → ByteString → Bool
-[] ≤ᵇ _ = true
-_ ≤ᵇ [] = false
-(b₁ ∷ bs₁) ≤ᵇ (b₂ ∷ bs₂) =
-  (byteToNat b₁ ℕ.<ᵇ byteToNat b₂)
-  ∨ ((byteToNat b₁ ℕ.≡ᵇ byteToNat b₂) ∧ (bs₁ ≤ᵇ bs₂))
-```
-
 Some tests:
 
 ```
@@ -350,37 +335,6 @@ private
   -- A byte literal; the bound is checked by computation.
   w : (n : ℕ) → {T (n ℕ.<ᵇ 2 ^ 8)} → Byte
   w n {p} = natToByte n (<ᵇ⇒< n (2 ^ 8) p)
-
-  -- The first differing byte decides, regardless of later bytes.
-  _ : (w 1 ∷ w 5 ∷ []) ≤ᵇ (w 2 ∷ w 0 ∷ []) ≡ true
-  _ = refl
-
-  _ : (w 2 ∷ w 0 ∷ []) ≤ᵇ (w 1 ∷ w 5 ∷ []) ≡ false
-  _ = refl
-
-  -- Equal prefixes defer to the rest.
-  _ : (w 1 ∷ w 2 ∷ []) ≤ᵇ (w 1 ∷ w 3 ∷ []) ≡ true
-  _ = refl
-
-  _ : (w 1 ∷ w 3 ∷ []) ≤ᵇ (w 1 ∷ w 2 ∷ []) ≡ false
-  _ = refl
-
-  -- Reflexive.
-  _ : (w 7 ∷ w 255 ∷ []) ≤ᵇ (w 7 ∷ w 255 ∷ []) ≡ true
-  _ = refl
-
-  -- A proper prefix is smaller.
-  _ : (w 1 ∷ []) ≤ᵇ (w 1 ∷ w 0 ∷ []) ≡ true
-  _ = refl
-
-  _ : (w 1 ∷ w 0 ∷ []) ≤ᵇ (w 1 ∷ []) ≡ false
-  _ = refl
-
-  _ : [] ≤ᵇ (w 0 ∷ []) ≡ true
-  _ = refl
-
-  _ : (w 0 ∷ []) ≤ᵇ [] ≡ false
-  _ = refl
 
   -- byteStringToNat: endianness, leading zeros, empty input.
   _ : byteStringToNatLE (w 1 ∷ w 2 ∷ []) ≡ 513

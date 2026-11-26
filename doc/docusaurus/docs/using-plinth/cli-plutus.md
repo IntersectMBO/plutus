@@ -146,7 +146,7 @@ $ plutus typ_err.uplc --run
 Running the program: An error has occurred:
 Could not unlift a value:
 Type mismatch: expected: integer; actual: bool
-Caused by: addInteger 1 True
+Caused by: addInteger
 ```
 
 Other times catching such (type) errors at runtime is not even possible. Consider the following
