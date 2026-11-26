@@ -9,6 +9,7 @@ import PlutusBenchmark.Marlowe.BenchUtil
   , readFlat
   , rolePayoutBenchmarks
   , semanticsBenchmarks
+  , validatorFile
   )
 import PlutusBenchmark.Marlowe.Types qualified as M
 import PlutusLedgerApi.V2 (scriptContextTxInfo, txInfoId)
@@ -28,11 +29,11 @@ runBenchmarks benchmarker = do
   dir <- getDataDir
 
   -- Read the semantics benchmark files.
-  marloweValidator <- readFlat $ dir </> "marlowe/scripts/semantics/validator/sop.flat"
+  marloweValidator <- readFlat $ validatorFile (dir </> "marlowe/scripts/semantics") "sop.flat"
   semanticsMBench <- either error id <$> semanticsBenchmarks
 
   -- Read the role payout benchmark files.
-  rolePayoutValidator <- readFlat $ dir </> "marlowe/scripts/rolepayout/validator/sop.flat"
+  rolePayoutValidator <- readFlat $ validatorFile (dir </> "marlowe/scripts/rolepayout") "sop.flat"
   rolePayoutMBench <- either error id <$> rolePayoutBenchmarks
 
   let

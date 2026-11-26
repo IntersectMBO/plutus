@@ -45,7 +45,7 @@ import Hedgehog.Internal.Range qualified as R
 import System.IO.Unsafe (unsafePerformIO)
 import Text.Printf (hPrintf)
 
-import Prelude (IO, fromIntegral, mapM_, (*))
+import Prelude (IO, fromIntegral, mapM_, (*), type (~))
 
 ---------------- Inputs ----------------
 
