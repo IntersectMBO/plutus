@@ -718,7 +718,10 @@ postulate
 {-# COMPILE GHC xorBYTESTRING = Bitwise.xorByteString #-}
 {-# COMPILE GHC complementBYTESTRING = Bitwise.complementByteString #-}
 {-# COMPILE GHC readBIT = \s n -> builtinResultToMaybe $ Bitwise.readBit s (fromIntegral n) #-}
-{-# COMPILE GHC writeBITS = \s ps u -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) u #-}
+{-# COMPILE GHC writeBITS = \s ps u ->
+        if toInteger (BS.length s) > Bitwise.maximumInputLength
+        then Nothing
+        else builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) u #-}
 -- The Plutus Core version of `replicateByte n w` can fail in two ways: if n < 0 or n >= 8192 then
 -- the implementation PlutusCore.Bitwise will return BuiltinFailure; if w < 0 or w >= 256 then the
 -- denotation in `PlutusCore.Default.Builtins` will fail when the builtin machinery tries to convert

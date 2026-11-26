@@ -16,10 +16,6 @@ their ByteString arguments to be at most `maxLength` bytes long, and fail otherw
 the arguments are bounded: a builtin may return a longer ByteString, for example
 `appendByteString` applied to two ByteStrings of `maxLength` bytes.
 
-The builtins whose ByteString arguments are not bounded (`lengthOfByteString`,
-`writeBits`, `shiftByteString`, `rotateByteString`, `replicateByte` and
-`integerToByteString`) are used directly from `Builtin.ByteString`.
-
 ## Imports
 
 ```
