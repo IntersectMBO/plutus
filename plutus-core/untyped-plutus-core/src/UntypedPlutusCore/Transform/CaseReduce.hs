@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TupleSections #-}
 
@@ -12,7 +13,7 @@ import Data.Bifunctor (second)
 import Data.Primitive.Array (Array (..))
 import PlutusCore.Builtin (CaseBuiltin (..))
 import PlutusCore.MkPlc
-import PlutusPrelude (indexArrayWord64)
+import PlutusPrelude (indexWord64Array#)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Optimizer
   ( OptimizerT
@@ -35,7 +36,7 @@ processTerm = \case
   -- structural error into an operational one, which would be unfortunate, so instead we decided
   -- not to fully optimize such scripts, since they aren't valid anyway.
   Case ann (Constr _ i args) (Array cs)
-    | Just c <- indexArrayWord64 cs i ->
+    | Just c <- indexWord64Array# cs i ->
         mkIterApp c ((ann,) <$> args)
   Case ann (Constant _ con) (Array cs)
     | Right t <- headSpineToTerm ann (second (Constant ann) (caseBuiltin con cs)) -> t

@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NPlusKPatterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -218,7 +219,7 @@ returnCek (FrameConstr ann env i todo done ctx) e = do
        in pure $ Returning ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env (Array cs) ctx) e = case e of
-  VConstr i args -> case indexArrayWord64 cs i of
+  VConstr i args -> case indexWord64Array# cs i of
     Just t -> case args of
       EmptyStack -> computeCek ctx env t
       MultiStack rest -> computeCek (FrameAwaitFunValueN ann rest ctx) env t

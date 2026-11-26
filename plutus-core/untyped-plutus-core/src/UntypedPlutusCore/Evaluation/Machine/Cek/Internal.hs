@@ -8,6 +8,7 @@
 {-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NPlusKPatterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -998,7 +999,7 @@ enterComputeCek = computeCek
            in returnCek ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env (Array cs) ctx) e = case e of
-      VConstr i args -> case indexArrayWord64 cs i of
+      VConstr i args -> case indexWord64Array# cs i of
         Just t -> case args of
           EmptyStack -> computeCek ctx env t
           MultiStack rest -> computeCek (FrameAwaitFunValueN rest ctx) env t

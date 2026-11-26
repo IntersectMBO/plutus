@@ -83,7 +83,7 @@ module PlutusPrelude
   , tabulateArray
   , unArray
   , lengthArray#
-  , indexArrayWord64
+  , indexWord64Array#
   , unsafeIndexArray#
   , (?)
   , ensure
@@ -277,12 +277,14 @@ lengthArray# array = I# (sizeofArray# array)
 {-# INLINE lengthArray# #-}
 
 -- | Look up a primitive array element by a @Word64@ index, returning @Nothing@ if out of bounds.
-indexArrayWord64 :: Array# a -> Word64 -> Maybe a
-indexArrayWord64 array i
-  -- Checking before conversion prevents large tags from wrapping into a valid @Int@ index.
-  | i < fromIntegral (lengthArray# array) = Just $ unsafeIndexArray# array (fromIntegral i)
+indexWord64Array# :: Array# a -> Word64 -> Maybe a
+indexWord64Array# array i
+  -- The length is a non-negative @Int@, so it fits in @Word64@ on 32- and 64-bit platforms.
+  | i < fromIntegral (lengthArray# array) =
+      -- @i@ is non-negative and smaller than the array's @Int@ length, so it fits in @Int@.
+      Just $ unsafeIndexArray# array (fromIntegral i)
   | otherwise = Nothing
-{-# INLINE indexArrayWord64 #-}
+{-# INLINE indexWord64Array# #-}
 
 {-| Index a primitive array without bounds checking. The index must be non-negative and
 smaller than the array's length. -}
