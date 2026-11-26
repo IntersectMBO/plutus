@@ -518,7 +518,7 @@ d_mkCInteger_362 v0
                                                          MAlonzo.Code.Utils.C_inj'8322'_14
                                                          (coe
                                                             MAlonzo.Code.Builtin.CInteger.C_cInt_70
-                                                            (coe v0) (coe v6) (coe v9))
+                                                            v0)
                                                   _ -> coe v5
                                            _ -> coe v5
                                     _ -> MAlonzo.RTE.mazUnreachableError
