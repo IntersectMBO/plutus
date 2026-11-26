@@ -13,6 +13,7 @@ module Untyped.CEK where
 ```
 open import Data.Unit using (tt)
 open import Data.Fin using (Fin;suc;zero)
+open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Nat.Properties using (+-identityʳ)
 open import Function using (case_of_;_$_)
@@ -23,7 +24,7 @@ open import Agda.Builtin.String using (primStringAppend; primStringEquality)
 open import Relation.Nullary using (yes;no)
 open import Relation.Binary.PropositionalEquality using (refl;sym;trans;cong)
 open import Data.List using (List;[];_∷_)
-open import Data.Product using (_,_)
+open import Data.Product using (_,_;∃)
 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
@@ -49,22 +50,42 @@ data Stack (A : Set) : Set where
   _,_ : Stack A → A → Stack A
 ```
 
+TODO: should Value get a ℕ index? i.e. : ℕ → Set? The haskell equivalent can
+have free variables too. Values were always closed, but this is not the case in
+practice. Environments should then also get a second index, that represents the
+scope of all values in that env, similar to the `Sub` substitution type.
+
+We could omit an index, because the index may require some type-level arithmetic
+(V-ƛ is already hard to give a type). It seems like dischargeList needs an
+additional invariant about its input stack: all values have the same scope.
+Perhaps this could be encoded in the Stack type somehow?
+
+An Env becomes similar to a substitution, but with only values.
+
 ```
-data Value : Set
-data Env : ℕ → Set where
-  [] : Env 0
-  _∷_ : ∀{n} → Env n → Value → Env (suc n)
+data Value : ℕ → Set
+data Env : ℕ → ℕ → Set where
+  [] : ∀{m} → Env 0 m
+  _∷_ : ∀{n m} → Env n m → Maybe (Value m) → Env (suc n) m
 
 data BApp (b : Builtin) :
     ∀{tn tm tt} → (pt : tn ∔ tm ≣ tt)
   → ∀{an am at} → (pa : an ∔ am ≣ at)
   → Set
+```
 
+
+TODO: should variables be values? They are not in the haskell implementation, so
+no. Values should reflect succesful termination. In equational reasoning,
+variables _are_ usually values, because that uses value-closing contexts
+(variables can only ever be replaced by values).
+
+```
 data Value where
-  V-ƛ : ∀{n} → Env n → suc n ⊢ → Value
-  V-con : (ty : TyTag) → ⟦ ty ⟧tag → Value
-  V-delay : ∀{n} → Env n → n ⊢ → Value
-  V-constr : (i : ℕ) → (vs : Stack Value) → Value
+  V-ƛ : ∀{n m} → Env n m → suc n ⊢ → Value m
+  V-con : (ty : TyTag) → ⟦ ty ⟧tag → Value 0
+  V-delay : ∀{n m} → Env n m → n ⊢ → Value m
+  V-constr : ∀{m} → (i : ℕ) → (vs : Stack (Value m)) → Value m
   V-I⇒ : ∀ b {tn}
        → {pt : tn ∔ 0 ≣ fv (signature b)}
        → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
@@ -90,8 +111,14 @@ data BApp b where
     → BApp b pt pa
     → BApp b (bubble pt) pa
 
+-- TODO env2sub : Env Γ → Sub Γ 0
+-- it should substitute a variable by a variable if there is no value in the Env
 env2sub : ∀{Γ} → Env Γ → Sub Γ 0
 
+-- TODO discharge : Value n → n ⊢
+-- TODO discharge : Value → ∃ _⊢
+--
+-- TODO dischargeList : Stack (Value n) → List (n ⊢) → List (n ⊢)
 discharge : Value → 0 ⊢
 
 dischargeB : ∀{b}
