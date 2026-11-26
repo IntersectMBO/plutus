@@ -37,7 +37,7 @@ cachedBuiltin :: Map.Map T.Text DefaultFun
 cachedBuiltin = Map.fromList [(display fn, fn) | fn <- [minBound .. maxBound]]
 
 -- | Parser of constants whose type is in 'DefaultUni'.
-constant :: Parser (Some (ValueOf DefaultUni))
+constant :: Parser (SomeValueOf DefaultUni)
 constant = do
   -- Parse the type tag.
   SomeTypeIn (Kinded uni) <- defaultUni

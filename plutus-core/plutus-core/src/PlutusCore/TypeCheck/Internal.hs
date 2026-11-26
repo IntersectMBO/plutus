@@ -47,7 +47,7 @@ import Data.Array (Array, Ix)
 import Data.Foldable (for_)
 import Data.List.Extras (wix)
 import Data.Text qualified as Text
-import Universe.Core (GEq, Some (Some), SomeTypeIn (SomeTypeIn), ValueOf (ValueOf))
+import Universe.Core (GEq, SomeTypeIn (SomeTypeIn), SomeValueOf (SomeValueOf))
 
 {- Note [Global uniqueness in the type checker]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
@@ -447,7 +447,7 @@ inferTypeM
 -- c : vTy
 -- -------------------------
 -- [infer| G !- con c : vTy]
-inferTypeM (Constant _ (Some (ValueOf uni _))) =
+inferTypeM (Constant _ (SomeValueOf uni _)) =
   -- See Note [Normalization of built-in types].
   normalizeTypeM $ mkTyBuiltinOf () uni
 -- [infer| G !- bi : vTy]

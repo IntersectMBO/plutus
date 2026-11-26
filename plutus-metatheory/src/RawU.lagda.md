@@ -174,8 +174,8 @@ Term constants are pairs of a tag and the corresponding type.
 data TagCon : Set where
   tagCon : ∀{A} → Tag (Esc A) → A → TagCon
 
-{-# FOREIGN GHC type TagCon = Some (ValueOf DefaultUni) #-}
-{-# FOREIGN GHC pattern TagCon t x = Some (ValueOf t x) #-}
+{-# FOREIGN GHC type TagCon = SomeValueOf DefaultUni #-}
+{-# FOREIGN GHC pattern TagCon t x = SomeValueOf t x #-}
 {-# COMPILE GHC TagCon = data TagCon (TagCon) #-}
 
 decTagCon' : ∀{A B} → (t : Tag (Esc A)) → (x : A) → (t' : Tag (Esc B)) → (y : B) → Bool

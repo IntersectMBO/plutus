@@ -149,7 +149,7 @@ infixr 9 >:
   -> BuiltinResult Integer
 n >: k =
   case n of
-    SomeConstant (Some (ValueOf DefaultUniInteger _)) -> k
+    SomeConstant (SomeValueOf DefaultUniInteger _) -> k
     _ -> builtinResultFailure
 {-# INLINE (>:) #-}
 

@@ -176,20 +176,12 @@ instance Pretty (SomeTypeIn uni) => Pretty (SomeTypeIn (Kinded uni)) where
   pretty (SomeTypeIn (Kinded uni)) = pretty (SomeTypeIn uni)
 
 -- See Note [Prettyprinting built-in constants].
-instance (Closed uni, uni `Everywhere` PrettyConst) => PrettyBy ConstConfig (ValueOf uni a) where
-  prettyBy config (ValueOf uni x) = bring (Proxy @PrettyConst) uni $ prettyBy config x
-
--- See Note [Prettyprinting built-in constants].
 instance
   (Closed uni, uni `Everywhere` PrettyConst)
-  => PrettyBy ConstConfig (Some (ValueOf uni))
+  => PrettyBy ConstConfig (SomeValueOf uni)
   where
-  prettyBy config (Some s) = prettyBy config s
+  prettyBy config (SomeValueOf uni x) = bring (Proxy @PrettyConst) uni $ prettyBy config x
 
 -- See Note [Prettyprinting built-in constants].
-instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (ValueOf uni a) where
-  pretty = prettyConst juxtRenderContext
-
--- See Note [Prettyprinting built-in constants].
-instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (Some (ValueOf uni)) where
+instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (SomeValueOf uni) where
   pretty = prettyConst juxtRenderContext

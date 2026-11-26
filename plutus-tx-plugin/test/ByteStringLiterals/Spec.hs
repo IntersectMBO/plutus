@@ -13,7 +13,7 @@ import Data.Char (chr)
 import Data.Foldable (for_)
 import Data.String (fromString)
 import Data.Text.Encoding qualified as TE
-import PlutusCore (DefaultUni (..), Some (..), ValueOf (..), someValue)
+import PlutusCore (DefaultUni (..), SomeValueOf (..), someValue)
 import PlutusTx (CompiledCode, getPlcNoAnn)
 import PlutusTx.Builtins
   ( BuiltinByteString
@@ -201,7 +201,7 @@ test_CompileBuiltinByteStringLiteral_hex_imported :: TestTree
 test_CompileBuiltinByteStringLiteral_hex_imported =
   testCase "BuiltinByteStringHex (imported)" $
     term $$(compile [||Lib.hex||])
-      @?= Constant () (Some (ValueOf DefaultUniByteString "\240\209"))
+      @?= Constant () (SomeValueOf DefaultUniByteString "\240\209")
 
 test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex :: TestTree
 test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex =

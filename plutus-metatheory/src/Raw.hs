@@ -56,7 +56,7 @@ data RTerm
   | RTApp RTerm RType
   | RLambda RType RTerm
   | RApp RTerm RTerm
-  | RCon (Some (ValueOf DefaultUni))
+  | RCon (SomeValueOf DefaultUni)
   | RError RType
   | RBuiltin DefaultFun
   | RWrap RType RType RTerm

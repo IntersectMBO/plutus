@@ -237,8 +237,8 @@ instance ExMemoryUsage (Vector a) where
   memoryUsage l = singletonRose . fromIntegral $ Vector.length l
   {-# INLINE memoryUsage #-}
 
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
-  memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (SomeValueOf uni) where
+  memoryUsage (SomeValueOf uni x) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage () where

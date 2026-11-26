@@ -108,7 +108,7 @@ where @uni@ is some universe, i.e. a collection of tags that have meta-types ass
 
 A value of a built-in type is a regular Haskell value stored in
 
-    Some (ValueOf uni)
+    SomeValueOf uni
 
 (together with the tag associated with its type) and such a value is also called a meta-constant.
 
@@ -489,6 +489,8 @@ instance
 instance
   KnownBuiltinTypeIn DefaultUni term Text
   => MakeKnownIn DefaultUni term Text
+
+-- The generic instance already shares the unit result. See Note [Representing constants].
 instance
   KnownBuiltinTypeIn DefaultUni term ()
   => MakeKnownIn DefaultUni term ()
@@ -981,14 +983,14 @@ instance AnnotateCaseBuiltin DefaultUni where
 -- | Case on a 'DefaultUni' value, delegating casing on 'Data' to the supplied handler.
 caseBuiltinDefault
   :: ( Data
-       -> Some (ValueOf DefaultUni)
+       -> SomeValueOf DefaultUni
        -> Vector.Vector term
-       -> HeadSpine Text term (Some (ValueOf DefaultUni))
+       -> HeadSpine Text term (SomeValueOf DefaultUni)
      )
-  -> Some (ValueOf DefaultUni)
+  -> SomeValueOf DefaultUni
   -> Vector.Vector term
-  -> HeadSpine Text term (Some (ValueOf DefaultUni))
-caseBuiltinDefault caseData someVal@(Some (ValueOf uni x)) branches = case uni of
+  -> HeadSpine Text term (SomeValueOf DefaultUni)
+caseBuiltinDefault caseData someVal@(SomeValueOf uni x) branches = case uni of
   DefaultUniUnit
     | 1 == len -> HeadOnly $ branches Vector.! 0
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
@@ -1025,18 +1027,18 @@ caseBuiltinDefault caseData someVal@(Some (ValueOf uni x)) branches = case uni o
 
 -- | The built-in caser used when casing is available except on 'Data'.
 caseBuiltinNoData
-  :: Some (ValueOf DefaultUni)
+  :: SomeValueOf DefaultUni
   -> Vector.Vector term
-  -> HeadSpine Text term (Some (ValueOf DefaultUni))
+  -> HeadSpine Text term (SomeValueOf DefaultUni)
 caseBuiltinNoData =
   caseBuiltinDefault $ \_ _ _ -> HeadError "Casing on data is not supported"
 {-# INLINE caseBuiltinNoData #-}
 
 caseBuiltinData
   :: Data
-  -> Some (ValueOf DefaultUni)
+  -> SomeValueOf DefaultUni
   -> Vector.Vector term
-  -> HeadSpine Text term (Some (ValueOf DefaultUni))
+  -> HeadSpine Text term (SomeValueOf DefaultUni)
 caseBuiltinData x someVal branches = case x of
   Data.Constr tag fields
     | 0 <= tag && tag < toInteger len ->

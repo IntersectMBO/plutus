@@ -143,7 +143,7 @@ inferTypeM
 -- c : vTy
 -- -------------------------
 -- [infer| G !- con c : vTy]
-inferTypeM (Constant _ (Some (ValueOf uni _))) =
+inferTypeM (Constant _ (SomeValueOf uni _)) =
   -- See Note [Normalization of built-in types].
   normalizeTypeM $ PIR.mkTyBuiltinOf () uni
 -- [infer| G !- bi : vTy]

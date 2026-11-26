@@ -994,7 +994,7 @@ compileExpr mloc e = do
        in
         case tyToUniverse ty of
           Just (SomeStarIn (ty' :: PLC.DefaultUni (PLC.Esc a))) ->
-            pure $ PLC.constant annMayInline $ PLC.Some $ PLC.ValueOf (PLC.DefaultUniList ty') []
+            pure $ PLC.constant annMayInline $ PLC.SomeValueOf (PLC.DefaultUniList ty') []
           Nothing -> throwPlain $ CompilationError "'mkNil' applied to an unknown type"
 
     compileIntegerCase resultTy scrutinee branches =

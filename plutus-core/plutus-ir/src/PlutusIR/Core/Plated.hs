@@ -62,7 +62,7 @@ infixr 6 <^>
 (f1 <^> f2) g s = f1 g s *> f2 g s
 
 -- | View a term as a constant.
-_Constant :: Prism' (Term tyname name uni fun a) (a, PLC.Some (PLC.ValueOf uni))
+_Constant :: Prism' (Term tyname name uni fun a) (a, PLC.SomeValueOf uni)
 _Constant = prism' (uncurry Constant) (\case Constant a v -> Just (a, v); _ -> Nothing)
 
 -- | Get all the direct child 'Term's of the given 'Binding'.
@@ -130,7 +130,7 @@ bindingIds f = \case
           )
 
 -- | Get all the direct constants of the given 'Term' from 'Constant's.
-termConstants :: Traversal' (Term tyname name uni fun ann) (Some (ValueOf uni))
+termConstants :: Traversal' (Term tyname name uni fun ann) (SomeValueOf uni)
 termConstants f term0 = case term0 of
   Constant ann val -> Constant ann <$> f val
   Let {} -> pure term0
@@ -241,7 +241,7 @@ termVars f term0 = case term0 of
   t -> pure t
 
 -- | Get all the transitive child 'Constant's of the given 'Term'.
-termConstantsDeep :: Fold (Term tyname name uni fun ann) (Some (ValueOf uni))
+termConstantsDeep :: Fold (Term tyname name uni fun ann) (SomeValueOf uni)
 termConstantsDeep = termSubtermsDeep . termConstants
 
 -- | Get all the transitive child 'Unique's of the given 'Term' (including the type-level ones).

@@ -22,7 +22,7 @@ import Control.Lens
 import Universe
 
 -- | Get all the direct constants of the given 'Term' from 'Constant's.
-termConstants :: Traversal' (Term name uni fun ann) (Some (ValueOf uni))
+termConstants :: Traversal' (Term name uni fun ann) (SomeValueOf uni)
 termConstants f term0 = case term0 of
   Constant ann val -> Constant ann <$> f val
   Var {} -> pure term0
@@ -70,7 +70,7 @@ termSubterms f = \case
 {-# INLINE termSubterms #-}
 
 -- | Get all the transitive child 'Constant's of the given 'Term'.
-termConstantsDeep :: Fold (Term name uni fun ann) (Some (ValueOf uni))
+termConstantsDeep :: Fold (Term name uni fun ann) (SomeValueOf uni)
 termConstantsDeep = termSubtermsDeep . termConstants
 
 -- | Get all the transitive child 'Term's of the given 'Term'.
@@ -82,5 +82,5 @@ termUniquesDeep :: HasUniques (Term name uni fun ann) => Fold (Term name uni fun
 termUniquesDeep = termSubtermsDeep . termUniques
 
 -- | View a term as a constant.
-_Constant :: Prism' (Term name uni fun a) (a, PLC.Some (PLC.ValueOf uni))
+_Constant :: Prism' (Term name uni fun a) (a, PLC.SomeValueOf uni)
 _Constant = prism' (uncurry Constant) (\case Constant a v -> Just (a, v); _ -> Nothing)

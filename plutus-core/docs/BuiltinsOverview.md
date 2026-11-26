@@ -387,10 +387,10 @@ but here we're only interested in one, `HasConstantIn`, defined in the `PlutusCo
 class HasConstant term where
     -- | Unwrap from a 'Constant'-like constructor throwing an 'UnliftingError' if the provided
     -- @term@ is not a wrapped Haskell value.
-    asConstant :: term -> Either BuiltinError (Some (ValueOf (UniOf term)))
+    asConstant :: term -> Either BuiltinError (SomeValueOf (UniOf term))
 
     -- | Wrap a Haskell value as a @term@.
-    fromConstant :: Some (ValueOf (UniOf term)) -> term
+    fromConstant :: SomeValueOf (UniOf term) -> term
 
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
 -- and connects @term@ and its @uni@.

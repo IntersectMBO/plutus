@@ -19,7 +19,7 @@ data UTerm
   = UVar Integer
   | ULambda UTerm
   | UApp UTerm UTerm
-  | UCon (Some (ValueOf DefaultUni))
+  | UCon (SomeValueOf DefaultUni)
   | UError
   | UBuiltin DefaultFun
   | UDelay UTerm

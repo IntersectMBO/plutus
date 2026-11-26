@@ -74,7 +74,7 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
   tyAbs :: ann -> tyname -> Kind ann -> term ann -> term ann
   lamAbs :: ann -> name -> Type tyname uni ann -> term ann -> term ann
   apply :: ann -> term ann -> term ann -> term ann
-  constant :: ann -> Some (ValueOf uni) -> term ann
+  constant :: ann -> SomeValueOf uni -> term ann
   builtin :: ann -> fun -> term ann
   tyInst :: ann -> term ann -> Type tyname uni ann -> term ann
   unwrap :: ann -> term ann -> term ann

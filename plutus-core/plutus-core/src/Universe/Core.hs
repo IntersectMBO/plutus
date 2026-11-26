@@ -19,10 +19,9 @@
 
 module Universe.Core
   ( Esc
-  , Some (..)
   , SomeTypeIn (..)
   , Kinded (..)
-  , ValueOf (..)
+  , SomeValueOf (..)
   , Contains (..)
   , Includes
   , knownUniOf
@@ -58,12 +57,10 @@ import Control.Monad
 import Control.Monad.Trans.State.Strict
 import Data.Dependent.Sum
 import Data.GADT.Compare
-import Data.GADT.DeepSeq
 import Data.GADT.Show
 import Data.Hashable
 import Data.Kind
 import Data.Proxy
-import Data.Some.Newtype
 import Data.Type.Equality
 import Text.Show.Deriving
 import Type.Reflection
@@ -90,7 +87,7 @@ Here are some values of the latter 'U' / the types that they encode
 'U' being a GADT allows us to package a type from a universe together with a value of that type.
 For example,
 
-    Some (ValueOf UBool True) :: Some (ValueOf U)
+    SomeValueOf UBool True :: SomeValueOf U
 
 We say that a type is in a universe whenever there is a tag for that type in the universe.
 For example, 'Int' is in 'U', because there exists a tag for 'Int' in 'U' ('UInt').
@@ -259,13 +256,13 @@ annoying ticks. So instead we can think of @Type@ as a data type itself whose co
 already weirdly open (including @T@): https://gist.github.com/ekmett/ac881f3dba3f89ec03f8fdb1d8bf0a40)
 
 This is the encoding that we use, but unfortunately that required reworking the whole infrastructure
-that we originally had. For example, 'ValueOf' had to change from
+that we originally had. For example, the representation of constants changes from
 
-    data ValueOf uni a = ValueOf (uni a) a
+    data SomeValueOf uni = forall a. SomeValueOf (uni a) a
 
 to
 
-    data ValueOf uni a = ValueOf (uni (Esc a)) a
+    data SomeValueOf uni = forall a. SomeValueOf (uni (Esc a)) a
 
 It is annoying that if we want to talk about partially applied type constructors, then suddenly we
 need a completely different encoding of universes (and of the whole infrastructure) than the one
@@ -306,11 +303,11 @@ applications:
 This representation has the advantage of allowing for sharing the universes infrastructure between
 the monomorphic and polymorphic cases. I.e. we could use good old
 
-    data ValueOf uni a = ValueOf (uni a) a
+    data SomeValueOf uni = forall a. SomeValueOf (uni a) a
 
 instead of having to use the slightly more awkward
 
-    data ValueOf uni a = ValueOf (uni (Esc a)) a
+    data SomeValueOf uni = forall a. SomeValueOf (uni (Esc a)) a
 
 One problem that this representation has is redundancy: there are two ways to represent the type
 of lists of integers (for some definition of @SomeTypeIn@):
@@ -341,9 +338,52 @@ data SomeTypeIn uni = forall k (a :: k). SomeTypeIn !(uni (Esc a))
 data Kinded uni ta where
   Kinded :: Typeable k => !(uni (Esc a)) -> Kinded uni (Esc (a :: k))
 
--- | A value of a particular type from a universe.
-type ValueOf :: (Type -> Type) -> Type -> Type
-data ValueOf uni a = ValueOf !(uni (Esc a)) !a
+{- Note [Representing constants]
+A constant stores a type tag and a value of that type in a single constructor. @SomeValueOf@
+hides the value's type directly. Previously we used @Some (ValueOf uni)@, with @Some@ imported
+from @Data.Some.Newtype@. That @Some@ was a newtype, so it did not allocate another heap object.
+The new representation does not make an individual constant smaller.
+
+The difference is in what GHC can share. @Data.Some.Newtype@ uses @unsafeCoerce@ to hide the
+value's type. In GHC 9.6.7 Core, this introduces a case on @unsafeEqualityProof@. The case goes
+away before runtime, but during optimization it can prevent GHC from moving code out of a
+function. In specialized builtin code, the surrounding @VCon@ and @BuiltinSuccess@ constructors
+can depend on the coercion bound by that case and remain inside each call. @SomeValueOf@
+removes this obstacle without adding another wrapper around the tag and value.
+
+The generic @makeKnown@ instance wraps a @Bool@ argument on each call. Its wrappers contain
+the argument, so GHC keeps them inside the function.
+
+Unit behaves differently with the generic @makeKnown@ instance. Forcing its argument
+reveals the only possible value, @()@, so GHC shares the complete result without a special
+instance. Arbitrary @Integer@ and @Text@ arguments still need fresh wrappers: their values are
+not known until the call, and removing @unsafeEqualityProof@ saves no runtime allocation by
+itself. The old and new representations both allocate one tag/payload object in that case.
+
+There are also closed results within builtins. With GHC 9.6.7 and @-O2@, the empty result of
+@SliceByteString@ and the zero result of @ExpModInteger@ with modulus @1@ have shared complete
+wrappers with @SomeValueOf@; the old representation left those wrappers inside the call.
+Focused evaluator workloads saved about 48 bytes per such builtin call. The unit-lifting
+probe saved about 48 bytes per call too.
+
+These local improvements should not be confused with a general reduction in allocations.
+Across the 89 validation scripts, three runs with the same inputs and iteration counts gave
+about a 0.084% aggregate reduction from @SomeValueOf@ alone.
+
+The same idea could be applied to other frequent results: small @Integer@ values such as @0@,
+@1@ and @-1@; empty @ByteString@ and @Text@ values; empty lists and arrays; an empty @Value@;
+or selected @Data@ values.
+For lists and arrays, the element-type tag is part of the constant: there cannot be one
+shared empty constant for every element type. Unlike @Bool@, these types also have results
+that cannot be shared. Adding special cases to @makeKnown@ would charge every call for the
+checks while saving allocations only when a case matches. We have not added those checks;
+they need both allocation and timing measurements before we decide whether they are useful.
+-}
+
+-- See Note [Representing constants].
+-- | A value paired with its type tag from a universe.
+type SomeValueOf :: (Type -> Type) -> Type
+data SomeValueOf uni = forall a. SomeValueOf !(uni (Esc a)) !a
 
 {-| A class for enumerating types and fully instantiated type formers that @uni@ contains.
 For example, a particular @ExampleUni@ may have monomorphic types in it:
@@ -424,16 +464,16 @@ knownUniOf _ = knownUni
 someType :: forall k (a :: k) uni. uni `Contains` a => SomeTypeIn uni
 someType = SomeTypeIn $ knownUni @k @uni @a
 
--- | Wrap a value into @Some (ValueOf uni)@, given its explicit type tag.
-someValueOf :: forall a uni. uni (Esc a) -> a -> Some (ValueOf uni)
-someValueOf uni = Some . ValueOf uni
+-- | Wrap a value into @SomeValueOf uni@, given its explicit type tag.
+someValueOf :: forall a uni. uni (Esc a) -> a -> SomeValueOf uni
+someValueOf = SomeValueOf
 
--- | Wrap a value into @Some (ValueOf uni)@, provided its type is in the universe.
-someValue :: forall a uni. uni `Contains` a => a -> Some (ValueOf uni)
+-- | Wrap a value into @SomeValueOf uni@, provided its type is in the universe.
+someValue :: forall a uni. uni `Contains` a => a -> SomeValueOf uni
 someValue = someValueOf knownUni
 
-someValueType :: Some (ValueOf uni) -> SomeTypeIn uni
-someValueType (Some (ValueOf tag _)) = SomeTypeIn tag
+someValueType :: SomeValueOf uni -> SomeTypeIn uni
+someValueType (SomeValueOf tag _) = SomeTypeIn tag
 
 {-| A monad to decode types from a universe in.
 We use a monad for decoding, because parsing arguments of polymorphic built-in types can peel off
@@ -685,14 +725,12 @@ the 'TypeIn' wrapper:
 This allows us to hash a type from a universe and a value of a type from a universe in different
 ways. The latter instance looks like this:
 
-    instance (Closed uni, uni `Everywhere` Hashable) => Hashable (ValueOf uni a) where
-        hashWithSalt salt (ValueOf uni x) =
+    instance (Closed uni, GEq uni, uni `Everywhere` Eq, uni `Everywhere` Hashable)
+        => Hashable (SomeValueOf uni) where
+        hashWithSalt salt (SomeValueOf uni x) =
             bring (Proxy @Hashable) uni $ hashWithSalt salt (SomeTypeIn uni, x)
 
-    instance (Closed uni, uni `Everywhere` Hashable) => Hashable (Some (ValueOf uni)) where
-        hashWithSalt salt (Some s) = hashWithSalt salt s
-
-Here we hash a 'ValueOf' value as a pair of a type from a universe and a value of that type.
+Here we hash a constant as a pair of a type from a universe and a value of that type.
 
 Another type class for which a generic @Some f@ instance doesn't make sense is 'NFData'.
 For universes we define
@@ -744,75 +782,55 @@ instance GShow uni => Show (Kinded uni ta) where
 
 instance GShow uni => GShow (Kinded uni) where gshowsPrec = showsPrec
 
-instance (GShow uni, Closed uni, uni `Everywhere` Show) => GShow (ValueOf uni) where
-  gshowsPrec = showsPrec
-instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (ValueOf uni a) where
-  showsPrec pr (ValueOf uni x) =
-    bring (Proxy @Show) uni $ ($(makeShowsPrec ''ValueOf)) pr (ValueOf (AG uni) x)
+instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (SomeValueOf uni) where
+  showsPrec pr (SomeValueOf uni x) =
+    bring (Proxy @Show) uni $
+      showParen (pr > 10) $
+        showString "SomeValueOf "
+          . gshowsPrec 11 uni
+          . showChar ' '
+          . showsPrec 11 x
 
 -------------------- 'Eq' / 'GEq'
-
-instance (GEq uni, Closed uni, uni `Everywhere` Eq) => GEq (ValueOf uni) where
-  ValueOf uni1 x1 `geq` ValueOf uni2 x2 = do
-    Refl <- uni1 `geq` uni2
-    guard $ bring (Proxy @Eq) uni1 (x1 == x2)
-    Just Refl
 
 instance GEq uni => Eq (SomeTypeIn uni) where
   SomeTypeIn a1 == SomeTypeIn a2 = a1 `defaultEq` a2
 
-instance (GEq uni, Closed uni, uni `Everywhere` Eq) => Eq (ValueOf uni a) where
-  (==) = defaultEq
+instance (GEq uni, Closed uni, uni `Everywhere` Eq) => Eq (SomeValueOf uni) where
+  SomeValueOf uni1 x1 == SomeValueOf uni2 x2 =
+    case uni1 `geq` uni2 of
+      Nothing -> False
+      Just Refl -> bring (Proxy @Eq) uni1 (x1 == x2)
 
 -------------------- 'Compare' / 'GCompare'
-
-instance
-  (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq)
-  => GCompare (ValueOf uni)
-  where
-  ValueOf uni1 x1 `gcompare` ValueOf uni2 x2 =
-    case uni1 `gcompare` uni2 of
-      GLT -> GLT
-      GGT -> GGT
-      GEQ ->
-        bring (Proxy @Ord) uni1 $ case x1 `compare` x2 of
-          EQ -> GEQ
-          LT -> GLT
-          GT -> GGT
 
 instance GCompare uni => Ord (SomeTypeIn uni) where
   SomeTypeIn a1 `compare` SomeTypeIn a2 = a1 `defaultCompare` a2
 
--- We need the 'Eq' constraint in order for @Ord (ValueOf uni a)@ to imply @Eq (ValueOf uni a)@.
 instance
   (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq)
-  => Ord (ValueOf uni a)
+  => Ord (SomeValueOf uni)
   where
-  compare = defaultCompare
+  SomeValueOf uni1 x1 `compare` SomeValueOf uni2 x2 =
+    case uni1 `gcompare` uni2 of
+      GLT -> LT
+      GGT -> GT
+      GEQ -> bring (Proxy @Ord) uni1 (compare x1 x2)
 
 -------------------- 'NFData'
-
-instance (Closed uni, uni `Everywhere` NFData) => GNFData (ValueOf uni) where
-  grnf (ValueOf uni x) = bring (Proxy @NFData) uni $ rnf x
 
 instance Closed uni => NFData (SomeTypeIn uni) where
   rnf (SomeTypeIn uni) = rnf $ encodeUni uni
 
-instance (Closed uni, uni `Everywhere` NFData) => NFData (ValueOf uni a) where
-  rnf = grnf
+instance (Closed uni, uni `Everywhere` NFData) => NFData (SomeValueOf uni) where
+  rnf (SomeValueOf uni x) = bring (Proxy @NFData) uni $ rnf x
 
 instance (Closed uni, GEq uni) => Hashable (SomeTypeIn uni) where
   hashWithSalt salt (SomeTypeIn uni) = hashWithSalt salt $ encodeUni uni
 
 instance
   (Closed uni, GEq uni, uni `Everywhere` Eq, uni `Everywhere` Hashable)
-  => Hashable (ValueOf uni a)
+  => Hashable (SomeValueOf uni)
   where
-  hashWithSalt salt (ValueOf uni x) =
+  hashWithSalt salt (SomeValueOf uni x) =
     bring (Proxy @Hashable) uni $ hashWithSalt salt (SomeTypeIn uni, x)
-
-instance
-  (Closed uni, GEq uni, uni `Everywhere` Eq, uni `Everywhere` Hashable)
-  => Hashable (Some (ValueOf uni))
-  where
-  hashWithSalt salt (Some s) = hashWithSalt salt s

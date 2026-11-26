@@ -560,7 +560,7 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
   shrink NothingSomeType = [] -- No shrinks if you don't have anything to shrink.
   shrink (JustSomeType uni) = shrinkBuiltinSameKind uni
 
-instance Arbitrary (Some (ValueOf DefaultUni)) where
+instance Arbitrary (SomeValueOf DefaultUni) where
   arbitrary = do
     mayUni <- arbitrary
     case mayUni of
@@ -570,12 +570,12 @@ instance Arbitrary (Some (ValueOf DefaultUni)) where
         -- missing instance and also update the @Arbitrary (MaybeSomeTypeOf k)@ instance by
         -- adding the relevant type tag to the generator.
         bring (Proxy @ArbitraryBuiltin) uni $
-          Some . ValueOf uni <$> arbitraryBuiltin
+          SomeValueOf uni <$> arbitraryBuiltin
 
-  shrink (Some (ValueOf DefaultUniUnit ())) = []
-  shrink (Some (ValueOf uni x)) =
+  shrink (SomeValueOf DefaultUniUnit ()) = []
+  shrink (SomeValueOf uni x) =
     someValue ()
-      : bring (Proxy @ArbitraryBuiltin) uni (map (Some . ValueOf uni) $ shrinkBuiltin x)
+      : bring (Proxy @ArbitraryBuiltin) uni (map (SomeValueOf uni) $ shrinkBuiltin x)
 
 -- | Generate a built-in type of a given kind.
 genBuiltinTypeOf :: Kind () -> Gen (Maybe (SomeTypeIn DefaultUni))

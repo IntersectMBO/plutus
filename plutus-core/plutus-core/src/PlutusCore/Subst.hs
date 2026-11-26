@@ -286,7 +286,7 @@ tvTy = typeSubtypesDeep . typeTyVars
 -- | Applicatively replace a constant using the given function.
 substConstantA
   :: Applicative f
-  => (ann -> Some (ValueOf uni) -> f (Maybe (Term tyname name uni fun ann)))
+  => (ann -> SomeValueOf uni -> f (Maybe (Term tyname name uni fun ann)))
   -> Term tyname name uni fun ann
   -> f (Term tyname name uni fun ann)
 substConstantA valF t@(Constant ann val) = fromMaybe t <$> valF ann val
@@ -294,7 +294,7 @@ substConstantA _ t = pure t
 
 -- | Replace a constant using the given function.
 substConstant
-  :: (ann -> Some (ValueOf uni) -> Maybe (Term tyname name uni fun ann))
+  :: (ann -> SomeValueOf uni -> Maybe (Term tyname name uni fun ann))
   -> Term tyname name uni fun ann
   -> Term tyname name uni fun ann
 substConstant = purely (substConstantA . curry) . uncurry
@@ -302,14 +302,14 @@ substConstant = purely (substConstantA . curry) . uncurry
 -- | Monadically substitute constants using the given function.
 termSubstConstantsM
   :: Monad m
-  => (ann -> Some (ValueOf uni) -> m (Maybe (Term tyname name uni fun ann)))
+  => (ann -> SomeValueOf uni -> m (Maybe (Term tyname name uni fun ann)))
   -> Term tyname name uni fun ann
   -> m (Term tyname name uni fun ann)
 termSubstConstantsM = transformMOf termSubterms . substConstantA
 
 -- | Substitute constants using the given function.
 termSubstConstants
-  :: (ann -> Some (ValueOf uni) -> Maybe (Term tyname name uni fun ann))
+  :: (ann -> SomeValueOf uni -> Maybe (Term tyname name uni fun ann))
   -> Term tyname name uni fun ann
   -> Term tyname name uni fun ann
 termSubstConstants = purely (termSubstConstantsM . curry) . uncurry

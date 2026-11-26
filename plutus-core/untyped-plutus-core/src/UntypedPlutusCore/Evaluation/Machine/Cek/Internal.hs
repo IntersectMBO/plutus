@@ -174,7 +174,7 @@ type NTerm uni fun = Term NamedDeBruijn uni fun
 -- | The result of evaluating a term with the CEK machine.
 data CekResult name uni fun
   = CekFailure (CekEvaluationException name uni fun)
-  | CekSuccessConstant (Some (ValueOf uni))
+  | CekSuccessConstant (SomeValueOf uni)
   | CekSuccessNonConstant (Term name uni fun ())
 
 -- | All info produced by a CEK machine run.
@@ -289,7 +289,7 @@ deriving stock instance
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun ann
   = -- This bang gave us a 1-2% speed-up at the time of writing.
-    VCon !(Some (ValueOf uni))
+    VCon !(SomeValueOf uni)
   | VDelay !(NTerm uni fun ann) !(CekValEnv uni fun ann)
   | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
   | {-| A partial builtin application, accumulating arguments for eventual full application.
@@ -700,7 +700,7 @@ argStackToList (MultiStack stack) = argNonEmptyStackToList stack
 
 -- | The result of 'dischargeCekValue'.
 data DischargeResult uni fun
-  = DischargeConstant (Some (ValueOf uni))
+  = DischargeConstant (SomeValueOf uni)
   | DischargeNonConstant (NTerm uni fun ())
 
 deriving stock instance
@@ -793,7 +793,7 @@ data Context uni fun ann
   | -- | @[_ N]@
     FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
   | -- | @[_ V]@
-    FrameAwaitFunConN !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
+    FrameAwaitFunConN !(Spine (SomeValueOf uni)) !(Context uni fun ann)
   | -- | @[_ V1 .. Vn]@
     FrameAwaitFunValueN !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
   | {-| @(force _)@

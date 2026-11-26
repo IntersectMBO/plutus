@@ -156,7 +156,7 @@ data Term tyname name uni fun ann
   | -- | case
     Case ann (Type tyname uni ann) (Term tyname name uni fun ann) [Term tyname name uni fun ann]
   | -- | constants
-    Constant ann (Some (ValueOf uni))
+    Constant ann (SomeValueOf uni)
   | -- | builtin functions
     Builtin ann fun
   | -- | fail with error
@@ -265,48 +265,48 @@ type instance
     HasUniques (Term tyname name uni fun ann)
 
 instance HasAnn (Type tyname uni) where
-  getAnn (TyVar ann _)        = ann
-  getAnn (TyFun ann _ _)      = ann
-  getAnn (TyIFix ann _ _)     = ann
+  getAnn (TyVar ann _) = ann
+  getAnn (TyFun ann _ _) = ann
+  getAnn (TyIFix ann _ _) = ann
   getAnn (TyForall ann _ _ _) = ann
-  getAnn (TyBuiltin ann _)    = ann
-  getAnn (TyLam ann _ _ _)    = ann
-  getAnn (TyApp ann _ _)      = ann
-  getAnn (TySOP ann _)        = ann
-  modifyAnn f (TyVar ann x)        = TyVar (f ann) x
-  modifyAnn f (TyFun ann a b)      = TyFun (f ann) a b
-  modifyAnn f (TyIFix ann a b)     = TyIFix (f ann) a b
+  getAnn (TyBuiltin ann _) = ann
+  getAnn (TyLam ann _ _ _) = ann
+  getAnn (TyApp ann _ _) = ann
+  getAnn (TySOP ann _) = ann
+  modifyAnn f (TyVar ann x) = TyVar (f ann) x
+  modifyAnn f (TyFun ann a b) = TyFun (f ann) a b
+  modifyAnn f (TyIFix ann a b) = TyIFix (f ann) a b
   modifyAnn f (TyForall ann tn k t) = TyForall (f ann) tn k t
-  modifyAnn f (TyBuiltin ann b)    = TyBuiltin (f ann) b
-  modifyAnn f (TyLam ann tn k t)   = TyLam (f ann) tn k t
-  modifyAnn f (TyApp ann a b)      = TyApp (f ann) a b
-  modifyAnn f (TySOP ann tss)      = TySOP (f ann) tss
+  modifyAnn f (TyBuiltin ann b) = TyBuiltin (f ann) b
+  modifyAnn f (TyLam ann tn k t) = TyLam (f ann) tn k t
+  modifyAnn f (TyApp ann a b) = TyApp (f ann) a b
+  modifyAnn f (TySOP ann tss) = TySOP (f ann) tss
 
 instance HasAnn (Term tyname name uni fun) where
-  getAnn (Var ann _)           = ann
-  getAnn (LamAbs ann _ _ _)   = ann
-  getAnn (Apply ann _ _)      = ann
-  getAnn (TyAbs ann _ _ _)    = ann
-  getAnn (TyInst ann _ _)     = ann
-  getAnn (IWrap ann _ _ _)    = ann
-  getAnn (Unwrap ann _)       = ann
-  getAnn (Constr ann _ _ _)   = ann
-  getAnn (Case ann _ _ _)     = ann
-  getAnn (Constant ann _)     = ann
-  getAnn (Builtin ann _)      = ann
-  getAnn (Error ann _)        = ann
-  modifyAnn f (Var ann x)           = Var (f ann) x
-  modifyAnn f (LamAbs ann n ty t)   = LamAbs (f ann) n ty t
-  modifyAnn f (Apply ann t1 t2)     = Apply (f ann) t1 t2
-  modifyAnn f (TyAbs ann tn k t)    = TyAbs (f ann) tn k t
-  modifyAnn f (TyInst ann t ty)     = TyInst (f ann) t ty
+  getAnn (Var ann _) = ann
+  getAnn (LamAbs ann _ _ _) = ann
+  getAnn (Apply ann _ _) = ann
+  getAnn (TyAbs ann _ _ _) = ann
+  getAnn (TyInst ann _ _) = ann
+  getAnn (IWrap ann _ _ _) = ann
+  getAnn (Unwrap ann _) = ann
+  getAnn (Constr ann _ _ _) = ann
+  getAnn (Case ann _ _ _) = ann
+  getAnn (Constant ann _) = ann
+  getAnn (Builtin ann _) = ann
+  getAnn (Error ann _) = ann
+  modifyAnn f (Var ann x) = Var (f ann) x
+  modifyAnn f (LamAbs ann n ty t) = LamAbs (f ann) n ty t
+  modifyAnn f (Apply ann t1 t2) = Apply (f ann) t1 t2
+  modifyAnn f (TyAbs ann tn k t) = TyAbs (f ann) tn k t
+  modifyAnn f (TyInst ann t ty) = TyInst (f ann) t ty
   modifyAnn f (IWrap ann ty1 ty2 t) = IWrap (f ann) ty1 ty2 t
-  modifyAnn f (Unwrap ann t)        = Unwrap (f ann) t
-  modifyAnn f (Constr ann ty i ts)  = Constr (f ann) ty i ts
-  modifyAnn f (Case ann ty t ts)    = Case (f ann) ty t ts
-  modifyAnn f (Constant ann c)      = Constant (f ann) c
-  modifyAnn f (Builtin ann b)       = Builtin (f ann) b
-  modifyAnn f (Error ann ty)        = Error (f ann) ty
+  modifyAnn f (Unwrap ann t) = Unwrap (f ann) t
+  modifyAnn f (Constr ann ty i ts) = Constr (f ann) ty i ts
+  modifyAnn f (Case ann ty t ts) = Case (f ann) ty t ts
+  modifyAnn f (Constant ann c) = Constant (f ann) c
+  modifyAnn f (Builtin ann b) = Builtin (f ann) b
+  modifyAnn f (Error ann ty) = Error (f ann) ty
 
 -- | Map a function over the set of built-in functions.
 mapFun :: (fun -> fun') -> Term tyname name uni fun ann -> Term tyname name uni fun' ann

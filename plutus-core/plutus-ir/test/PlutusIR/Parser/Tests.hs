@@ -84,8 +84,8 @@ aroundSeparators = go False False
         | otherwise -> (a :) <$> go inQuotedName inUnique splice (b : l)
 
 -- | Check whether the given constant can be scrambled (in the sense of 'genScrambledWith').
-isScramblable :: PLC.Some (PLC.ValueOf PLC.DefaultUni) -> Bool
-isScramblable (PLC.Some (PLC.ValueOf uni0 x0)) = go uni0 x0
+isScramblable :: PLC.SomeValueOf PLC.DefaultUni -> Bool
+isScramblable (PLC.SomeValueOf uni0 x0) = go uni0 x0
   where
     go :: PLC.DefaultUni (PLC.Esc a) -> a -> Bool
     go PLC.DefaultUniInteger _ = True

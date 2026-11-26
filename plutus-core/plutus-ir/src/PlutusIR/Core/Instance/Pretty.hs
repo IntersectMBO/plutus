@@ -218,8 +218,8 @@ instance
             (prettyBy config ty : prettyBy config arg : fmap (prettyBy config) cs)
         )
     where
-      prettyTypeOf :: PLC.Some (PLC.ValueOf uni) -> Doc dann
-      prettyTypeOf (PLC.Some (PLC.ValueOf uni _)) =
+      prettyTypeOf :: PLC.SomeValueOf uni -> Doc dann
+      prettyTypeOf (PLC.SomeValueOf uni _) =
         PLC.prettyBy PLC.juxtRenderContext $ PLC.SomeTypeIn uni
 
 instance

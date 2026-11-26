@@ -183,8 +183,8 @@ instance
             )
         )
     where
-      prettyTypeOf :: Some (ValueOf uni) -> Doc dann
-      prettyTypeOf (Some (ValueOf uni _)) = prettyBy juxtRenderContext $ SomeTypeIn uni
+      prettyTypeOf :: SomeValueOf uni -> Doc dann
+      prettyTypeOf (SomeValueOf uni _) = prettyBy juxtRenderContext $ SomeTypeIn uni
 
 instance
   (PrettyClassicBy configName (Term tyname name uni fun ann), Pretty ann)
