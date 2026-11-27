@@ -99,7 +99,8 @@ formatName Both = "both"
 -- | What was written for one property.
 data Generated = Generated
   { generatedNumberedCases :: Int
-  -- ^ Numbered cases (each may produce one or two programmes).
+  {-^ Numbered cases written. Each holds one program, or two for an equality
+  check; a check that combines several terms uses several numbers. -}
   , generatedPrograms :: Int
   , generatedFiles :: Int
   }
@@ -211,7 +212,9 @@ data Check
     CheckOk PlcTerm
   | -- | The term fails to evaluate.
     CheckFails PlcTerm
-  | CheckBoth Check Check
+  | {-| Both checks must hold. When generating, each check contributes its
+    own numbered cases, so one sampled input can use several numbers. -}
+    CheckBoth Check Check
   | CheckImplies Bool Check
   | -- | All terms evaluate successfully to pairwise distinct results.
     CheckDistinct [PlcTerm]
@@ -407,11 +410,12 @@ instance Exception ConformanceError where
   displayException (ConformanceError caseName message) = caseName <> ": " <> message
 
 {-| Consume at most the requested number of cases, writing each one as it is
-produced so that memory use does not grow with the number of cases. An equality
-case emits both terms with the same five-digit index and -A/-B suffixes. Other
-cases emit one term without a suffix. Each term has its own result and budget
-files. A case that violates its property, or a stream with fewer cases than
-requested, is an error. -}
+produced so that memory use does not grow with the number of cases. The count is
+a number of terms, not of sampled inputs: an equality check emits both terms
+under one number with -A/-B suffixes, while a check that combines several terms
+(for example 'CheckBoth') supplies one numbered case per term. Each term has its
+own result and budget files. A case that violates its property, or a stream with
+fewer cases than requested, is an error. -}
 generateTermFiles
   :: OutputFormat
   -> FilePath

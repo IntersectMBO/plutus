@@ -36,7 +36,7 @@ Usage: generate-conformance-tests [-o|--output-dir DIR] [-n|--num-files N]
 | Option | Meaning |
 | --- | --- |
 | `-o`, `--output-dir` | Root of the output tree. Defaults to `conformance-property-tests`. |
-| `-n`, `--num-files` | Numbered cases per property. Defaults to 200. |
+| `-n`, `--num-files` | Numbered cases per property (not sampled inputs). Defaults to 200. |
 | `-s`, `--seed` | QuickCheck seed for reproducible inputs. Omit for a fresh seed, which is recorded in `info.json`. |
 | `--format` | `flat` (default), `uplc`, or `both`. Each format gets its own expected-result file. |
 | `-m`, `--match` | Case-sensitive substring of `TYPE/MODULE/[GROUP/]PROPERTY`. Repeatable; matches any of them. |
@@ -82,9 +82,17 @@ the bitwise ones, and 1, 99 or 200 for the BLS12-381 ones). This is intentional:
 the generated cases are meant to be a reproducible sample at a chosen size, not
 a copy of the test-runner settings.
 
-Checks that compare two programs produce two exported programs per numbered
-case, so the number of programs on disk is larger than `--num-files` times the
-number of properties.
+`--num-files` counts numbered cases, not sampled inputs. An equality check
+(`CheckEq`) puts two programs in one numbered case, with `-A`/`-B` suffixes.
+A check that combines several terms, such as `CheckBoth` (used by the bitwise
+`getSet` property), contributes one numbered case per term: the two checks on a
+single sampled input become consecutive cases such as `getSet-00001` and
+`getSet-00002`, and the numbering carries no record of which sample they belong
+to. Such a property therefore consumes several numbers per sampled input and
+produces fewer samples for a given `--num-files`. It also means that an odd or
+small `--num-files` can write only part of a sample's case set. The number of
+programs on disk is therefore not simply `--num-files` times the number of
+properties.
 
 ## Info file
 

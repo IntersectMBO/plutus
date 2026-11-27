@@ -18,9 +18,11 @@ license-files:
 author:          Plutus Core Team
 maintainer:      ana.pantilie@iohk.io
 category:        Development
-extra-doc-files: executables/generate-conformance-tests/README.md
+extra-doc-files:
+  CHANGELOG.md
+  executables/generate-conformance-tests/README.md
+
 build-type:      Simple
-extra-doc-files: CHANGELOG.md
 
 source-repository head
   type:     git

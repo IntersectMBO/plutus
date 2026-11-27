@@ -63,7 +63,7 @@ options =
           <> value 200
           <> showDefault
           <> help
-            "Number of numbered cases per property; equality cases emit an -A/-B pair, each with expected results and a budget"
+            "Number of numbered cases per property, not of sampled inputs: a check combining several programs uses one number each, and equality cases emit an -A/-B pair, each with expected results and a budget"
       )
     <*> optional
       ( option
