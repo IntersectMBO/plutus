@@ -6,7 +6,8 @@ description:
   Command-line tools for working with Plutus Core programs: @uplc@ (evaluate,
   optimise, certify and convert Untyped Plutus Core, including CIP-57
   blueprints), @plc@ (typed Plutus Core) and @pir@ (Plutus IR), plus the
-  @plutus@ multi-tool.
+  @plutus@ multi-tool. @generate-conformance-tests@ exports generated UPLC programs
+  with expected evaluation results and execution budgets.
 
 homepage:        https://github.com/IntersectMBO/plutus
 license:         Apache-2.0
@@ -17,8 +18,11 @@ license-files:
 author:          Plutus Core Team
 maintainer:      ana.pantilie@iohk.io
 category:        Development
+extra-doc-files:
+  CHANGELOG.md
+  executables/generate-conformance-tests/README.md
+
 build-type:      Simple
-extra-doc-files: CHANGELOG.md
 
 source-repository head
   type:     git
@@ -67,6 +71,22 @@ common ghc-version-support
 common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
+
+library conformance-gen
+  import:          lang, os-support
+  visibility:      public
+  hs-source-dirs:  src
+  exposed-modules: PlutusExecutables.Conformance.Info
+  build-depends:
+    , aeson
+    , aeson-pretty
+    , base                                     >=4.9   && <5
+    , bytestring
+    , directory
+    , filepath
+    , plutus-core                              ^>=1.72
+    , plutus-core:untyped-plutus-core-testlib
+    , time
 
 executable pir
   import:          lang
@@ -200,6 +220,27 @@ executable plutus
   default-extensions:
     GADTs
     TypeApplications
+
+executable generate-conformance-tests
+  import:          lang, os-support
+  main-is:         generate-conformance-tests/Main.hs
+  other-modules:   Paths_plutus_executables
+  autogen-modules: Paths_plutus_executables
+  hs-source-dirs:  executables
+  ghc-options:     -threaded -rtsopts
+
+  if arch(wasm32)
+    buildable: False
+
+  build-depends:
+    , base                                     >=4.9   && <5
+    , conformance-gen
+    , directory
+    , filepath
+    , optparse-applicative
+    , plutus-core:untyped-plutus-core-testlib  ^>=1.72
+    , QuickCheck
+    , random
 
 test-suite test-simple
   import:             lang, os-support, ghc-version-support

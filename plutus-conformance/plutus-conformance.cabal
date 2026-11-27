@@ -136,6 +136,29 @@ executable generate-agda-conformance
     , text
     , transformers
 
+-- Round-trip check for generated conformance test cases. A small sample of
+-- cases is produced with the generate-conformance-tests machinery, then run
+-- through the same discovery and golden comparison used for the checked-in
+-- test-cases, in both textual and Flat formats. This catches any drift between
+-- what the generator writes (input encodings, .expected files, failure
+-- markers, budgets) and what the conformance harness expects to read.
+test-suite generated-conformance-cases-roundtrip
+  import:         lang, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts
+  hs-source-dirs: generated-conformance-cases-roundtrip
+  build-depends:
+    , base                                     >=4.9   && <5
+    , directory
+    , filepath
+    , plutus-conformance
+    , plutus-core                              ^>=1.72
+    , plutus-core:untyped-plutus-core-testlib
+    , plutus-executables:conformance-gen
+    , QuickCheck
+    , tasty
+
 test-suite conformance-consistency
   import:         lang, os-support
   type:           exitcode-stdio-1.0
