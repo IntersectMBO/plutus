@@ -85,15 +85,15 @@ Replace the hole by a term.
 infix 9 _⟨_⟩
 
 _⟨_⟩ : m ⊸ n ⊢ → m ⊢ → n ⊢
-□ ⟨ t ⟩ = t
-(ƛ C) ⟨ t ⟩ = ƛ (C ⟨ t ⟩)
-(C ·ₗ u) ⟨ t ⟩ = (C ⟨ t ⟩) · u
-(u ·ᵣ C) ⟨ t ⟩ = u · (C ⟨ t ⟩)
-(force C) ⟨ t ⟩ = force (C ⟨ t ⟩)
-(delay C) ⟨ t ⟩ = delay (C ⟨ t ⟩)
-(constr i xs C ys) ⟨ t ⟩ = constr i (xs ++ ((C ⟨ t ⟩) ∷ ys))
-(caseₗ C xs) ⟨ t ⟩ = case (C ⟨ t ⟩) xs
-(caseᵣ u xs C ys) ⟨ t ⟩ = case u (xs ++ ((C ⟨ t ⟩) ∷ ys))
+□ ⟨ M ⟩ = M
+(ƛ C) ⟨ M ⟩ = ƛ (C ⟨ M ⟩)
+(C ·ₗ N) ⟨ M ⟩ = (C ⟨ M ⟩) · N
+(N ·ᵣ C) ⟨ M ⟩ = N · (C ⟨ M ⟩)
+(force C) ⟨ M ⟩ = force (C ⟨ M ⟩)
+(delay C) ⟨ M ⟩ = delay (C ⟨ M ⟩)
+(constr i Ms C Ms') ⟨ M ⟩ = constr i (Ms ++ ((C ⟨ M ⟩) ∷ Ms'))
+(caseₗ C Ms) ⟨ M ⟩ = case (C ⟨ M ⟩) Ms
+(caseᵣ u Ms C Ms') ⟨ M ⟩ = case u (Ms ++ ((C ⟨ M ⟩) ∷ Ms'))
 ```
 
 ## Composition of contexts
@@ -156,11 +156,10 @@ module ContextualEquivalence
   M ≅ N = ∀ C → C ⟨ M ⟩ ≐ C ⟨ N ⟩
 ```
 
-
 ## Small-step term transformations
 
 ```
-module FocusExample where
+private module FocusExample where
 ```
 
 A context is a term with a hole. Given a term that fits the context, we have a
