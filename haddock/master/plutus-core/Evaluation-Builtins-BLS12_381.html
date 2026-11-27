@@ -1,0 +1,1563 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Evaluation.Builtins.BLS12_381</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.72.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Evaluation.Builtins.BLS12_381.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Evaluation.Builtins.BLS12_381</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Property tests for the BLS12-381 builtins</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:mkTestName"
+	      >mkTestName</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:asPlc"
+	      >asPlc</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/Universe-Core.html#t:Contains" title="Universe.Core"
+	      >`Contains`</a
+	      > a &#8658; a &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arbitraryScalar"
+	      >arbitraryScalar</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arbitraryMsmScalar"
+	      >arbitraryMsmScalar</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arbitraryPlcScalar"
+	      >arbitraryPlcScalar</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arbitraryPlcConst"
+	      >arbitraryPlcConst</a
+	      > &#8759; &#8704; g. (<a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/Universe-Core.html#t:Contains" title="Universe.Core"
+	      >`Contains`</a
+	      > g, <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Arbitrary</a
+	      > g) &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:arbitraryNonZeroPlcConst"
+	      >arbitraryNonZeroPlcConst</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:abelianGroupProperties"
+	      >abelianGroupProperties</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	      >PropertySpec</a
+	      > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      >)]</li
+	    ><li class="src short"
+	    ><a href="#v:zActionProperties"
+	      >zActionProperties</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	      >PropertySpec</a
+	      > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      >)]</li
+	    ><li class="src short"
+	    ><a href="#v:multiScalarMulProperties"
+	      >multiScalarMulProperties</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	      >PropertySpec</a
+	      > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      >)]</li
+	    ><li class="src short"
+	    ><a href="#v:compressHashProperties"
+	      >compressHashProperties</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	      >PropertySpec</a
+	      > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      >)]</li
+	    ><li class="src short"
+	    ><a href="#v:pairingProperties"
+	      >pairingProperties</a
+	      > &#8759; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	      >PropertySpec</a
+	      > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      >)]</li
+	    ><li class="src short"
+	    ><a href="#v:groupProperties"
+	      >groupProperties</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; [(<a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      >, [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	      >PropertySpec</a
+	      > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      >)])]</li
+	    ><li class="src short"
+	    ><a href="#v:test_BLS12_381"
+	      >test_BLS12_381</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_override_ids"
+	      >test_override_ids</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:testSubgroup"
+	      >testSubgroup</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	      >PropertySpec</a
+	      > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      >)] &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:testSpec"
+	      >testSpec</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	      >PropertySpec</a
+	      > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:defaultTests"
+	      >defaultTests</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:overriddenTests"
+	      >overriddenTests</a
+	      > &#8759; [(<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      >)]</li
+	    ><li class="src short"
+	    ><a href="#v:numberOfTests"
+	      >numberOfTests</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_add_assoc"
+	      >cases_add_assoc</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_add_zero"
+	      >cases_add_zero</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_neg"
+	      >cases_neg</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_add_commutative"
+	      >cases_add_commutative</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_scalarMul_assoc"
+	      >cases_scalarMul_assoc</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_scalarMul_left_distributive"
+	      >cases_scalarMul_left_distributive</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_scalarMul_right_distributive"
+	      >cases_scalarMul_right_distributive</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_scalarMul_zero"
+	      >cases_scalarMul_zero</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_scalarMul_one"
+	      >cases_scalarMul_one</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_scalarMul_inverse"
+	      >cases_scalarMul_inverse</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_scalarMul_repeated_addition"
+	      >cases_scalarMul_repeated_addition</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_scalarMul_periodic"
+	      >cases_scalarMul_periodic</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_multiScalarMul_correct"
+	      >cases_multiScalarMul_correct</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_multiScalarMul_no_scalars"
+	      >cases_multiScalarMul_no_scalars</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_multiScalarMul_no_points"
+	      >cases_multiScalarMul_no_points</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_multiScalarMul_permutation"
+	      >cases_multiScalarMul_permutation</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >TestableAbelianGroup</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_roundtrip_compression"
+	      >cases_roundtrip_compression</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_uncompression_wrong_size"
+	      >cases_uncompression_wrong_size</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_uncompress_out_of_group"
+	      >cases_uncompress_out_of_group</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_compression_bit_set"
+	      >cases_compression_bit_set</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_clear_compression_bit"
+	      >cases_clear_compression_bit</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_flip_sign_bit"
+	      >cases_flip_sign_bit</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_set_infinity_bit"
+	      >cases_set_infinity_bit</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:numHashCollisionInputs"
+	      >numHashCollisionInputs</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_no_hash_collisions"
+	      >cases_no_hash_collisions</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_no_hash_collisions_dst"
+	      >cases_no_hash_collisions_dst</a
+	      > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	      >HashAndCompress</a
+	      > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:millerLoopTerm"
+	      >millerLoopTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mulMlResultTerm"
+	      >mulMlResultTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:finalVerifyTerm"
+	      >finalVerifyTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_pairing_left_additive"
+	      >cases_pairing_left_additive</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_pairing_right_additive"
+	      >cases_pairing_right_additive</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_pairing_balanced"
+	      >cases_pairing_balanced</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cases_random_pairing"
+	      >cases_random_pairing</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:generate_bls12_381_properties"
+	      >generate_bls12_381_properties</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:OutputFormat" title="Evaluation.Builtins.Conformance"
+	      >OutputFormat</a
+	      > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	      >CheckMode</a
+	      > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyFilter" title="Evaluation.Builtins.Conformance"
+	      >PropertyFilter</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; QCGen &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > [<a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+	      >PropertyReport</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:bls12_381_property_names"
+	      >bls12_381_property_names</a
+	      > &#8759; [<a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	      >PropertyId</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:conformanceSuiteDirectory"
+	      >conformanceSuiteDirectory</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      >]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkTestName" class="def"
+	    >mkTestName</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#mkTestName" class="link"
+	    >Source</a
+	    > <a href="#v:mkTestName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:asPlc" class="def"
+	    >asPlc</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Contains" title="Universe.Core"
+	    >`Contains`</a
+	    > a &#8658; a &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#asPlc" class="link"
+	    >Source</a
+	    > <a href="#v:asPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitraryScalar" class="def"
+	    >arbitraryScalar</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#arbitraryScalar" class="link"
+	    >Source</a
+	    > <a href="#v:arbitraryScalar" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitraryMsmScalar" class="def"
+	    >arbitraryMsmScalar</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#arbitraryMsmScalar" class="link"
+	    >Source</a
+	    > <a href="#v:arbitraryMsmScalar" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitraryPlcScalar" class="def"
+	    >arbitraryPlcScalar</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#arbitraryPlcScalar" class="link"
+	    >Source</a
+	    > <a href="#v:arbitraryPlcScalar" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitraryPlcConst" class="def"
+	    >arbitraryPlcConst</a
+	    > &#8759; &#8704; g. (<a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/Universe-Core.html#t:Contains" title="Universe.Core"
+	    >`Contains`</a
+	    > g, <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Arbitrary</a
+	    > g) &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#arbitraryPlcConst" class="link"
+	    >Source</a
+	    > <a href="#v:arbitraryPlcConst" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitraryNonZeroPlcConst" class="def"
+	    >arbitraryNonZeroPlcConst</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#arbitraryNonZeroPlcConst" class="link"
+	    >Source</a
+	    > <a href="#v:arbitraryNonZeroPlcConst" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:abelianGroupProperties" class="def"
+	    >abelianGroupProperties</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	    >PropertySpec</a
+	    > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    >)] <a href="src/Evaluation.Builtins.BLS12_381.html#abelianGroupProperties" class="link"
+	    >Source</a
+	    > <a href="#v:abelianGroupProperties" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The group axioms.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:zActionProperties" class="def"
+	    >zActionProperties</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	    >PropertySpec</a
+	    > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    >)] <a href="src/Evaluation.Builtins.BLS12_381.html#zActionProperties" class="link"
+	    >Source</a
+	    > <a href="#v:zActionProperties" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The integers act on the group.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:multiScalarMulProperties" class="def"
+	    >multiScalarMulProperties</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	    >PropertySpec</a
+	    > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    >)] <a href="src/Evaluation.Builtins.BLS12_381.html#multiScalarMulProperties" class="link"
+	    >Source</a
+	    > <a href="#v:multiScalarMulProperties" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Multi-scalar multiplication.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compressHashProperties" class="def"
+	    >compressHashProperties</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	    >PropertySpec</a
+	    > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    >)] <a href="src/Evaluation.Builtins.BLS12_381.html#compressHashProperties" class="link"
+	    >Source</a
+	    > <a href="#v:compressHashProperties" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Uncompression and hashing.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pairingProperties" class="def"
+	    >pairingProperties</a
+	    > &#8759; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	    >PropertySpec</a
+	    > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    >)] <a href="src/Evaluation.Builtins.BLS12_381.html#pairingProperties" class="link"
+	    >Source</a
+	    > <a href="#v:pairingProperties" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pairing properties, which don't depend on the group parameter.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:groupProperties" class="def"
+	    >groupProperties</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; [(<a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    >, [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	    >PropertySpec</a
+	    > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    >)])] <a href="src/Evaluation.Builtins.BLS12_381.html#groupProperties" class="link"
+	    >Source</a
+	    > <a href="#v:groupProperties" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The properties of one group, grouped as they appear in the test tree.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_BLS12_381" class="def"
+	    >test_BLS12_381</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_BLS12_381" class="link"
+	    >Source</a
+	    > <a href="#v:test_BLS12_381" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_override_ids" class="def"
+	    >test_override_ids</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#test_override_ids" class="link"
+	    >Source</a
+	    > <a href="#v:test_override_ids" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Guard against renaming a property and silently losing its test limit.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:testSubgroup" class="def"
+	    >testSubgroup</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	    >PropertySpec</a
+	    > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    >)] &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#testSubgroup" class="link"
+	    >Source</a
+	    > <a href="#v:testSubgroup" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:testSpec" class="def"
+	    >testSpec</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	    >PropertySpec</a
+	    > (<a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#testSpec" class="link"
+	    >Source</a
+	    > <a href="#v:testSpec" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultTests" class="def"
+	    >defaultTests</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#defaultTests" class="link"
+	    >Source</a
+	    > <a href="#v:defaultTests" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >QuickCheck's default number of cases for a property.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:overriddenTests" class="def"
+	    >overriddenTests</a
+	    > &#8759; [(<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    >)] <a href="src/Evaluation.Builtins.BLS12_381.html#overriddenTests" class="link"
+	    >Source</a
+	    > <a href="#v:overriddenTests" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Properties that run fewer cases than the default: hashing is quadratic in
+the number of inputs and random uncompression is slow. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:numberOfTests" class="def"
+	    >numberOfTests</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#numberOfTests" class="link"
+	    >Source</a
+	    > <a href="#v:numberOfTests" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_add_assoc" class="def"
+	    >cases_add_assoc</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_add_assoc" class="link"
+	    >Source</a
+	    > <a href="#v:cases_add_assoc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_add_zero" class="def"
+	    >cases_add_zero</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_add_zero" class="link"
+	    >Source</a
+	    > <a href="#v:cases_add_zero" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_neg" class="def"
+	    >cases_neg</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_neg" class="link"
+	    >Source</a
+	    > <a href="#v:cases_neg" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_add_commutative" class="def"
+	    >cases_add_commutative</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_add_commutative" class="link"
+	    >Source</a
+	    > <a href="#v:cases_add_commutative" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_scalarMul_assoc" class="def"
+	    >cases_scalarMul_assoc</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_scalarMul_assoc" class="link"
+	    >Source</a
+	    > <a href="#v:cases_scalarMul_assoc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_scalarMul_left_distributive" class="def"
+	    >cases_scalarMul_left_distributive</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_scalarMul_left_distributive" class="link"
+	    >Source</a
+	    > <a href="#v:cases_scalarMul_left_distributive" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_scalarMul_right_distributive" class="def"
+	    >cases_scalarMul_right_distributive</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_scalarMul_right_distributive" class="link"
+	    >Source</a
+	    > <a href="#v:cases_scalarMul_right_distributive" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_scalarMul_zero" class="def"
+	    >cases_scalarMul_zero</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_scalarMul_zero" class="link"
+	    >Source</a
+	    > <a href="#v:cases_scalarMul_zero" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_scalarMul_one" class="def"
+	    >cases_scalarMul_one</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_scalarMul_one" class="link"
+	    >Source</a
+	    > <a href="#v:cases_scalarMul_one" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_scalarMul_inverse" class="def"
+	    >cases_scalarMul_inverse</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_scalarMul_inverse" class="link"
+	    >Source</a
+	    > <a href="#v:cases_scalarMul_inverse" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_scalarMul_repeated_addition" class="def"
+	    >cases_scalarMul_repeated_addition</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_scalarMul_repeated_addition" class="link"
+	    >Source</a
+	    > <a href="#v:cases_scalarMul_repeated_addition" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_scalarMul_periodic" class="def"
+	    >cases_scalarMul_periodic</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_scalarMul_periodic" class="link"
+	    >Source</a
+	    > <a href="#v:cases_scalarMul_periodic" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_multiScalarMul_correct" class="def"
+	    >cases_multiScalarMul_correct</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_multiScalarMul_correct" class="link"
+	    >Source</a
+	    > <a href="#v:cases_multiScalarMul_correct" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_multiScalarMul_no_scalars" class="def"
+	    >cases_multiScalarMul_no_scalars</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_multiScalarMul_no_scalars" class="link"
+	    >Source</a
+	    > <a href="#v:cases_multiScalarMul_no_scalars" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_multiScalarMul_no_points" class="def"
+	    >cases_multiScalarMul_no_points</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_multiScalarMul_no_points" class="link"
+	    >Source</a
+	    > <a href="#v:cases_multiScalarMul_no_points" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_multiScalarMul_permutation" class="def"
+	    >cases_multiScalarMul_permutation</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:TestableAbelianGroup" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >TestableAbelianGroup</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_multiScalarMul_permutation" class="link"
+	    >Source</a
+	    > <a href="#v:cases_multiScalarMul_permutation" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_roundtrip_compression" class="def"
+	    >cases_roundtrip_compression</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_roundtrip_compression" class="link"
+	    >Source</a
+	    > <a href="#v:cases_roundtrip_compression" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_uncompression_wrong_size" class="def"
+	    >cases_uncompression_wrong_size</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_uncompression_wrong_size" class="link"
+	    >Source</a
+	    > <a href="#v:cases_uncompression_wrong_size" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_uncompress_out_of_group" class="def"
+	    >cases_uncompress_out_of_group</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_uncompress_out_of_group" class="link"
+	    >Source</a
+	    > <a href="#v:cases_uncompress_out_of_group" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_compression_bit_set" class="def"
+	    >cases_compression_bit_set</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_compression_bit_set" class="link"
+	    >Source</a
+	    > <a href="#v:cases_compression_bit_set" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_clear_compression_bit" class="def"
+	    >cases_clear_compression_bit</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_clear_compression_bit" class="link"
+	    >Source</a
+	    > <a href="#v:cases_clear_compression_bit" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_flip_sign_bit" class="def"
+	    >cases_flip_sign_bit</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_flip_sign_bit" class="link"
+	    >Source</a
+	    > <a href="#v:cases_flip_sign_bit" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_set_infinity_bit" class="def"
+	    >cases_set_infinity_bit</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_set_infinity_bit" class="link"
+	    >Source</a
+	    > <a href="#v:cases_set_infinity_bit" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:numHashCollisionInputs" class="def"
+	    >numHashCollisionInputs</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#numHashCollisionInputs" class="link"
+	    >Source</a
+	    > <a href="#v:numHashCollisionInputs" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_no_hash_collisions" class="def"
+	    >cases_no_hash_collisions</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_no_hash_collisions" class="link"
+	    >Source</a
+	    > <a href="#v:cases_no_hash_collisions" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_no_hash_collisions_dst" class="def"
+	    >cases_no_hash_collisions_dst</a
+	    > &#8759; &#8704; g. <a href="Evaluation-Builtins-BLS12_381-TestClasses.html#t:HashAndCompress" title="Evaluation.Builtins.BLS12_381.TestClasses"
+	    >HashAndCompress</a
+	    > g &#8658; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_no_hash_collisions_dst" class="link"
+	    >Source</a
+	    > <a href="#v:cases_no_hash_collisions_dst" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:millerLoopTerm" class="def"
+	    >millerLoopTerm</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#millerLoopTerm" class="link"
+	    >Source</a
+	    > <a href="#v:millerLoopTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mulMlResultTerm" class="def"
+	    >mulMlResultTerm</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#mulMlResultTerm" class="link"
+	    >Source</a
+	    > <a href="#v:mulMlResultTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:finalVerifyTerm" class="def"
+	    >finalVerifyTerm</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#finalVerifyTerm" class="link"
+	    >Source</a
+	    > <a href="#v:finalVerifyTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_pairing_left_additive" class="def"
+	    >cases_pairing_left_additive</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_pairing_left_additive" class="link"
+	    >Source</a
+	    > <a href="#v:cases_pairing_left_additive" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_pairing_right_additive" class="def"
+	    >cases_pairing_right_additive</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_pairing_right_additive" class="link"
+	    >Source</a
+	    > <a href="#v:cases_pairing_right_additive" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_pairing_balanced" class="def"
+	    >cases_pairing_balanced</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_pairing_balanced" class="link"
+	    >Source</a
+	    > <a href="#v:cases_pairing_balanced" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cases_random_pairing" class="def"
+	    >cases_random_pairing</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.BLS12_381.html#cases_random_pairing" class="link"
+	    >Source</a
+	    > <a href="#v:cases_random_pairing" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:generate_bls12_381_properties" class="def"
+	    >generate_bls12_381_properties</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:OutputFormat" title="Evaluation.Builtins.Conformance"
+	    >OutputFormat</a
+	    > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	    >CheckMode</a
+	    > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyFilter" title="Evaluation.Builtins.Conformance"
+	    >PropertyFilter</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; QCGen &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > [<a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+	    >PropertyReport</a
+	    >] <a href="src/Evaluation.Builtins.BLS12_381.html#generate_bls12_381_properties" class="link"
+	    >Source</a
+	    > <a href="#v:generate_bls12_381_properties" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate cases for both groups and the pairing properties. Group-valued
+outputs are compressed so inputs and results support both textual and Flat formats. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bls12_381_property_names" class="def"
+	    >bls12_381_property_names</a
+	    > &#8759; [<a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	    >PropertyId</a
+	    >] <a href="src/Evaluation.Builtins.BLS12_381.html#bls12_381_property_names" class="link"
+	    >Source</a
+	    > <a href="#v:bls12_381_property_names" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Qualified property names, without sampling inputs or evaluating checks.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:conformanceSuiteDirectory" class="def"
+	    >conformanceSuiteDirectory</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    >] <a href="src/Evaluation.Builtins.BLS12_381.html#conformanceSuiteDirectory" class="link"
+	    >Source</a
+	    > <a href="#v:conformanceSuiteDirectory" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

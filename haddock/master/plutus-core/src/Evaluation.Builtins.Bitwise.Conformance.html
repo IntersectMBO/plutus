@@ -1,0 +1,3998 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Share Hedgehog inputs and terms between assertions and conformance generation.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Evaluation.Builtins.Bitwise.Conformance</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#checkSame"
+	><span class="hs-identifier"
+	  >checkSame</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#checkConstant"
+	><span class="hs-identifier"
+	  >checkConstant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#checkProperty"
+	><span class="hs-identifier"
+	  >checkProperty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#genByteString"
+	><span class="hs-identifier"
+	  >genByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#genByteStringThat"
+	><span class="hs-identifier"
+	  >genByteStringThat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#generateBitwisePropertyFiles"
+	><span class="hs-identifier"
+	  >generateBitwisePropertyFiles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#TypeErrorOrCekResult"
+	><span class="hs-identifier"
+	  >TypeErrorOrCekResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#cekSuccessTrue"
+	><span class="hs-identifier"
+	  >cekSuccessTrue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#evalTerm"
+	><span class="hs-identifier"
+	  >evalTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Conformance</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckMode"
+	><span class="hs-identifier"
+	  >CheckMode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Generated"
+	><span class="hs-identifier"
+	  >Generated</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#OutputFormat"
+	><span class="hs-identifier"
+	  >OutputFormat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyId"
+	><span class="hs-identifier"
+	  >PropertyId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#caseTerms"
+	><span class="hs-identifier"
+	  >caseTerms</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#generateTermFiles"
+	><span class="hs-identifier"
+	  >generateTermFiles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#isCekSuccess"
+	><span class="hs-identifier"
+	  >isCekSuccess</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#propertySeed"
+	><span class="hs-identifier"
+	  >propertySeed</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#samplingSize"
+	><span class="hs-identifier"
+	  >samplingSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Helpers.html"
+	><span class="hs-identifier"
+	  >Evaluation.Helpers</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Helpers.html#evaluateTheSame"
+	><span class="hs-identifier"
+	  >evaluateTheSame</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier"
+	  >ByteString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.html"
+	><span class="hs-identifier"
+	  >Data.List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.OldList.html#nub"
+	><span class="hs-identifier"
+	  >nub</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html"
+	><span class="hs-identifier"
+	  >Data.Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#mapMaybe"
+	><span class="hs-identifier"
+	  >mapMaybe</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.html"
+	><span class="hs-identifier"
+	  >Hedgehog</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	><span class="hs-identifier"
+	  >Gen</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#Property"
+	><span class="hs-identifier"
+	  >Property</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#annotate"
+	><span class="hs-identifier"
+	  >annotate</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#annotateShow"
+	><span class="hs-identifier"
+	  >annotateShow</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#assert"
+	><span class="hs-identifier"
+	  >assert</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#failure"
+	><span class="hs-identifier"
+	  >failure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#forAll"
+	><span class="hs-identifier"
+	  >forAll</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#property"
+	><span class="hs-identifier"
+	  >property</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#success"
+	><span class="hs-identifier"
+	  >success</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#%3D%3D%3D"
+	><span class="hs-operator"
+	  >(===)</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Gen.html"
+	><span class="hs-identifier"
+	  >Hedgehog.Gen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Gen</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html"
+	><span class="hs-identifier"
+	  >Hedgehog.Internal.Gen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html#evalGen"
+	><span class="hs-identifier"
+	  >evalGen</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Seed.html"
+	><span class="hs-identifier"
+	  >Hedgehog.Internal.Seed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Seed</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Tree.html"
+	><span class="hs-identifier"
+	  >Hedgehog.Internal.Tree</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Tree.html#treeValue"
+	><span class="hs-identifier"
+	  >treeValue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Range.html"
+	><span class="hs-identifier"
+	  >Hedgehog.Range</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Range</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Test.QuickCheck</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>QC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Test.QuickCheck.Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>unGen</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Test.QuickCheck.Random</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>QCGen</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#checkSame"
+	><span class="hs-identifier hs-type"
+	  >checkSame</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	><span class="hs-identifier hs-type"
+	  >Gen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier hs-type"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="checkSame"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkSame :: PlcTerm -&gt; PlcTerm -&gt; Gen Check
+</span
+	  ><a href="Evaluation.Builtins.Bitwise.Conformance.html#checkSame"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkSame</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290312"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679290312"
+	  ><span class="hs-identifier hs-var"
+	    >lhs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290313"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679290313"
+	  ><span class="hs-identifier hs-var"
+	    >rhs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; Gen Check
+forall a. a -&gt; GenT Identity a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Check -&gt; Gen Check) -&gt; Check -&gt; Gen Check
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Check
+</span
+	><a href="Evaluation.Builtins.Conformance.html#CheckEq"
+	><span class="hs-identifier hs-var"
+	  >CheckEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679290312"
+	><span class="hs-identifier hs-var"
+	  >lhs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679290313"
+	><span class="hs-identifier hs-var"
+	  >rhs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Compare a term's result with a constant. The constant is only used by the
+normal tests; the generated tests export the term alone. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#checkConstant"
+	><span class="hs-identifier hs-type"
+	  >checkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679290179"
+      ><span class="annot"
+	><a href="#local-6989586621679290179"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#Contains"
+	><span class="hs-identifier hs-type"
+	  >PLC.Contains</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >PLC.DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679290179"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679290179"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	><span class="hs-identifier hs-type"
+	  >Gen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier hs-type"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="checkConstant"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkConstant :: forall a. Contains DefaultUni a =&gt; a -&gt; PlcTerm -&gt; Gen Check
+</span
+	  ><a href="Evaluation.Builtins.Bitwise.Conformance.html#checkConstant"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkConstant</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290322"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679290322"
+	  ><span class="hs-identifier hs-var"
+	    >expected</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290323"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679290323"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; Gen Check
+forall a. a -&gt; GenT Identity a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Check -&gt; Gen Check) -&gt; Check -&gt; Gen Check
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; TypeErrorOrCekResult -&gt; Check
+</span
+	><a href="Evaluation.Builtins.Conformance.html#CheckEvaluatesTo"
+	><span class="hs-identifier hs-var"
+	  >CheckEvaluatesTo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679290323"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>UplcTerm -&gt; TypeErrorOrCekResult
+</span
+	><a href="Evaluation.Builtins.Common.html#CekSuccess"
+	><span class="hs-identifier hs-var"
+	  >CekSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; a -&gt; UplcTerm
+forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679290322"
+	><span class="hs-identifier hs-var"
+	  >expected</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Keep Hedgehog's input shrinking and normal assertion reporting.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#checkProperty"
+	><span class="hs-identifier hs-type"
+	  >checkProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	><span class="hs-identifier hs-type"
+	  >Gen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier hs-type"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#Property"
+	><span class="hs-identifier hs-type"
+	  >Property</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span id="checkProperty"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkProperty :: Gen Check -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Bitwise.Conformance.html#checkProperty"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkProperty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290326"
+      ><span class="annot"
+	><span class="annottext"
+	  >Gen Check
+</span
+	  ><a href="#local-6989586621679290326"
+	  ><span class="hs-identifier hs-var"
+	    >gen</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HasCallStack =&gt; PropertyT IO () -&gt; Property
+PropertyT IO () -&gt; Property
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#property"
+	><span class="hs-identifier hs-var"
+	  >property</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PropertyT IO () -&gt; Property) -&gt; PropertyT IO () -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Check -&gt; PropertyT IO Check
+forall (m :: * -&gt; *) a.
+(Monad m, Show a, HasCallStack) =&gt;
+Gen a -&gt; PropertyT m a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#forAll"
+	><span class="hs-identifier hs-var"
+	  >forAll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Check
+</span
+	><a href="#local-6989586621679290326"
+	><span class="hs-identifier hs-var"
+	  >gen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyT IO Check -&gt; (Check -&gt; PropertyT IO ()) -&gt; PropertyT IO ()
+forall a b.
+PropertyT IO a -&gt; (a -&gt; PropertyT IO b) -&gt; PropertyT IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; PropertyT IO ()
+</span
+	><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679290327"
+      ><span class="annot"
+	><span class="annottext"
+	  >check :: Check -&gt; PropertyT IO ()
+</span
+	  ><a href="#local-6989586621679290327"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckEq"
+	><span class="hs-identifier hs-type"
+	  >CheckEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290376"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679290376"
+	  ><span class="hs-identifier hs-var"
+	    >lhs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290377"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679290377"
+	  ><span class="hs-identifier hs-var"
+	    >rhs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HasCallStack =&gt; PlcTerm -&gt; PlcTerm -&gt; PropertyT IO ()
+PlcTerm -&gt; PlcTerm -&gt; PropertyT IO ()
+</span
+	><a href="Evaluation.Helpers.html#evaluateTheSame"
+	><span class="hs-identifier hs-var"
+	  >evaluateTheSame</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679290376"
+	><span class="hs-identifier hs-var"
+	  >lhs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679290377"
+	><span class="hs-identifier hs-var"
+	  >rhs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckEvaluatesTo"
+	><span class="hs-identifier hs-type"
+	  >CheckEvaluatesTo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290378"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679290378"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290379"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeErrorOrCekResult
+</span
+	  ><a href="#local-6989586621679290379"
+	  ><span class="hs-identifier hs-var"
+	    >expected</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; TypeErrorOrCekResult
+</span
+	><a href="Evaluation.Builtins.Common.html#evalTerm"
+	><span class="hs-identifier hs-var"
+	  >evalTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679290378"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult -&gt; TypeErrorOrCekResult -&gt; PropertyT IO ()
+forall (m :: * -&gt; *) a.
+(MonadTest m, Eq a, Show a, HasCallStack) =&gt;
+a -&gt; a -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#%3D%3D%3D"
+	><span class="hs-operator hs-var"
+	  >===</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult
+</span
+	><a href="#local-6989586621679290379"
+	><span class="hs-identifier hs-var"
+	  >expected</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckTrue"
+	><span class="hs-identifier hs-type"
+	  >CheckTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290381"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679290381"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; TypeErrorOrCekResult
+</span
+	><a href="Evaluation.Builtins.Common.html#evalTerm"
+	><span class="hs-identifier hs-var"
+	  >evalTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679290381"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult -&gt; TypeErrorOrCekResult -&gt; PropertyT IO ()
+forall (m :: * -&gt; *) a.
+(MonadTest m, Eq a, Show a, HasCallStack) =&gt;
+a -&gt; a -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#%3D%3D%3D"
+	><span class="hs-operator hs-var"
+	  >===</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult
+</span
+	><a href="Evaluation.Builtins.Common.html#cekSuccessTrue"
+	><span class="hs-identifier hs-var"
+	  >cekSuccessTrue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckOk"
+	><span class="hs-identifier hs-type"
+	  >CheckOk</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290383"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679290383"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; TypeErrorOrCekResult
+</span
+	><a href="Evaluation.Builtins.Common.html#evalTerm"
+	><span class="hs-identifier hs-var"
+	  >evalTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679290383"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#CekSuccess"
+	><span class="hs-identifier hs-type"
+	  >CekSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UplcTerm
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyT IO ()
+forall (m :: * -&gt; *). MonadTest m =&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#success"
+	><span class="hs-identifier hs-var"
+	  >success</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679290384"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeErrorOrCekResult
+</span
+	  ><a href="#local-6989586621679290384"
+	  ><span class="hs-identifier hs-var"
+	    >result</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult -&gt; PropertyT IO ()
+forall (m :: * -&gt; *) a.
+(MonadTest m, Show a, HasCallStack) =&gt;
+a -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#annotateShow"
+	><span class="hs-identifier hs-var"
+	  >annotateShow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult
+</span
+	><a href="#local-6989586621679290384"
+	><span class="hs-identifier hs-var"
+	  >result</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyT IO () -&gt; PropertyT IO () -&gt; PropertyT IO ()
+forall a b. PropertyT IO a -&gt; PropertyT IO b -&gt; PropertyT IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyT IO ()
+forall (m :: * -&gt; *) a. (MonadTest m, HasCallStack) =&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#failure"
+	><span class="hs-identifier hs-var"
+	  >failure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckFails"
+	><span class="hs-identifier hs-type"
+	  >CheckFails</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290386"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679290386"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; TypeErrorOrCekResult
+</span
+	><a href="Evaluation.Builtins.Common.html#evalTerm"
+	><span class="hs-identifier hs-var"
+	  >evalTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679290386"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult -&gt; TypeErrorOrCekResult -&gt; PropertyT IO ()
+forall (m :: * -&gt; *) a.
+(MonadTest m, Eq a, Show a, HasCallStack) =&gt;
+a -&gt; a -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#%3D%3D%3D"
+	><span class="hs-operator hs-var"
+	  >===</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult
+</span
+	><a href="Evaluation.Builtins.Common.html#CekError"
+	><span class="hs-identifier hs-var"
+	  >CekError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckBoth"
+	><span class="hs-identifier hs-type"
+	  >CheckBoth</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290389"
+      ><span class="annot"
+	><span class="annottext"
+	  >Check
+</span
+	  ><a href="#local-6989586621679290389"
+	  ><span class="hs-identifier hs-var"
+	    >lhs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290390"
+      ><span class="annot"
+	><span class="annottext"
+	  >Check
+</span
+	  ><a href="#local-6989586621679290390"
+	  ><span class="hs-identifier hs-var"
+	    >rhs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; PropertyT IO ()
+</span
+	><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check
+</span
+	><a href="#local-6989586621679290389"
+	><span class="hs-identifier hs-var"
+	  >lhs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyT IO () -&gt; PropertyT IO () -&gt; PropertyT IO ()
+forall a b. PropertyT IO a -&gt; PropertyT IO b -&gt; PropertyT IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; PropertyT IO ()
+</span
+	><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check
+</span
+	><a href="#local-6989586621679290390"
+	><span class="hs-identifier hs-var"
+	  >rhs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckImplies"
+	><span class="hs-identifier hs-type"
+	  >CheckImplies</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290392"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679290392"
+	  ><span class="hs-identifier hs-var"
+	    >condition</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290393"
+      ><span class="annot"
+	><span class="annottext"
+	  >Check
+</span
+	  ><a href="#local-6989586621679290393"
+	  ><span class="hs-identifier hs-var"
+	    >inner</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679290392"
+	><span class="hs-identifier hs-var"
+	  >condition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; PropertyT IO ()
+</span
+	><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check
+</span
+	><a href="#local-6989586621679290393"
+	><span class="hs-identifier hs-var"
+	  >inner</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyT IO ()
+forall (m :: * -&gt; *). MonadTest m =&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#success"
+	><span class="hs-identifier hs-var"
+	  >success</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckDistinct"
+	><span class="hs-identifier hs-type"
+	  >CheckDistinct</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290395"
+      ><span class="annot"
+	><span class="annottext"
+	  >[PlcTerm]
+</span
+	  ><a href="#local-6989586621679290395"
+	  ><span class="hs-identifier hs-var"
+	    >terms</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679290396"
+      ><span class="annot"
+	><span class="annottext"
+	  >results :: [TypeErrorOrCekResult]
+</span
+	  ><a href="#local-6989586621679290396"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >results</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; TypeErrorOrCekResult)
+-&gt; [PlcTerm] -&gt; [TypeErrorOrCekResult]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; TypeErrorOrCekResult
+</span
+	><a href="Evaluation.Builtins.Common.html#evalTerm"
+	><span class="hs-identifier hs-var"
+	  >evalTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PlcTerm]
+</span
+	><a href="#local-6989586621679290395"
+	><span class="hs-identifier hs-var"
+	  >terms</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >       </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; PropertyT IO ()
+forall (m :: * -&gt; *). (MonadTest m, HasCallStack) =&gt; Bool -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#assert"
+	><span class="hs-identifier hs-var"
+	  >assert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeErrorOrCekResult -&gt; Bool) -&gt; [TypeErrorOrCekResult] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#all"
+	><span class="hs-identifier hs-var"
+	  >all</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult -&gt; Bool
+</span
+	><a href="Evaluation.Builtins.Conformance.html#isCekSuccess"
+	><span class="hs-identifier hs-var"
+	  >isCekSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TypeErrorOrCekResult]
+</span
+	><a href="#local-6989586621679290396"
+	><span class="hs-identifier hs-var"
+	  >results</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TypeErrorOrCekResult] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#length"
+	><span class="hs-identifier hs-var"
+	  >length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TypeErrorOrCekResult]
+</span
+	><a href="#local-6989586621679290396"
+	><span class="hs-identifier hs-var"
+	  >results</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TypeErrorOrCekResult] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#length"
+	><span class="hs-identifier hs-var"
+	  >length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TypeErrorOrCekResult] -&gt; [TypeErrorOrCekResult]
+forall a. Eq a =&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.OldList.html#nub"
+	><span class="hs-identifier hs-var"
+	  >nub</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TypeErrorOrCekResult]
+</span
+	><a href="#local-6989586621679290396"
+	><span class="hs-identifier hs-var"
+	  >results</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679290327"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckSatisfies"
+	><span class="hs-identifier hs-type"
+	  >CheckSatisfies</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290401"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679290401"
+	  ><span class="hs-keyword hs-var"
+	    >label</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290402"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679290402"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290403"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeErrorOrCekResult -&gt; Bool
+</span
+	  ><a href="#local-6989586621679290403"
+	  ><span class="hs-identifier hs-var"
+	    >predicate</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; PropertyT IO ()
+forall (m :: * -&gt; *). (MonadTest m, HasCallStack) =&gt; String -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#annotate"
+	><span class="hs-identifier hs-var"
+	  >annotate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679290401"
+	><span class="hs-keyword hs-var"
+	  >label</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyT IO () -&gt; PropertyT IO () -&gt; PropertyT IO ()
+forall a b. PropertyT IO a -&gt; PropertyT IO b -&gt; PropertyT IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; PropertyT IO ()
+forall (m :: * -&gt; *). (MonadTest m, HasCallStack) =&gt; Bool -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Property.html#assert"
+	><span class="hs-identifier hs-var"
+	  >assert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult -&gt; Bool
+</span
+	><a href="#local-6989586621679290403"
+	><span class="hs-identifier hs-var"
+	  >predicate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; TypeErrorOrCekResult
+</span
+	><a href="Evaluation.Builtins.Common.html#evalTerm"
+	><span class="hs-identifier hs-var"
+	  >evalTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679290402"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#genByteString"
+	><span class="hs-identifier hs-type"
+	  >genByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	><span class="hs-identifier hs-type"
+	  >Gen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span id="genByteString"
+      ><span class="annot"
+	><span class="annottext"
+	  >genByteString :: Int -&gt; Int -&gt; Gen ByteString
+</span
+	  ><a href="Evaluation.Builtins.Bitwise.Conformance.html#genByteString"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >genByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290404"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679290404"
+	  ><span class="hs-identifier hs-var"
+	    >lo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290405"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679290405"
+	  ><span class="hs-identifier hs-var"
+	    >hi</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Range Int -&gt; Gen ByteString
+forall (m :: * -&gt; *). MonadGen m =&gt; Range Int -&gt; m ByteString
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html#bytes"
+	><span class="hs-identifier hs-var"
+	  >Gen.bytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Range Int -&gt; Gen ByteString) -&gt; Range Int -&gt; Gen ByteString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Range Int
+forall a. Integral a =&gt; a -&gt; a -&gt; Range a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Range.html#linear"
+	><span class="hs-identifier hs-var"
+	  >Range.linear</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679290404"
+	><span class="hs-identifier hs-var"
+	  >lo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679290405"
+	><span class="hs-identifier hs-var"
+	  >hi</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#genByteStringThat"
+	><span class="hs-identifier hs-type"
+	  >genByteStringThat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	><span class="hs-identifier hs-type"
+	  >Gen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span id="genByteStringThat"
+      ><span class="annot"
+	><span class="annottext"
+	  >genByteStringThat :: (ByteString -&gt; Bool) -&gt; Int -&gt; Int -&gt; Gen ByteString
+</span
+	  ><a href="Evaluation.Builtins.Bitwise.Conformance.html#genByteStringThat"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >genByteStringThat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290408"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString -&gt; Bool
+</span
+	  ><a href="#local-6989586621679290408"
+	  ><span class="hs-identifier hs-var"
+	    >predicate</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290409"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679290409"
+	  ><span class="hs-identifier hs-var"
+	    >lo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290410"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679290410"
+	  ><span class="hs-identifier hs-var"
+	    >hi</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; Bool) -&gt; Gen ByteString -&gt; Gen ByteString
+forall (m :: * -&gt; *) a.
+(MonadGen m, GenBase m ~ Identity) =&gt;
+(a -&gt; Bool) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html#filter"
+	><span class="hs-identifier hs-var"
+	  >Gen.filter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Bool
+</span
+	><a href="#local-6989586621679290408"
+	><span class="hs-identifier hs-var"
+	  >predicate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Gen ByteString -&gt; Gen ByteString)
+-&gt; Gen ByteString -&gt; Gen ByteString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Gen ByteString
+</span
+	><a href="Evaluation.Builtins.Bitwise.Conformance.html#genByteString"
+	><span class="hs-identifier hs-var"
+	  >genByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679290409"
+	><span class="hs-identifier hs-var"
+	  >lo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679290410"
+	><span class="hs-identifier hs-var"
+	  >hi</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Sample Hedgehog generators directly, with seeds derived from the executable's
+QuickCheck seed. No property runner or assertions are involved. Discarded
+inputs are retried, and the lazy stream stops at the requested case count.
+Equality cases retain both terms, numbered together with -A/-B suffixes. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.Conformance.html#generateBitwisePropertyFiles"
+	><span class="hs-identifier hs-type"
+	  >generateBitwisePropertyFiles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#OutputFormat"
+	><span class="hs-identifier hs-type"
+	  >OutputFormat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckMode"
+	><span class="hs-identifier hs-type"
+	  >CheckMode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>QCGen</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyId"
+	><span class="hs-identifier hs-type"
+	  >PropertyId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	><span class="hs-identifier hs-type"
+	  >Gen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier hs-type"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	><span class="hs-identifier hs-type"
+	  >IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Generated"
+	><span class="hs-identifier hs-type"
+	  >Generated</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span id="generateBitwisePropertyFiles"
+      ><span class="annot"
+	><span class="annottext"
+	  >generateBitwisePropertyFiles :: OutputFormat
+-&gt; CheckMode
+-&gt; String
+-&gt; Int
+-&gt; QCGen
+-&gt; PropertyId
+-&gt; String
+-&gt; Gen Check
+-&gt; IO Generated
+</span
+	  ><a href="Evaluation.Builtins.Bitwise.Conformance.html#generateBitwisePropertyFiles"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >generateBitwisePropertyFiles</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290413"
+      ><span class="annot"
+	><span class="annottext"
+	  >OutputFormat
+</span
+	  ><a href="#local-6989586621679290413"
+	  ><span class="hs-identifier hs-var"
+	    >format</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290414"
+      ><span class="annot"
+	><span class="annottext"
+	  >CheckMode
+</span
+	  ><a href="#local-6989586621679290414"
+	  ><span class="hs-identifier hs-var"
+	    >mode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290415"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679290415"
+	  ><span class="hs-identifier hs-var"
+	    >outputDir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290416"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679290416"
+	  ><span class="hs-identifier hs-var"
+	    >numFiles</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290417"
+      ><span class="annot"
+	><span class="annottext"
+	  >QCGen
+</span
+	  ><a href="#local-6989586621679290417"
+	  ><span class="hs-identifier hs-var"
+	    >seed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290418"
+      ><span class="annot"
+	><span class="annottext"
+	  >PropertyId
+</span
+	  ><a href="#local-6989586621679290418"
+	  ><span class="hs-identifier hs-var"
+	    >propertyId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290419"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679290419"
+	  ><span class="hs-identifier hs-var"
+	    >description</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679290420"
+      ><span class="annot"
+	><span class="annottext"
+	  >Gen Check
+</span
+	  ><a href="#local-6989586621679290420"
+	  ><span class="hs-identifier hs-var"
+	    >gen</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; String
+-&gt; Int
+-&gt; PropertyId
+-&gt; String
+-&gt; [TermCase]
+-&gt; IO Generated
+</span
+	><a href="Evaluation.Builtins.Conformance.html#generateTermFiles"
+	><span class="hs-identifier hs-var"
+	  >generateTermFiles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+</span
+	><a href="#local-6989586621679290413"
+	><span class="hs-identifier hs-var"
+	  >format</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679290415"
+	><span class="hs-identifier hs-var"
+	  >outputDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679290416"
+	><span class="hs-identifier hs-var"
+	  >numFiles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyId
+</span
+	><a href="#local-6989586621679290418"
+	><span class="hs-identifier hs-var"
+	  >propertyId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679290419"
+	><span class="hs-identifier hs-var"
+	  >description</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([TermCase] -&gt; IO Generated) -&gt; [TermCase] -&gt; IO Generated
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Check -&gt; [TermCase]) -&gt; [Check] -&gt; [TermCase]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#concatMap"
+	><span class="hs-identifier hs-var"
+	  >concatMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CheckMode -&gt; Check -&gt; [TermCase]
+</span
+	><a href="Evaluation.Builtins.Conformance.html#caseTerms"
+	><span class="hs-identifier hs-var"
+	  >caseTerms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CheckMode
+</span
+	><a href="#local-6989586621679290414"
+	><span class="hs-identifier hs-var"
+	  >mode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Check]
+</span
+	><a href="#local-6989586621679290422"
+	><span class="hs-identifier hs-var"
+	  >cases</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679290425"
+      ><span class="annot"
+	><span class="annottext"
+	  >seeds :: [Word64]
+</span
+	  ><a href="#local-6989586621679290425"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >seeds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen [Word64] -&gt; QCGen -&gt; Int -&gt; [Word64]
+forall a. Gen a -&gt; QCGen -&gt; Int -&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>unGen</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Word64 -&gt; Gen [Word64]
+forall a. Gen a -&gt; Gen [a]
+</span
+	><span class="hs-identifier hs-var"
+	>QC.infiniteListOf</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Word64
+forall a. Arbitrary a =&gt; Gen a
+</span
+	><span class="hs-identifier hs-var"
+	>QC.arbitrary</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>QCGen -&gt; PropertyId -&gt; QCGen
+</span
+	><a href="Evaluation.Builtins.Conformance.html#propertySeed"
+	><span class="hs-identifier hs-var"
+	  >propertySeed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>QCGen
+</span
+	><a href="#local-6989586621679290417"
+	><span class="hs-identifier hs-var"
+	  >seed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyId
+</span
+	><a href="#local-6989586621679290418"
+	><span class="hs-identifier hs-var"
+	  >propertyId</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="Evaluation.Builtins.Conformance.html#samplingSize"
+	><span class="hs-identifier hs-var"
+	  >samplingSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679290422"
+      ><span class="annot"
+	><span class="annottext"
+	  >cases :: [Check]
+</span
+	  ><a href="#local-6989586621679290422"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cases</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Word64 -&gt; Maybe Check) -&gt; [Word64] -&gt; [Check]
+forall a b. (a -&gt; Maybe b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#mapMaybe"
+	><span class="hs-identifier hs-var"
+	  >mapMaybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679290430"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word64
+</span
+	  ><a href="#local-6989586621679290430"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Tree Check -&gt; Check
+forall a. Tree a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Tree.html#treeValue"
+	><span class="hs-identifier hs-var"
+	  >treeValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Tree Check -&gt; Check) -&gt; Maybe (Tree Check) -&gt; Maybe Check
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size -&gt; Seed -&gt; Gen Check -&gt; Maybe (Tree Check)
+forall a. Size -&gt; Seed -&gt; Gen a -&gt; Maybe (Tree a)
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Gen.html#evalGen"
+	><span class="hs-identifier hs-var"
+	  >evalGen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Size
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Range.html#Size"
+	><span class="hs-identifier hs-var"
+	  >Range.Size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="Evaluation.Builtins.Conformance.html#samplingSize"
+	><span class="hs-identifier hs-var"
+	  >samplingSize</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Seed
+</span
+	><a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/src/Hedgehog.Internal.Seed.html#from"
+	><span class="hs-identifier hs-var"
+	  >Seed.from</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621679290430"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Check
+</span
+	><a href="#local-6989586621679290420"
+	><span class="hs-identifier hs-var"
+	  >gen</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Word64]
+</span
+	><a href="#local-6989586621679290425"
+	><span class="hs-identifier hs-var"
+	  >seeds</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

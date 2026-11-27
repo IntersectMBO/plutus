@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Reflection.AST.Name</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Names used in the reflection machinery</a>
+<a id="148" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="222" class="Symbol">{-#</a> <a id="226" class="Keyword">OPTIONS</a> <a id="234" class="Pragma">--cubical-compatible</a> <a id="255" class="Pragma">--safe</a> <a id="262" class="Symbol">#-}</a>
+
+<a id="267" class="Keyword">module</a> <a id="274" href="Reflection.AST.Name.html" class="Module">Reflection.AST.Name</a> <a id="294" class="Keyword">where</a>
+
+<a id="301" class="Keyword">open</a> <a id="306" class="Keyword">import</a> <a id="313" href="Data.List.Base.html" class="Module">Data.List.Base</a> <a id="328" class="Keyword">using</a> <a id="334" class="Symbol">(</a><a id="335" href="Agda.Builtin.List.html#147" class="Datatype">List</a><a id="339" class="Symbol">)</a>
+<a id="341" class="Keyword">import</a> <a id="348" href="Data.Product.Properties.html" class="Module">Data.Product.Properties</a> <a id="372" class="Symbol">as</a> <a id="375" class="Module">Prodₚ</a> <a id="381" class="Keyword">using</a> <a id="387" class="Symbol">(</a><a id="388" href="Data.Product.Properties.html#1450" class="Function">≡-dec</a><a id="393" class="Symbol">)</a>
+<a id="395" class="Keyword">import</a> <a id="402" href="Data.Word64.Properties.html" class="Module">Data.Word64.Properties</a> <a id="425" class="Symbol">as</a> <a id="428" class="Module">Wₚ</a> <a id="431" class="Keyword">using</a> <a id="437" class="Symbol">(</a><a id="438" href="Data.Word64.Properties.html#2238" class="Function Operator">_≟_</a><a id="441" class="Symbol">)</a>
+<a id="443" class="Keyword">open</a> <a id="448" class="Keyword">import</a> <a id="455" href="Function.Base.html" class="Module">Function.Base</a> <a id="469" class="Keyword">using</a> <a id="475" class="Symbol">(</a><a id="476" href="Function.Base.html#6228" class="Function Operator">_on_</a><a id="480" class="Symbol">)</a>
+<a id="482" class="Keyword">open</a> <a id="487" class="Keyword">import</a> <a id="494" href="Relation.Nullary.Decidable.Core.html" class="Module">Relation.Nullary.Decidable.Core</a> <a id="526" class="Keyword">using</a> <a id="532" class="Symbol">(</a><a id="533" href="Relation.Nullary.Decidable.Core.html#6309" class="Function">map′</a><a id="537" class="Symbol">)</a>
+<a id="539" class="Keyword">open</a> <a id="544" class="Keyword">import</a> <a id="551" href="Relation.Binary.Core.html" class="Module">Relation.Binary.Core</a> <a id="572" class="Keyword">using</a> <a id="578" class="Symbol">(</a><a id="579" href="Relation.Binary.Core.html#896" class="Function">Rel</a><a id="582" class="Symbol">)</a>
+<a id="584" class="Keyword">open</a> <a id="589" class="Keyword">import</a> <a id="596" href="Relation.Binary.Definitions.html" class="Module">Relation.Binary.Definitions</a> <a id="624" class="Keyword">using</a> <a id="630" class="Symbol">(</a><a id="631" href="Relation.Binary.Definitions.html#6907" class="Function">Decidable</a><a id="640" class="Symbol">;</a> <a id="642" href="Relation.Binary.Definitions.html#7028" class="Function">DecidableEquality</a><a id="659" class="Symbol">)</a>
+<a id="661" class="Keyword">open</a> <a id="666" class="Keyword">import</a> <a id="673" href="Relation.Binary.Construct.On.html" class="Module">Relation.Binary.Construct.On</a> <a id="702" class="Keyword">using</a> <a id="708" class="Symbol">(</a><a id="709" href="Relation.Binary.Construct.On.html#2405" class="Function">decidable</a><a id="718" class="Symbol">)</a>
+<a id="720" class="Keyword">open</a> <a id="725" class="Keyword">import</a> <a id="732" href="Relation.Binary.PropositionalEquality.Core.html" class="Module">Relation.Binary.PropositionalEquality.Core</a> <a id="775" class="Keyword">using</a> <a id="781" class="Symbol">(</a><a id="782" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a><a id="785" class="Symbol">;</a> <a id="787" href="Relation.Binary.PropositionalEquality.Core.html#1481" class="Function">cong</a><a id="791" class="Symbol">)</a>
+
+<a id="794" class="Comment">------------------------------------------------------------------------</a>
+<a id="867" class="Comment">-- Re-export built-ins</a>
+
+<a id="891" class="Keyword">open</a> <a id="896" class="Keyword">import</a> <a id="903" href="Agda.Builtin.Reflection.html" class="Module">Agda.Builtin.Reflection</a> <a id="927" class="Keyword">public</a>
+  <a id="936" class="Keyword">using</a> <a id="942" class="Symbol">(</a><a id="943" href="Agda.Builtin.Reflection.html#488" class="Postulate">Name</a><a id="947" class="Symbol">)</a> <a id="949" class="Keyword">renaming</a> <a id="958" class="Symbol">(</a><a id="959" href="Agda.Builtin.Reflection.html#2373" class="Primitive">primQNameToWord64s</a> <a id="978" class="Symbol">to</a> <a id="981" class="Primitive">toWords</a><a id="988" class="Symbol">;</a> <a id="990" href="Agda.Builtin.Reflection.html#539" class="Primitive">primQNameEquality</a> <a id="1008" class="Symbol">to</a> <a id="1011" class="Primitive">_≡ᵇ_</a><a id="1015" class="Symbol">)</a>
+
+<a id="1018" class="Keyword">open</a> <a id="1023" class="Keyword">import</a> <a id="1030" href="Agda.Builtin.Reflection.Properties.html" class="Module">Agda.Builtin.Reflection.Properties</a> <a id="1065" class="Keyword">public</a>
+  <a id="1074" class="Keyword">renaming</a> <a id="1083" class="Symbol">(</a><a id="1084" href="Agda.Builtin.Reflection.Properties.html#307" class="Primitive">primQNameToWord64sInjective</a> <a id="1112" class="Symbol">to</a> <a id="1115" class="Primitive">toWords-injective</a><a id="1132" class="Symbol">)</a>
+
+<a id="1135" class="Comment">------------------------------------------------------------------------</a>
+<a id="1208" class="Comment">-- More definitions</a>
+<a id="1228" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="Names"></a><a id="1302" href="Reflection.AST.Name.html#1302" class="Function">Names</a> <a id="1308" class="Symbol">:</a> <a id="1310" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="1314" href="Reflection.AST.Name.html#1302" class="Function">Names</a> <a id="1320" class="Symbol">=</a> <a id="1322" href="Agda.Builtin.List.html#147" class="Datatype">List</a> <a id="1327" href="Agda.Builtin.Reflection.html#488" class="Postulate">Name</a>
+
+<a id="1333" class="Comment">------------------------------------------------------------------------</a>
+<a id="1406" class="Comment">-- Decidable equality for names</a>
+<a id="1438" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="1512" class="Keyword">infix</a> <a id="1518" class="Number">4</a> <a id="1520" href="Reflection.AST.Name.html#1573" class="Function Operator">_≈?_</a> <a id="1525" href="Reflection.AST.Name.html#1652" class="Function Operator">_≟_</a> <a id="1529" href="Reflection.AST.Name.html#1534" class="Function Operator">_≈_</a>
+
+<a id="_≈_"></a><a id="1534" href="Reflection.AST.Name.html#1534" class="Function Operator">_≈_</a> <a id="1538" class="Symbol">:</a> <a id="1540" href="Relation.Binary.Core.html#896" class="Function">Rel</a> <a id="1544" href="Agda.Builtin.Reflection.html#488" class="Postulate">Name</a> <a id="1549" class="Symbol">_</a>
+<a id="1551" href="Reflection.AST.Name.html#1534" class="Function Operator">_≈_</a> <a id="1555" class="Symbol">=</a> <a id="1557" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a> <a id="1561" href="Function.Base.html#6228" class="Function Operator">on</a> <a id="1564" href="Reflection.AST.Name.html#981" class="Primitive">toWords</a>
+
+<a id="_≈?_"></a><a id="1573" href="Reflection.AST.Name.html#1573" class="Function Operator">_≈?_</a> <a id="1578" class="Symbol">:</a> <a id="1580" href="Relation.Binary.Definitions.html#6907" class="Function">Decidable</a> <a id="1590" href="Reflection.AST.Name.html#1534" class="Function Operator">_≈_</a>
+<a id="1594" href="Reflection.AST.Name.html#1573" class="Function Operator">_≈?_</a> <a id="1599" class="Symbol">=</a> <a id="1601" href="Relation.Binary.Construct.On.html#2405" class="Function">decidable</a> <a id="1611" href="Reflection.AST.Name.html#981" class="Primitive">toWords</a> <a id="1619" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a> <a id="1623" class="Symbol">(</a><a id="1624" href="Data.Product.Properties.html#1450" class="Function">Prodₚ.≡-dec</a> <a id="1636" href="Data.Word64.Properties.html#2238" class="Function Operator">Wₚ._≟_</a> <a id="1643" href="Data.Word64.Properties.html#2238" class="Function Operator">Wₚ._≟_</a><a id="1649" class="Symbol">)</a>
+
+<a id="_≟_"></a><a id="1652" href="Reflection.AST.Name.html#1652" class="Function Operator">_≟_</a> <a id="1656" class="Symbol">:</a> <a id="1658" href="Relation.Binary.Definitions.html#7028" class="Function">DecidableEquality</a> <a id="1676" href="Agda.Builtin.Reflection.html#488" class="Postulate">Name</a>
+<a id="1681" href="Reflection.AST.Name.html#1681" class="Bound">m</a> <a id="1683" href="Reflection.AST.Name.html#1652" class="Function Operator">≟</a> <a id="1685" href="Reflection.AST.Name.html#1685" class="Bound">n</a> <a id="1687" class="Symbol">=</a> <a id="1689" href="Relation.Nullary.Decidable.Core.html#6309" class="Function">map′</a> <a id="1694" class="Symbol">(</a><a id="1695" href="Reflection.AST.Name.html#1115" class="Primitive">toWords-injective</a> <a id="1713" class="Symbol">_</a> <a id="1715" class="Symbol">_)</a> <a id="1718" class="Symbol">(</a><a id="1719" href="Relation.Binary.PropositionalEquality.Core.html#1481" class="Function">cong</a> <a id="1724" href="Reflection.AST.Name.html#981" class="Primitive">toWords</a><a id="1731" class="Symbol">)</a> <a id="1733" class="Symbol">(</a><a id="1734" href="Reflection.AST.Name.html#1681" class="Bound">m</a> <a id="1736" href="Reflection.AST.Name.html#1573" class="Function Operator">≈?</a> <a id="1739" href="Reflection.AST.Name.html#1685" class="Bound">n</a><a id="1740" class="Symbol">)</a>
+</pre></body></html>

@@ -1,0 +1,166 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    2 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>-- | The monad that the renamer runs in and related infrastructure.
+<span class="lineno">    8 </span>module PlutusCore.Rename.Monad
+<span class="lineno">    9 </span>  ( RenameT (..)
+<span class="lineno">   10 </span>  , ScopedRenameT
+<span class="lineno">   11 </span>  , Renaming (..)
+<span class="lineno">   12 </span>  , TypeRenaming
+<span class="lineno">   13 </span>  , ScopedRenaming (..)
+<span class="lineno">   14 </span>  , HasRenaming (..)
+<span class="lineno">   15 </span>  , scopedRenamingTypes
+<span class="lineno">   16 </span>  , scopedRenamingTerms
+<span class="lineno">   17 </span>  , runRenameT
+<span class="lineno">   18 </span>  , lookupNameM
+<span class="lineno">   19 </span>  , renameNameM
+<span class="lineno">   20 </span>  , withFreshenedName
+<span class="lineno">   21 </span>  , withRenamedName
+<span class="lineno">   22 </span>  ) where
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>import PlutusPrelude (Alternative, Coercible, Lens', coerce, over, view, (&amp;), (.~), (^.))
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>import PlutusCore.Name.Unique
+<span class="lineno">   27 </span>  ( HasUnique (..)
+<span class="lineno">   28 </span>  , TermUnique (TermUnique)
+<span class="lineno">   29 </span>  , TypeUnique (TypeUnique)
+<span class="lineno">   30 </span>  , Unique (Unique)
+<span class="lineno">   31 </span>  )
+<span class="lineno">   32 </span>import PlutusCore.Name.UniqueMap (UniqueMap (UniqueMap), insertByName, lookupName)
+<span class="lineno">   33 </span>import PlutusCore.Quote (MonadQuote, freshUnique)
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>import Control.Lens (makeLenses)
+<span class="lineno">   36 </span>import Control.Monad.Reader (MonadReader (local), ReaderT (..), asks)
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>-- | The monad the renamer runs in.
+<span class="lineno">   39 </span>newtype RenameT ren m a = RenameT
+<span class="lineno">   40 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unRenameT</span></span></span> :: ReaderT ren m a
+<span class="lineno">   41 </span>  }
+<span class="lineno">   42 </span>  deriving newtype
+<span class="lineno">   43 </span>    ( <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>
+<span class="lineno">   44 </span>    , <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Applicative</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   45 </span>    , <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Alternative</span></span></span></span></span></span></span></span>
+<span class="lineno">   46 </span>    , <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Monad</span></span></span></span></span></span>
+<span class="lineno">   47 </span>    , <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">MonadReader ren</span></span></span></span></span></span>
+<span class="lineno">   48 </span>    , <span class="decl"><span class="istickedoff">MonadQuote</span></span>
+<span class="lineno">   49 </span>    )
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>-- | A renaming is a mapping from old uniques to new ones.
+<span class="lineno">   52 </span>newtype Renaming unique = Renaming
+<span class="lineno">   53 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">unRenaming</span></span></span> :: UniqueMap unique unique
+<span class="lineno">   54 </span>  }
+<span class="lineno">   55 </span>  deriving newtype (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>)
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>{-| A type-level renaming.
+<span class="lineno">   58 </span>Needed for instantiating functions running over types in generic @RenameT ren m@ to
+<span class="lineno">   59 </span>a particular type of renaming. -}
+<span class="lineno">   60 </span>type TypeRenaming = Renaming TypeUnique
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>{-| A class that specifies which 'Renaming' a @ren@ has inside.
+<span class="lineno">   63 </span>A @ren@ can contain several 'Renaming's (like 'Scoped', for example). -}
+<span class="lineno">   64 </span>class Coercible unique Unique =&gt; HasRenaming ren unique where
+<span class="lineno">   65 </span>  renaming :: Lens' ren (Renaming unique)
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>-- | Scoping-aware mapping from locally unique uniques to globally unique uniques.
+<span class="lineno">   68 </span>data ScopedRenaming = ScopedRenaming
+<span class="lineno">   69 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_scopedRenamingTypes</span></span></span> :: Renaming TypeUnique
+<span class="lineno">   70 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_scopedRenamingTerms</span></span></span> :: Renaming TermUnique
+<span class="lineno">   71 </span>  }
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">makeLenses ''ScopedRenaming</span></span></span></span></span>
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>type ScopedRenameT = RenameT ScopedRenaming
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup ScopedRenaming</span></span></span></span> where
+<span class="lineno">   78 </span>  <span class="decl"><span class="nottickedoff">ScopedRenaming types1 terms1 &lt;&gt; ScopedRenaming types2 terms2 =</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="nottickedoff">ScopedRenaming (types1 &lt;&gt; types2) (terms1 &lt;&gt; terms2)</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid ScopedRenaming</span></span></span></span> where
+<span class="lineno">   82 </span>  <span class="decl"><span class="istickedoff">mempty = ScopedRenaming mempty mempty</span></span>
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>instance
+<span class="lineno">   85 </span>  (Coercible unique1 Unique, unique1 ~ unique2)
+<span class="lineno">   86 </span>  =&gt; HasRenaming (Renaming unique1) unique2
+<span class="lineno">   87 </span>  where
+<span class="lineno">   88 </span>  <span class="decl"><span class="istickedoff">renaming = id</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>instance HasRenaming ScopedRenaming TypeUnique where
+<span class="lineno">   91 </span>  <span class="decl"><span class="istickedoff">renaming = scopedRenamingTypes . renaming</span></span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>instance HasRenaming ScopedRenaming TermUnique where
+<span class="lineno">   94 </span>  <span class="decl"><span class="istickedoff">renaming = scopedRenamingTerms . renaming</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>-- | Run a 'RenameT' computation with an empty renaming.
+<span class="lineno">   97 </span>runRenameT :: Monoid ren =&gt; RenameT ren m a -&gt; m a
+<span class="lineno">   98 </span><span class="decl"><span class="istickedoff">runRenameT (RenameT a) = runReaderT a mempty</span></span>
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>-- | Map the underlying representation of 'Renaming'.
+<span class="lineno">  101 </span>mapRenaming
+<span class="lineno">  102 </span>  :: (UniqueMap unique unique -&gt; UniqueMap unique unique)
+<span class="lineno">  103 </span>  -&gt; Renaming unique
+<span class="lineno">  104 </span>  -&gt; Renaming unique
+<span class="lineno">  105 </span><span class="decl"><span class="istickedoff">mapRenaming = coerce</span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>-- | Save the mapping from the @unique@ of a name to a new @unique@.
+<span class="lineno">  108 </span>insertByNameM
+<span class="lineno">  109 </span>  :: (HasUnique name unique, HasRenaming ren unique)
+<span class="lineno">  110 </span>  =&gt; name -&gt; unique -&gt; ren -&gt; ren
+<span class="lineno">  111 </span><span class="decl"><span class="istickedoff">insertByNameM name = over renaming . mapRenaming . insertByName name</span></span>
+<span class="lineno">  112 </span>
+<span class="lineno">  113 </span>-- | Look up the new unique a name got mapped to.
+<span class="lineno">  114 </span>lookupNameM
+<span class="lineno">  115 </span>  :: (HasUnique name unique, HasRenaming ren unique, MonadReader ren m)
+<span class="lineno">  116 </span>  =&gt; name -&gt; m (Maybe unique)
+<span class="lineno">  117 </span><span class="decl"><span class="istickedoff">lookupNameM name = asks $ lookupName name . unRenaming . view renaming</span></span>
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>-- | Rename a name that has a unique inside.
+<span class="lineno">  120 </span>renameNameM
+<span class="lineno">  121 </span>  :: (HasRenaming ren unique, HasUnique name unique, MonadReader ren m)
+<span class="lineno">  122 </span>  =&gt; name -&gt; m name
+<span class="lineno">  123 </span><span class="decl"><span class="istickedoff">renameNameM name = do</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="istickedoff">mayUniqNew &lt;- lookupNameM name</span>
+<span class="lineno">  125 </span><span class="spaces">  </span><span class="istickedoff">pure $ case mayUniqNew of</span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; name</span>
+<span class="lineno">  127 </span><span class="spaces">    </span><span class="istickedoff">Just uniqNew -&gt; name &amp; unique .~ uniqNew</span></span>
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>{-| Replace the unique in a name by a new unique, save the mapping
+<span class="lineno">  130 </span>from the old unique to the new one and supply the updated value to a continuation. -}
+<span class="lineno">  131 </span>withFreshenedName
+<span class="lineno">  132 </span>  :: (HasRenaming ren unique, HasUnique name unique, MonadQuote m, MonadReader ren m)
+<span class="lineno">  133 </span>  =&gt; name -&gt; (name -&gt; m c) -&gt; m c
+<span class="lineno">  134 </span><span class="decl"><span class="istickedoff">withFreshenedName nameOld k = do</span>
+<span class="lineno">  135 </span><span class="spaces">  </span><span class="istickedoff">uniqNew &lt;- coerce &lt;$&gt; freshUnique</span>
+<span class="lineno">  136 </span><span class="spaces">  </span><span class="istickedoff">local (insertByNameM nameOld uniqNew) $ k (nameOld &amp; unique .~ uniqNew)</span></span>
+<span class="lineno">  137 </span>
+<span class="lineno">  138 </span>{-| Run a 'RenameT' computation in the environment extended by the mapping from an old name
+<span class="lineno">  139 </span>to a new one. -}
+<span class="lineno">  140 </span>withRenamedName
+<span class="lineno">  141 </span>  :: (HasRenaming ren unique, HasUnique name unique, MonadReader ren m)
+<span class="lineno">  142 </span>  =&gt; name -&gt; name -&gt; m c -&gt; m c
+<span class="lineno">  143 </span><span class="decl"><span class="istickedoff">withRenamedName old new = local $ insertByNameM old (new ^. unique)</span></span>
+
+</pre>
+</body>
+</html>

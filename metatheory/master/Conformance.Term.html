@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance.Term</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance.Term</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Conformance tests generated from
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation/term</code>.
+See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code> for how they are run.</p>
+
+<pre class="Agda"><a id="413" class="Keyword">module</a> <a id="420" href="Conformance.Term.html" class="Module">Conformance.Term</a> <a id="437" class="Keyword">where</a>
+
+<a id="444" class="Keyword">open</a> <a id="449" class="Keyword">import</a> <a id="456" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+</pre>
+<h2 id="argexpected">argExpected</h2>
+
+<pre class="Agda"><a id="498" class="Comment">-- term/argExpected</a>
+<a id="518" class="Comment">-- addInteger is monomorphic so it must not be forced</a>
+<a id="test-argExpected"></a><a id="572" href="Conformance.Term.html#572" class="Function">test-argExpected</a> <a id="589" class="Symbol">:</a> <a id="591" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="599" href="Conformance.Term.html#572" class="Function">test-argExpected</a> <a id="616" class="Symbol">=</a> <a id="618" class="Symbol">(</a><a id="619" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="624" class="Symbol">(</a><a id="625" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="630" class="Symbol">(</a><a id="631" href="RawU.html#8479" class="InductiveConstructor">UForce</a> <a id="638" class="Symbol">(</a><a id="639" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="648" href="Builtin.html#1636" class="InductiveConstructor">addInteger</a><a id="658" class="Symbol">))</a> <a id="661" class="Symbol">(</a><a id="662" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="667" class="Symbol">(</a><a id="668" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="675" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="683" class="Symbol">(</a><a id="684" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="690" class="Number">5</a><a id="691" class="Symbol">))))</a> <a id="696" class="Symbol">(</a><a id="697" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="702" class="Symbol">(</a><a id="703" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="710" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="718" class="Symbol">(</a><a id="719" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="725" class="Number">6</a><a id="726" class="Symbol">))))</a>
+
+<a id="expected-argExpected"></a><a id="732" href="Conformance.Term.html#732" class="Function">expected-argExpected</a> <a id="753" class="Symbol">:</a> <a id="755" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="762" href="Conformance.Term.html#732" class="Function">expected-argExpected</a> <a id="783" class="Symbol">=</a> <a id="785" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="794" href="Conformance.Term.html#794" class="Function">_</a> <a id="796" class="Symbol">:</a> <a id="798" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="806" href="Conformance.Term.html#572" class="Function">test-argExpected</a> <a id="823" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="825" href="Conformance.Term.html#732" class="Function">expected-argExpected</a>
+<a id="846" class="Symbol">_</a> <a id="848" class="Symbol">=</a> <a id="850" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="closure">closure</h2>
+
+<pre class="Agda"><a id="876" class="Comment">-- term/closure</a>
+<a id="test-closure"></a><a id="892" href="Conformance.Term.html#892" class="Function">test-closure</a> <a id="905" class="Symbol">:</a> <a id="907" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="915" href="Conformance.Term.html#892" class="Function">test-closure</a> <a id="928" class="Symbol">=</a> <a id="930" class="Symbol">(</a><a id="931" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="936" class="Symbol">(</a><a id="937" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="945" class="Symbol">(</a><a id="946" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="954" class="Symbol">(</a><a id="955" href="RawU.html#8286" class="InductiveConstructor">UVar</a> <a id="960" class="Number">1</a><a id="961" class="Symbol">)))</a> <a id="965" class="Symbol">(</a><a id="966" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="971" class="Symbol">(</a><a id="972" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="979" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="987" class="Symbol">(</a><a id="988" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="994" class="Number">1</a><a id="995" class="Symbol">))))</a>
+
+<a id="expected-closure"></a><a id="1001" href="Conformance.Term.html#1001" class="Function">expected-closure</a> <a id="1018" class="Symbol">:</a> <a id="1020" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1027" href="Conformance.Term.html#1001" class="Function">expected-closure</a> <a id="1044" class="Symbol">=</a> <a id="1046" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="1054" class="Symbol">(</a><a id="1055" href="RawU.html#8307" class="InductiveConstructor">ULambda</a> <a id="1063" class="Symbol">(</a><a id="1064" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1069" class="Symbol">(</a><a id="1070" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1077" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1085" class="Symbol">(</a><a id="1086" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1092" class="Number">1</a><a id="1093" class="Symbol">))))</a>
+
+<a id="1099" href="Conformance.Term.html#1099" class="Function">_</a> <a id="1101" class="Symbol">:</a> <a id="1103" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1111" href="Conformance.Term.html#892" class="Function">test-closure</a> <a id="1124" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1126" href="Conformance.Term.html#1001" class="Function">expected-closure</a>
+<a id="1143" class="Symbol">_</a> <a id="1145" class="Symbol">=</a> <a id="1147" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="nonfunctionalapplication">nonFunctionalApplication</h2>
+
+<pre class="Agda"><a id="1190" class="Comment">-- term/nonFunctionalApplication</a>
+<a id="test-nonFunctionalApplication"></a><a id="1223" href="Conformance.Term.html#1223" class="Function">test-nonFunctionalApplication</a> <a id="1253" class="Symbol">:</a> <a id="1255" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1263" href="Conformance.Term.html#1223" class="Function">test-nonFunctionalApplication</a> <a id="1293" class="Symbol">=</a> <a id="1295" class="Symbol">(</a><a id="1296" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1301" class="Symbol">(</a><a id="1302" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1307" class="Symbol">(</a><a id="1308" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1315" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1323" class="Symbol">(</a><a id="1324" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1330" class="Number">3</a><a id="1331" class="Symbol">)))</a> <a id="1335" class="Symbol">(</a><a id="1336" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1341" class="Symbol">(</a><a id="1342" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1349" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1357" class="Symbol">(</a><a id="1358" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1364" class="Number">4</a><a id="1365" class="Symbol">))))</a>
+
+<a id="expected-nonFunctionalApplication"></a><a id="1371" href="Conformance.Term.html#1371" class="Function">expected-nonFunctionalApplication</a> <a id="1405" class="Symbol">:</a> <a id="1407" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1414" href="Conformance.Term.html#1371" class="Function">expected-nonFunctionalApplication</a> <a id="1448" class="Symbol">=</a> <a id="1450" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1459" href="Conformance.Term.html#1459" class="Function">_</a> <a id="1461" class="Symbol">:</a> <a id="1463" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1471" href="Conformance.Term.html#1223" class="Function">test-nonFunctionalApplication</a> <a id="1501" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1503" href="Conformance.Term.html#1371" class="Function">expected-nonFunctionalApplication</a>
+<a id="1537" class="Symbol">_</a> <a id="1539" class="Symbol">=</a> <a id="1541" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="unlifting-sat">unlifting-sat</h2>
+
+<pre class="Agda"><a id="1573" class="Comment">-- term/unlifting-sat</a>
+<a id="1595" class="Comment">-- ill-typed. This fails at runtime since the builtin application is saturated.</a>
+<a id="test-unlifting-sat"></a><a id="1675" href="Conformance.Term.html#1675" class="Function">test-unlifting-sat</a> <a id="1694" class="Symbol">:</a> <a id="1696" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="1704" href="Conformance.Term.html#1675" class="Function">test-unlifting-sat</a> <a id="1723" class="Symbol">=</a> <a id="1725" class="Symbol">(</a><a id="1726" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1731" class="Symbol">(</a><a id="1732" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="1737" class="Symbol">(</a><a id="1738" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="1747" href="Builtin.html#1636" class="InductiveConstructor">addInteger</a><a id="1757" class="Symbol">)</a> <a id="1759" class="Symbol">(</a><a id="1760" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1765" class="Symbol">(</a><a id="1766" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1773" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="1778" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="1780" class="Symbol">)))</a> <a id="1784" class="Symbol">(</a><a id="1785" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="1790" class="Symbol">(</a><a id="1791" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="1798" href="RawU.html#2435" class="InductiveConstructor">integer</a> <a id="1806" class="Symbol">(</a><a id="1807" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">ℤ.pos</a> <a id="1813" class="Number">3</a><a id="1814" class="Symbol">))))</a>
+
+<a id="expected-unlifting-sat"></a><a id="1820" href="Conformance.Term.html#1820" class="Function">expected-unlifting-sat</a> <a id="1843" class="Symbol">:</a> <a id="1845" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="1852" href="Conformance.Term.html#1820" class="Function">expected-unlifting-sat</a> <a id="1875" class="Symbol">=</a> <a id="1877" href="Conformance.Eval.html#2035" class="InductiveConstructor">failure</a>
+
+<a id="1886" href="Conformance.Term.html#1886" class="Function">_</a> <a id="1888" class="Symbol">:</a> <a id="1890" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="1898" href="Conformance.Term.html#1675" class="Function">test-unlifting-sat</a> <a id="1917" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1919" href="Conformance.Term.html#1820" class="Function">expected-unlifting-sat</a>
+<a id="1942" class="Symbol">_</a> <a id="1944" class="Symbol">=</a> <a id="1946" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+<h2 id="unlifting-unsat">unlifting-unsat</h2>
+
+<pre class="Agda"><a id="1980" class="Comment">-- term/unlifting-unsat</a>
+<a id="2004" class="Comment">-- ill-typed but does not fail at runtime because the builtin application is not saturated.</a>
+<a id="test-unlifting-unsat"></a><a id="2096" href="Conformance.Term.html#2096" class="Function">test-unlifting-unsat</a> <a id="2117" class="Symbol">:</a> <a id="2119" href="RawU.html#8264" class="Datatype">Untyped</a>
+<a id="2127" href="Conformance.Term.html#2096" class="Function">test-unlifting-unsat</a> <a id="2148" class="Symbol">=</a> <a id="2150" class="Symbol">(</a><a id="2151" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="2156" class="Symbol">(</a><a id="2157" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="2166" href="Builtin.html#1636" class="InductiveConstructor">addInteger</a><a id="2176" class="Symbol">)</a> <a id="2178" class="Symbol">(</a><a id="2179" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2184" class="Symbol">(</a><a id="2185" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2192" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="2197" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="2199" class="Symbol">)))</a>
+
+<a id="expected-unlifting-unsat"></a><a id="2204" href="Conformance.Term.html#2204" class="Function">expected-unlifting-unsat</a> <a id="2229" class="Symbol">:</a> <a id="2231" href="Conformance.Eval.html#2014" class="Datatype">Result</a>
+<a id="2238" href="Conformance.Term.html#2204" class="Function">expected-unlifting-unsat</a> <a id="2263" class="Symbol">=</a> <a id="2265" href="Conformance.Eval.html#2054" class="InductiveConstructor">success</a> <a id="2273" class="Symbol">(</a><a id="2274" href="RawU.html#8337" class="InductiveConstructor">UApp</a> <a id="2279" class="Symbol">(</a><a id="2280" href="RawU.html#8419" class="InductiveConstructor">UBuiltin</a> <a id="2289" href="Builtin.html#1636" class="InductiveConstructor">addInteger</a><a id="2299" class="Symbol">)</a> <a id="2301" class="Symbol">(</a><a id="2302" href="RawU.html#8374" class="InductiveConstructor">UCon</a> <a id="2307" class="Symbol">(</a><a id="2308" href="RawU.html#6455" class="InductiveConstructor">tagCon</a> <a id="2315" href="RawU.html#2600" class="InductiveConstructor">unit</a> <a id="2320" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="2322" class="Symbol">)))</a>
+
+<a id="2327" href="Conformance.Term.html#2327" class="Function">_</a> <a id="2329" class="Symbol">:</a> <a id="2331" href="Conformance.Eval.html#2082" class="Function">evalRaw</a> <a id="2339" href="Conformance.Term.html#2096" class="Function">test-unlifting-unsat</a> <a id="2360" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="2362" href="Conformance.Term.html#2204" class="Function">expected-unlifting-unsat</a>
+<a id="2387" class="Symbol">_</a> <a id="2389" class="Symbol">=</a> <a id="2391" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+</pre>
+
+    </section>
+  </body>
+</html>

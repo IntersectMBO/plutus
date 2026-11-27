@@ -1,0 +1,687 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Evaluation.Builtins.Bitwise.Conformance</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.72.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Evaluation.Builtins.Bitwise.Conformance.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Evaluation.Builtins.Bitwise.Conformance</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Share Hedgehog inputs and terms between assertions and conformance generation.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Check"
+	      >Check</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:CheckEq"
+		  >CheckEq</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		>| <a href="#v:CheckEvaluatesTo"
+		  >CheckEvaluatesTo</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+		  >TypeErrorOrCekResult</a
+		  ></li
+		><li
+		>| <a href="#v:CheckTrue"
+		  >CheckTrue</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		>| <a href="#v:CheckOk"
+		  >CheckOk</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		>| <a href="#v:CheckFails"
+		  >CheckFails</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		>| <a href="#v:CheckBoth"
+		  >CheckBoth</a
+		  > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+		  >Check</a
+		  > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+		  >Check</a
+		  ></li
+		><li
+		>| <a href="#v:CheckImplies"
+		  >CheckImplies</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+		  >Check</a
+		  ></li
+		><li
+		>| <a href="#v:CheckDistinct"
+		  >CheckDistinct</a
+		  > [<a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  >]</li
+		><li
+		>| <a href="#v:CheckSatisfies"
+		  >CheckSatisfies</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > (<a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+		  >TypeErrorOrCekResult</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  >)</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:checkSame"
+	      >checkSame</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:checkConstant"
+	      >checkConstant</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/Universe-Core.html#t:Contains" title="Universe.Core"
+	      >Contains</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > a &#8658; a &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+	      >Check</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:checkProperty"
+	      >checkProperty</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+	      >Check</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genByteString"
+	      >genByteString</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genByteStringThat"
+	      >genByteStringThat</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:generateBitwisePropertyFiles"
+	      >generateBitwisePropertyFiles</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:OutputFormat" title="Evaluation.Builtins.Conformance"
+	      >OutputFormat</a
+	      > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	      >CheckMode</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; QCGen &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	      >PropertyId</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	      >Gen</a
+	      > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+	      >Check</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+	      >Generated</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Check" class="def"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#Check" class="link"
+	    >Source</a
+	    > <a href="#t:Check" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A property check expressed without performing it. Normal QuickCheck suites
+interpret it as an assertion, the Hedgehog suites have their own interpreter,
+and the test generator extracts its terms, first checking with <code
+	      ><a href="Evaluation-Builtins-Conformance.html#v:checkHolds" title="Evaluation.Builtins.Conformance"
+		>checkHolds</a
+		></code
+	      > that
+the reference implementation satisfies the property for the sampled input. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CheckEq" class="def"
+		  >CheckEq</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Both terms evaluate successfully to equal results.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckEvaluatesTo" class="def"
+		  >CheckEvaluatesTo</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+		  >TypeErrorOrCekResult</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The term evaluates to the given result.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckTrue" class="def"
+		  >CheckTrue</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The term evaluates successfully to <code
+		    >True</code
+		    >.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckOk" class="def"
+		  >CheckOk</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The term evaluates successfully.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckFails" class="def"
+		  >CheckFails</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The term fails to evaluate.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckBoth" class="def"
+		  >CheckBoth</a
+		  > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+		  >Check</a
+		  > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+		  >Check</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Both checks must hold. When generating, each check contributes its
+    own numbered cases, so one sampled input can use several numbers. </p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckImplies" class="def"
+		  >CheckImplies</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+		  >Check</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckDistinct" class="def"
+		  >CheckDistinct</a
+		  > [<a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  >]</td
+		><td class="doc"
+		><p
+		  >All terms evaluate successfully to pairwise distinct results.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckSatisfies" class="def"
+		  >CheckSatisfies</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > (<a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+		  >TypeErrorOrCekResult</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >The term's result satisfies the predicate, labelled for failure reports.</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Check"
+	    >Instances</h4
+	    ><details id="i:Check" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Check:Testable:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Testable" title="Test.Tasty.QuickCheck"
+		      >Testable</a
+		      > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+		      >Check</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Conformance.html#line-224" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Check:Testable:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Conformance.html"
+			>Evaluation.Builtins.Conformance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:property"
+			  >property</a
+			  > &#8759; <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+			  >Check</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+			  >Property</a
+			  > <a href="#v:property" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:propertyForAllShrinkShow"
+			  >propertyForAllShrinkShow</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > a &#8594; (a &#8594; [a]) &#8594; (a &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  >]) &#8594; (a &#8594; <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+			  >Check</a
+			  >) &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+			  >Property</a
+			  > <a href="#v:propertyForAllShrinkShow" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Check:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+		      >Check</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Conformance.html#line-246" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >Shows the terms of a check; the predicate of <code
+		      ><a href="Evaluation-Builtins-Bitwise-Conformance.html#v:CheckSatisfies" title="Evaluation.Builtins.Bitwise.Conformance"
+			>CheckSatisfies</a
+			></code
+		      > is omitted.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Check:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Conformance.html"
+			>Evaluation.Builtins.Conformance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+			  >Check</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+			  >Check</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+			  >Check</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkSame" class="def"
+	    >checkSame</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.Conformance.html#checkSame" class="link"
+	    >Source</a
+	    > <a href="#v:checkSame" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkConstant" class="def"
+	    >checkConstant</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/Universe-Core.html#t:Contains" title="Universe.Core"
+	    >Contains</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > a &#8658; a &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.Conformance.html#checkConstant" class="link"
+	    >Source</a
+	    > <a href="#v:checkConstant" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compare a term's result with a constant. The constant is only used by the
+normal tests; the generated tests export the term alone. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkProperty" class="def"
+	    >checkProperty</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+	    >Check</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.Conformance.html#checkProperty" class="link"
+	    >Source</a
+	    > <a href="#v:checkProperty" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Keep Hedgehog's input shrinking and normal assertion reporting.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genByteString" class="def"
+	    >genByteString</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.Conformance.html#genByteString" class="link"
+	    >Source</a
+	    > <a href="#v:genByteString" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genByteStringThat" class="def"
+	    >genByteStringThat</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.Conformance.html#genByteStringThat" class="link"
+	    >Source</a
+	    > <a href="#v:genByteStringThat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:generateBitwisePropertyFiles" class="def"
+	    >generateBitwisePropertyFiles</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:OutputFormat" title="Evaluation.Builtins.Conformance"
+	    >OutputFormat</a
+	    > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	    >CheckMode</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; QCGen &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	    >PropertyId</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.7/docs/Hedgehog.html#t:Gen" title="Hedgehog"
+	    >Gen</a
+	    > <a href="Evaluation-Builtins-Bitwise-Conformance.html#t:Check" title="Evaluation.Builtins.Bitwise.Conformance"
+	    >Check</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+	    >Generated</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.Conformance.html#generateBitwisePropertyFiles" class="link"
+	    >Source</a
+	    > <a href="#v:generateBitwisePropertyFiles" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Sample Hedgehog generators directly, with seeds derived from the executable's
+QuickCheck seed. No property runner or assertions are involved. Discarded
+inputs are retried, and the lazy stream stops at the requested case count.
+Equality cases retain both terms, numbered together with -A/-B suffixes. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

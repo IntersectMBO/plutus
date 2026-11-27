@@ -1,0 +1,3321 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Assertions and specifications shared by normal integer properties and
+conformance generators. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Evaluation.Builtins.Integer.Conformance</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyReport"
+	><span class="hs-identifier"
+	  >PropertyReport</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertySpec"
+	><span class="hs-identifier"
+	  >PropertySpec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Conformance.html#generatePropertySpecs"
+	><span class="hs-identifier"
+	  >generatePropertySpecs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Conformance.html#propertySpec"
+	><span class="hs-identifier"
+	  >propertySpec</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#propertySpecPropertyIds"
+	><span class="hs-identifier"
+	  >propertySpecPropertyIds</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Conformance.html#testPropertySpecs"
+	><span class="hs-identifier"
+	  >testPropertySpecs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Conformance</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckMode"
+	><span class="hs-identifier"
+	  >CheckMode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Generated"
+	><span class="hs-identifier"
+	  >Generated</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#OutputFormat"
+	><span class="hs-identifier"
+	  >OutputFormat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyFilter"
+	><span class="hs-identifier"
+	  >PropertyFilter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyId"
+	><span class="hs-identifier"
+	  >PropertyId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyReport"
+	><span class="hs-identifier"
+	  >PropertyReport</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertySpec"
+	><span class="hs-identifier"
+	  >PropertySpec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#caseTerms"
+	><span class="hs-identifier"
+	  >caseTerms</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#checkUniqueIds"
+	><span class="hs-identifier"
+	  >checkUniqueIds</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#generateTermFiles"
+	><span class="hs-identifier"
+	  >generateTermFiles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#propertySeed"
+	><span class="hs-identifier"
+	  >propertySeed</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#propertySpecPropertyIds"
+	><span class="hs-identifier"
+	  >propertySpecPropertyIds</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#samplingSize"
+	><span class="hs-identifier"
+	  >samplingSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html"
+	><span class="hs-identifier"
+	  >Control.Monad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#forM"
+	><span class="hs-identifier"
+	  >forM</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html"
+	><span class="hs-identifier"
+	  >Data.Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#catMaybes"
+	><span class="hs-identifier"
+	  >catMaybes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Test.QuickCheck</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Arbitrary</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>arbitrary</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Gen</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Testable</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>property</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>infiniteListOf</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Test.QuickCheck.Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>unGen</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Test.QuickCheck.Random</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>QCGen</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/src/Test.Tasty.html"
+	><span class="hs-identifier"
+	  >Test.Tasty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/src/Test.Tasty.Core.html#TestName"
+	><span class="hs-identifier"
+	  >TestName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html"
+	><span class="hs-identifier"
+	  >Test.Tasty.QuickCheck</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Sample the inputs of a property without invoking QuickCheck's test runner.
+This is the bridge from QuickCheck-style properties to 'PropertySpec'. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="GenerateCases"
+      ><span class="annot"
+	><a href="Evaluation.Builtins.Integer.Conformance.html#GenerateCases"
+	  ><span class="hs-identifier hs-var"
+	    >GenerateCases</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283169"
+      ><span class="annot"
+	><a href="#local-6989586621679283169"
+	  ><span class="hs-identifier hs-type"
+	    >prop</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span id="caseGenerator"
+      ><span class="annot"
+	><a href="Evaluation.Builtins.Integer.Conformance.html#caseGenerator"
+	  ><span class="hs-identifier hs-type"
+	    >caseGenerator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679283169"
+	><span class="hs-identifier hs-type"
+	  >prop</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier hs-type"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Conformance.html#GenerateCases"
+	><span class="hs-identifier hs-type"
+	  >GenerateCases</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier hs-type"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679283263"
+      ><span class="annot"
+	><span class="annottext"
+	  >caseGenerator :: Check -&gt; Gen Check
+</span
+	  ><a href="Evaluation.Builtins.Integer.Conformance.html#caseGenerator"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >caseGenerator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; Gen Check
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679283173"
+      ><span class="annot"
+	><a href="Evaluation.Builtins.Integer.Conformance.html#GenerateCases"
+	  ><span class="hs-identifier hs-type"
+	    >GenerateCases</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679283173"
+	  ><span class="hs-identifier hs-type"
+	    >prop</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Evaluation.Builtins.Integer.Conformance.html#GenerateCases"
+	  ><span class="hs-identifier hs-type"
+	    >GenerateCases</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Gen</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679283173"
+	  ><span class="hs-identifier hs-type"
+	    >prop</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679283270"
+      ><span class="annot"
+	><span class="annottext"
+	  >caseGenerator :: Gen prop -&gt; Gen Check
+</span
+	  ><a href="Evaluation.Builtins.Integer.Conformance.html#caseGenerator"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >caseGenerator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283271"
+      ><span class="annot"
+	><span class="annottext"
+	  >Gen prop
+</span
+	  ><a href="#local-6989586621679283271"
+	  ><span class="hs-identifier hs-var"
+	    >gen</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen prop
+</span
+	><a href="#local-6989586621679283271"
+	><span class="hs-identifier hs-var"
+	  >gen</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen prop -&gt; (prop -&gt; Gen Check) -&gt; Gen Check
+forall a b. Gen a -&gt; (a -&gt; Gen b) -&gt; Gen b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>prop -&gt; Gen Check
+forall prop. GenerateCases prop =&gt; prop -&gt; Gen Check
+</span
+	><a href="Evaluation.Builtins.Integer.Conformance.html#caseGenerator"
+	><span class="hs-identifier hs-var"
+	  >caseGenerator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679283180"
+      ><span id="local-6989586621679283181"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >Arbitrary</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679283180"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Evaluation.Builtins.Integer.Conformance.html#GenerateCases"
+	    ><span class="hs-identifier hs-type"
+	      >GenerateCases</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679283181"
+	    ><span class="hs-identifier hs-type"
+	      >prop</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Evaluation.Builtins.Integer.Conformance.html#GenerateCases"
+	    ><span class="hs-identifier hs-type"
+	      >GenerateCases</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679283180"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679283181"
+	    ><span class="hs-identifier hs-type"
+	      >prop</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679283279"
+      ><span class="annot"
+	><span class="annottext"
+	  >caseGenerator :: (a -&gt; prop) -&gt; Gen Check
+</span
+	  ><a href="Evaluation.Builtins.Integer.Conformance.html#caseGenerator"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >caseGenerator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283280"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; prop
+</span
+	  ><a href="#local-6989586621679283280"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a
+forall a. Arbitrary a =&gt; Gen a
+</span
+	><span class="hs-identifier hs-var"
+	>arbitrary</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a -&gt; (a -&gt; Gen Check) -&gt; Gen Check
+forall a b. Gen a -&gt; (a -&gt; Gen b) -&gt; Gen b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>prop -&gt; Gen Check
+forall prop. GenerateCases prop =&gt; prop -&gt; Gen Check
+</span
+	><a href="Evaluation.Builtins.Integer.Conformance.html#caseGenerator"
+	><span class="hs-identifier hs-var"
+	  >caseGenerator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(prop -&gt; Gen Check) -&gt; (a -&gt; prop) -&gt; a -&gt; Gen Check
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; prop
+</span
+	><a href="#local-6989586621679283280"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A property described once and used by both the test suite and the
+conformance test generator. The identifier is the stable test case name; the
+description is what the test runner displays. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="local-6989586621679283186"
+      ><span class="annot"
+	><a href="Evaluation.Builtins.Integer.Conformance.html#propertySpec"
+	  ><span class="hs-identifier hs-type"
+	    >propertySpec</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Evaluation.Builtins.Integer.Conformance.html#GenerateCases"
+	  ><span class="hs-identifier hs-type"
+	    >GenerateCases</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679283186"
+	  ><span class="hs-identifier hs-type"
+	    >prop</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	  ><span class="hs-identifier hs-type"
+	    >String</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/src/Test.Tasty.Core.html#TestName"
+	  ><span class="hs-identifier hs-type"
+	    >TestName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679283186"
+	  ><span class="hs-identifier hs-type"
+	    >prop</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Evaluation.Builtins.Conformance.html#PropertySpec"
+	  ><span class="hs-identifier hs-type"
+	    >PropertySpec</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Gen</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="Evaluation.Builtins.Conformance.html#Check"
+	  ><span class="hs-identifier hs-type"
+	    >Check</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span id="propertySpec"
+      ><span class="annot"
+	><span class="annottext"
+	  >propertySpec :: forall prop.
+GenerateCases prop =&gt;
+String -&gt; String -&gt; prop -&gt; PropertySpec (Gen Check)
+</span
+	  ><a href="Evaluation.Builtins.Integer.Conformance.html#propertySpec"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >propertySpec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283284"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679283284"
+	  ><span class="hs-identifier hs-var"
+	    >identifier</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283285"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679283285"
+	  ><span class="hs-identifier hs-var"
+	    >description</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283286"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop
+</span
+	  ><a href="#local-6989586621679283286"
+	  ><span class="hs-identifier hs-var"
+	    >prop</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; Gen Check -&gt; PropertySpec (Gen Check)
+forall gen. String -&gt; String -&gt; gen -&gt; PropertySpec gen
+</span
+	><a href="Evaluation.Builtins.Conformance.html#PropertySpec"
+	><span class="hs-identifier hs-var"
+	  >PropertySpec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679283284"
+	><span class="hs-identifier hs-var"
+	  >identifier</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679283285"
+	><span class="hs-identifier hs-var"
+	  >description</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>prop -&gt; Gen Check
+forall prop. GenerateCases prop =&gt; prop -&gt; Gen Check
+</span
+	><a href="Evaluation.Builtins.Integer.Conformance.html#caseGenerator"
+	><span class="hs-identifier hs-var"
+	  >caseGenerator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>prop
+</span
+	><a href="#local-6989586621679283286"
+	><span class="hs-identifier hs-var"
+	  >prop</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Tasty tests for a group of properties, applying a limit to each.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Conformance.html#testPropertySpecs"
+	><span class="hs-identifier hs-type"
+	  >testPropertySpecs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertySpec"
+	><span class="hs-identifier hs-type"
+	  >PropertySpec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier hs-type"
+	  >Check</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="testPropertySpecs"
+      ><span class="annot"
+	><span class="annottext"
+	  >testPropertySpecs :: (Property -&gt; Property) -&gt; [PropertySpec (Gen Check)] -&gt; [TestTree]
+</span
+	  ><a href="Evaluation.Builtins.Integer.Conformance.html#testPropertySpecs"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >testPropertySpecs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283287"
+      ><span class="annot"
+	><span class="annottext"
+	  >Property -&gt; Property
+</span
+	  ><a href="#local-6989586621679283287"
+	  ><span class="hs-identifier hs-var"
+	    >adjust</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PropertySpec (Gen Check) -&gt; TestTree)
+-&gt; [PropertySpec (Gen Check)] -&gt; [TestTree]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((PropertySpec (Gen Check) -&gt; TestTree)
+ -&gt; [PropertySpec (Gen Check)] -&gt; [TestTree])
+-&gt; (PropertySpec (Gen Check) -&gt; TestTree)
+-&gt; [PropertySpec (Gen Check)]
+-&gt; [TestTree]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679283288"
+      ><span class="annot"
+	><span class="annottext"
+	  >PropertySpec (Gen Check)
+</span
+	  ><a href="#local-6989586621679283288"
+	  ><span class="hs-identifier hs-var"
+	    >spec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Property -&gt; TestTree
+forall a. Testable a =&gt; String -&gt; a -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertySpec (Gen Check) -&gt; String
+forall gen. PropertySpec gen -&gt; String
+</span
+	><a href="Evaluation.Builtins.Conformance.html#propertySpecDescription"
+	><span class="hs-identifier hs-var"
+	  >propertySpecDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertySpec (Gen Check)
+</span
+	><a href="#local-6989586621679283288"
+	><span class="hs-identifier hs-var"
+	  >spec</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; TestTree) -&gt; Property -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Property
+</span
+	><a href="#local-6989586621679283287"
+	><span class="hs-identifier hs-var"
+	  >adjust</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Check -&gt; Property
+forall prop. Testable prop =&gt; prop -&gt; Property
+</span
+	><span class="hs-identifier hs-var"
+	>property</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertySpec (Gen Check) -&gt; Gen Check
+forall gen. PropertySpec gen -&gt; gen
+</span
+	><a href="Evaluation.Builtins.Conformance.html#propertySpecCheck"
+	><span class="hs-identifier hs-var"
+	  >propertySpecCheck</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertySpec (Gen Check)
+</span
+	><a href="#local-6989586621679283288"
+	><span class="hs-identifier hs-var"
+	  >spec</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Export exactly the requested number of cases without running the property
+assertions. Terms are sampled lazily using QuickCheck's generators; sampling
+stops as soon as the quota is reached. Equality cases emit both terms with a
+shared number and -A/-B suffixes. Each exported term is evaluated once to
+obtain its expected result and budget. Files from a previous run with the same
+names are overwritten; other files are left untouched.
+
+Numbers are padded to five digits. Output is placed in:
+&lt;property-id-path&gt;/&lt;property-id-name&gt;-&lt;n&gt;[-A|-B]/&lt;property-id-name&gt;-&lt;n&gt;[-A|-B]
+with .uplc and/or .flat inputs, matching .expected files, and .budget.expected. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Conformance.html#generatePropertyFiles"
+	><span class="hs-identifier hs-type"
+	  >generatePropertyFiles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#OutputFormat"
+	><span class="hs-identifier hs-type"
+	  >OutputFormat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckMode"
+	><span class="hs-identifier hs-type"
+	  >CheckMode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>QCGen</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyId"
+	><span class="hs-identifier hs-type"
+	  >PropertyId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier hs-type"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	><span class="hs-identifier hs-type"
+	  >IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Generated"
+	><span class="hs-identifier hs-type"
+	  >Generated</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span id="generatePropertyFiles"
+      ><span class="annot"
+	><span class="annottext"
+	  >generatePropertyFiles :: OutputFormat
+-&gt; CheckMode
+-&gt; String
+-&gt; Int
+-&gt; QCGen
+-&gt; PropertyId
+-&gt; String
+-&gt; Gen Check
+-&gt; IO Generated
+</span
+	  ><a href="Evaluation.Builtins.Integer.Conformance.html#generatePropertyFiles"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >generatePropertyFiles</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283293"
+      ><span class="annot"
+	><span class="annottext"
+	  >OutputFormat
+</span
+	  ><a href="#local-6989586621679283293"
+	  ><span class="hs-identifier hs-var"
+	    >format</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283294"
+      ><span class="annot"
+	><span class="annottext"
+	  >CheckMode
+</span
+	  ><a href="#local-6989586621679283294"
+	  ><span class="hs-identifier hs-var"
+	    >mode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283295"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679283295"
+	  ><span class="hs-identifier hs-var"
+	    >outputDir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283296"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679283296"
+	  ><span class="hs-identifier hs-var"
+	    >numFiles</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283297"
+      ><span class="annot"
+	><span class="annottext"
+	  >QCGen
+</span
+	  ><a href="#local-6989586621679283297"
+	  ><span class="hs-identifier hs-var"
+	    >seed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283298"
+      ><span class="annot"
+	><span class="annottext"
+	  >PropertyId
+</span
+	  ><a href="#local-6989586621679283298"
+	  ><span class="hs-identifier hs-var"
+	    >propertyId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283299"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679283299"
+	  ><span class="hs-identifier hs-var"
+	    >description</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283300"
+      ><span class="annot"
+	><span class="annottext"
+	  >Gen Check
+</span
+	  ><a href="#local-6989586621679283300"
+	  ><span class="hs-identifier hs-var"
+	    >gen</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; String
+-&gt; Int
+-&gt; PropertyId
+-&gt; String
+-&gt; [TermCase]
+-&gt; IO Generated
+</span
+	><a href="Evaluation.Builtins.Conformance.html#generateTermFiles"
+	><span class="hs-identifier hs-var"
+	  >generateTermFiles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+</span
+	><a href="#local-6989586621679283293"
+	><span class="hs-identifier hs-var"
+	  >format</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679283295"
+	><span class="hs-identifier hs-var"
+	  >outputDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679283296"
+	><span class="hs-identifier hs-var"
+	  >numFiles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyId
+</span
+	><a href="#local-6989586621679283298"
+	><span class="hs-identifier hs-var"
+	  >propertyId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679283299"
+	><span class="hs-identifier hs-var"
+	  >description</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TermCase]
+</span
+	><a href="#local-6989586621679283301"
+	><span class="hs-identifier hs-var"
+	  >terms</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Match the size used by QuickCheck's 'generate', with an explicit seed.</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679283302"
+      ><span class="annot"
+	><span class="annottext"
+	  >cases :: [Check]
+</span
+	  ><a href="#local-6989586621679283302"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cases</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen [Check] -&gt; QCGen -&gt; Int -&gt; [Check]
+forall a. Gen a -&gt; QCGen -&gt; Int -&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>unGen</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Check -&gt; Gen [Check]
+forall a. Gen a -&gt; Gen [a]
+</span
+	><span class="hs-identifier hs-var"
+	>infiniteListOf</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Check
+</span
+	><a href="#local-6989586621679283300"
+	><span class="hs-identifier hs-var"
+	  >gen</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>QCGen -&gt; PropertyId -&gt; QCGen
+</span
+	><a href="Evaluation.Builtins.Conformance.html#propertySeed"
+	><span class="hs-identifier hs-var"
+	  >propertySeed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>QCGen
+</span
+	><a href="#local-6989586621679283297"
+	><span class="hs-identifier hs-var"
+	  >seed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyId
+</span
+	><a href="#local-6989586621679283298"
+	><span class="hs-identifier hs-var"
+	  >propertyId</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="Evaluation.Builtins.Conformance.html#samplingSize"
+	><span class="hs-identifier hs-var"
+	  >samplingSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679283301"
+      ><span class="annot"
+	><span class="annottext"
+	  >terms :: [TermCase]
+</span
+	  ><a href="#local-6989586621679283301"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >terms</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Check -&gt; [TermCase]) -&gt; [Check] -&gt; [TermCase]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#concatMap"
+	><span class="hs-identifier hs-var"
+	  >concatMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CheckMode -&gt; Check -&gt; [TermCase]
+</span
+	><a href="Evaluation.Builtins.Conformance.html#caseTerms"
+	><span class="hs-identifier hs-var"
+	  >caseTerms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CheckMode
+</span
+	><a href="#local-6989586621679283294"
+	><span class="hs-identifier hs-var"
+	  >mode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Check]
+</span
+	><a href="#local-6989586621679283302"
+	><span class="hs-identifier hs-var"
+	  >cases</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Generate the requested number of cases for every selected property,
+writing them below the suite directory. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Conformance.html#generatePropertySpecs"
+	><span class="hs-identifier hs-type"
+	  >generatePropertySpecs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#OutputFormat"
+	><span class="hs-identifier hs-type"
+	  >OutputFormat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckMode"
+	><span class="hs-identifier hs-type"
+	  >CheckMode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyFilter"
+	><span class="hs-identifier hs-type"
+	  >PropertyFilter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>QCGen</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertySpec"
+	><span class="hs-identifier hs-type"
+	  >PropertySpec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier hs-type"
+	  >Check</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	><span class="hs-identifier hs-type"
+	  >IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyReport"
+	><span class="hs-identifier hs-type"
+	  >PropertyReport</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span id="generatePropertySpecs"
+      ><span class="annot"
+	><span class="annottext"
+	  >generatePropertySpecs :: OutputFormat
+-&gt; CheckMode
+-&gt; PropertyFilter
+-&gt; String
+-&gt; Int
+-&gt; QCGen
+-&gt; [String]
+-&gt; [PropertySpec (Gen Check)]
+-&gt; IO [PropertyReport]
+</span
+	  ><a href="Evaluation.Builtins.Integer.Conformance.html#generatePropertySpecs"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >generatePropertySpecs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283306"
+      ><span class="annot"
+	><span class="annottext"
+	  >OutputFormat
+</span
+	  ><a href="#local-6989586621679283306"
+	  ><span class="hs-identifier hs-var"
+	    >format</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283307"
+      ><span class="annot"
+	><span class="annottext"
+	  >CheckMode
+</span
+	  ><a href="#local-6989586621679283307"
+	  ><span class="hs-identifier hs-var"
+	    >mode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283308"
+      ><span class="annot"
+	><span class="annottext"
+	  >PropertyFilter
+</span
+	  ><a href="#local-6989586621679283308"
+	  ><span class="hs-identifier hs-var"
+	    >include</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283309"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679283309"
+	  ><span class="hs-identifier hs-var"
+	    >outputDir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283310"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679283310"
+	  ><span class="hs-identifier hs-var"
+	    >numFiles</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283311"
+      ><span class="annot"
+	><span class="annottext"
+	  >QCGen
+</span
+	  ><a href="#local-6989586621679283311"
+	  ><span class="hs-identifier hs-var"
+	    >seed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283312"
+      ><span class="annot"
+	><span class="annottext"
+	  >[String]
+</span
+	  ><a href="#local-6989586621679283312"
+	  ><span class="hs-identifier hs-var"
+	    >suiteDirectory</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679283313"
+      ><span class="annot"
+	><span class="annottext"
+	  >[PropertySpec (Gen Check)]
+</span
+	  ><a href="#local-6989586621679283313"
+	  ><span class="hs-identifier hs-var"
+	    >specs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[String] -&gt; [PropertySpec (Gen Check)] -&gt; IO ()
+forall gen. [String] -&gt; [PropertySpec gen] -&gt; IO ()
+</span
+	><a href="Evaluation.Builtins.Conformance.html#checkUniqueIds"
+	><span class="hs-identifier hs-var"
+	  >checkUniqueIds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[String]
+</span
+	><a href="#local-6989586621679283312"
+	><span class="hs-identifier hs-var"
+	  >suiteDirectory</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PropertySpec (Gen Check)]
+</span
+	><a href="#local-6989586621679283313"
+	><span class="hs-identifier hs-var"
+	  >specs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Maybe PropertyReport] -&gt; [PropertyReport]
+forall a. [Maybe a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#catMaybes"
+	><span class="hs-identifier hs-var"
+	  >catMaybes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Maybe PropertyReport] -&gt; [PropertyReport])
+-&gt; IO [Maybe PropertyReport] -&gt; IO [PropertyReport]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PropertySpec (Gen Check)]
+-&gt; (PropertySpec (Gen Check) -&gt; IO (Maybe PropertyReport))
+-&gt; IO [Maybe PropertyReport]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m (t b)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#forM"
+	><span class="hs-identifier hs-var"
+	  >forM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PropertySpec (Gen Check)]
+</span
+	><a href="#local-6989586621679283313"
+	><span class="hs-identifier hs-var"
+	  >specs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679283315"
+      ><span class="annot"
+	><span class="annottext"
+	  >PropertySpec (Gen Check)
+</span
+	  ><a href="#local-6989586621679283315"
+	  ><span class="hs-identifier hs-var"
+	    >spec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679283316"
+      ><span class="annot"
+	><span class="annottext"
+	  >propertyId :: PropertyId
+</span
+	  ><a href="#local-6989586621679283316"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >propertyId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[String] -&gt; String -&gt; PropertyId
+</span
+	><a href="Evaluation.Builtins.Conformance.html#PropertyId"
+	><span class="hs-identifier hs-var"
+	  >PropertyId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[String]
+</span
+	><a href="#local-6989586621679283312"
+	><span class="hs-identifier hs-var"
+	  >suiteDirectory</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertySpec (Gen Check) -&gt; String
+forall gen. PropertySpec gen -&gt; String
+</span
+	><a href="Evaluation.Builtins.Conformance.html#propertySpecId"
+	><span class="hs-identifier hs-var"
+	  >propertySpecId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertySpec (Gen Check)
+</span
+	><a href="#local-6989586621679283315"
+	><span class="hs-identifier hs-var"
+	  >spec</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyFilter
+</span
+	><a href="#local-6989586621679283308"
+	><span class="hs-identifier hs-var"
+	  >include</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyId
+</span
+	><a href="#local-6989586621679283316"
+	><span class="hs-identifier hs-var"
+	  >propertyId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyReport -&gt; Maybe PropertyReport
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PropertyReport -&gt; Maybe PropertyReport)
+-&gt; (Generated -&gt; PropertyReport)
+-&gt; Generated
+-&gt; Maybe PropertyReport
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyId -&gt; Generated -&gt; PropertyReport
+</span
+	><a href="Evaluation.Builtins.Conformance.html#PropertyReport"
+	><span class="hs-identifier hs-var"
+	  >PropertyReport</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyId
+</span
+	><a href="#local-6989586621679283316"
+	><span class="hs-identifier hs-var"
+	  >propertyId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Generated -&gt; Maybe PropertyReport)
+-&gt; IO Generated -&gt; IO (Maybe PropertyReport)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; CheckMode
+-&gt; String
+-&gt; Int
+-&gt; QCGen
+-&gt; PropertyId
+-&gt; String
+-&gt; Gen Check
+-&gt; IO Generated
+</span
+	><a href="Evaluation.Builtins.Integer.Conformance.html#generatePropertyFiles"
+	><span class="hs-identifier hs-var"
+	  >generatePropertyFiles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+</span
+	><a href="#local-6989586621679283306"
+	><span class="hs-identifier hs-var"
+	  >format</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CheckMode
+</span
+	><a href="#local-6989586621679283307"
+	><span class="hs-identifier hs-var"
+	  >mode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679283309"
+	><span class="hs-identifier hs-var"
+	  >outputDir</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679283310"
+	><span class="hs-identifier hs-var"
+	  >numFiles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>QCGen
+</span
+	><a href="#local-6989586621679283311"
+	><span class="hs-identifier hs-var"
+	  >seed</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyId
+</span
+	><a href="#local-6989586621679283316"
+	><span class="hs-identifier hs-var"
+	  >propertyId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >                  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertySpec (Gen Check) -&gt; String
+forall gen. PropertySpec gen -&gt; String
+</span
+	><a href="Evaluation.Builtins.Conformance.html#propertySpecDescription"
+	><span class="hs-identifier hs-var"
+	  >propertySpecDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertySpec (Gen Check)
+</span
+	><a href="#local-6989586621679283315"
+	><span class="hs-identifier hs-var"
+	  >spec</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >                  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertySpec (Gen Check) -&gt; Gen Check
+forall gen. PropertySpec gen -&gt; gen
+</span
+	><a href="Evaluation.Builtins.Conformance.html#propertySpecCheck"
+	><span class="hs-identifier hs-var"
+	  >propertySpecCheck</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertySpec (Gen Check)
+</span
+	><a href="#local-6989586621679283315"
+	><span class="hs-identifier hs-var"
+	  >spec</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe PropertyReport -&gt; IO (Maybe PropertyReport)
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe PropertyReport
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

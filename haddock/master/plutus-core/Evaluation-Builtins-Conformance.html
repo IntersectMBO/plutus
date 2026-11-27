@@ -1,0 +1,2170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Evaluation.Builtins.Conformance</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.72.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Evaluation.Builtins.Conformance.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Evaluation.Builtins.Conformance</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Write generated conformance test cases shared by the builtin property suites.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:OutputFormat"
+	      >OutputFormat</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Flat"
+		  >Flat</a
+		  ></li
+		><li
+		>| <a href="#v:Uplc"
+		  >Uplc</a
+		  ></li
+		><li
+		>| <a href="#v:Both"
+		  >Both</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CheckMode"
+	      >CheckMode</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:FastCheck"
+		  >FastCheck</a
+		  ></li
+		><li
+		>| <a href="#v:FullCheck"
+		  >FullCheck</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:checkModeName"
+	      >checkModeName</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	      >CheckMode</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PropertyFilter"
+	      >PropertyFilter</a
+	      > = <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	      >PropertyId</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PropertyId"
+	      >PropertyId</a
+	      > = <a href="#v:PropertyId"
+	      >PropertyId</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:propertyIdDirectory"
+		  >propertyIdDirectory</a
+		  > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  >]</li
+		><li
+		><a href="#v:propertyIdName"
+		  >propertyIdName</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PropertySpec"
+	      >PropertySpec</a
+	      > gen = <a href="#v:PropertySpec"
+	      >PropertySpec</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:propertySpecId"
+		  >propertySpecId</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		><li
+		><a href="#v:propertySpecDescription"
+		  >propertySpecDescription</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+		  >TestName</a
+		  ></li
+		><li
+		><a href="#v:propertySpecCheck"
+		  >propertySpecCheck</a
+		  > &#8759; gen</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:caseNumberDigits"
+	      >caseNumberDigits</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:checkUniqueIds"
+	      >checkUniqueIds</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      >] &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	      >PropertySpec</a
+	      > gen] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:propertyIdPath"
+	      >propertyIdPath</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	      >PropertyId</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:propertyIdText"
+	      >propertyIdText</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	      >PropertyId</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:propertySpecPropertyIds"
+	      >propertySpecPropertyIds</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      >] &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	      >PropertySpec</a
+	      > gen] &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	      >PropertyId</a
+	      >]</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TermCase"
+	      >TermCase</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:SingleTerm"
+		  >SingleTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		>| <a href="#v:EqualTerms"
+		  >EqualTerms</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		>| <a href="#v:ViolatedCase"
+		  >ViolatedCase</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Generated"
+	      >Generated</a
+	      > = <a href="#v:Generated"
+	      >Generated</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:generatedNumberedCases"
+		  >generatedNumberedCases</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:generatedPrograms"
+		  >generatedPrograms</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:generatedFiles"
+		  >generatedFiles</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PropertyReport"
+	      >PropertyReport</a
+	      > = <a href="#v:PropertyReport"
+	      >PropertyReport</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:propertyReportId"
+		  >propertyReportId</a
+		  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+		  >PropertyId</a
+		  ></li
+		><li
+		><a href="#v:propertyReportGenerated"
+		  >propertyReportGenerated</a
+		  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+		  >Generated</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Check"
+	      >Check</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:CheckEq"
+		  >CheckEq</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		>| <a href="#v:CheckEvaluatesTo"
+		  >CheckEvaluatesTo</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+		  >TypeErrorOrCekResult</a
+		  ></li
+		><li
+		>| <a href="#v:CheckTrue"
+		  >CheckTrue</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		>| <a href="#v:CheckOk"
+		  >CheckOk</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		>| <a href="#v:CheckFails"
+		  >CheckFails</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></li
+		><li
+		>| <a href="#v:CheckBoth"
+		  >CheckBoth</a
+		  > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+		  >Check</a
+		  > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+		  >Check</a
+		  ></li
+		><li
+		>| <a href="#v:CheckImplies"
+		  >CheckImplies</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+		  >Check</a
+		  ></li
+		><li
+		>| <a href="#v:CheckDistinct"
+		  >CheckDistinct</a
+		  > [<a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  >]</li
+		><li
+		>| <a href="#v:CheckSatisfies"
+		  >CheckSatisfies</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > (<a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+		  >TypeErrorOrCekResult</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  >)</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:formatName"
+	      >formatName</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:OutputFormat" title="Evaluation.Builtins.Conformance"
+	      >OutputFormat</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:caseTerms"
+	      >caseTerms</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	      >CheckMode</a
+	      > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      > &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:TermCase" title="Evaluation.Builtins.Conformance"
+	      >TermCase</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:caseTermsUnchecked"
+	      >caseTermsUnchecked</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      > &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:TermCase" title="Evaluation.Builtins.Conformance"
+	      >TermCase</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:checkHolds"
+	      >checkHolds</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	      >CheckMode</a
+	      > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:guardCheck"
+	      >guardCheck</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	      >CheckMode</a
+	      > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	      >Check</a
+	      > &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:TermCase" title="Evaluation.Builtins.Conformance"
+	      >TermCase</a
+	      >] &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:TermCase" title="Evaluation.Builtins.Conformance"
+	      >TermCase</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:isCekSuccess"
+	      >isCekSuccess</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+	      >TypeErrorOrCekResult</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:evaluationFailureText"
+	      >evaluationFailureText</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:generateTermFiles"
+	      >generateTermFiles</a
+	      > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:OutputFormat" title="Evaluation.Builtins.Conformance"
+	      >OutputFormat</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	      >PropertyId</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:TermCase" title="Evaluation.Builtins.Conformance"
+	      >TermCase</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+	      >Generated</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:propertySeed"
+	      >propertySeed</a
+	      > &#8759; QCGen &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	      >PropertyId</a
+	      > &#8594; QCGen</li
+	    ><li class="src short"
+	    ><a href="#v:samplingSize"
+	      >samplingSize</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:OutputFormat" class="def"
+	    >OutputFormat</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#OutputFormat" class="link"
+	    >Source</a
+	    > <a href="#t:OutputFormat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Representations to write for each generated case. Both formats share a budget.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Flat" class="def"
+		  >Flat</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Uplc" class="def"
+		  >Uplc</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Both" class="def"
+		  >Both</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CheckMode" class="def"
+	    >CheckMode</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#CheckMode" class="link"
+	    >Source</a
+	    > <a href="#t:CheckMode" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >How thoroughly a sampled case is checked against its property before it is
+written.</p
+	    ><ul
+	    ><li
+	      ><code
+		><a href="Evaluation-Builtins-Conformance.html#v:FastCheck" title="Evaluation.Builtins.Conformance"
+		  >FastCheck</a
+		  ></code
+		> evaluates the terms with the untyped CEK machine, as the exporter
+  does to record results. It confirms that the reference implementation
+  satisfies the property but does not typecheck the terms.</li
+	      ><li
+	      ><code
+		><a href="Evaluation-Builtins-Conformance.html#v:FullCheck" title="Evaluation.Builtins.Conformance"
+		  >FullCheck</a
+		  ></code
+		> uses <code
+		><a href="Evaluation-Builtins-Common.html#v:evalTerm" title="Evaluation.Builtins.Common"
+		  >evalTerm</a
+		  ></code
+		>, exactly as the normal tests do: it typechecks the
+  terms and evaluates them with a freshly built typed evaluator. That setup is
+  repeated for every case, which makes it much slower. </li
+	      ></ul
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:FastCheck" class="def"
+		  >FastCheck</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:FullCheck" class="def"
+		  >FullCheck</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkModeName" class="def"
+	    >checkModeName</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	    >CheckMode</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#checkModeName" class="link"
+	    >Source</a
+	    > <a href="#v:checkModeName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Name of a mode, as recorded in the info file.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PropertyFilter" class="def"
+	    >PropertyFilter</a
+	    > = <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	    >PropertyId</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#PropertyFilter" class="link"
+	    >Source</a
+	    > <a href="#t:PropertyFilter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Select a property by its path relative to the output root, without case
+numbers or filename extensions (for example, integer<em
+	      >RingProperties</em
+	      >addition_associative). </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PropertyId" class="def"
+	    >PropertyId</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#PropertyId" class="link"
+	    >Source</a
+	    > <a href="#t:PropertyId" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Location of a property relative to the output root, for example
+<code
+	      >integer<em
+		>RingProperties</em
+		>addition_associative</code
+	      >. Keeping the segments apart lets
+match keys use <code
+	      >/</code
+	      > on every platform while file paths use the native separator. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PropertyId" class="def"
+		  >PropertyId</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:propertyIdDirectory" class="def"
+			  >propertyIdDirectory</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  >]</dfn
+			><div class="doc"
+			><p
+			  >Segments above the property, for example <code
+			    >[&quot;integer&quot;, <a href="RingProperties.html"
+			      >RingProperties</a
+			      >]</code
+			    >.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:propertyIdName" class="def"
+			  >propertyIdName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >The property's own identifier, also used to name case directories and files.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:PropertyId"
+	    >Instances</h4
+	    ><details id="i:PropertyId" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PropertyId:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+		      >PropertyId</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Conformance.html#line-152" class="link"
+		    >Source</a
+		    > <a href="#t:PropertyId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PropertyId:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Conformance.html"
+			>Evaluation.Builtins.Conformance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PropertyId:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+		      >PropertyId</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Conformance.html#line-146" class="link"
+		    >Source</a
+		    > <a href="#t:PropertyId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PropertyId:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Conformance.html"
+			>Evaluation.Builtins.Conformance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PropertyId:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+		      >PropertyId</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Conformance.html#line-146" class="link"
+		    >Source</a
+		    > <a href="#t:PropertyId" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PropertyId:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Conformance.html"
+			>Evaluation.Builtins.Conformance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PropertySpec" class="def"
+	    >PropertySpec</a
+	    > gen <a href="src/Evaluation.Builtins.Conformance.html#PropertySpec" class="link"
+	    >Source</a
+	    > <a href="#t:PropertySpec" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A property with the identifier and description shared by the normal test
+suite and the conformance generator, together with the sampler that produces
+its inputs. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PropertySpec" class="def"
+		  >PropertySpec</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:propertySpecId" class="def"
+			  >propertySpecId</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >Stable identifier: used in generated test case paths.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:propertySpecDescription" class="def"
+			  >propertySpecDescription</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+			  >TestName</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >Human-readable name shown by the test runner.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:propertySpecCheck" class="def"
+			  >propertySpecCheck</a
+			  > &#8759; gen</dfn
+			><div class="doc"
+			><p
+			  >Sampler for unevaluated checks.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseNumberDigits" class="def"
+	    >caseNumberDigits</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#caseNumberDigits" class="link"
+	    >Source</a
+	    > <a href="#v:caseNumberDigits" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Number of digits used to number cases, for example <code
+	      >00001</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkUniqueIds" class="def"
+	    >checkUniqueIds</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    >] &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	    >PropertySpec</a
+	    > gen] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/Evaluation.Builtins.Conformance.html#checkUniqueIds" class="link"
+	    >Source</a
+	    > <a href="#v:checkUniqueIds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Fail if two properties in a suite share an identifier: their cases would be
+written to the same directories, silently overwriting each other. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:propertyIdPath" class="def"
+	    >propertyIdPath</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	    >PropertyId</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#propertyIdPath" class="link"
+	    >Source</a
+	    > <a href="#v:propertyIdPath" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Directory for the property, relative to the output root.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:propertyIdText" class="def"
+	    >propertyIdText</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	    >PropertyId</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#propertyIdText" class="link"
+	    >Source</a
+	    > <a href="#v:propertyIdText" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Identifier used for matching and display: segments joined by <code
+	      >/</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:propertySpecPropertyIds" class="def"
+	    >propertySpecPropertyIds</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    >] &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:PropertySpec" title="Evaluation.Builtins.Conformance"
+	    >PropertySpec</a
+	    > gen] &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	    >PropertyId</a
+	    >] <a href="src/Evaluation.Builtins.Conformance.html#propertySpecPropertyIds" class="link"
+	    >Source</a
+	    > <a href="#v:propertySpecPropertyIds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generated test case identifiers for a suite's properties, in declaration order.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TermCase" class="def"
+	    >TermCase</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#TermCase" class="link"
+	    >Source</a
+	    > <a href="#t:TermCase" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Keep the terms of an equality check together until their filenames are assigned.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:SingleTerm" class="def"
+		  >SingleTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:EqualTerms" class="def"
+		  >EqualTerms</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ViolatedCase" class="def"
+		  >ViolatedCase</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Why the reference implementation does not satisfy the property for this
+    input. No files are written for such a case. </p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Generated" class="def"
+	    >Generated</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#Generated" class="link"
+	    >Source</a
+	    > <a href="#t:Generated" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >What was written for one property.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Generated" class="def"
+		  >Generated</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:generatedNumberedCases" class="def"
+			  >generatedNumberedCases</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >Numbered cases written. Each holds one program, or two for an equality
+  check; a check that combines several terms uses several numbers. </p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:generatedPrograms" class="def"
+			  >generatedPrograms</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:generatedFiles" class="def"
+			  >generatedFiles</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Generated"
+	    >Instances</h4
+	    ><details id="i:Generated" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Generated:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+		      >Generated</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Conformance.html#line-107" class="link"
+		    >Source</a
+		    > <a href="#t:Generated" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Generated:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Conformance.html"
+			>Evaluation.Builtins.Conformance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+			  >Generated</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+			  >Generated</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+			  >Generated</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Generated:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+		      >Generated</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Conformance.html#line-107" class="link"
+		    >Source</a
+		    > <a href="#t:Generated" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Generated:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Conformance.html"
+			>Evaluation.Builtins.Conformance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+			  >Generated</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+			  >Generated</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+			  >Generated</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+			  >Generated</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PropertyReport" class="def"
+	    >PropertyReport</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#PropertyReport" class="link"
+	    >Source</a
+	    > <a href="#t:PropertyReport" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A property together with the cases written for it.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PropertyReport" class="def"
+		  >PropertyReport</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:propertyReportId" class="def"
+			  >propertyReportId</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+			  >PropertyId</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:propertyReportGenerated" class="def"
+			  >propertyReportGenerated</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+			  >Generated</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:PropertyReport"
+	    >Instances</h4
+	    ><details id="i:PropertyReport" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PropertyReport:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+		      >PropertyReport</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Conformance.html#line-114" class="link"
+		    >Source</a
+		    > <a href="#t:PropertyReport" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PropertyReport:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Conformance.html"
+			>Evaluation.Builtins.Conformance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+			  >PropertyReport</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+			  >PropertyReport</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+			  >PropertyReport</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PropertyReport:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+		      >PropertyReport</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Conformance.html#line-114" class="link"
+		    >Source</a
+		    > <a href="#t:PropertyReport" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PropertyReport:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Conformance.html"
+			>Evaluation.Builtins.Conformance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+			  >PropertyReport</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+			  >PropertyReport</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+			  >PropertyReport</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+			  >PropertyReport</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Check" class="def"
+	    >Check</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#Check" class="link"
+	    >Source</a
+	    > <a href="#t:Check" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A property check expressed without performing it. Normal QuickCheck suites
+interpret it as an assertion, the Hedgehog suites have their own interpreter,
+and the test generator extracts its terms, first checking with <code
+	      ><a href="Evaluation-Builtins-Conformance.html#v:checkHolds" title="Evaluation.Builtins.Conformance"
+		>checkHolds</a
+		></code
+	      > that
+the reference implementation satisfies the property for the sampled input. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CheckEq" class="def"
+		  >CheckEq</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Both terms evaluate successfully to equal results.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckEvaluatesTo" class="def"
+		  >CheckEvaluatesTo</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+		  >TypeErrorOrCekResult</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The term evaluates to the given result.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckTrue" class="def"
+		  >CheckTrue</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The term evaluates successfully to <code
+		    >True</code
+		    >.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckOk" class="def"
+		  >CheckOk</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The term evaluates successfully.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckFails" class="def"
+		  >CheckFails</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The term fails to evaluate.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckBoth" class="def"
+		  >CheckBoth</a
+		  > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+		  >Check</a
+		  > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+		  >Check</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Both checks must hold. When generating, each check contributes its
+    own numbered cases, so one sampled input can use several numbers. </p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckImplies" class="def"
+		  >CheckImplies</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+		  >Check</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckDistinct" class="def"
+		  >CheckDistinct</a
+		  > [<a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  >]</td
+		><td class="doc"
+		><p
+		  >All terms evaluate successfully to pairwise distinct results.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CheckSatisfies" class="def"
+		  >CheckSatisfies</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+		  >PlcTerm</a
+		  > (<a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+		  >TypeErrorOrCekResult</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >The term's result satisfies the predicate, labelled for failure reports.</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Check"
+	    >Instances</h4
+	    ><details id="i:Check" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Check:Testable:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Testable" title="Test.Tasty.QuickCheck"
+		      >Testable</a
+		      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+		      >Check</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Conformance.html#line-224" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Check:Testable:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Conformance.html"
+			>Evaluation.Builtins.Conformance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:property"
+			  >property</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+			  >Check</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+			  >Property</a
+			  > <a href="#v:property" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:propertyForAllShrinkShow"
+			  >propertyForAllShrinkShow</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > a &#8594; (a &#8594; [a]) &#8594; (a &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  >]) &#8594; (a &#8594; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+			  >Check</a
+			  >) &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+			  >Property</a
+			  > <a href="#v:propertyForAllShrinkShow" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Check:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+		      >Check</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Conformance.html#line-246" class="link"
+		    >Source</a
+		    > <a href="#t:Check" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >Shows the terms of a check; the predicate of <code
+		      ><a href="Evaluation-Builtins-Conformance.html#v:CheckSatisfies" title="Evaluation.Builtins.Conformance"
+			>CheckSatisfies</a
+			></code
+		      > is omitted.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Check:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Conformance.html"
+			>Evaluation.Builtins.Conformance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+			  >Check</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+			  >Check</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+			  >Check</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:formatName" class="def"
+	    >formatName</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:OutputFormat" title="Evaluation.Builtins.Conformance"
+	    >OutputFormat</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#formatName" class="link"
+	    >Source</a
+	    > <a href="#v:formatName" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Name of a format, as accepted on the command line and recorded in the info file.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseTerms" class="def"
+	    >caseTerms</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	    >CheckMode</a
+	    > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:TermCase" title="Evaluation.Builtins.Conformance"
+	    >TermCase</a
+	    >] <a href="src/Evaluation.Builtins.Conformance.html#caseTerms" class="link"
+	    >Source</a
+	    > <a href="#v:caseTerms" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The terms to write for a check, after confirming that it holds. Preconditions
+still select suitable inputs. Kept lazy so reaching the case limit need not
+inspect later checks. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:caseTermsUnchecked" class="def"
+	    >caseTermsUnchecked</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:TermCase" title="Evaluation.Builtins.Conformance"
+	    >TermCase</a
+	    >] <a href="src/Evaluation.Builtins.Conformance.html#caseTermsUnchecked" class="link"
+	    >Source</a
+	    > <a href="#v:caseTermsUnchecked" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >As <code
+	      ><a href="Evaluation-Builtins-Conformance.html#v:caseTerms" title="Evaluation.Builtins.Conformance"
+		>caseTerms</a
+		></code
+	      >, but without checking that the property holds.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkHolds" class="def"
+	    >checkHolds</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	    >CheckMode</a
+	    > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#checkHolds" class="link"
+	    >Source</a
+	    > <a href="#v:checkHolds" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Whether the reference implementation satisfies a check. This mirrors the
+<code
+	      ><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Testable" title="Test.Tasty.QuickCheck"
+		>Testable</a
+		></code
+	      > instance, so the cases written out are those the normal tests would
+accept. With <code
+	      ><a href="Evaluation-Builtins-Conformance.html#v:FullCheck" title="Evaluation.Builtins.Conformance"
+		>FullCheck</a
+		></code
+	      > the terms are evaluated, and typechecked, exactly as
+the normal tests do; with <code
+	      ><a href="Evaluation-Builtins-Conformance.html#v:FastCheck" title="Evaluation.Builtins.Conformance"
+		>FastCheck</a
+		></code
+	      > they are evaluated by the untyped machine
+alone. A false precondition counts as satisfied, since such inputs are discarded
+rather than tested. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:guardCheck" class="def"
+	    >guardCheck</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	    >CheckMode</a
+	    > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:Check" title="Evaluation.Builtins.Conformance"
+	    >Check</a
+	    > &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:TermCase" title="Evaluation.Builtins.Conformance"
+	    >TermCase</a
+	    >] &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:TermCase" title="Evaluation.Builtins.Conformance"
+	    >TermCase</a
+	    >] <a href="src/Evaluation.Builtins.Conformance.html#guardCheck" class="link"
+	    >Source</a
+	    > <a href="#v:guardCheck" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Replace the terms of a check by a violation if the reference implementation
+does not satisfy it. Writing such a case would record behaviour that
+contradicts the property as if it were the expected result. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isCekSuccess" class="def"
+	    >isCekSuccess</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+	    >TypeErrorOrCekResult</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#isCekSuccess" class="link"
+	    >Source</a
+	    > <a href="#v:isCekSuccess" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Successful evaluations only.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluationFailureText" class="def"
+	    >evaluationFailureText</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#evaluationFailureText" class="link"
+	    >Source</a
+	    > <a href="#v:evaluationFailureText" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Text recorded in <code
+	      >.expected</code
+	      > and <code
+	      >.budget.expected</code
+	      > files when evaluation
+fails. The conformance harness compares those files verbatim against its own
+<code
+	      >shownEvaluationFailure</code
+	      >; that constant lives in <code
+	      >PlutusConformance.Common</code
+	      >,
+which depends on this library, so it cannot be imported here. Keep them in step. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:generateTermFiles" class="def"
+	    >generateTermFiles</a
+	    > &#8759; <a href="Evaluation-Builtins-Conformance.html#t:OutputFormat" title="Evaluation.Builtins.Conformance"
+	    >OutputFormat</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	    >PropertyId</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; [<a href="Evaluation-Builtins-Conformance.html#t:TermCase" title="Evaluation.Builtins.Conformance"
+	    >TermCase</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > <a href="Evaluation-Builtins-Conformance.html#t:Generated" title="Evaluation.Builtins.Conformance"
+	    >Generated</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#generateTermFiles" class="link"
+	    >Source</a
+	    > <a href="#v:generateTermFiles" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Consume at most the requested number of cases, writing each one as it is
+produced so that memory use does not grow with the number of cases. The count is
+a number of terms, not of sampled inputs: an equality check emits both terms
+under one number with -A/-B suffixes, while a check that combines several terms
+(for example <code
+	      ><a href="Evaluation-Builtins-Conformance.html#v:CheckBoth" title="Evaluation.Builtins.Conformance"
+		>CheckBoth</a
+		></code
+	      >) supplies one numbered case per term. Each term has its
+own result and budget files. A case that violates its property, or a stream with
+fewer cases than requested, is an error. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:propertySeed" class="def"
+	    >propertySeed</a
+	    > &#8759; QCGen &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	    >PropertyId</a
+	    > &#8594; QCGen <a href="src/Evaluation.Builtins.Conformance.html#propertySeed" class="link"
+	    >Source</a
+	    > <a href="#v:propertySeed" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The random generator for one property, derived from the run's seed and the
+property's identifier. Using the seed directly for every property would give
+them all the same stream of random numbers, and so correlated inputs. Deriving
+it from the identifier also means that the cases generated for a property do not
+depend on which other properties are selected. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:samplingSize" class="def"
+	    >samplingSize</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/Evaluation.Builtins.Conformance.html#samplingSize" class="link"
+	    >Source</a
+	    > <a href="#v:samplingSize" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Size passed to the generators when sampling inputs.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

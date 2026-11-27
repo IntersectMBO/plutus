@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Conformance</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Conformance</h1>
+    <section>
+      <!-- GENERATED FILE: do not edit.
+     Regenerate with `generate-agda-typecheck-conformance` from the nix shell, or with
+     `cabal run plutus-conformance:generate-agda-typecheck-conformance` from the
+     repository root. -->
+
+<p>Unit tests generated from the UPLC evaluation conformance test cases in
+<code class="language-plaintext highlighter-rouge">plutus-conformance/test-cases/uplc/evaluation</code>. Each case is a <code class="language-plaintext highlighter-rouge">refl</code> proof
+that the untyped CEK machine (<code class="language-plaintext highlighter-rouge">Untyped.CEK</code>) produces the expected result, or a
+pending statement of that proposition when the case involves constants or
+builtins that are still postulated on the Agda side. See <code class="language-plaintext highlighter-rouge">Conformance.Eval</code>.</p>
+
+<p>Test cases:</p>
+
+<ul>
+  <li>stated with a <code class="language-plaintext highlighter-rouge">refl</code> proof: 228</li>
+  <li>pending (postulated constants or builtins, or known failures): 802</li>
+  <li>skipped, constant not expressible in Agda: 6</li>
+  <li>skipped, program does not parse or has free variables: 66</li>
+</ul>
+
+<pre class="Agda"><a id="880" class="Keyword">module</a> <a id="887" href="Conformance.html" class="Module">Conformance</a> <a id="899" class="Keyword">where</a>
+
+<a id="906" class="Keyword">import</a> <a id="913" href="Conformance.Eval.html" class="Module">Conformance.Eval</a>
+<a id="930" class="Keyword">import</a> <a id="937" href="Conformance.Builtin.Interleaving.html" class="Module">Conformance.Builtin.Interleaving</a>
+<a id="970" class="Keyword">import</a> <a id="977" href="Conformance.Builtin.Parser.Array.html" class="Module">Conformance.Builtin.Parser.Array</a>
+<a id="1010" class="Keyword">import</a> <a id="1017" href="Conformance.Builtin.Parser.Bls12381.G1.html" class="Module">Conformance.Builtin.Parser.Bls12381.G1</a>
+<a id="1056" class="Keyword">import</a> <a id="1063" href="Conformance.Builtin.Parser.Bls12381.G2.html" class="Module">Conformance.Builtin.Parser.Bls12381.G2</a>
+<a id="1102" class="Keyword">import</a> <a id="1109" href="Conformance.Builtin.Parser.Bool.html" class="Module">Conformance.Builtin.Parser.Bool</a>
+<a id="1141" class="Keyword">import</a> <a id="1148" href="Conformance.Builtin.Parser.Bytestring.html" class="Module">Conformance.Builtin.Parser.Bytestring</a>
+<a id="1186" class="Keyword">import</a> <a id="1193" href="Conformance.Builtin.Parser.Data.html" class="Module">Conformance.Builtin.Parser.Data</a>
+<a id="1225" class="Keyword">import</a> <a id="1232" href="Conformance.Builtin.Parser.Integer.html" class="Module">Conformance.Builtin.Parser.Integer</a>
+<a id="1267" class="Keyword">import</a> <a id="1274" href="Conformance.Builtin.Parser.List.html" class="Module">Conformance.Builtin.Parser.List</a>
+<a id="1306" class="Keyword">import</a> <a id="1313" href="Conformance.Builtin.Parser.Pair.html" class="Module">Conformance.Builtin.Parser.Pair</a>
+<a id="1345" class="Keyword">import</a> <a id="1352" href="Conformance.Builtin.Parser.String.html" class="Module">Conformance.Builtin.Parser.String</a>
+<a id="1386" class="Keyword">import</a> <a id="1393" href="Conformance.Builtin.Parser.Unit.html" class="Module">Conformance.Builtin.Parser.Unit</a>
+<a id="1425" class="Keyword">import</a> <a id="1432" href="Conformance.Builtin.Parser.Value.html" class="Module">Conformance.Builtin.Parser.Value</a>
+<a id="1465" class="Keyword">import</a> <a id="1472" href="Conformance.Builtin.Semantics.html" class="Module">Conformance.Builtin.Semantics</a>
+<a id="1502" class="Keyword">import</a> <a id="1509" href="Conformance.Builtin.Semantics.AddInteger.html" class="Module">Conformance.Builtin.Semantics.AddInteger</a>
+<a id="1550" class="Keyword">import</a> <a id="1557" href="Conformance.Builtin.Semantics.AndByteString.html" class="Module">Conformance.Builtin.Semantics.AndByteString</a>
+<a id="1601" class="Keyword">import</a> <a id="1608" href="Conformance.Builtin.Semantics.AppendByteString.html" class="Module">Conformance.Builtin.Semantics.AppendByteString</a>
+<a id="1655" class="Keyword">import</a> <a id="1662" href="Conformance.Builtin.Semantics.AssetCount.html" class="Module">Conformance.Builtin.Semantics.AssetCount</a>
+<a id="1703" class="Keyword">import</a> <a id="1710" href="Conformance.Builtin.Semantics.Blake2b224.html" class="Module">Conformance.Builtin.Semantics.Blake2b224</a>
+<a id="1751" class="Keyword">import</a> <a id="1758" href="Conformance.Builtin.Semantics.Blake2b256.html" class="Module">Conformance.Builtin.Semantics.Blake2b256</a>
+<a id="1799" class="Keyword">import</a> <a id="1806" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G1.Arith.html" class="Module">Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G1.Arith</a>
+<a id="1872" class="Keyword">import</a> <a id="1879" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G1.Uncompress.html" class="Module">Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G1.Uncompress</a>
+<a id="1950" class="Keyword">import</a> <a id="1957" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Arith.html" class="Module">Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Arith</a>
+<a id="2023" class="Keyword">import</a> <a id="2030" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress.html" class="Module">Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.G2.Uncompress</a>
+<a id="2101" class="Keyword">import</a> <a id="2108" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.Pairing.html" class="Module">Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.Pairing</a>
+<a id="2173" class="Keyword">import</a> <a id="2180" href="Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.Signature.html" class="Module">Conformance.Builtin.Semantics.Bls12381CardanoCryptoTests.Signature</a>
+<a id="2247" class="Keyword">import</a> <a id="2254" href="Conformance.Builtin.Semantics.Bls12381G1Add.html" class="Module">Conformance.Builtin.Semantics.Bls12381G1Add</a>
+<a id="2298" class="Keyword">import</a> <a id="2305" href="Conformance.Builtin.Semantics.Bls12381G1Compress.html" class="Module">Conformance.Builtin.Semantics.Bls12381G1Compress</a>
+<a id="2354" class="Keyword">import</a> <a id="2361" href="Conformance.Builtin.Semantics.Bls12381G1Equal.html" class="Module">Conformance.Builtin.Semantics.Bls12381G1Equal</a>
+<a id="2407" class="Keyword">import</a> <a id="2414" href="Conformance.Builtin.Semantics.Bls12381G1HashToGroup.html" class="Module">Conformance.Builtin.Semantics.Bls12381G1HashToGroup</a>
+<a id="2466" class="Keyword">import</a> <a id="2473" href="Conformance.Builtin.Semantics.Bls12381G1MultiScalarMul.html" class="Module">Conformance.Builtin.Semantics.Bls12381G1MultiScalarMul</a>
+<a id="2528" class="Keyword">import</a> <a id="2535" href="Conformance.Builtin.Semantics.Bls12381G1Neg.html" class="Module">Conformance.Builtin.Semantics.Bls12381G1Neg</a>
+<a id="2579" class="Keyword">import</a> <a id="2586" href="Conformance.Builtin.Semantics.Bls12381G1ScalarMul.html" class="Module">Conformance.Builtin.Semantics.Bls12381G1ScalarMul</a>
+<a id="2636" class="Keyword">import</a> <a id="2643" href="Conformance.Builtin.Semantics.Bls12381G1Uncompress.html" class="Module">Conformance.Builtin.Semantics.Bls12381G1Uncompress</a>
+<a id="2694" class="Keyword">import</a> <a id="2701" href="Conformance.Builtin.Semantics.Bls12381G2Add.html" class="Module">Conformance.Builtin.Semantics.Bls12381G2Add</a>
+<a id="2745" class="Keyword">import</a> <a id="2752" href="Conformance.Builtin.Semantics.Bls12381G2Compress.html" class="Module">Conformance.Builtin.Semantics.Bls12381G2Compress</a>
+<a id="2801" class="Keyword">import</a> <a id="2808" href="Conformance.Builtin.Semantics.Bls12381G2Equal.html" class="Module">Conformance.Builtin.Semantics.Bls12381G2Equal</a>
+<a id="2854" class="Keyword">import</a> <a id="2861" href="Conformance.Builtin.Semantics.Bls12381G2HashToGroup.html" class="Module">Conformance.Builtin.Semantics.Bls12381G2HashToGroup</a>
+<a id="2913" class="Keyword">import</a> <a id="2920" href="Conformance.Builtin.Semantics.Bls12381G2MultiScalarMul.html" class="Module">Conformance.Builtin.Semantics.Bls12381G2MultiScalarMul</a>
+<a id="2975" class="Keyword">import</a> <a id="2982" href="Conformance.Builtin.Semantics.Bls12381G2Neg.html" class="Module">Conformance.Builtin.Semantics.Bls12381G2Neg</a>
+<a id="3026" class="Keyword">import</a> <a id="3033" href="Conformance.Builtin.Semantics.Bls12381G2ScalarMul.html" class="Module">Conformance.Builtin.Semantics.Bls12381G2ScalarMul</a>
+<a id="3083" class="Keyword">import</a> <a id="3090" href="Conformance.Builtin.Semantics.Bls12381G2Uncompress.html" class="Module">Conformance.Builtin.Semantics.Bls12381G2Uncompress</a>
+<a id="3141" class="Keyword">import</a> <a id="3148" href="Conformance.Builtin.Semantics.Bls12381MillerLoop.html" class="Module">Conformance.Builtin.Semantics.Bls12381MillerLoop</a>
+<a id="3197" class="Keyword">import</a> <a id="3204" href="Conformance.Builtin.Semantics.ByteStringToInteger.html" class="Module">Conformance.Builtin.Semantics.ByteStringToInteger</a>
+<a id="3254" class="Keyword">import</a> <a id="3261" href="Conformance.Builtin.Semantics.ByteStringToInteger.BigEndian.html" class="Module">Conformance.Builtin.Semantics.ByteStringToInteger.BigEndian</a>
+<a id="3321" class="Keyword">import</a> <a id="3328" href="Conformance.Builtin.Semantics.ByteStringToInteger.LittleEndian.html" class="Module">Conformance.Builtin.Semantics.ByteStringToInteger.LittleEndian</a>
+<a id="3391" class="Keyword">import</a> <a id="3398" href="Conformance.Builtin.Semantics.ChooseList.html" class="Module">Conformance.Builtin.Semantics.ChooseList</a>
+<a id="3439" class="Keyword">import</a> <a id="3446" href="Conformance.Builtin.Semantics.ChooseUnit.html" class="Module">Conformance.Builtin.Semantics.ChooseUnit</a>
+<a id="3487" class="Keyword">import</a> <a id="3494" href="Conformance.Builtin.Semantics.ComplementByteString.html" class="Module">Conformance.Builtin.Semantics.ComplementByteString</a>
+<a id="3545" class="Keyword">import</a> <a id="3552" href="Conformance.Builtin.Semantics.ConsByteString.html" class="Module">Conformance.Builtin.Semantics.ConsByteString</a>
+<a id="3597" class="Keyword">import</a> <a id="3604" href="Conformance.Builtin.Semantics.CountSetBits.html" class="Module">Conformance.Builtin.Semantics.CountSetBits</a>
+<a id="3647" class="Keyword">import</a> <a id="3654" href="Conformance.Builtin.Semantics.DecodeUtf8.html" class="Module">Conformance.Builtin.Semantics.DecodeUtf8</a>
+<a id="3695" class="Keyword">import</a> <a id="3702" href="Conformance.Builtin.Semantics.DivideInteger.html" class="Module">Conformance.Builtin.Semantics.DivideInteger</a>
+<a id="3746" class="Keyword">import</a> <a id="3753" href="Conformance.Builtin.Semantics.DropList.html" class="Module">Conformance.Builtin.Semantics.DropList</a>
+<a id="3792" class="Keyword">import</a> <a id="3799" href="Conformance.Builtin.Semantics.DropPolicies.html" class="Module">Conformance.Builtin.Semantics.DropPolicies</a>
+<a id="3842" class="Keyword">import</a> <a id="3849" href="Conformance.Builtin.Semantics.EqualsByteString.html" class="Module">Conformance.Builtin.Semantics.EqualsByteString</a>
+<a id="3896" class="Keyword">import</a> <a id="3903" href="Conformance.Builtin.Semantics.EqualsData.html" class="Module">Conformance.Builtin.Semantics.EqualsData</a>
+<a id="3944" class="Keyword">import</a> <a id="3951" href="Conformance.Builtin.Semantics.EqualsInteger.html" class="Module">Conformance.Builtin.Semantics.EqualsInteger</a>
+<a id="3995" class="Keyword">import</a> <a id="4002" href="Conformance.Builtin.Semantics.EqualsString.html" class="Module">Conformance.Builtin.Semantics.EqualsString</a>
+<a id="4045" class="Keyword">import</a> <a id="4052" href="Conformance.Builtin.Semantics.ExpModInteger.html" class="Module">Conformance.Builtin.Semantics.ExpModInteger</a>
+<a id="4096" class="Keyword">import</a> <a id="4103" href="Conformance.Builtin.Semantics.ExpModInteger.Extra.html" class="Module">Conformance.Builtin.Semantics.ExpModInteger.Extra</a>
+<a id="4153" class="Keyword">import</a> <a id="4160" href="Conformance.Builtin.Semantics.FindFirstSetBit.html" class="Module">Conformance.Builtin.Semantics.FindFirstSetBit</a>
+<a id="4206" class="Keyword">import</a> <a id="4213" href="Conformance.Builtin.Semantics.HeadList.html" class="Module">Conformance.Builtin.Semantics.HeadList</a>
+<a id="4252" class="Keyword">import</a> <a id="4259" href="Conformance.Builtin.Semantics.IfThenElse.html" class="Module">Conformance.Builtin.Semantics.IfThenElse</a>
+<a id="4300" class="Keyword">import</a> <a id="4307" href="Conformance.Builtin.Semantics.IndexArray.html" class="Module">Conformance.Builtin.Semantics.IndexArray</a>
+<a id="4348" class="Keyword">import</a> <a id="4355" href="Conformance.Builtin.Semantics.IndexByteString.html" class="Module">Conformance.Builtin.Semantics.IndexByteString</a>
+<a id="4401" class="Keyword">import</a> <a id="4408" href="Conformance.Builtin.Semantics.InsertCoin.html" class="Module">Conformance.Builtin.Semantics.InsertCoin</a>
+<a id="4449" class="Keyword">import</a> <a id="4456" href="Conformance.Builtin.Semantics.IntegerToByteString.BigEndian.Bounded.html" class="Module">Conformance.Builtin.Semantics.IntegerToByteString.BigEndian.Bounded</a>
+<a id="4524" class="Keyword">import</a> <a id="4531" href="Conformance.Builtin.Semantics.IntegerToByteString.BigEndian.Unbounded.html" class="Module">Conformance.Builtin.Semantics.IntegerToByteString.BigEndian.Unbounded</a>
+<a id="4601" class="Keyword">import</a> <a id="4608" href="Conformance.Builtin.Semantics.IntegerToByteString.LittleEndian.Bounded.html" class="Module">Conformance.Builtin.Semantics.IntegerToByteString.LittleEndian.Bounded</a>
+<a id="4679" class="Keyword">import</a> <a id="4686" href="Conformance.Builtin.Semantics.IntegerToByteString.LittleEndian.Unbounded.html" class="Module">Conformance.Builtin.Semantics.IntegerToByteString.LittleEndian.Unbounded</a>
+<a id="4759" class="Keyword">import</a> <a id="4766" href="Conformance.Builtin.Semantics.Keccak256.html" class="Module">Conformance.Builtin.Semantics.Keccak256</a>
+<a id="4806" class="Keyword">import</a> <a id="4813" href="Conformance.Builtin.Semantics.KeepPolicies.html" class="Module">Conformance.Builtin.Semantics.KeepPolicies</a>
+<a id="4856" class="Keyword">import</a> <a id="4863" href="Conformance.Builtin.Semantics.LengthOfArray.html" class="Module">Conformance.Builtin.Semantics.LengthOfArray</a>
+<a id="4907" class="Keyword">import</a> <a id="4914" href="Conformance.Builtin.Semantics.LessThanByteString.html" class="Module">Conformance.Builtin.Semantics.LessThanByteString</a>
+<a id="4963" class="Keyword">import</a> <a id="4970" href="Conformance.Builtin.Semantics.LessThanEqualsByteString.html" class="Module">Conformance.Builtin.Semantics.LessThanEqualsByteString</a>
+<a id="5025" class="Keyword">import</a> <a id="5032" href="Conformance.Builtin.Semantics.LessThanEqualsInteger.html" class="Module">Conformance.Builtin.Semantics.LessThanEqualsInteger</a>
+<a id="5084" class="Keyword">import</a> <a id="5091" href="Conformance.Builtin.Semantics.LessThanInteger.html" class="Module">Conformance.Builtin.Semantics.LessThanInteger</a>
+<a id="5137" class="Keyword">import</a> <a id="5144" href="Conformance.Builtin.Semantics.ListToArray.html" class="Module">Conformance.Builtin.Semantics.ListToArray</a>
+<a id="5186" class="Keyword">import</a> <a id="5193" href="Conformance.Builtin.Semantics.LookupCoin.html" class="Module">Conformance.Builtin.Semantics.LookupCoin</a>
+<a id="5234" class="Keyword">import</a> <a id="5241" href="Conformance.Builtin.Semantics.MkCons.html" class="Module">Conformance.Builtin.Semantics.MkCons</a>
+<a id="5278" class="Keyword">import</a> <a id="5285" href="Conformance.Builtin.Semantics.ModInteger.html" class="Module">Conformance.Builtin.Semantics.ModInteger</a>
+<a id="5326" class="Keyword">import</a> <a id="5333" href="Conformance.Builtin.Semantics.MultiIndexArray.html" class="Module">Conformance.Builtin.Semantics.MultiIndexArray</a>
+<a id="5379" class="Keyword">import</a> <a id="5386" href="Conformance.Builtin.Semantics.MultiplyInteger.html" class="Module">Conformance.Builtin.Semantics.MultiplyInteger</a>
+<a id="5432" class="Keyword">import</a> <a id="5439" href="Conformance.Builtin.Semantics.NullList.html" class="Module">Conformance.Builtin.Semantics.NullList</a>
+<a id="5478" class="Keyword">import</a> <a id="5485" href="Conformance.Builtin.Semantics.OrByteString.html" class="Module">Conformance.Builtin.Semantics.OrByteString</a>
+<a id="5528" class="Keyword">import</a> <a id="5535" href="Conformance.Builtin.Semantics.Policies.html" class="Module">Conformance.Builtin.Semantics.Policies</a>
+<a id="5574" class="Keyword">import</a> <a id="5581" href="Conformance.Builtin.Semantics.QuotientInteger.html" class="Module">Conformance.Builtin.Semantics.QuotientInteger</a>
+<a id="5627" class="Keyword">import</a> <a id="5634" href="Conformance.Builtin.Semantics.ReadBit.html" class="Module">Conformance.Builtin.Semantics.ReadBit</a>
+<a id="5672" class="Keyword">import</a> <a id="5679" href="Conformance.Builtin.Semantics.RemainderInteger.html" class="Module">Conformance.Builtin.Semantics.RemainderInteger</a>
+<a id="5726" class="Keyword">import</a> <a id="5733" href="Conformance.Builtin.Semantics.ReplicateByte.html" class="Module">Conformance.Builtin.Semantics.ReplicateByte</a>
+<a id="5777" class="Keyword">import</a> <a id="5784" href="Conformance.Builtin.Semantics.Ripemd160.html" class="Module">Conformance.Builtin.Semantics.Ripemd160</a>
+<a id="5824" class="Keyword">import</a> <a id="5831" href="Conformance.Builtin.Semantics.RotateByteString.html" class="Module">Conformance.Builtin.Semantics.RotateByteString</a>
+<a id="5878" class="Keyword">import</a> <a id="5885" href="Conformance.Builtin.Semantics.ScaleValue.html" class="Module">Conformance.Builtin.Semantics.ScaleValue</a>
+<a id="5926" class="Keyword">import</a> <a id="5933" href="Conformance.Builtin.Semantics.Sha2256.html" class="Module">Conformance.Builtin.Semantics.Sha2256</a>
+<a id="5971" class="Keyword">import</a> <a id="5978" href="Conformance.Builtin.Semantics.Sha3256.html" class="Module">Conformance.Builtin.Semantics.Sha3256</a>
+<a id="6016" class="Keyword">import</a> <a id="6023" href="Conformance.Builtin.Semantics.ShiftByteString.html" class="Module">Conformance.Builtin.Semantics.ShiftByteString</a>
+<a id="6069" class="Keyword">import</a> <a id="6076" href="Conformance.Builtin.Semantics.SliceByteString.html" class="Module">Conformance.Builtin.Semantics.SliceByteString</a>
+<a id="6122" class="Keyword">import</a> <a id="6129" href="Conformance.Builtin.Semantics.SubtractInteger.html" class="Module">Conformance.Builtin.Semantics.SubtractInteger</a>
+<a id="6175" class="Keyword">import</a> <a id="6182" href="Conformance.Builtin.Semantics.TailList.html" class="Module">Conformance.Builtin.Semantics.TailList</a>
+<a id="6221" class="Keyword">import</a> <a id="6228" href="Conformance.Builtin.Semantics.UnBData.html" class="Module">Conformance.Builtin.Semantics.UnBData</a>
+<a id="6266" class="Keyword">import</a> <a id="6273" href="Conformance.Builtin.Semantics.UnConstrData.html" class="Module">Conformance.Builtin.Semantics.UnConstrData</a>
+<a id="6316" class="Keyword">import</a> <a id="6323" href="Conformance.Builtin.Semantics.UnIData.html" class="Module">Conformance.Builtin.Semantics.UnIData</a>
+<a id="6361" class="Keyword">import</a> <a id="6368" href="Conformance.Builtin.Semantics.UnListData.html" class="Module">Conformance.Builtin.Semantics.UnListData</a>
+<a id="6409" class="Keyword">import</a> <a id="6416" href="Conformance.Builtin.Semantics.UnMapData.html" class="Module">Conformance.Builtin.Semantics.UnMapData</a>
+<a id="6456" class="Keyword">import</a> <a id="6463" href="Conformance.Builtin.Semantics.UnValueData.html" class="Module">Conformance.Builtin.Semantics.UnValueData</a>
+<a id="6505" class="Keyword">import</a> <a id="6512" href="Conformance.Builtin.Semantics.UnionValue.html" class="Module">Conformance.Builtin.Semantics.UnionValue</a>
+<a id="6553" class="Keyword">import</a> <a id="6560" href="Conformance.Builtin.Semantics.ValueContains.html" class="Module">Conformance.Builtin.Semantics.ValueContains</a>
+<a id="6604" class="Keyword">import</a> <a id="6611" href="Conformance.Builtin.Semantics.ValueData.html" class="Module">Conformance.Builtin.Semantics.ValueData</a>
+<a id="6651" class="Keyword">import</a> <a id="6658" href="Conformance.Builtin.Semantics.VerifyEcdsaSecp256k1Signature.html" class="Module">Conformance.Builtin.Semantics.VerifyEcdsaSecp256k1Signature</a>
+<a id="6718" class="Keyword">import</a> <a id="6725" href="Conformance.Builtin.Semantics.VerifyEd25519Signature.html" class="Module">Conformance.Builtin.Semantics.VerifyEd25519Signature</a>
+<a id="6778" class="Keyword">import</a> <a id="6785" href="Conformance.Builtin.Semantics.VerifySchnorrSecp256k1Signature.html" class="Module">Conformance.Builtin.Semantics.VerifySchnorrSecp256k1Signature</a>
+<a id="6847" class="Keyword">import</a> <a id="6854" href="Conformance.Builtin.Semantics.WriteBits.html" class="Module">Conformance.Builtin.Semantics.WriteBits</a>
+<a id="6894" class="Keyword">import</a> <a id="6901" href="Conformance.Builtin.Semantics.XorByteString.html" class="Module">Conformance.Builtin.Semantics.XorByteString</a>
+<a id="6945" class="Keyword">import</a> <a id="6952" href="Conformance.Example.html" class="Module">Conformance.Example</a>
+<a id="6972" class="Keyword">import</a> <a id="6979" href="Conformance.Term.html" class="Module">Conformance.Term</a>
+<a id="6996" class="Keyword">import</a> <a id="7003" href="Conformance.Term.App.html" class="Module">Conformance.Term.App</a>
+<a id="7024" class="Keyword">import</a> <a id="7031" href="Conformance.Term.Case.html" class="Module">Conformance.Term.Case</a>
+<a id="7053" class="Keyword">import</a> <a id="7060" href="Conformance.Term.ConstantCase.Bool.html" class="Module">Conformance.Term.ConstantCase.Bool</a>
+<a id="7095" class="Keyword">import</a> <a id="7102" href="Conformance.Term.ConstantCase.Data.html" class="Module">Conformance.Term.ConstantCase.Data</a>
+<a id="7137" class="Keyword">import</a> <a id="7144" href="Conformance.Term.ConstantCase.Integer.html" class="Module">Conformance.Term.ConstantCase.Integer</a>
+<a id="7182" class="Keyword">import</a> <a id="7189" href="Conformance.Term.ConstantCase.List.html" class="Module">Conformance.Term.ConstantCase.List</a>
+<a id="7224" class="Keyword">import</a> <a id="7231" href="Conformance.Term.ConstantCase.Pair.html" class="Module">Conformance.Term.ConstantCase.Pair</a>
+<a id="7266" class="Keyword">import</a> <a id="7273" href="Conformance.Term.ConstantCase.Unit.html" class="Module">Conformance.Term.ConstantCase.Unit</a>
+<a id="7308" class="Keyword">import</a> <a id="7315" href="Conformance.Term.Constr.html" class="Module">Conformance.Term.Constr</a>
+<a id="7339" class="Keyword">import</a> <a id="7346" href="Conformance.Term.Delay.html" class="Module">Conformance.Term.Delay</a>
+<a id="7369" class="Keyword">import</a> <a id="7376" href="Conformance.Term.Force.html" class="Module">Conformance.Term.Force</a>
+<a id="7399" class="Keyword">import</a> <a id="7406" href="Conformance.Term.FreeVars.html" class="Module">Conformance.Term.FreeVars</a>
+<a id="7432" class="Keyword">import</a> <a id="7439" href="Conformance.Term.Lam.html" class="Module">Conformance.Term.Lam</a>
+<a id="7460" class="Keyword">import</a> <a id="7467" href="Conformance.Term.Parser.Constr.html" class="Module">Conformance.Term.Parser.Constr</a>
+</pre>
+
+    </section>
+  </body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Evaluation.Builtins.Conformance.Suites</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.72.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Evaluation.Builtins.Conformance.Suites.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Evaluation.Builtins.Conformance.Suites</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Registry of the builtin property suites that generate conformance cases.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Generator"
+	      >Generator</a
+	      > = <a href="Evaluation-Builtins-Conformance.html#t:OutputFormat" title="Evaluation.Builtins.Conformance"
+	      >OutputFormat</a
+	      > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	      >CheckMode</a
+	      > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyFilter" title="Evaluation.Builtins.Conformance"
+	      >PropertyFilter</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; QCGen &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > [<a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+	      >PropertyReport</a
+	      >]</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Suite"
+	      >Suite</a
+	      > = ([<a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	      >PropertyId</a
+	      >], <a href="Evaluation-Builtins-Conformance-Suites.html#t:Generator" title="Evaluation.Builtins.Conformance.Suites"
+	      >Generator</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:allSuites"
+	      >allSuites</a
+	      > &#8759; [<a href="Evaluation-Builtins-Conformance-Suites.html#t:Suite" title="Evaluation.Builtins.Conformance.Suites"
+	      >Suite</a
+	      >]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Generator" class="def"
+	    >Generator</a
+	    > = <a href="Evaluation-Builtins-Conformance.html#t:OutputFormat" title="Evaluation.Builtins.Conformance"
+	    >OutputFormat</a
+	    > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:CheckMode" title="Evaluation.Builtins.Conformance"
+	    >CheckMode</a
+	    > &#8594; <a href="Evaluation-Builtins-Conformance.html#t:PropertyFilter" title="Evaluation.Builtins.Conformance"
+	    >PropertyFilter</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; QCGen &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > [<a href="Evaluation-Builtins-Conformance.html#t:PropertyReport" title="Evaluation.Builtins.Conformance"
+	    >PropertyReport</a
+	    >] <a href="src/Evaluation.Builtins.Conformance.Suites.html#Generator" class="link"
+	    >Source</a
+	    > <a href="#t:Generator" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Writes conformance cases for one suite, filtered by property.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Suite" class="def"
+	    >Suite</a
+	    > = ([<a href="Evaluation-Builtins-Conformance.html#t:PropertyId" title="Evaluation.Builtins.Conformance"
+	    >PropertyId</a
+	    >], <a href="Evaluation-Builtins-Conformance-Suites.html#t:Generator" title="Evaluation.Builtins.Conformance.Suites"
+	    >Generator</a
+	    >) <a href="src/Evaluation.Builtins.Conformance.Suites.html#Suite" class="link"
+	    >Source</a
+	    > <a href="#t:Suite" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A suite's property identifiers together with the generator for its cases.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:allSuites" class="def"
+	    >allSuites</a
+	    > &#8759; [<a href="Evaluation-Builtins-Conformance-Suites.html#t:Suite" title="Evaluation.Builtins.Conformance.Suites"
+	    >Suite</a
+	    >] <a href="src/Evaluation.Builtins.Conformance.Suites.html#allSuites" class="link"
+	    >Source</a
+	    > <a href="#v:allSuites" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Every suite that can generate conformance cases, in output order.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

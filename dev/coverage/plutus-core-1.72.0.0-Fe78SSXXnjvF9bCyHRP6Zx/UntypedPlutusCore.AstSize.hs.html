@@ -1,0 +1,46 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>module UntypedPlutusCore.AstSize
+<span class="lineno">    2 </span>  ( AstSize (..)
+<span class="lineno">    3 </span>  , termAstSize
+<span class="lineno">    4 </span>  , programAstSize
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import PlutusCore.AstSize (AstSize (..))
+<span class="lineno">    8 </span>import UntypedPlutusCore.Core
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Control.Lens
+<span class="lineno">   11 </span>import Data.Foldable
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>-- | Count the number of AST nodes in a term.
+<span class="lineno">   14 </span>termAstSize :: Term name uni fun ann -&gt; AstSize
+<span class="lineno">   15 </span><span class="decl"><span class="istickedoff">termAstSize term =</span>
+<span class="lineno">   16 </span><span class="spaces">  </span><span class="istickedoff">fold</span>
+<span class="lineno">   17 </span><span class="spaces">    </span><span class="istickedoff">[ AstSize 1</span>
+<span class="lineno">   18 </span><span class="spaces">    </span><span class="istickedoff">, term ^. termSubterms . to termAstSize</span>
+<span class="lineno">   19 </span><span class="spaces">    </span><span class="istickedoff">]</span></span>
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>-- | Count the number of AST nodes in a program.
+<span class="lineno">   22 </span>programAstSize :: Program name uni fun ann -&gt; AstSize
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">programAstSize (Program _ _ t) = termAstSize t</span></span>
+
+</pre>
+</body>
+</html>

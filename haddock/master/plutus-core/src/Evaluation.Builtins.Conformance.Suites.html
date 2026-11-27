@@ -1,0 +1,1313 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Registry of the builtin property suites that generate conformance cases.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Evaluation.Builtins.Conformance.Suites</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.Suites.html#Generator"
+	><span class="hs-identifier"
+	  >Generator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.Suites.html#Suite"
+	><span class="hs-identifier"
+	  >Suite</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.Suites.html#allSuites"
+	><span class="hs-identifier"
+	  >allSuites</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Conformance</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckMode"
+	><span class="hs-identifier"
+	  >CheckMode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#OutputFormat"
+	><span class="hs-identifier"
+	  >OutputFormat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyFilter"
+	><span class="hs-identifier"
+	  >PropertyFilter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyId"
+	><span class="hs-identifier"
+	  >PropertyId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyReport"
+	><span class="hs-identifier"
+	  >PropertyReport</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.BLS12_381</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.html#bls12_381_property_names"
+	><span class="hs-identifier"
+	  >bls12_381_property_names</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.html#generate_bls12_381_properties"
+	><span class="hs-identifier"
+	  >generate_bls12_381_properties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.CIP0122.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Bitwise.CIP0122</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.CIP0122.html#bitwise_cip0122_property_names"
+	><span class="hs-identifier"
+	  >bitwise_cip0122_property_names</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.CIP0122.html#generate_bitwise_cip0122_properties"
+	><span class="hs-identifier"
+	  >generate_bitwise_cip0122_properties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.CIP0123.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Bitwise.CIP0123</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.CIP0123.html#bitwise_cip0123_property_names"
+	><span class="hs-identifier"
+	  >bitwise_cip0123_property_names</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Bitwise.CIP0123.html#generate_bitwise_cip0123_properties"
+	><span class="hs-identifier"
+	  >generate_bitwise_cip0123_properties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.DivModProperties.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Integer.DivModProperties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.DivModProperties.html#generate_integer_div_mod_properties"
+	><span class="hs-identifier"
+	  >generate_integer_div_mod_properties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.DivModProperties.html#integer_div_mod_property_names"
+	><span class="hs-identifier"
+	  >integer_div_mod_property_names</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Integer.ExpModIntegerProperties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#generate_integer_exp_mod_properties"
+	><span class="hs-identifier"
+	  >generate_integer_exp_mod_properties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#integer_exp_mod_property_names"
+	><span class="hs-identifier"
+	  >integer_exp_mod_property_names</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.OrderProperties.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Integer.OrderProperties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.OrderProperties.html#generate_integer_order_properties"
+	><span class="hs-identifier"
+	  >generate_integer_order_properties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.OrderProperties.html#integer_order_property_names"
+	><span class="hs-identifier"
+	  >integer_order_property_names</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Integer.QuotRemProperties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#generate_integer_quot_rem_properties"
+	><span class="hs-identifier"
+	  >generate_integer_quot_rem_properties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#integer_quot_rem_property_names"
+	><span class="hs-identifier"
+	  >integer_quot_rem_property_names</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.RingProperties.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Integer.RingProperties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.RingProperties.html#generate_integer_ring_properties"
+	><span class="hs-identifier"
+	  >generate_integer_ring_properties</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.RingProperties.html#integer_ring_property_names"
+	><span class="hs-identifier"
+	  >integer_ring_property_names</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Test.QuickCheck.Random</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>QCGen</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Writes conformance cases for one suite, filtered by property.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Generator"
+      ><span class="annot"
+	><a href="Evaluation.Builtins.Conformance.Suites.html#Generator"
+	  ><span class="hs-identifier hs-var"
+	    >Generator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#OutputFormat"
+	><span class="hs-identifier hs-type"
+	  >OutputFormat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckMode"
+	><span class="hs-identifier hs-type"
+	  >CheckMode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyFilter"
+	><span class="hs-identifier hs-type"
+	  >PropertyFilter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>QCGen</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	><span class="hs-identifier hs-type"
+	  >IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyReport"
+	><span class="hs-identifier hs-type"
+	  >PropertyReport</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A suite's property identifiers together with the generator for its cases.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Suite"
+      ><span class="annot"
+	><a href="Evaluation.Builtins.Conformance.Suites.html#Suite"
+	  ><span class="hs-identifier hs-var"
+	    >Suite</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyId"
+	><span class="hs-identifier hs-type"
+	  >PropertyId</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.Suites.html#Generator"
+	><span class="hs-identifier hs-type"
+	  >Generator</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Every suite that can generate conformance cases, in output order.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.Suites.html#allSuites"
+	><span class="hs-identifier hs-type"
+	  >allSuites</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.Suites.html#Suite"
+	><span class="hs-identifier hs-type"
+	  >Suite</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="allSuites"
+      ><span class="annot"
+	><span class="annottext"
+	  >allSuites :: [Suite]
+</span
+	  ><a href="Evaluation.Builtins.Conformance.Suites.html#allSuites"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >allSuites</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PropertyId]
+</span
+	><a href="Evaluation.Builtins.Integer.RingProperties.html#integer_ring_property_names"
+	><span class="hs-identifier hs-var"
+	  >integer_ring_property_names</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; CheckMode
+-&gt; PropertyFilter
+-&gt; FilePath
+-&gt; Int
+-&gt; QCGen
+-&gt; IO [PropertyReport]
+</span
+	><a href="Evaluation.Builtins.Integer.RingProperties.html#generate_integer_ring_properties"
+	><span class="hs-identifier hs-var"
+	  >generate_integer_ring_properties</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PropertyId]
+</span
+	><a href="Evaluation.Builtins.Integer.DivModProperties.html#integer_div_mod_property_names"
+	><span class="hs-identifier hs-var"
+	  >integer_div_mod_property_names</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; CheckMode
+-&gt; PropertyFilter
+-&gt; FilePath
+-&gt; Int
+-&gt; QCGen
+-&gt; IO [PropertyReport]
+</span
+	><a href="Evaluation.Builtins.Integer.DivModProperties.html#generate_integer_div_mod_properties"
+	><span class="hs-identifier hs-var"
+	  >generate_integer_div_mod_properties</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PropertyId]
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#integer_quot_rem_property_names"
+	><span class="hs-identifier hs-var"
+	  >integer_quot_rem_property_names</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; CheckMode
+-&gt; PropertyFilter
+-&gt; FilePath
+-&gt; Int
+-&gt; QCGen
+-&gt; IO [PropertyReport]
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#generate_integer_quot_rem_properties"
+	><span class="hs-identifier hs-var"
+	  >generate_integer_quot_rem_properties</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PropertyId]
+</span
+	><a href="Evaluation.Builtins.Integer.OrderProperties.html#integer_order_property_names"
+	><span class="hs-identifier hs-var"
+	  >integer_order_property_names</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; CheckMode
+-&gt; PropertyFilter
+-&gt; FilePath
+-&gt; Int
+-&gt; QCGen
+-&gt; IO [PropertyReport]
+</span
+	><a href="Evaluation.Builtins.Integer.OrderProperties.html#generate_integer_order_properties"
+	><span class="hs-identifier hs-var"
+	  >generate_integer_order_properties</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PropertyId]
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#integer_exp_mod_property_names"
+	><span class="hs-identifier hs-var"
+	  >integer_exp_mod_property_names</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; CheckMode
+-&gt; PropertyFilter
+-&gt; FilePath
+-&gt; Int
+-&gt; QCGen
+-&gt; IO [PropertyReport]
+</span
+	><a href="Evaluation.Builtins.Integer.ExpModIntegerProperties.html#generate_integer_exp_mod_properties"
+	><span class="hs-identifier hs-var"
+	  >generate_integer_exp_mod_properties</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PropertyId]
+</span
+	><a href="Evaluation.Builtins.Bitwise.CIP0122.html#bitwise_cip0122_property_names"
+	><span class="hs-identifier hs-var"
+	  >bitwise_cip0122_property_names</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; CheckMode
+-&gt; PropertyFilter
+-&gt; FilePath
+-&gt; Int
+-&gt; QCGen
+-&gt; IO [PropertyReport]
+</span
+	><a href="Evaluation.Builtins.Bitwise.CIP0122.html#generate_bitwise_cip0122_properties"
+	><span class="hs-identifier hs-var"
+	  >generate_bitwise_cip0122_properties</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PropertyId]
+</span
+	><a href="Evaluation.Builtins.Bitwise.CIP0123.html#bitwise_cip0123_property_names"
+	><span class="hs-identifier hs-var"
+	  >bitwise_cip0123_property_names</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; CheckMode
+-&gt; PropertyFilter
+-&gt; FilePath
+-&gt; Int
+-&gt; QCGen
+-&gt; IO [PropertyReport]
+</span
+	><a href="Evaluation.Builtins.Bitwise.CIP0123.html#generate_bitwise_cip0123_properties"
+	><span class="hs-identifier hs-var"
+	  >generate_bitwise_cip0123_properties</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PropertyId]
+</span
+	><a href="Evaluation.Builtins.BLS12_381.html#bls12_381_property_names"
+	><span class="hs-identifier hs-var"
+	  >bls12_381_property_names</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; CheckMode
+-&gt; PropertyFilter
+-&gt; FilePath
+-&gt; Int
+-&gt; QCGen
+-&gt; IO [PropertyReport]
+</span
+	><a href="Evaluation.Builtins.BLS12_381.html#generate_bls12_381_properties"
+	><span class="hs-identifier hs-var"
+	  >generate_bls12_381_properties</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

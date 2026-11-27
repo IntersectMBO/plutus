@@ -1,0 +1,70 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>{-|
+<span class="lineno">    4 </span>Transform multi-argument applications into case-constr form.
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>This is essentially the reverse of 'CaseReduce'. An application of 3 or more
+<span class="lineno">    7 </span>arguments, e.g., @f x y z@ is rewritten to @case (constr 0 [x, y, z]) [f]@,
+<span class="lineno">    8 </span>which is cheaper, and smaller in AST size, though it is sometimes slightly
+<span class="lineno">    9 </span>bigger in cbor size.
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>I cannot think of any case where this pass could enable further optimizations.
+<span class="lineno">   12 </span>It can certainly destroy optimization opportunities, similar to CSE.
+<span class="lineno">   13 </span>So it should only be run once, at the very end of the pipeline. CSE is also
+<span class="lineno">   14 </span>run at the end, but it runs for multiple iterations interleaved with other
+<span class="lineno">   15 </span>optimizations, because CSE can both destroy and enable further optimizations. -}
+<span class="lineno">   16 </span>module UntypedPlutusCore.Transform.ApplyToCase (applyToCase) where
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Control.Lens (over)
+<span class="lineno">   19 </span>import Data.Vector qualified as V
+<span class="lineno">   20 </span>import PlutusPrelude (getAnn)
+<span class="lineno">   21 </span>import UntypedPlutusCore.Core
+<span class="lineno">   22 </span>import UntypedPlutusCore.Transform.Optimizer
+<span class="lineno">   23 </span>  ( OptimizerT
+<span class="lineno">   24 </span>  , recordOptimization
+<span class="lineno">   25 </span>  , pattern ApplyToCaseStage
+<span class="lineno">   26 </span>  )
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>minArgs :: Int
+<span class="lineno">   29 </span><span class="decl"><span class="istickedoff">minArgs = 3</span></span>
+<span class="lineno">   30 </span>{-# INLINE minArgs #-}
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>applyToCase
+<span class="lineno">   33 </span>  :: Monad m
+<span class="lineno">   34 </span>  =&gt; Term name uni fun a
+<span class="lineno">   35 </span>  -&gt; OptimizerT name uni fun a m (Term name uni fun a)
+<span class="lineno">   36 </span><span class="decl"><span class="istickedoff">applyToCase term = do</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="istickedoff">let result = processTerm term</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">recordOptimization term ApplyToCaseStage result</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">pure result</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>processTerm :: Term name uni fun a -&gt; Term name uni fun a
+<span class="lineno">   42 </span><span class="decl"><span class="istickedoff">processTerm t = case splitApplication t of</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff">(fun, args)</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="istickedoff">| length args &gt;= minArgs -&gt;</span>
+<span class="lineno">   45 </span><span class="spaces">        </span><span class="istickedoff">let ann = getAnn t</span>
+<span class="lineno">   46 </span><span class="spaces">         </span><span class="istickedoff">in Case ann (Constr ann 0 (processTerm . snd &lt;$&gt; args)) (V.singleton (processTerm fun))</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">_ -&gt; over termSubterms processTerm t</span></span>
+
+</pre>
+</body>
+</html>

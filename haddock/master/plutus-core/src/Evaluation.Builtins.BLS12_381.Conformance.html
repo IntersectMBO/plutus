@@ -1,0 +1,3928 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE GADTs #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Unevaluated BLS checks shared by normal tests and conformance generation.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Evaluation.Builtins.BLS12_381.Conformance</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.Conformance.html#generateBlsPropertyFiles"
+	><span class="hs-identifier"
+	  >generateBlsPropertyFiles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.Conformance.html#hasCompressionBit"
+	><span class="hs-identifier"
+	  >hasCompressionBit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.Utils.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.BLS12_381.Utils</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.Utils.html#compressionBit"
+	><span class="hs-identifier"
+	  >compressionBit</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.Utils.html#isSet"
+	><span class="hs-identifier"
+	  >isSet</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#TypeErrorOrCekResult"
+	><span class="hs-identifier"
+	  >TypeErrorOrCekResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#bytestring"
+	><span class="hs-identifier"
+	  >bytestring</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#mkApp1"
+	><span class="hs-identifier"
+	  >mkApp1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Conformance</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckMode"
+	><span class="hs-identifier"
+	  >CheckMode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Generated"
+	><span class="hs-identifier"
+	  >Generated</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#OutputFormat"
+	><span class="hs-identifier"
+	  >OutputFormat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyId"
+	><span class="hs-identifier"
+	  >PropertyId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#TermCase"
+	><span class="hs-identifier"
+	  >TermCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#caseTermsUnchecked"
+	><span class="hs-identifier"
+	  >caseTermsUnchecked</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#generateTermFiles"
+	><span class="hs-identifier"
+	  >generateTermFiles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#guardCheck"
+	><span class="hs-identifier"
+	  >guardCheck</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#propertySeed"
+	><span class="hs-identifier"
+	  >propertySeed</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#samplingSize"
+	><span class="hs-identifier"
+	  >samplingSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G1.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Crypto.BLS12_381.G1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>G1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G2.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Crypto.BLS12_381.G2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>G2</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#builtin"
+	><span class="hs-identifier"
+	  >builtin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkIterAppNoAnn"
+	><span class="hs-identifier"
+	  >mkIterAppNoAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkTyBuiltinOf"
+	><span class="hs-identifier"
+	  >mkTyBuiltinOf</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>transformOf</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Test.QuickCheck</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Gen</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>infiniteListOf</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Test.QuickCheck.Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>unGen</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Test.QuickCheck.Random</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>QCGen</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The evaluated term returned a bytestring with the compression bit set.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.Conformance.html#hasCompressionBit"
+	><span class="hs-identifier hs-type"
+	  >hasCompressionBit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#TypeErrorOrCekResult"
+	><span class="hs-identifier hs-type"
+	  >TypeErrorOrCekResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="hasCompressionBit"
+      ><span class="annot"
+	><span class="annottext"
+	  >hasCompressionBit :: TypeErrorOrCekResult -&gt; Bool
+</span
+	  ><a href="Evaluation.Builtins.BLS12_381.Conformance.html#hasCompressionBit"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >hasCompressionBit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#CekSuccess"
+	><span class="hs-identifier hs-type"
+	  >CekSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >PLC.Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >PLC.ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultUni (Esc a)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUniByteString"
+	><span class="hs-identifier hs-var"
+	  >PLC.DefaultUniByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278564"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679278564"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8 -&gt; ByteString -&gt; Bool
+</span
+	><a href="Evaluation.Builtins.BLS12_381.Utils.html#isSet"
+	><span class="hs-identifier hs-var"
+	  >isSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><a href="Evaluation.Builtins.BLS12_381.Utils.html#compressionBit"
+	><span class="hs-identifier hs-var"
+	  >compressionBit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+ByteString
+</span
+	><a href="#local-6989586621679278564"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.Conformance.html#hasCompressionBit"
+	><span class="hs-identifier hs-var"
+	  >hasCompressionBit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The caller supplies the group's compressor for group-valued results.
+Pairing tests return booleans and keep intermediate MlResult values inside
+the program, so no non-serialisable value escapes into a generated test case. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.Conformance.html#generateBlsPropertyFiles"
+	><span class="hs-identifier hs-type"
+	  >generateBlsPropertyFiles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#OutputFormat"
+	><span class="hs-identifier hs-type"
+	  >OutputFormat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckMode"
+	><span class="hs-identifier hs-type"
+	  >CheckMode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#FilePath"
+	><span class="hs-identifier hs-type"
+	  >FilePath</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>QCGen</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#PropertyId"
+	><span class="hs-identifier hs-type"
+	  >PropertyId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Gen</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Check"
+	><span class="hs-identifier hs-type"
+	  >Check</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	><span class="hs-identifier hs-type"
+	  >IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#Generated"
+	><span class="hs-identifier hs-type"
+	  >Generated</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="generateBlsPropertyFiles"
+      ><span class="annot"
+	><span class="annottext"
+	  >generateBlsPropertyFiles :: OutputFormat
+-&gt; CheckMode
+-&gt; FilePath
+-&gt; Int
+-&gt; QCGen
+-&gt; PropertyId
+-&gt; FilePath
+-&gt; (PlcTerm -&gt; PlcTerm)
+-&gt; Gen Check
+-&gt; IO Generated
+</span
+	  ><a href="Evaluation.Builtins.BLS12_381.Conformance.html#generateBlsPropertyFiles"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >generateBlsPropertyFiles</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278565"
+      ><span class="annot"
+	><span class="annottext"
+	  >OutputFormat
+</span
+	  ><a href="#local-6989586621679278565"
+	  ><span class="hs-identifier hs-var"
+	    >format</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278566"
+      ><span class="annot"
+	><span class="annottext"
+	  >CheckMode
+</span
+	  ><a href="#local-6989586621679278566"
+	  ><span class="hs-identifier hs-var"
+	    >mode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278567"
+      ><span class="annot"
+	><span class="annottext"
+	  >FilePath
+</span
+	  ><a href="#local-6989586621679278567"
+	  ><span class="hs-identifier hs-var"
+	    >outputDir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278568"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679278568"
+	  ><span class="hs-identifier hs-var"
+	    >numCases</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278569"
+      ><span class="annot"
+	><span class="annottext"
+	  >QCGen
+</span
+	  ><a href="#local-6989586621679278569"
+	  ><span class="hs-identifier hs-var"
+	    >seed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278570"
+      ><span class="annot"
+	><span class="annottext"
+	  >PropertyId
+</span
+	  ><a href="#local-6989586621679278570"
+	  ><span class="hs-identifier hs-var"
+	    >propertyId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278571"
+      ><span class="annot"
+	><span class="annottext"
+	  >FilePath
+</span
+	  ><a href="#local-6989586621679278571"
+	  ><span class="hs-identifier hs-var"
+	    >description</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278572"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm -&gt; PlcTerm
+</span
+	  ><a href="#local-6989586621679278572"
+	  ><span class="hs-identifier hs-var"
+	    >compressResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278573"
+      ><span class="annot"
+	><span class="annottext"
+	  >Gen Check
+</span
+	  ><a href="#local-6989586621679278573"
+	  ><span class="hs-identifier hs-var"
+	    >gen</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+-&gt; FilePath
+-&gt; Int
+-&gt; PropertyId
+-&gt; FilePath
+-&gt; [TermCase]
+-&gt; IO Generated
+</span
+	><a href="Evaluation.Builtins.Conformance.html#generateTermFiles"
+	><span class="hs-identifier hs-var"
+	  >generateTermFiles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OutputFormat
+</span
+	><a href="#local-6989586621679278565"
+	><span class="hs-identifier hs-var"
+	  >format</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="#local-6989586621679278567"
+	><span class="hs-identifier hs-var"
+	  >outputDir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679278568"
+	><span class="hs-identifier hs-var"
+	  >numCases</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyId
+</span
+	><a href="#local-6989586621679278570"
+	><span class="hs-identifier hs-var"
+	  >propertyId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><a href="#local-6989586621679278571"
+	><span class="hs-identifier hs-var"
+	  >description</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([TermCase] -&gt; IO Generated) -&gt; [TermCase] -&gt; IO Generated
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Check -&gt; [TermCase]) -&gt; [Check] -&gt; [TermCase]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#concatMap"
+	><span class="hs-identifier hs-var"
+	  >concatMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; [TermCase]
+</span
+	><a href="#local-6989586621679278575"
+	><span class="hs-identifier hs-var"
+	  >termCases</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Check]
+</span
+	><a href="#local-6989586621679278576"
+	><span class="hs-identifier hs-var"
+	  >cases</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679278576"
+      ><span class="annot"
+	><span class="annottext"
+	  >cases :: [Check]
+</span
+	  ><a href="#local-6989586621679278576"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cases</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen [Check] -&gt; QCGen -&gt; Int -&gt; [Check]
+forall a. Gen a -&gt; QCGen -&gt; Int -&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>unGen</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Check -&gt; Gen [Check]
+forall a. Gen a -&gt; Gen [a]
+</span
+	><span class="hs-identifier hs-var"
+	>infiniteListOf</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen Check
+</span
+	><a href="#local-6989586621679278573"
+	><span class="hs-identifier hs-var"
+	  >gen</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>QCGen -&gt; PropertyId -&gt; QCGen
+</span
+	><a href="Evaluation.Builtins.Conformance.html#propertySeed"
+	><span class="hs-identifier hs-var"
+	  >propertySeed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>QCGen
+</span
+	><a href="#local-6989586621679278569"
+	><span class="hs-identifier hs-var"
+	  >seed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PropertyId
+</span
+	><a href="#local-6989586621679278570"
+	><span class="hs-identifier hs-var"
+	  >propertyId</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="Evaluation.Builtins.Conformance.html#samplingSize"
+	><span class="hs-identifier hs-var"
+	  >samplingSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679278577"
+      ><span class="annot"
+	><span class="annottext"
+	  >groupResult :: PlcTerm -&gt; PlcTerm
+</span
+	  ><a href="#local-6989586621679278577"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >groupResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.BLS12_381.Conformance.html#portableTerm"
+	><span class="hs-identifier hs-var"
+	  >portableTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; PlcTerm) -&gt; (PlcTerm -&gt; PlcTerm) -&gt; PlcTerm -&gt; PlcTerm
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278572"
+	><span class="hs-identifier hs-var"
+	  >compressResult</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- The property is checked on the original check, as the normal tests do,</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- and only then are the terms rewritten for export.</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679278575"
+      ><span class="annot"
+	><span class="annottext"
+	  >termCases :: Check -&gt; [TermCase]
+</span
+	  ><a href="#local-6989586621679278575"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >termCases</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278580"
+      ><span class="annot"
+	><span class="annottext"
+	  >Check
+</span
+	  ><a href="#local-6989586621679278580"
+	  ><span class="hs-identifier hs-var"
+	    >check</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CheckMode -&gt; Check -&gt; [TermCase] -&gt; [TermCase]
+</span
+	><a href="Evaluation.Builtins.Conformance.html#guardCheck"
+	><span class="hs-identifier hs-var"
+	  >guardCheck</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CheckMode
+</span
+	><a href="#local-6989586621679278566"
+	><span class="hs-identifier hs-var"
+	  >mode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check
+</span
+	><a href="#local-6989586621679278580"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; [TermCase]
+</span
+	><a href="#local-6989586621679278581"
+	><span class="hs-identifier hs-var"
+	  >portableTermCases</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check
+</span
+	><a href="#local-6989586621679278580"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Group-valued results are compressed so that the exported programs and</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- their expected results can be encoded.</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679278581"
+      ><span class="annot"
+	><span class="annottext"
+	  >portableTermCases :: Check -&gt; [TermCase]
+</span
+	  ><a href="#local-6989586621679278581"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >portableTermCases</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278582"
+      ><span class="annot"
+	><span class="annottext"
+	  >Check
+</span
+	  ><a href="#local-6989586621679278582"
+	  ><span class="hs-identifier hs-var"
+	    >check</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check
+</span
+	><a href="#local-6989586621679278582"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckEq"
+	><span class="hs-identifier hs-type"
+	  >CheckEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278584"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679278584"
+	  ><span class="hs-identifier hs-var"
+	    >lhs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278585"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679278585"
+	  ><span class="hs-identifier hs-var"
+	    >rhs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; TermCase
+</span
+	><a href="Evaluation.Builtins.Conformance.html#EqualTerms"
+	><span class="hs-identifier hs-var"
+	  >EqualTerms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278577"
+	><span class="hs-identifier hs-var"
+	  >groupResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679278584"
+	><span class="hs-identifier hs-var"
+	  >lhs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278577"
+	><span class="hs-identifier hs-var"
+	  >groupResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679278585"
+	><span class="hs-identifier hs-var"
+	  >rhs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckEvaluatesTo"
+	><span class="hs-identifier hs-type"
+	  >CheckEvaluatesTo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278588"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679278588"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult
+</span
+	><a href="Evaluation.Builtins.Common.html#CekError"
+	><span class="hs-identifier hs-var"
+	  >CekError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; TermCase
+</span
+	><a href="Evaluation.Builtins.Conformance.html#SingleTerm"
+	><span class="hs-identifier hs-var"
+	  >SingleTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278577"
+	><span class="hs-identifier hs-var"
+	  >groupResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679278588"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckEvaluatesTo"
+	><span class="hs-identifier hs-type"
+	  >CheckEvaluatesTo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278591"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679278591"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; TermCase
+</span
+	><a href="Evaluation.Builtins.Conformance.html#SingleTerm"
+	><span class="hs-identifier hs-var"
+	  >SingleTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.BLS12_381.Conformance.html#portableTerm"
+	><span class="hs-identifier hs-var"
+	  >portableTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679278591"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckSatisfies"
+	><span class="hs-identifier hs-type"
+	  >CheckSatisfies</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FilePath
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278593"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679278593"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeErrorOrCekResult -&gt; Bool
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; TermCase
+</span
+	><a href="Evaluation.Builtins.Conformance.html#SingleTerm"
+	><span class="hs-identifier hs-var"
+	  >SingleTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.BLS12_381.Conformance.html#portableTerm"
+	><span class="hs-identifier hs-var"
+	  >portableTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679278593"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckDistinct"
+	><span class="hs-identifier hs-type"
+	  >CheckDistinct</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278595"
+      ><span class="annot"
+	><span class="annottext"
+	  >[PlcTerm]
+</span
+	  ><a href="#local-6989586621679278595"
+	  ><span class="hs-identifier hs-var"
+	    >terms</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; TermCase) -&gt; [PlcTerm] -&gt; [TermCase]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; TermCase
+</span
+	><a href="Evaluation.Builtins.Conformance.html#SingleTerm"
+	><span class="hs-identifier hs-var"
+	  >SingleTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; TermCase)
+-&gt; (PlcTerm -&gt; PlcTerm) -&gt; PlcTerm -&gt; TermCase
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278577"
+	><span class="hs-identifier hs-var"
+	  >groupResult</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[PlcTerm]
+</span
+	><a href="#local-6989586621679278595"
+	><span class="hs-identifier hs-var"
+	  >terms</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckBoth"
+	><span class="hs-identifier hs-type"
+	  >CheckBoth</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278597"
+      ><span class="annot"
+	><span class="annottext"
+	  >Check
+</span
+	  ><a href="#local-6989586621679278597"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278598"
+      ><span class="annot"
+	><span class="annottext"
+	  >Check
+</span
+	  ><a href="#local-6989586621679278598"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; [TermCase]
+</span
+	><a href="#local-6989586621679278581"
+	><span class="hs-identifier hs-var"
+	  >portableTermCases</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check
+</span
+	><a href="#local-6989586621679278597"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TermCase] -&gt; [TermCase] -&gt; [TermCase]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; [TermCase]
+</span
+	><a href="#local-6989586621679278581"
+	><span class="hs-identifier hs-var"
+	  >portableTermCases</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check
+</span
+	><a href="#local-6989586621679278598"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Conformance.html#CheckImplies"
+	><span class="hs-identifier hs-type"
+	  >CheckImplies</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278600"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679278600"
+	  ><span class="hs-identifier hs-var"
+	    >condition</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278601"
+      ><span class="annot"
+	><span class="annottext"
+	  >Check
+</span
+	  ><a href="#local-6989586621679278601"
+	  ><span class="hs-identifier hs-var"
+	    >inner</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679278600"
+	><span class="hs-identifier hs-var"
+	  >condition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; [TermCase]
+</span
+	><a href="#local-6989586621679278581"
+	><span class="hs-identifier hs-var"
+	  >portableTermCases</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check
+</span
+	><a href="#local-6989586621679278601"
+	><span class="hs-identifier hs-var"
+	  >inner</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check -&gt; [TermCase]
+</span
+	><a href="Evaluation.Builtins.Conformance.html#caseTermsUnchecked"
+	><span class="hs-identifier hs-var"
+	  >caseTermsUnchecked</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Check
+</span
+	><a href="#local-6989586621679278582"
+	><span class="hs-identifier hs-var"
+	  >check</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Group constants cannot be encoded in Flat. Reconstruct inputs from their
+compressed bytes at runtime, including elements in multiScalarMul's lists.
+This transformation runs only on exported scripts; normal properties retain
+their original constant inputs. Budgets are measured after this transformation. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.Conformance.html#portableTerm"
+	><span class="hs-identifier hs-type"
+	  >portableTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span id="portableTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >portableTerm :: PlcTerm -&gt; PlcTerm
+</span
+	  ><a href="Evaluation.Builtins.BLS12_381.Conformance.html#portableTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >portableTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter PlcTerm PlcTerm PlcTerm PlcTerm
+-&gt; (PlcTerm -&gt; PlcTerm) -&gt; PlcTerm -&gt; PlcTerm
+forall a b. ASetter a b a b -&gt; (b -&gt; b) -&gt; a -&gt; b
+</span
+	><span class="hs-identifier hs-var"
+	>transformOf</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter PlcTerm PlcTerm PlcTerm PlcTerm
+forall tyname name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+Applicative f =&gt;
+(Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann))
+-&gt; Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Plated.html#termSubterms"
+	><span class="hs-identifier hs-var"
+	  >PLC.termSubterms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278603"
+	><span class="hs-identifier hs-var"
+	  >replaceConstant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679278603"
+	><span class="hs-identifier hs-type"
+	  >replaceConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679278603"
+      ><span class="annot"
+	><span class="annottext"
+	  >replaceConstant :: PlcTerm -&gt; PlcTerm
+</span
+	  ><a href="#local-6989586621679278603"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >replaceConstant</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-type"
+	  >PLC.Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >PLC.Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >PLC.ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultUni (Esc a)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUniBLS12_381_G1_Element"
+	><span class="hs-identifier hs-var"
+	  >PLC.DefaultUniBLS12_381_G1_Element</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278608"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679278608"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278609"
+	><span class="hs-identifier hs-var"
+	  >g1Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+Element
+</span
+	><a href="#local-6989586621679278608"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679278603"
+	><span class="hs-identifier hs-var"
+	  >replaceConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-type"
+	  >PLC.Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >PLC.Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >PLC.ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultUni (Esc a)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUniBLS12_381_G2_Element"
+	><span class="hs-identifier hs-var"
+	  >PLC.DefaultUniBLS12_381_G2_Element</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278613"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679278613"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278614"
+	><span class="hs-identifier hs-var"
+	  >g2Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+Element
+</span
+	><a href="#local-6989586621679278613"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679278603"
+	><span class="hs-identifier hs-var"
+	  >replaceConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-type"
+	  >PLC.Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >PLC.Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >PLC.ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUniList"
+	><span class="hs-identifier hs-type"
+	  >PLC.DefaultUniList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultUni (Esc a1)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUniBLS12_381_G1_Element"
+	><span class="hs-identifier hs-var"
+	  >PLC.DefaultUniBLS12_381_G1_Element</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679278632"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679278632"
+	  ><span class="hs-identifier hs-var"
+	    >ps</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall g. Contains DefaultUni g =&gt; (g -&gt; PlcTerm) -&gt; [g] -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.BLS12_381.Conformance.html#pointList"
+	><span class="hs-identifier hs-var"
+	  >pointList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G1.html#Element"
+	><span class="hs-identifier hs-type"
+	  >G1.Element</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278609"
+	><span class="hs-identifier hs-var"
+	  >g1Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+[Element]
+</span
+	><a href="#local-6989586621679278632"
+	><span class="hs-identifier hs-var"
+	  >ps</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679278603"
+	><span class="hs-identifier hs-var"
+	  >replaceConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Constant"
+	><span class="hs-identifier hs-type"
+	  >PLC.Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >PLC.Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >PLC.ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUniList"
+	><span class="hs-identifier hs-type"
+	  >PLC.DefaultUniList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultUni (Esc a1)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUniBLS12_381_G2_Element"
+	><span class="hs-identifier hs-var"
+	  >PLC.DefaultUniBLS12_381_G2_Element</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679278650"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679278650"
+	  ><span class="hs-identifier hs-var"
+	    >ps</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall g. Contains DefaultUni g =&gt; (g -&gt; PlcTerm) -&gt; [g] -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.BLS12_381.Conformance.html#pointList"
+	><span class="hs-identifier hs-var"
+	  >pointList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G2.html#Element"
+	><span class="hs-identifier hs-type"
+	  >G2.Element</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278614"
+	><span class="hs-identifier hs-var"
+	  >g2Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+[Element]
+</span
+	><a href="#local-6989586621679278650"
+	><span class="hs-identifier hs-var"
+	  >ps</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679278603"
+	><span class="hs-identifier hs-var"
+	  >replaceConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278651"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679278651"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679278651"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679278609"
+      ><span class="annot"
+	><span class="annottext"
+	  >g1Term :: Element -&gt; PlcTerm
+</span
+	  ><a href="#local-6989586621679278609"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >g1Term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp1"
+	><span class="hs-identifier hs-var"
+	  >mkApp1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G1_uncompress"
+	><span class="hs-identifier hs-var"
+	  >PLC.Bls12_381_G1_uncompress</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; PlcTerm) -&gt; (Element -&gt; PlcTerm) -&gt; Element -&gt; PlcTerm
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#bytestring"
+	><span class="hs-identifier hs-var"
+	  >bytestring</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; PlcTerm)
+-&gt; (Element -&gt; ByteString) -&gt; Element -&gt; PlcTerm
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element -&gt; ByteString
+</span
+	><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G1.html#compress"
+	><span class="hs-identifier hs-var"
+	  >G1.compress</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679278614"
+      ><span class="annot"
+	><span class="annottext"
+	  >g2Term :: Element -&gt; PlcTerm
+</span
+	  ><a href="#local-6989586621679278614"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >g2Term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#mkApp1"
+	><span class="hs-identifier hs-var"
+	  >mkApp1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Bls12_381_G2_uncompress"
+	><span class="hs-identifier hs-var"
+	  >PLC.Bls12_381_G2_uncompress</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; PlcTerm) -&gt; (Element -&gt; PlcTerm) -&gt; Element -&gt; PlcTerm
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#bytestring"
+	><span class="hs-identifier hs-var"
+	  >bytestring</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; PlcTerm)
+-&gt; (Element -&gt; ByteString) -&gt; Element -&gt; PlcTerm
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element -&gt; ByteString
+</span
+	><a href="../../plutus-core/src/PlutusCore.Crypto.BLS12_381.G2.html#compress"
+	><span class="hs-identifier hs-var"
+	  >G2.compress</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.BLS12_381.Conformance.html#pointList"
+	><span class="hs-identifier hs-type"
+	  >pointList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679278477"
+      ><span class="annot"
+	><a href="#local-6989586621679278477"
+	  ><span class="hs-identifier hs-type"
+	    >g</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >PLC.DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#Contains"
+	><span class="hs-operator hs-type"
+	  >`PLC.Contains`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679278477"
+	><span class="hs-identifier hs-type"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621679278477"
+	><span class="hs-identifier hs-type"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621679278477"
+	><span class="hs-identifier hs-type"
+	  >g</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#PlcTerm"
+	><span class="hs-identifier hs-type"
+	  >PlcTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span id="pointList"
+      ><span class="annot"
+	><span class="annottext"
+	  >pointList :: forall g. Contains DefaultUni g =&gt; (g -&gt; PlcTerm) -&gt; [g] -&gt; PlcTerm
+</span
+	  ><a href="Evaluation.Builtins.BLS12_381.Conformance.html#pointList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >pointList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278670"
+      ><span class="annot"
+	><span class="annottext"
+	  >g -&gt; PlcTerm
+</span
+	  ><a href="#local-6989586621679278670"
+	  ><span class="hs-identifier hs-var"
+	    >pointTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(g -&gt; PlcTerm -&gt; PlcTerm) -&gt; PlcTerm -&gt; [g] -&gt; PlcTerm
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278672"
+	><span class="hs-identifier hs-var"
+	  >cons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; [g] -&gt; PlcTerm
+forall a (uni :: * -&gt; *) fun (term :: * -&gt; *) tyname name ann.
+(TermLike term tyname name uni fun, HasTermLevel uni a) =&gt;
+ann -&gt; a -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkConstant"
+	><span class="hs-identifier hs-var"
+	  >mkConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621679278477"
+	><span class="hs-identifier hs-type"
+	  >g</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679278672"
+      ><span class="annot"
+	><span class="annottext"
+	  >cons :: g -&gt; PlcTerm -&gt; PlcTerm
+</span
+	  ><a href="#local-6989586621679278672"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cons</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278673"
+      ><span class="annot"
+	><span class="annottext"
+	  >g
+</span
+	  ><a href="#local-6989586621679278673"
+	  ><span class="hs-identifier hs-var"
+	    >point</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679278674"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679278674"
+	  ><span class="hs-identifier hs-var"
+	    >rest</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; [PlcTerm] -&gt; PlcTerm
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun.
+TermLike term tyname name uni fun =&gt;
+term () -&gt; [term ()] -&gt; term ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkIterAppNoAnn"
+	><span class="hs-identifier hs-var"
+	  >mkIterAppNoAnn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; PlcTerm -&gt; Type TyName DefaultUni () -&gt; PlcTerm
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann
+-&gt; Term tyname name uni fun ann
+-&gt; Type tyname uni ann
+-&gt; Term tyname name uni fun ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyInst"
+	><span class="hs-identifier hs-var"
+	  >PLC.TyInst</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; DefaultFun -&gt; PlcTerm
+forall ann.
+ann -&gt; DefaultFun -&gt; Term TyName Name DefaultUni DefaultFun ann
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun ann.
+TermLike term tyname name uni fun =&gt;
+ann -&gt; fun -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#builtin"
+	><span class="hs-identifier hs-var"
+	  >builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#MkCons"
+	><span class="hs-identifier hs-var"
+	  >PLC.MkCons</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; DefaultUni (Esc g) -&gt; Type TyName DefaultUni ()
+forall k (a :: k) (uni :: * -&gt; *) tyname ann.
+ann -&gt; uni (Esc a) -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkTyBuiltinOf"
+	><span class="hs-identifier hs-var"
+	  >mkTyBuiltinOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultUni (Esc g)
+forall k (uni :: * -&gt; *) (a :: k). Contains uni a =&gt; uni (Esc a)
+</span
+	><a href="../../plutus-core/src/Universe.Core.html#knownUni"
+	><span class="hs-identifier hs-var"
+	  >PLC.knownUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >PLC.DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Universe.Core.html#Esc"
+	><span class="hs-identifier hs-type"
+	  >PLC.Esc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679278477"
+	><span class="hs-identifier hs-type"
+	  >g</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>g -&gt; PlcTerm
+</span
+	><a href="#local-6989586621679278670"
+	><span class="hs-identifier hs-var"
+	  >pointTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>g
+</span
+	><a href="#local-6989586621679278673"
+	><span class="hs-identifier hs-var"
+	  >point</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679278674"
+	><span class="hs-identifier hs-var"
+	  >rest</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

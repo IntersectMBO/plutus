@@ -1,0 +1,64 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>-- TODO: Extend this to handle the different variants of the cost model
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>{-| A program to parse a JSON representation of costing functions for Plutus Core
+<span class="lineno">    7 </span>   builtins and and produce a simple cost model which can be used from Agda and other
+<span class="lineno">    8 </span>   executables -}
+<span class="lineno">    9 </span>module PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
+<span class="lineno">   10 </span>  ( BuiltinCostMap
+<span class="lineno">   11 </span>  , BuiltinCostKeyMap
+<span class="lineno">   12 </span>  , toSimpleBuiltinCostModel
+<span class="lineno">   13 </span>  , defaultSimpleBuiltinCostModel
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import Data.Aeson.Key as Key (toText)
+<span class="lineno">   17 </span>import Data.Aeson.KeyMap qualified as KeyMap
+<span class="lineno">   18 </span>import Data.Aeson.THReader (readJSONFromFile)
+<span class="lineno">   19 </span>import Data.Bifunctor
+<span class="lineno">   20 </span>import Data.Text (Text, replace)
+<span class="lineno">   21 </span>import PlutusCore.DataFilePaths qualified as DFP
+<span class="lineno">   22 </span>import PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>type BuiltinCostMap = [(Text, CpuAndMemoryModel)]
+<span class="lineno">   25 </span>type BuiltinCostKeyMap = KeyMap.KeyMap CpuAndMemoryModel
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>{-| The default builtin cost map.
+<span class="lineno">   28 </span>TODO: maybe we should take account of the semantic variant here. -}
+<span class="lineno">   29 </span>defaultBuiltinCostKeyMap :: BuiltinCostKeyMap
+<span class="lineno">   30 </span><span class="decl"><span class="nottickedoff">defaultBuiltinCostKeyMap =</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="nottickedoff">$$(readJSONFromFile DFP.latestBuiltinCostModelFile)</span></span>
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>-- replace underscores _ by dashes -
+<span class="lineno">   34 </span>builtinName :: Text -&gt; Text
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">builtinName = replace &quot;_&quot; &quot;-&quot;</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>toSimpleBuiltinCostModel :: BuiltinCostKeyMap -&gt; BuiltinCostMap
+<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">toSimpleBuiltinCostModel m = map (first (builtinName . toText)) (KeyMap.toList m)</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>defaultSimpleBuiltinCostModel :: BuiltinCostMap
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">defaultSimpleBuiltinCostModel = toSimpleBuiltinCostModel defaultBuiltinCostKeyMap</span></span>
+
+</pre>
+</body>
+</html>
