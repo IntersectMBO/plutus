@@ -25,7 +25,7 @@ private variable
 ## Contexts
 
 A context `C : m ⊸ n ⊢` has a single hole `□` that is a placeholder for a term
-of type `m ⊢` to obtain a term of `n ⊢`.
+of type `m ⊢`. The overall context has scope `n`.
 
 ```
 data _⊸_⊢ : ℕ → ℕ → Set where
@@ -79,9 +79,11 @@ private variable
 
 ## Plugging
 
-Replace the hole by an (open) term.
+Replace the hole by a term.
+
 ```
 infix 9 _⟨_⟩
+
 _⟨_⟩ : m ⊸ n ⊢ → m ⊢ → n ⊢
 □ ⟨ t ⟩ = t
 (ƛ C) ⟨ t ⟩ = ƛ (C ⟨ t ⟩)
@@ -118,8 +120,8 @@ _∘_ : n ⊸ l ⊢
 ## Properties
 
 It doesn't matter if you
-- compose `C` and `D`, then plug in `M`
-- or plug `M` into `D`, then plug the result in `C`
+- first compose `C` and `D`, then plug `M` in the result
+- or first plug `M` into `D`, then plug the result in `C`
 
 ```
 plug-compose : (C ∘ D) ⟨ M ⟩ ≡ C ⟨ D ⟨ M ⟩ ⟩
@@ -161,20 +163,20 @@ module ContextualEquivalence
 module FocusExample where
 ```
 
-A plugged one-hole-context lets us focus on a specific sub term, exactly like a
-zipper. Consider this example term.
+A context is a term with a hole. Given a term that fits the context, we have a
+zipper, which lets us focus on a specific sub-term. Consider this example term.
 
 ```
   M₀ : 0 ⊢
-  M₀ = ƛ (` zero · ` zero)
+  M₀ = ƛ (` zero · error)
 ```
 
-We can focus on the first variable by "factoring out" a one-hole context and the
-subterm.
+We can focus on the variable sub term by splitting it in a one-hole context and
+the subterm, immediately plugging it back in.
 
 ```
   M₀' : 0 ⊢
-  M₀' = (ƛ (□ ·ₗ ` zero)) ⟨ ` zero ⟩
+  M₀' = (ƛ (□ ·ₗ error)) ⟨ ` zero ⟩
 
   _ : M₀ ≡ M₀'
   _ = refl
@@ -196,7 +198,7 @@ define a replacement step that replaces some sub term `M` by another term `N`.
   ID = ƛ (` zero)
 ```
 
-We can replace the first variable by `ID`.
+For example, we can replace the first variable by `ID`.
 
 ```
   _ : ƛ (` zero · ` zero) ↝ ƛ (ID · ` zero)
