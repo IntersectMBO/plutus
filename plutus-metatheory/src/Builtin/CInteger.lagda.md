@@ -68,8 +68,8 @@ maxBound = (+ pow2pred 18) - (+ 1)
 data CInteger : Set where
   cInt
     : (i : ℤ)
-    → i ≥ minBound
-    → i ≤ maxBound
+    → .(i ≥ minBound)
+    → .(i ≤ maxBound)
     → CInteger
 ```
 

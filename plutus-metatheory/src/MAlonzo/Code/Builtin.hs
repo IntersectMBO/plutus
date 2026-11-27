@@ -3071,7 +3071,7 @@ d_writeBITS_432 ::
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
     () MAlonzo.Code.Utils.T_ByteString_432
 d_writeBITS_432
-  = \s ps u -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) u
+  = \s ps u -> if toInteger (BS.length s) > Bitwise.maximumInputLength then Nothing else builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) u
 -- Builtin.replicateBYTE
 d_replicateBYTE_434 ::
   Integer ->
