@@ -110,7 +110,7 @@ test-suite example-builtin-value
   default-language: Haskell2010
   other-modules:    Paths_docusaurus_examples
   build-depends:
-    , base              ^>=4.18
+    , base              >=4.9   && <5
     , bytestring
     , plutus-core       ^>=1.72
     , plutus-tx         ^>=1.72
