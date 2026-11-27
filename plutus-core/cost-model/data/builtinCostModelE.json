@@ -1019,7 +1019,7 @@
       "arguments": {
         "intercept": 100181,
         "slope1": 726,
-        "slope2": 719
+        "slope2": 726
       },
       "type": "linear_in_y_and_z"
     },
@@ -1036,7 +1036,7 @@
       "arguments": {
         "intercept": 100181,
         "slope1": 726,
-        "slope2": 719
+        "slope2": 726
       },
       "type": "linear_in_y_and_z"
     },
@@ -1053,7 +1053,7 @@
       "arguments": {
         "intercept": 100181,
         "slope1": 726,
-        "slope2": 719
+        "slope2": 726
       },
       "type": "linear_in_y_and_z"
     },

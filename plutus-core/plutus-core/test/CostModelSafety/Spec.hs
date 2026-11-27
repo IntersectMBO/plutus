@@ -46,6 +46,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , ValueTotalSize
   )
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
+import PlutusCore.Generators.QuickCheck.Builtin (arbitraryBuiltin)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
@@ -74,6 +75,7 @@ import Test.Tasty.HUnit
   , assertBool
   , testCase
   )
+import Test.Tasty.QuickCheck qualified as QC
 import Type.Reflection
   ( TypeRep
   , eqTypeRep
@@ -239,6 +241,14 @@ genArgs semvar bn = case meaning of
     meaning :: BuiltinMeaning Term (CostingPart DefaultUni DefaultFun)
     meaning = toBuiltinMeaning semvar bn
 
+builtinBudget :: BuiltinsRuntime DefaultFun Term -> DefaultFun -> [Term] -> ExBudget
+builtinBudget runtimes bn args0 = eval args0 (lookupBuiltin bn runtimes)
+  where
+    eval [] (BuiltinCostedResult budgetStream _) = sumExBudgetStream budgetStream
+    eval (arg : args) (BuiltinExpectArgument toRuntime) = eval args (toRuntime arg)
+    eval args (BuiltinExpectForce runtime) = eval args runtime
+    eval _ _ = error $ "Wrong number of args for builtin " <> show bn <> ": " <> show args0
+
 -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1733):
 -- this doesn't work in some cases: for example if we have a costing
 -- function 10-2*size we'll only test it on for a small value of size (0 or 1)
@@ -250,19 +260,7 @@ testCosts
   -> DefaultFun
   -> TestTree
 testCosts semvar runtimes bn =
-  let args0 = genArgs semvar bn
-      runtime0 = lookupBuiltin bn runtimes
-
-      eval :: [Term] -> BuiltinRuntime Term -> ExBudget
-      eval [] (BuiltinCostedResult budgetStream _) = sumExBudgetStream budgetStream
-      eval (arg : args) (BuiltinExpectArgument toRuntime) =
-        eval args (toRuntime arg)
-      eval args (BuiltinExpectForce runtime) =
-        eval args runtime
-      eval _ _ =
-        error $ "Wrong number of args for builtin " <> show bn <> ": " <> show args0
-
-      ExBudget cpuUsage memUsage = eval args0 runtime0
+  let ExBudget cpuUsage memUsage = builtinBudget runtimes bn (genArgs semvar bn)
    in testCase (show bn) $ do
         -- Every builtin is expected to have a CPU cost of at least 1000 ExCPU (~ 1
         -- ns).  There's code in models.R which is supposed to ensure this.
@@ -271,12 +269,44 @@ testCosts semvar runtimes bn =
         -- should be OK since there should never be any inputs of size zero.
         assertBool ("Memory usage <= 0 in " ++ show bn) $ memUsage > 0
 
+-- Both orders use the same generated operands and (for bitwise operations) padding flag.
+testSymmetricCosts :: BuiltinsRuntime DefaultFun Term -> TestTree
+testSymmetricCosts runtimes =
+  testGroup "Argument order" $
+    [ binary AddInteger (arbitraryBuiltin @Integer)
+    , binary MultiplyInteger (arbitraryBuiltin @Integer)
+    , binary EqualsInteger (arbitraryBuiltin @Integer)
+    , binary EqualsByteString (arbitraryBuiltin @BS.ByteString)
+    , binary EqualsString (arbitraryBuiltin @Text)
+    , binary EqualsData (arbitraryBuiltin @Data)
+    , binary UnionValue (arbitraryBuiltin @Value)
+    , binary Bls12_381_G1_add (arbitraryBuiltin @BLS12_381.G1.Element)
+    , binary Bls12_381_G1_equal (arbitraryBuiltin @BLS12_381.G1.Element)
+    , binary Bls12_381_G2_add (arbitraryBuiltin @BLS12_381.G2.Element)
+    , binary Bls12_381_G2_equal (arbitraryBuiltin @BLS12_381.G2.Element)
+    , binary Bls12_381_mulMlResult (arbitraryBuiltin @BLS12_381.Pairing.MlResult)
+    ]
+      ++ [ check bn ((: []) . constant <$> arbitraryBuiltin @Bool) (arbitraryBuiltin @BS.ByteString)
+         | bn <- [AndByteString, OrByteString, XorByteString]
+         ]
+  where
+    constant :: DefaultUni `HasTermLevel` a => a -> Term
+    constant = PLC.Constant () . PLC.someValue
+    binary bn = check bn (pure [])
+    check :: DefaultUni `HasTermLevel` a => DefaultFun -> QC.Gen [Term] -> QC.Gen a -> TestTree
+    check bn prefix operand =
+      QC.testProperty (show bn) $
+        QC.forAll prefix $ \fixed ->
+          QC.forAll ((,) <$> (constant <$> operand) <*> (constant <$> operand)) $ \(x, y) ->
+            builtinBudget runtimes bn (fixed ++ [x, y])
+              QC.=== builtinBudget runtimes bn (fixed ++ [y, x])
+
 testBuiltinCostModel :: BuiltinSemanticsVariant DefaultFun -> BuiltinCostModel -> [TestTree]
 testBuiltinCostModel semvar model =
   {- The next line is where toBuiltinsRuntime might ignore what's in the model and
      supply its own costing function (see the comment at the top of the file). -}
   let runtimes = toBuiltinsRuntime semvar model
-   in map (testCosts semvar runtimes) (enumerate @DefaultFun)
+   in testSymmetricCosts runtimes : map (testCosts semvar runtimes) (enumerate @DefaultFun)
 
 test_costModelSafety :: TestTree
 test_costModelSafety =
