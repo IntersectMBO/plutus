@@ -246,6 +246,7 @@ library
     UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
     UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
+    UntypedPlutusCore.Evaluation.Machine.Cek.UnliftedEnv
     UntypedPlutusCore.Evaluation.Machine.SteppableCek
     UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
     UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal

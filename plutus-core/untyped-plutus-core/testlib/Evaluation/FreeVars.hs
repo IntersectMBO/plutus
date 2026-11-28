@@ -68,9 +68,11 @@ testDischargeFree =
     freeRemains1 =
       -- dis( empty |- (delay (\x ->var0)) ) === (delay (\x -> var0))
       dis
-        ( VDelay
-            (toFakeTerm fun0var0)
-            [] -- empty env
+        ( CekValue
+            ( VDelay
+                (toFakeTerm fun0var0)
+                [] -- empty env
+            )
         )
         @?= DischargeNonConstant (toFakeTerm $ Delay () fun0var0)
 
@@ -80,16 +82,18 @@ testDischargeFree =
       -- y is discharged from the env
       -- var0 is free so it is left alone
       dis
-        ( VLamAbs
-            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
-            ( toFakeTerm $
-                v 1
-                  @@ [ v 2 -- x
-                  -- y
-                     , var0 -- free
-                     ]
+        ( CekValue
+            ( VLamAbs
+                (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+                ( toFakeTerm $
+                    v 1
+                      @@ [ v 2 -- x
+                      -- y
+                         , var0 -- free
+                         ]
+                )
+                [CekValue (VCon $ someValue ())] -- env has y
             )
-            [VCon $ someValue ()] -- env has y
         )
         @?= DischargeNonConstant
           ( toFakeTerm . lamAbs0 $

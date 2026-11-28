@@ -45,6 +45,7 @@ module UntypedPlutusCore.Evaluation.Machine.SteppableCek
 
     -- * Misc
   , CekValue (..)
+  , CekValueU (..)
   , readKnownCek
   , Hashable
   , ThrowableBuiltins
