@@ -973,60 +973,79 @@ enterComputeCek
   -> CekM uni fun s (DischargeResult uni fun)
 enterComputeCek = computeCek
   where
-    -- \| The computing part of the CEK machine.
-    -- Either
-    -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
-    -- 2. calls 'returnCek' on values ('Delay', 'LamAbs', 'Constant', 'Builtin')
-    -- 3. throws 'EvaluationFailure' ('Error')
-    -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
+    -- The ordinary compute transition returns immediate values to the current context.
     computeCek
       :: Context uni fun ann
       -> CekValEnv uni fun ann
       -> NTerm uni fun ann
       -> CekM uni fun s (DischargeResult uni fun)
-    -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
-    computeCek !ctx !env (Var _ varName) = do
-      stepAndMaybeSpend BVar
-      lookupVarName varName env (returnCek ctx)
+    computeCek ctx = computeStep (\() -> ctx) (returnCek ctx)
+
+    -- An immediate argument can go straight to @applyEvaluate@. Only an argument that
+    -- takes another compute transition needs a @FrameAwaitArg@ to remember its function.
+    computeArg
+      :: Context uni fun ann
+      -> CekValueU uni fun ann
+      -> CekValEnv uni fun ann
+      -> NTerm uni fun ann
+      -> CekM uni fun s (DischargeResult uni fun)
+    computeArg ctx fun env arg =
+      computeStep (\() -> FrameAwaitArg (CekValue fun) ctx) (applyEvaluate ctx fun) env arg
+
+    -- Inlining specializes the same charging and evaluation rules for both callers.
+    -- The unit argument delays construction of the unlifted context until a rule needs it.
+    computeStep
+      :: (() -> Context uni fun ann)
+      -> (CekValueU uni fun ann -> CekM uni fun s (DischargeResult uni fun))
+      -> CekValEnv uni fun ann
+      -> NTerm uni fun ann
+      -> CekM uni fun s (DischargeResult uni fun)
+    -- s ; ρ ▻ x  ↦  s ◅ ρ(x)
+    computeStep _ done !env (Var _ name) = computeVar name env done
     -- s ; ρ ▻ con c  ↦  s ◅ con c
-    computeCek !ctx !_ (Constant _ val) = do
+    computeStep _ done !_ (Constant _ val) = do
       stepAndMaybeSpend BConst
-      returnCek ctx (VCon val)
+      done (VCon val)
     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
-    computeCek !ctx !env (LamAbs _ name body) = do
+    computeStep _ done !env (LamAbs _ name body) = do
       stepAndMaybeSpend BLamAbs
-      returnCek ctx (VLamAbs name body env)
+      done (VLamAbs name body env)
     -- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)
-    computeCek !ctx !env (Delay _ body) = do
+    computeStep _ done !env (Delay _ body) = do
       stepAndMaybeSpend BDelay
-      returnCek ctx (VDelay body env)
+      done (VDelay body env)
     -- s ; ρ ▻ force T  ↦  s , force _ ; ρ ▻ L
-    computeCek !ctx !env (Force _ body) = do
+    computeStep resume _ !env (Force _ body) = do
       stepAndMaybeSpend BForce
-      computeCek (FrameForce ctx) env body
+      computeCek (FrameForce (resume ())) env body
     -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
-    computeCek !ctx !env (Apply _ fun arg) = do
+    computeStep resume _ !env (Apply _ fun arg) = do
       stepAndMaybeSpend BApply
-      computeCek (FrameAwaitFunTerm env arg ctx) env fun
+      -- A variable in function position needs no frame while looking up the function.
+      case fun of
+        Var _ name ->
+          computeVar name env $ \value -> computeArg (resume ()) value env arg
+        _ -> computeCek (FrameAwaitFunTerm env arg (resume ())) env fun
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
-    computeCek !ctx !_ (Builtin _ bn) = do
+    computeStep _ done !_ (Builtin _ bn) = do
       stepAndMaybeSpend BBuiltin
       let meaning = lookupBuiltin bn ?cekRuntime
       -- 'Builtin' is fully discharged.
-      returnCek ctx (VBuiltin bn (Builtin () bn) meaning)
+      done (VBuiltin bn (Builtin () bn) meaning)
     -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
-    computeCek !ctx !env (Constr _ i es) = do
+    computeStep resume done !env (Constr _ i es) = do
       stepAndMaybeSpend BConstr
       case es of
-        (t : rest) -> computeCek (FrameConstr env i rest NilStack ctx) env t
-        [] -> returnCek ctx (VConstr i EmptyStack)
+        (t : rest) -> computeCek (FrameConstr env i rest NilStack (resume ())) env t
+        [] -> done (VConstr i EmptyStack)
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
-    computeCek !ctx !env (Case _ scrut cs) = do
+    computeStep resume _ !env (Case _ scrut cs) = do
       stepAndMaybeSpend BCase
-      computeCek (FrameCases env cs ctx) env scrut
+      computeCek (FrameCases env cs (resume ())) env scrut
     -- s ; ρ ▻ error  ↦  <> A
-    computeCek !_ !_ (Error _) =
+    computeStep _ _ !_ (Error _) =
       throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
+    {-# INLINE computeStep #-}
 
     -- \| The returning phase of the CEK machine.
     --    Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -1050,7 +1069,7 @@ enterComputeCek = computeCek
     returnCek (FrameForce ctx) fun = forceEvaluate ctx fun
     -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
     returnCek (FrameAwaitFunTerm argVarEnv arg ctx) fun =
-      computeCek (FrameAwaitArg (CekValue fun) ctx) argVarEnv arg
+      computeArg ctx fun argVarEnv arg
     -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
     -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1878):
     -- add rule for VBuiltin once it's in the specification.
@@ -1239,13 +1258,15 @@ enterComputeCek = computeCek
     spendBudget = unCekBudgetSpender ?cekBudgetSpender
     {-# INLINE spendBudget #-}
 
-    -- \| Look up a variable name in the environment.
-    lookupVarName
+    -- Both variable transitions charge the step before looking up the name.
+    computeVar
       :: NamedDeBruijn
       -> CekValEnv uni fun ann
       -> (CekValueU uni fun ann -> CekM uni fun s (DischargeResult uni fun))
       -> CekM uni fun s (DischargeResult uni fun)
-    lookupVarName varName@(NamedDeBruijn _ varIx) varEnv k =
+    computeVar varName varEnv k = do
+      stepAndMaybeSpend BVar
+      let NamedDeBruijn _ varIx = varName
       Env.contIndexOne
         ( \case
             Env.Missing ->
@@ -1254,7 +1275,7 @@ enterComputeCek = computeCek
         )
         varEnv
         (coerce varIx)
-    {-# INLINE lookupVarName #-}
+    {-# INLINE computeVar #-}
 
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
