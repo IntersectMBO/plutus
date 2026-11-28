@@ -44,8 +44,7 @@ testCekInternalFree =
       ]
   where
     evalV =
-      toFakeTerm
-        >>> runCekDeBruijn PLC.defaultCekParametersForTesting counting noEmitter
+      runCekDeBruijn PLC.defaultCekParametersForTesting counting noEmitter
         >>> _cekReportResult
         >>> cekResultToEither
 
@@ -69,10 +68,10 @@ testDischargeFree =
       -- dis( empty |- (delay (\x ->var0)) ) === (delay (\x -> var0))
       dis
         ( VDelay
-            (toFakeTerm fun0var0)
+            fun0var0
             [] -- empty env
         )
-        @?= DischargeNonConstant (toFakeTerm $ Delay () fun0var0)
+        @?= DischargeNonConstant (Delay () fun0var0)
 
     freeRemains2 =
       -- dis( y:unit |- \x-> x y var0) ) === (\x -> x unit var0)
@@ -81,18 +80,16 @@ testDischargeFree =
       -- var0 is free so it is left alone
       dis
         ( VLamAbs
-            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
-            ( toFakeTerm $
-                v 1
-                  @@ [ v 2 -- x
-                  -- y
-                     , var0 -- free
-                     ]
+            ( v 1
+                @@ [ v 2 -- x
+                -- y
+                   , var0 -- free
+                   ]
             )
             [VCon $ someValue ()] -- env has y
         )
         @?= DischargeNonConstant
-          ( toFakeTerm . lamAbs0 $
+          ( lamAbs0 $
               v 1
                 @@ [ Constant () (someValue ()) -- x
                 -- substituted y
@@ -110,7 +107,3 @@ test_freevars =
     [ testCekInternalFree
     , testDischargeFree
     ]
-
--- shortcuts
-toFakeTerm :: Term DeBruijn uni fun ann -> Term NamedDeBruijn uni fun ann
-toFakeTerm = termMapNames fakeNameDeBruijn

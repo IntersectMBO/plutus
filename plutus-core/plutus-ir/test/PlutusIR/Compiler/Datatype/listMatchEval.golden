@@ -1,1 +1,1 @@
-delay (\x -> x)
+delay (\i -> i)

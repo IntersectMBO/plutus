@@ -191,21 +191,21 @@ data EvalFailure
 
 instance NFData EvalFailure
 
-{-| Convert a parsed UPLC program (with Name) to a term with NamedDeBruijn indices.
+{-| Convert a parsed UPLC program (with Name) to a term with DeBruijn indices.
 This is required for CEK machine evaluation. -}
-toNamedDeBruijnTerm
+toDeBruijnTerm
   :: UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-  -> Either EvalFailure (UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
-toNamedDeBruijnTerm (UPLC.Program _ _ term) =
+  -> Either EvalFailure (UPLC.Term UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ())
+toDeBruijnTerm (UPLC.Program _ _ term) =
   case UPLC.deBruijnTerm term of
     Left err -> Left $ ConversionError $ T.pack $ show err
-    Right dbTerm -> Right dbTerm
+    Right dbTerm -> Right $ UPLC.termMapNames UPLC.unNameDeBruijn dbTerm
 
 {-| Evaluate a UPLC term using the CEK machine and extract budget costs.
 Returns the CPU and memory budget consumed, or an error if evaluation fails. -}
 {-# NOINLINE evaluateWithBudget #-}
 evaluateWithBudget
-  :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  :: UPLC.Term UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
   -> Either EvalFailure EvalBudget
 evaluateWithBudget term =
   case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter term of
@@ -244,7 +244,7 @@ serviceWarmup = do
   case parseUplcProgram trivialProgram of
     Left err -> hPutStrLn stderr $ "Service warmup: parse failed: " ++ T.unpack err
     Right prog ->
-      case toNamedDeBruijnTerm prog of
+      case toDeBruijnTerm prog of
         Left err -> hPutStrLn stderr $ "Service warmup: conversion failed: " ++ show err
         Right term -> do
           -- Run a single timed evaluation to exercise the full path:
@@ -258,7 +258,7 @@ Performs warm-up iterations first, then collects timing samples.
 Budget values are deterministic and returned separately from variable timing data.
 Returns early with error if initial validation fails. -}
 collectMeasurements
-  :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  :: UPLC.Term UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
   -> Int
   -- ^ Number of samples to collect
   -> IO (Either EvalFailure (EvalBudget, [TimingSample]))
@@ -286,7 +286,7 @@ collectMeasurements term sampleCount = do
     -- depends on the lambda-bound 't', so full laziness cannot float it out.
     {-# NOINLINE measureSingleExecution #-}
     measureSingleExecution
-      :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+      :: UPLC.Term UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
       -> IO Word64
     measureSingleExecution t = do
       (_, timeNs) <- measureExecution $ evaluate (evaluateWithBudget t)
@@ -365,8 +365,8 @@ processProgram Config {..} inputPath = do
                         "syntax_error"
                         ("Failed to parse program: " <> parseErr)
                     Right program ->
-                      -- Convert to NamedDeBruijn representation
-                      case toNamedDeBruijnTerm program of
+                      -- Convert to nameless DeBruijn representation
+                      case toDeBruijnTerm program of
                         Left (ConversionError convErr) -> do
                           hPutStrLn stderr $ "Conversion error: " ++ T.unpack convErr
                           writeError
@@ -375,7 +375,7 @@ processProgram Config {..} inputPath = do
                             "evaluation_error"
                             ("Failed to convert program: " <> convErr)
                         Left (EvaluationError evalErr) -> do
-                          -- This shouldn't happen in toNamedDeBruijnTerm, but handle it
+                          -- This shouldn't happen in toDeBruijnTerm, but handle it
                           hPutStrLn stderr $ "Evaluation error: " ++ T.unpack evalErr
                           writeError
                             cfgOutputDir

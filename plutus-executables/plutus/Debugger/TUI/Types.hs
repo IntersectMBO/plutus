@@ -57,7 +57,7 @@ data CustomBrickEvent
   | -- | the underlying cek machine emitted some text (using a trace or other builtin)
     CekEmitEvent Text
   | -- | the underlying cek machine errored (either by call to Error, builtin or type failure)
-    CekErrorEvent BudgetData (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+    CekErrorEvent BudgetData (CekEvaluationException DeBruijn DefaultUni DefaultFun)
 
 data KeyBindingsMode = KeyBindingsShown | KeyBindingsHidden
   deriving stock (Eq, Ord, Show)

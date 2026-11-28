@@ -25,8 +25,8 @@ evalCounting
   -> PLC.Version
   -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
   -> ( Either
-         (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
-         (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
+         (CekEvaluationException UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+         (UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
      , ExBudget
      )
 evalCounting evalCtx pv plcVersion term =
@@ -34,7 +34,7 @@ evalCounting evalCtx pv plcVersion term =
   , let CountingSt cost = _cekReportCost report in cost
   )
   where
-    report = evaluateTerm counting pv plcVersion Quiet evalCtx term
+    report = evaluateTerm counting pv plcVersion Quiet evalCtx (UPLC.termMapNames UPLC.unNameDeBruijn term)
 
 standaloneCaserBuiltin :: PLC.Version -> CaserBuiltin UPLC.DefaultUni
 standaloneCaserBuiltin = defaultCaserBuiltinFor newestPV
@@ -64,7 +64,7 @@ evalOptimizerTrace
   -> [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()]
   -- ^ Arguments to apply to each AST before evaluation
   -> [ ( Maybe
-           (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+           (CekEvaluationException UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun)
        , ExBudget
        )
      ]
@@ -93,10 +93,10 @@ at the most recent protocol version with restrictingEnormous budget mode
 evaluateCekLikeInProd
   :: EvaluationContext
   -> PLC.Version
-  -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+  -> UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
   -> Either
-       (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
-       (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
+       (CekEvaluationException UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+       (UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
 evaluateCekLikeInProd evalCtx plcVersion term =
   cekResultToEither . _cekReportResult $
     evaluateTerm restrictingEnormous newestPV plcVersion Quiet evalCtx term
@@ -111,7 +111,7 @@ evalCountingWithArgs
   -> [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()]
   -- ^ Arguments
   -> ( Maybe
-         (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+         (CekEvaluationException UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun)
      , ExBudget
      )
 evalCountingWithArgs evalCtx plcVersion term args =
