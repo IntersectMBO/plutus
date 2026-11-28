@@ -51,6 +51,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
   , CekReport (..)
   , cekResultToEither
   , CekValue (..)
+  , CekValueU (..)
   , DischargeResult (..)
   , dischargeResultToTerm
   , readKnownCek

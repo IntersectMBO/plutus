@@ -48,6 +48,7 @@ module UntypedPlutusCore.Evaluation.Machine.CommonAPI
 
     -- * Misc
   , CekValue (..)
+  , CekValueU (..)
   , readKnownCek
   , Hashable
   , ThrowableBuiltins
