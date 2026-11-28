@@ -868,33 +868,31 @@ instance HasConstant (CekValue uni fun ann) where
 The context in which the machine operates.
 
 Morally, this is a stack of frames, but we use the "intrusive list" representation so that
-we can match on context and the top frame in a single, strict pattern match. -}
+we can match on context and the top frame in a single, strict pattern match. Its unlifted kind
+tells GHC that the context pointer passed to each transition already points to a constructor. -}
+type Context :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> UnliftedType
 data Context uni fun ann
   = -- | @[V _]@
-    FrameAwaitArg {-# UNPACK #-} !(CekValue uni fun ann) !(Context uni fun ann)
+    FrameAwaitArg {-# UNPACK #-} !(CekValue uni fun ann) (Context uni fun ann)
   | -- | @[_ N]@
-    FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
+    FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) (Context uni fun ann)
   | -- | @[_ V]@
-    FrameAwaitFunConN !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
+    FrameAwaitFunConN !(Spine (Some (ValueOf uni))) (Context uni fun ann)
   | -- | @[_ V1 .. Vn]@
-    FrameAwaitFunValueN !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
+    FrameAwaitFunValueN !(ArgStackNonEmpty uni fun ann) (Context uni fun ann)
   | {-| @(force _)@
     See Note [Accumulators for terms] -}
-    FrameForce !(Context uni fun ann)
+    FrameForce (Context uni fun ann)
   | -- | @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     FrameConstr
       !(CekValEnv uni fun ann)
       {-# UNPACK #-} !Word64
       ![NTerm uni fun ann]
       !(ArgStack uni fun ann)
-      !(Context uni fun ann)
+      (Context uni fun ann)
   | -- | @(case _ C0 .. Cn)@
-    FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+    FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) (Context uni fun ann)
   | NoFrame
-
-deriving stock instance
-  (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-  => Show (Context uni fun ann)
 
 -- See Note [ExMemoryUsage instances for non-constants].
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun ann) where
