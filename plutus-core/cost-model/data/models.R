@@ -164,6 +164,7 @@ arity <- function(name) {
         "Policies" = 1,
         "KeepPolicies" = 2,
         "DropPolicies" = 2,
+        "TermAppend" = 2,
         -1  ## Default for missing values
         )
 }
@@ -850,6 +851,7 @@ modelFun <- function(path) {
     }
 
     dropListModel <- linearInX ("DropList")
+    termAppendModel <- linearInX ("TermAppend")
 
     ## Arrays
     lengthOfArrayModel        <- constantModel ("LengthOfArray")
@@ -1062,6 +1064,7 @@ modelFun <- function(path) {
         ripemd_160Model                      = ripemd_160Model,
         expModIntegerModel                   = expModIntegerModel,
         dropListModel                        = dropListModel,
+        termAppendModel                      = termAppendModel,
         lengthOfArrayModel                   = lengthOfArrayModel,
         listToArrayModel                     = listToArrayModel,
         indexArrayModel                      = indexArrayModel,

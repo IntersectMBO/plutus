@@ -45,6 +45,7 @@ conv (Error _) = UError
 conv (Delay _ t) = UDelay (conv t)
 conv (Force _ t) = UForce (conv t)
 conv (Constr _ i es) = UConstr (toInteger i) (toList (fmap conv es))
+conv List {} = error "Structural lists are not supported by the Agda model"
 conv (Case _ arg cs) = UCase (conv arg) (toList (fmap conv cs))
 
 tmname :: Int -> String

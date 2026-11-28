@@ -12,7 +12,7 @@ module PlutusCore.Generators.QuickCheck.Builtin where
 
 import PlutusPrelude
 
-import PlutusCore hiding (Constr)
+import PlutusCore hiding (Constr, List)
 import PlutusCore.Builtin
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2

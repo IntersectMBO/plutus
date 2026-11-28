@@ -71,6 +71,8 @@ instance
             ann
             [prettyBy config term]
         )
+    List ann xs ->
+      sexp "list" (consAnnIf config ann (fmap (prettyBy config) xs))
     Constr ann i es ->
       sexp "constr" (consAnnIf config ann (pretty i : fmap (prettyBy config) es))
     Case ann arg cs ->

@@ -18,7 +18,7 @@ import PlutusIR.Purity
 import PlutusIR.Subst (termUsages)
 import PlutusIR.Transform.Rename ()
 
-import Control.Lens hiding (Strict)
+import Control.Lens hiding (List, Strict)
 import Control.Monad.Extra
 import Control.Monad.Trans.Reader
 import Data.Foldable (foldrM)
@@ -291,6 +291,11 @@ floatTerm binfo relaxed t0 =
           Error a ty0 ->
             let ty = goType ty0
              in Error (a, typeUniqs ty) ty
+          List a ty0 xs0 ->
+            let ty = goType ty0
+                xs = fmap go xs0
+                us = typeUniqs ty <> foldMap termUniqs xs
+             in List (a, us) ty xs
           Constr a ty0 i es0 ->
             let
               ty = goType ty0
@@ -359,6 +364,9 @@ floatTerm binfo relaxed t0 =
                 argTy = goType argTy0
                 us = typeUniqs funTy <> typeUniqs argTy
              in TyApp (a, us) funTy argTy
+          TyList a ty0 ->
+            let ty = goType ty0
+             in TyList (a, typeUniqs ty) ty
           TySOP a tyls ->
             let tyls' = (fmap . fmap) goType tyls
                 us = (foldMap . foldMap) typeUniqs tyls'

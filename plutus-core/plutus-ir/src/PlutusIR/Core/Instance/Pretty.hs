@@ -201,6 +201,8 @@ instance
             ann
             [prettyBy config t]
         )
+    List ann ty xs ->
+      sexp "list" (PLC.consAnnIf config ann (prettyBy config ty : map (prettyBy config) xs))
     Constr ann ty i es ->
       sexp
         "constr"

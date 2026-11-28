@@ -21,6 +21,7 @@ isStrictIn n = go
       TyInst _ body _ -> go body
       IWrap _ _ _ body -> go body
       Unwrap _ body -> go body
+      List _ _ xs -> any go xs
       Constr _ _ _ args -> any go args
       Case _ _ scrut _ -> go scrut
       TyAbs {} -> False

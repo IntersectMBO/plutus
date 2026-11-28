@@ -377,6 +377,7 @@ renameTermM = \case
     IWrap x <$> PLC.renameTypeM pat <*> PLC.renameTypeM arg <*> renameTermM term
   Unwrap x term ->
     Unwrap x <$> renameTermM term
+  List x ty xs -> List x <$> PLC.renameTypeM ty <*> traverse renameTermM xs
   Constr x ty i es -> Constr x <$> PLC.renameTypeM ty <*> pure i <*> traverse renameTermM es
   Case x ty arg cs -> Case x <$> PLC.renameTypeM ty <*> renameTermM arg <*> traverse renameTermM cs
 

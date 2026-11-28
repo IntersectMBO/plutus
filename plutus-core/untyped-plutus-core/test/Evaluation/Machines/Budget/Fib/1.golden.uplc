@@ -8,6 +8,7 @@
 | BStep BBuiltin causes ({cpu: 32000 | mem: 200})
 | BStep BConstr causes ({cpu: 0 | mem: 0})
 | BStep BCase causes ({cpu: 0 | mem: 0})
+| BStep BList causes ({cpu: 0 | mem: 0})
 | BBuiltinApp LessThanEqualsInteger causes ({cpu: 43837 | mem: 1})
 | BBuiltinApp IfThenElse causes ({cpu: 76049 | mem: 1})
 | BStartup causes ({cpu: 100 | mem: 100})})

@@ -3,7 +3,7 @@
 
 module PlutusIR.Analysis.VarInfo where
 
-import Control.Lens hiding (Strict)
+import Control.Lens hiding (List, Strict)
 import Data.List.Extra ((!?))
 import Data.Traversable
 import PlutusCore qualified as PLC
@@ -99,6 +99,7 @@ termVarInfo = \case
   t@(TyInst {}) -> foldMapOf termSubterms termVarInfo t
   t@(IWrap {}) -> foldMapOf termSubterms termVarInfo t
   t@(Unwrap {}) -> foldMapOf termSubterms termVarInfo t
+  t@(List {}) -> foldMapOf termSubterms termVarInfo t
   t@(Constr {}) -> foldMapOf termSubterms termVarInfo t
   t@(Case {}) -> foldMapOf termSubterms termVarInfo t
   t@(Var {}) -> foldMapOf termSubterms termVarInfo t

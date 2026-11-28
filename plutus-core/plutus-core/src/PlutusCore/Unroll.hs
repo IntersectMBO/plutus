@@ -25,6 +25,7 @@ module PlutusCore.Unroll
     -- * Statically unrolled list drop
   , Drop (..)
   , dropN
+  , dropSnocN
 
     -- * Statically unrolled effectful iteration
   , UpwardsM (..)
@@ -32,6 +33,7 @@ module PlutusCore.Unroll
 
 import Data.Kind (Constraint, Type)
 import GHC.TypeNats (Nat, type (-))
+import PlutusCore.SnocList (SnocList (..))
 
 {- Note [Static loop unrolling]
 To avoid runtime loop overhead, we use type-level Peano numbers to guide instance
@@ -78,14 +80,22 @@ Use 'dropN' for a more convenient interface with 'Nat' literals. -}
 class Drop (n :: Peano) where
   drop' :: [a] -> Maybe [a]
 
+  -- | Drop elements from the right of a snoc-list.
+  dropSnoc' :: SnocList a -> Maybe (SnocList a)
+
 instance Drop 'Z where
   drop' = Just
   {-# INLINE drop' #-}
+  dropSnoc' = Just
+  {-# INLINE dropSnoc' #-}
 
 instance Drop n => Drop ('S n) where
   drop' [] = Nothing
   drop' (_ : xs) = drop' @n xs
   {-# INLINE drop' #-}
+  dropSnoc' SNil = Nothing
+  dropSnoc' (Snoc xs _) = dropSnoc' @n xs
+  {-# INLINE dropSnoc' #-}
 
 {-| Drop exactly @n@ elements from a list, returning 'Nothing' if too short.
 
@@ -98,6 +108,11 @@ dropN \@3 [1,2]       == Nothing
 dropN :: forall n a. Drop (NatToPeano n) => [a] -> Maybe [a]
 dropN = drop' @(NatToPeano n)
 {-# INLINE dropN #-}
+
+-- | Drop exactly @n@ elements from the right, with the drop count statically unrolled.
+dropSnocN :: forall n a. Drop (NatToPeano n) => SnocList a -> Maybe (SnocList a)
+dropSnocN = dropSnoc' @(NatToPeano n)
+{-# INLINE dropSnocN #-}
 
 --------------------------------------------------------------------------------
 -- Statically unrolled effectful iteration -------------------------------------

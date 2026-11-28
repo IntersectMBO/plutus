@@ -5,7 +5,7 @@
 
 module UntypedPlutusCore.Check.Scope (checkScope, ScopeCheckMode (..)) where
 
-import Control.Lens hiding (index)
+import Control.Lens hiding (List, index)
 import UntypedPlutusCore.Core.Type as UPLC
 import UntypedPlutusCore.DeBruijn as UPLC
 
@@ -59,6 +59,7 @@ checkScope mode = go 0
       Apply _ t1 t2 -> go lvl t1 >> go lvl t2
       Force _ t -> go lvl t
       Delay _ t -> go lvl t
+      List _ xs -> mapM_ (go lvl) xs
       Constr _ _ ts ->
         case mode of
           Full -> mapM_ (go lvl) ts

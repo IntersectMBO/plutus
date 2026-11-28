@@ -14,6 +14,7 @@ isTermValue = isRight . termValue
 
 termValue :: Term tyname name uni fun ann -> Either (NormCheckError tyname name uni fun ann) ()
 termValue (IWrap _ _ _ term) = termValue term
+termValue (List _ _ xs) = mapM_ termValue xs
 termValue LamAbs {} = pure ()
 termValue TyAbs {} = pure ()
 termValue Constant {} = pure ()

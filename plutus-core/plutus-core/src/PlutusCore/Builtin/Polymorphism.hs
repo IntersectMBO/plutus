@@ -13,6 +13,7 @@
 module PlutusCore.Builtin.Polymorphism
   ( Opaque (..)
   , SomeConstant (..)
+  , TermSnocList (..)
   , TyNameRep (..)
   , TyVarRep
   , TyAppRep
@@ -29,6 +30,8 @@ import PlutusPrelude
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
+
+import PlutusCore.SnocList (SnocList)
 
 import Data.Kind qualified as GHC
 import GHC.Ix
@@ -174,6 +177,13 @@ instance HasConstant (SomeConstant uni rep) where
 
   fromConstant = coerce
   {-# INLINE fromConstant #-}
+
+-- | Structural list elements in a strict snoc-list, with their PLC element type attached.
+newtype TermSnocList val (rep :: GHC.Type) = TermSnocList (SnocList val)
+
+instance ExMemoryUsage (TermSnocList val rep) where
+  memoryUsage (TermSnocList xs) = memoryUsage xs
+  {-# INLINE memoryUsage #-}
 
 -- | Representation of a type variable: its name and unique and an implicit kind.
 data TyNameRep (kind :: GHC.Type) = TyNameRep Symbol Nat

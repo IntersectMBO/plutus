@@ -158,6 +158,7 @@ builtinCostModelNames =
     , paramPolicies = "policiesModel"
     , paramKeepPolicies = "keepPoliciesModel"
     , paramDropPolicies = "dropPoliciesModel"
+    , paramTermAppend = "termAppendModel"
     }
 
 {-| Loads the models from R.
@@ -318,6 +319,7 @@ createBuiltinCostModel bmfile rfile = do
   paramPolicies <- getParams readCF1 paramPolicies
   paramKeepPolicies <- getParams readCF2 paramKeepPolicies
   paramDropPolicies <- getParams readCF2 paramDropPolicies
+  paramTermAppend <- getParams readCF2 paramTermAppend
 
   pure $ BuiltinCostModelBase {..}
 

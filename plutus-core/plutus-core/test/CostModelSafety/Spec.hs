@@ -103,6 +103,7 @@ testMachineCostModel
       cekBuiltinBudget
       cekConstrBudget
       cekCaseBudget
+      cekListBudget
     ) = do
     checkBudget cekStartupBudget
     checkBudget cekVarBudget
@@ -114,6 +115,7 @@ testMachineCostModel
     checkBudget cekBuiltinBudget
     checkBudget cekConstrBudget
     checkBudget cekCaseBudget
+    checkBudget cekListBudget
 
 -- Builtin costs
 
@@ -210,6 +212,11 @@ smallTerm tr0 = go (toTypeAst tr0) tr0
       | trOpaque `App` _ `App` trEl <- tr
       , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
           go sch trEl
+    go (PLC.TyList _ _) tr
+      | trTermSnocList `App` _ `App` trEl <- tr
+      , Just HRefl <- eqTypeRep trTermSnocList (typeRep @TermSnocList) =
+          case smallConstant trEl of
+            SomeConst x -> PLC.List () (PLC.TyBuiltin () $ PLC.someValueType $ PLC.someValue x) []
     go (PLC.TyFun _ dom cod) tr
       | trFun `App` _ `App` trCod <- tr
       , Just HRefl <- eqTypeRep trFun (typeRep @(->)) =

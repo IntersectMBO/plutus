@@ -94,6 +94,8 @@ renderCertifierHints (Trace.OptimizerTrace ss)
       Hints.InlCon -> line i "InlCon"
       Hints.InlBuiltin -> line i "InlBuiltin"
       Hints.InlError -> line i "InlError"
+      Hints.InlList args ->
+        line i "InlList" <> foldMap (renderInlineHints (i + 2)) args
       Hints.InlConstr args ->
         line i "InlConstr" <> foldMap (renderInlineHints (i + 2)) args
       Hints.InlCase scrut alts ->

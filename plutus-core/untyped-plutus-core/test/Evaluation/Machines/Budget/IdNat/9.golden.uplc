@@ -51,6 +51,7 @@
 | BStep BBuiltin causes ({cpu: 144000 | mem: 900})
 | BStep BConstr causes ({cpu: 0 | mem: 0})
 | BStep BCase causes ({cpu: 0 | mem: 0})
+| BStep BList causes ({cpu: 0 | mem: 0})
 | BBuiltinApp Id causes ({cpu: 0 | mem: 0})
 | BStartup causes ({cpu: 100 | mem: 100})})
 | budget: ({cpu: 6960100

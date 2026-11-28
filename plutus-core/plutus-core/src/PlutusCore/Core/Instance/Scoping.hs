@@ -49,6 +49,7 @@ instance tyname ~ TyName => EstablishScoping (Type tyname uni) where
     name <- freshenTyName nameDup
     pure $ TyVar (registerFree name) name
   establishScoping (TyBuiltin _ someUni) = pure $ TyBuiltin NotAName someUni
+  establishScoping (TyList _ ty) = TyList NotAName <$> establishScoping ty
   establishScoping (TySOP _ tyls) =
     TySOP NotAName <$> (traverse . traverse) establishScoping tyls
 
@@ -76,6 +77,8 @@ instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name un
     pure $ Var (registerFree name) name
   establishScoping (Constant _ con) = pure $ Constant NotAName con
   establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
+  establishScoping (List _ ty xs) =
+    List NotAName <$> establishScoping ty <*> traverse establishScoping xs
   establishScoping (Constr _ ty i es) =
     Constr NotAName <$> establishScoping ty <*> pure i <*> traverse establishScoping es
   establishScoping (Case _ ty a es) = do
@@ -106,6 +109,7 @@ instance tyname ~ TyName => CollectScopeInfo (Type tyname uni) where
   collectScopeInfo (TyFun _ dom cod) = collectScopeInfo dom <> collectScopeInfo cod
   collectScopeInfo (TyVar ann name) = handleSname ann name
   collectScopeInfo (TyBuiltin _ _) = mempty
+  collectScopeInfo (TyList _ ty) = collectScopeInfo ty
   collectScopeInfo (TySOP _ tyls) = (foldMap . foldMap) collectScopeInfo tyls
 
 instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name uni fun) where
@@ -122,6 +126,7 @@ instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name un
   collectScopeInfo (Var ann name) = handleSname ann name
   collectScopeInfo (Constant _ _) = mempty
   collectScopeInfo (Builtin _ _) = mempty
+  collectScopeInfo (List _ ty xs) = collectScopeInfo ty <> foldMap collectScopeInfo xs
   collectScopeInfo (Constr _ ty _ es) =
     collectScopeInfo ty <> foldMap collectScopeInfo es
   collectScopeInfo (Case _ ty arg cs) =

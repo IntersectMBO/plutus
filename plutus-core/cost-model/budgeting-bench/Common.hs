@@ -10,6 +10,7 @@ where
 
 import PlutusCore hiding
   ( Constr
+  , List
   )
 import PlutusCore.Compiler.Erase
 import PlutusCore.Data
@@ -30,6 +31,7 @@ import PlutusCore.Pretty
   )
 import UntypedPlutusCore as UPLC hiding
   ( Constr
+  , List
   )
 import UntypedPlutusCore.Evaluation.Machine.Cek
 

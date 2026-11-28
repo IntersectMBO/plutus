@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -25,7 +26,7 @@ module UntypedPlutusCore.Core.Type
   , uvarDeclAnn
   ) where
 
-import Control.Lens
+import Control.Lens hiding (List)
 import Control.Monad.Except
 import PlutusPrelude
 
@@ -35,6 +36,7 @@ import PlutusCore.Core qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.MkPlc
 import PlutusCore.Name.Unique qualified as TPLC
+import PlutusCore.SnocList qualified as SnocList
 import Universe
 
 {- Note [Term constructor ordering and numbers]
@@ -101,6 +103,8 @@ data Term name uni fun ann
     Constr !ann !Word64 ![Term name uni fun ann]
   | -- See Note [Supported case-expressions].
     Case !ann !(Term name uni fun ann) !(Vector (Term name uni fun ann))
+  | -- | A structural list whose elements are evaluated from left to right.
+    List !ann ![Term name uni fun ann]
   deriving stock (Functor, Generic)
 
 deriving stock instance
@@ -147,6 +151,7 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
   unwrap = const id
   iWrap = \_ _ _ -> id
   error = \ann _ -> Error ann
+  structuralList = \ann _ xs -> List ann xs
   constr = \ann _ i es -> Constr ann i es
   kase = \ann _ arg cs -> Case ann arg (fromList cs)
 
@@ -155,6 +160,9 @@ instance TPLC.HasConstant (Term name uni fun ()) where
   asConstant _ = throwError TPLC.notAConstant
 
   fromConstant = Constant ()
+
+  asSnocList (List _ xs) = pure $ SnocList.fromList xs
+  asSnocList _ = throwError $ TPLC.structuralUnliftingError "Expected a structural list"
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
@@ -180,6 +188,7 @@ instance HasAnn (Term name uni fun) where
   getAnn (Error ann) = ann
   getAnn (Constr ann _ _) = ann
   getAnn (Case ann _ _) = ann
+  getAnn (List ann _) = ann
   modifyAnn f = \case
     Constant ann c -> Constant (f ann) c
     Builtin ann b -> Builtin (f ann) b
@@ -191,6 +200,7 @@ instance HasAnn (Term name uni fun) where
     Error ann -> Error (f ann)
     Constr ann i args -> Constr (f ann) i args
     Case ann scrut alts -> Case (f ann) scrut alts
+    List ann xs -> List (f ann) xs
 
 bindFunM
   :: Monad m
@@ -207,6 +217,7 @@ bindFunM f = go
     go (Delay ann term) = Delay ann <$> go term
     go (Force ann term) = Force ann <$> go term
     go (Error ann) = pure $ Error ann
+    go (List ann xs) = List ann <$> traverse go xs
     go (Constr ann i args) = Constr ann i <$> traverse go args
     go (Case ann arg cs) = Case ann <$> go arg <*> traverse go cs
 

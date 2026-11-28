@@ -24,6 +24,7 @@ import Normalization.Type
 import Parser.Spec qualified as Parser
 import Pretty.Readable
 import TypeSynthesis.Spec (test_typecheck)
+import Universe.Spec qualified as Universe
 import Value.Spec qualified as Value
 
 import PlutusCore
@@ -272,4 +273,5 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , Value.tests
     , test_utils
     , FlatSpec.tests
+    , Universe.tests
     ]
