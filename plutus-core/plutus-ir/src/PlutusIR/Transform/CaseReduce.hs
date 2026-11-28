@@ -17,6 +17,7 @@ import GHC.IsList (fromList)
 import PlutusCore qualified as PLC
 import PlutusIR.Pass
 import PlutusIR.TypeCheck qualified as TC
+import PlutusPrelude (unArray)
 
 caseReducePass
   :: ( PLC.Typecheckable uni fun
@@ -42,5 +43,6 @@ processTerm = \case
   -- not to fully optimize such scripts, since they aren't valid anyway.
   Case ann _ (Constr _ _ i args) cs | Just c <- cs ^? wix i -> mkIterApp c ((ann,) <$> args)
   Case ann _ (Constant _ con) cs
-    | Right t <- headSpineToTerm ann (second (Constant ann) (caseBuiltin con (fromList cs))) -> t
+    | Right t <- headSpineToTerm ann (second (Constant ann) (caseBuiltin con (unArray $ fromList cs))) ->
+        t
   t -> t

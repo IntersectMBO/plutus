@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -39,7 +41,7 @@ module PlutusPrelude
   , coerceVia
   , coerceArg
   , coerceRes
-  , (#.)
+  , ( #. )
   , Generic
   , NFData
   , Natural
@@ -79,6 +81,10 @@ module PlutusPrelude
   , reoption
   , enumerate
   , tabulateArray
+  , unArray
+  , lengthArray#
+  , indexWord64Array#
+  , unsafeIndexArray#
   , (?)
   , ensure
   , asksM
@@ -152,12 +158,14 @@ import Data.Functor.Identity (Identity (..))
 import Data.List.Extra (enumerate)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Primitive.Array qualified as Primitive
 import Data.Semigroup (Endo (..), stimes)
 import Data.Text qualified as T
 import Data.Traversable (for)
 import Data.Typeable (Typeable)
 import Data.Word (Word64, Word8)
 import Debug.Trace (trace, traceShowId)
+import GHC.Exts (Array#, Int (I#), indexArray#, sizeofArray#)
 import GHC.Generics (Generic)
 import GHC.Natural (Natural)
 import Prettyprinter
@@ -168,8 +176,10 @@ import Text.PrettyBy.Internal
 class HasAnn f where
   -- | Get the outermost annotation.
   getAnn :: f a -> a
+
   -- | Modify the outermost annotation.
   modifyAnn :: (a -> a) -> f a -> f a
+
   -- | Set the outermost annotation.
   setAnn :: a -> f a -> f a
   setAnn = modifyAnn . const
@@ -222,9 +232,9 @@ coerceRes = coerce
 
 -- See Note "Function coercion" in GHC.Internal.Data.Functor.Utils.
 -- | Same as @(.)@, but ignores the first argument and uses a no-op coerction instead.
-(#.) :: Coercible b c => (b -> c) -> (a -> b) -> a -> c
-(#.) _ = coerce
-{-# INLINE (#.) #-}
+( #. ) :: Coercible b c => (b -> c) -> (a -> b) -> a -> c
+( #. ) _ = coerce
+{-# INLINE ( #. ) #-}
 
 (<<$>>) :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
 (<<$>>) = fmap . fmap
@@ -255,6 +265,33 @@ We can't provide an actual instance because of the @Distributive@ superclass: @A
 @Distributive@ unless we assume that indices in an array range over the entirety of @i@. -}
 tabulateArray :: (Bounded i, Enum i, Ix i) => (i -> a) -> Array i a
 tabulateArray f = listArray (minBound, maxBound) $ map f enumerate
+
+-- | The underlying primitive array, without its @Primitive.Array@ wrapper.
+unArray :: Primitive.Array a -> Array# a
+unArray (Primitive.Array array) = array
+{-# INLINE unArray #-}
+
+-- | The number of elements in a primitive array.
+lengthArray# :: Array# a -> Int
+lengthArray# array = I# (sizeofArray# array)
+{-# INLINE lengthArray# #-}
+
+-- | Look up a primitive array element by a @Word64@ index, returning @Nothing@ if out of bounds.
+indexWord64Array# :: Array# a -> Word64 -> Maybe a
+indexWord64Array# array i
+  -- The length is a non-negative @Int@, so it fits in @Word64@ on 32- and 64-bit platforms.
+  | i < fromIntegral (lengthArray# array) =
+      -- @i@ is non-negative and smaller than the array's @Int@ length, so it fits in @Int@.
+      Just $ unsafeIndexArray# array (fromIntegral i)
+  | otherwise = Nothing
+{-# INLINE indexWord64Array# #-}
+
+{-| Index a primitive array without bounds checking. The index must be non-negative and
+smaller than the array's length. -}
+unsafeIndexArray# :: Array# a -> Int -> a
+unsafeIndexArray# array (I# i) = case indexArray# array i of
+  (# x #) -> x
+{-# INLINE unsafeIndexArray# #-}
 
 newtype PairT b f a = PairT
   { unPairT :: f (b, a)

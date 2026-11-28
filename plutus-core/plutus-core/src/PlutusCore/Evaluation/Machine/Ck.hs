@@ -45,7 +45,7 @@ import Data.DList qualified as DList
 import Data.List.Extras (wix)
 import Data.STRef
 import Data.Text (Text)
-import Data.Vector qualified as Vector
+import GHC.IsList (fromList)
 import Prettyprinter (vcat)
 import Universe
 
@@ -255,7 +255,7 @@ FrameCase cs : stack <| e = case e of
       throwErrorWithCause (StructuralError $ MissingCaseBranchMachineError i) $ ckValueToTerm e
   VCon val -> do
     caser <- asks ckCaserBuiltin
-    case unCaserBuiltin caser val $ Vector.fromList cs of
+    case unCaserBuiltin caser val (unArray $ fromList cs) of
       HeadError err ->
         throwErrorWithCause (OperationalError $ CkCaseBuiltinError err) $ ckValueToTerm e
       HeadOnly fX -> stack |> fX

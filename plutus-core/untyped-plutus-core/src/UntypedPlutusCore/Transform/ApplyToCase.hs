@@ -16,7 +16,7 @@ optimizations, because CSE can both destroy and enable further optimizations. -}
 module UntypedPlutusCore.Transform.ApplyToCase (applyToCase) where
 
 import Control.Lens (over)
-import Data.Vector qualified as V
+import GHC.IsList (fromList)
 import PlutusPrelude (getAnn)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Optimizer
@@ -43,5 +43,5 @@ processTerm t = case splitApplication t of
   (fun, args)
     | length args >= minArgs ->
         let ann = getAnn t
-         in Case ann (Constr ann 0 (processTerm . snd <$> args)) (V.singleton (processTerm fun))
+         in Case ann (Constr ann 0 (processTerm . snd <$> args)) (fromList [processTerm fun])
   _ -> over termSubterms processTerm t

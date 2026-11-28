@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NPlusKPatterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -58,11 +59,11 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 import Control.Lens hiding (Context)
 import Control.Monad
 import Control.Monad.Primitive
+import Data.Primitive.Array (Array (..))
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.RandomAccessList.SkewBinary qualified as Env
 import Data.Semigroup (stimes)
-import Data.Vector qualified as V
 import GHC.TypeNats
 import Universe
 
@@ -110,7 +111,12 @@ data Context uni fun ann
       ![NTerm uni fun ann]
       !(ArgStack uni fun ann)
       !(Context uni fun ann)
-  | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+  | FrameCases
+      ann
+      !(CekValEnv uni fun ann)
+      -- See Note [Case branch arrays].
+      {-# UNPACK #-} !(Array (NTerm uni fun ann))
+      !(Context uni fun ann)
   | NoFrame
 
 deriving stock instance
@@ -161,9 +167,9 @@ computeCek !ctx !env (Constr ann i es) = do
     (t : rest) -> Computing (FrameConstr ann env i rest NilStack ctx) env t
     [] -> Returning ctx $ VConstr i EmptyStack
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
-computeCek !ctx !env (Case ann scrut cs) = do
+computeCek !ctx !env (Case ann scrut (Array cs)) = do
   stepAndMaybeSpend BCase
-  pure $ Computing (FrameCases ann env cs ctx) env scrut
+  pure $ Computing (FrameCases ann env (Array cs) ctx) env scrut
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek !_ !_ (Error _) =
   throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
@@ -212,19 +218,11 @@ returnCek (FrameConstr ann env i todo done ctx) e = do
           go acc (ConsStack x xs) = go (ConsStackNonEmpty x acc) xs
        in pure $ Returning ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
-returnCek (FrameCases ann env cs ctx) e = case e of
-  -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
-  -- As it happens, this will currently never trigger, since i is a Word64, and the largest
-  -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
-  -- "apparently good" value.
-  (VConstr i _)
-    | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
-        throwErrorWithValue (StructuralError $ MissingCaseBranchMachineError i) e
-  (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
-    Just t ->
-      case args of
-        EmptyStack -> computeCek ctx env t
-        MultiStack rest -> computeCek (FrameAwaitFunValueN ann rest ctx) env t
+returnCek (FrameCases ann env (Array cs) ctx) e = case e of
+  VConstr i args -> case indexWord64Array# cs i of
+    Just t -> case args of
+      EmptyStack -> computeCek ctx env t
+      MultiStack rest -> computeCek (FrameAwaitFunValueN ann rest ctx) env t
     Nothing -> throwErrorWithValue (StructuralError $ MissingCaseBranchMachineError i) e
   VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
     HeadError err -> throwErrorWithValue (OperationalError $ CekCaseBuiltinError err) e

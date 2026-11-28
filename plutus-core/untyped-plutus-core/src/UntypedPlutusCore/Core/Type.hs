@@ -29,7 +29,8 @@ import Control.Lens
 import Control.Monad.Except
 import PlutusPrelude
 
-import Data.Vector
+import Data.Primitive.Array (Array)
+import GHC.IsList (fromList)
 import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
@@ -69,6 +70,13 @@ Currently, 'Case' only supports booleans and integers, but we plan to extend it 
 See the @CaseBuiltin DefaultUni@ instance for how casing behaves for supported built-in types.
 -}
 
+{- Note [Case branch arrays]
+@Array@ is a wrapper around @Array#@. The branch-array fields of @Case@ and @FrameCases@ have
+@UNPACK@ annotations, so GHC stores the underlying @Array#@ directly in those constructors.
+This saves allocating a separate @Array@ wrapper. Built-in casers also take @Array#@, so passing
+the branches to a caser doesn't require allocating that wrapper again.
+-}
+
 {-| The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
 
 1. all types are removed
@@ -100,7 +108,8 @@ data Term name uni fun ann
     -- See Note [Constr tag type]
     Constr !ann !Word64 ![Term name uni fun ann]
   | -- See Note [Supported case-expressions].
-    Case !ann !(Term name uni fun ann) !(Vector (Term name uni fun ann))
+    -- See Note [Case branch arrays].
+    Case !ann !(Term name uni fun ann) {-# UNPACK #-} !(Array (Term name uni fun ann))
   deriving stock (Functor, Generic)
 
 deriving stock instance
