@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
@@ -23,6 +24,9 @@
 {-# LANGUAGE UnliftedDatatypes #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+#if defined(x86_64_HOST_ARCH)
+{-# OPTIONS_GHC -fregs-iterative #-}
+#endif
 
 -- | The CEK machine.
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
@@ -119,6 +123,11 @@ import Universe
 
 {- Note [Compilation peculiarities]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
+
+On x86-64, @-fregs-iterative@ lets GHC keep values in the same registers across CEK
+transitions. With GHC 9.6.7, the default allocator emitted seven register copies when
+the @Apply@ case of @computeCek@ pushed a frame and jumped back to evaluate the function.
+The iterative allocator reduced this to one copy.
 
 Don't use @StrictData@, it makes the machine slower by several percent.
 
